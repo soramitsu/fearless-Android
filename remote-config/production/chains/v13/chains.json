@@ -77,7 +77,7 @@
     },
     "nodes": [
       {
-        "url": "wss://api-polkadot.dwellir.com",
+        "url": "wss://api-polkadot.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -168,7 +168,7 @@
     },
     "nodes": [
       {
-        "url": "wss://api-kusama.dwellir.com",
+        "url": "wss://api-kusama.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -231,7 +231,7 @@
         "name": "Parity node"
       },
       {
-        "url": "wss://westend-rpc.dwellir.com",
+        "url": "wss://api-westend.n.dwellir.com",
         "name": "Dwellir node"
       }
     ],
@@ -328,7 +328,7 @@
     },
     "nodes": [
       {
-        "url": "wss://api-assethub-kusama.dwellir.com",
+        "url": "wss://api-asset-hub-kusama.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -453,7 +453,7 @@
     },
     "nodes": [
       {
-        "url": "wss://api-assethub-polkadot.dwellir.com",
+        "url": "wss://api-asset-hub-polkadot.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -673,7 +673,7 @@
     },
     "nodes": [
       {
-        "url": "wss://acala-rpc.dwellir.com",
+        "url": "wss://api-acala.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -1098,7 +1098,7 @@
     },
     "nodes": [
       {
-        "url": "wss://api-karura.dwellir.com",
+        "url": "wss://api-karura.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -1244,10 +1244,6 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-moonriver.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://wss.moonriver.moonbeam.network",
         "name": "PureStake node"
       },
@@ -1326,16 +1322,12 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-shiden.dwellir.com",
+        "url": "wss://api-shiden.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
         "url": "wss://rpc.shiden.astar.network",
         "name": "StakeTechnologies node"
-      },
-      {
-        "url": "wss://shiden.public.blastapi.io",
-        "name": "Blast node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Shiden.svg",
@@ -1523,7 +1515,7 @@
     },
     "nodes": [
       {
-        "url": "wss://api-bifrost-kusama.dwellir.com",
+        "url": "wss://api-bifrost-kusama.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -1634,10 +1626,6 @@
       {
         "url": "wss://spiritnet.kilt.io/",
         "name": "KILT Protocol node"
-      },
-      {
-        "url": "wss://kilt-rpc.dwellir.com",
-        "name": "Dwellir node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/kilt.svg",
@@ -1748,10 +1736,6 @@
       }
     ],
     "nodes": [
-      {
-        "url": "wss://api-quartz.dwellir.com",
-        "name": "Dwellir node"
-      },
       {
         "url": "wss://eu-ws-quartz.unique.network",
         "name": "Unique Europe node"
@@ -1930,10 +1914,6 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-picasso.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://picasso-rpc.composable.finance",
         "name": "Composable Finance node"
       },
@@ -2065,10 +2045,6 @@
       {
         "url": "wss://rpc-para.clover.finance",
         "name": "Clover node"
-      },
-      {
-        "url": "wss://clover-rpc.dwellir.com",
-        "name": "Dwellir node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/clover.svg",
@@ -2177,16 +2153,12 @@
     },
     "nodes": [
       {
-        "url": "wss://api-astar.dwellir.com",
+        "url": "wss://api-astar.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
         "url": "wss://rpc.astar.network",
         "name": "Astar node"
-      },
-      {
-        "url": "wss://astar.public.blastapi.io",
-        "name": "Blast node"
       },
       {
         "url": "wss://astar.public.curie.radiumblock.co/ws",
@@ -2365,10 +2337,6 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-parallel.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://rpc.parallel.fi",
         "name": "Parallel node"
       }
@@ -2428,7 +2396,7 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-basilisk.dwellir.com",
+        "url": "wss://api-basilisk.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -2590,10 +2558,6 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-moonbeam.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://wss.api.moonbeam.network",
         "name": "Moonbeam Foundation node"
       },
@@ -2712,7 +2676,7 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-kintsugi.dwellir.com",
+        "url": "wss://api-kintsugi.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -3034,7 +2998,7 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-centrifuge.dwellir.com",
+        "url": "wss://api-centrifuge.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -3121,7 +3085,7 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-interlay.dwellir.com",
+        "url": "wss://api-interlay.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -3197,10 +3161,6 @@
     ],
     "nodes": [
       {
-        "url": "wss://polkadex-mainnet-rpc.dwellir.com",
-        "name": "Dwellir"
-      },
-      {
         "url": "wss://polkadex.api.onfinality.io/public-ws",
         "name": "OnFinality"
       },
@@ -3274,7 +3234,7 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-neuroweb.dwellir.com",
+        "url": "wss://api-neuroweb.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -3313,7 +3273,7 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-unique.dwellir.com",
+        "url": "wss://api-unique.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -3407,7 +3367,7 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-bifrost-polkadot.dwellir.com",
+        "url": "wss://api-bifrost-polkadot.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -3446,7 +3406,7 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-litentry.dwellir.com",
+        "url": "wss://api-heima.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -3484,10 +3444,6 @@
       }
     ],
     "nodes": [
-      {
-        "url": "wss://api-phala.dwellir.com",
-        "name": "Dwellir node"
-      },
       {
         "url": "wss://api.phala.network/ws",
         "name": "Phala node"
@@ -3533,10 +3489,6 @@
       }
     ],
     "nodes": [
-      {
-        "url": "wss://api-composable.dwellir.com",
-        "name": "Dwellir node"
-      },
       {
         "url": "wss://rpc.composable.finance",
         "name": "Composable node"
@@ -4072,10 +4024,6 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-turing.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://rpc.turing.oak.tech",
         "name": "OAK node"
       }
@@ -4293,10 +4241,6 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-amplitude.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://rpc-amplitude.pendulumchain.tech",
         "name": "PendulumChain node"
       }
@@ -4345,7 +4289,7 @@
         "name": "Darwinia Network node"
       },
       {
-        "url": "wss://darwinia-rpc.dwellir.com",
+        "url": "wss://api-darwinia.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -5398,7 +5342,7 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-aleph-zero-mainnet.dwellir.com",
+        "url": "wss://api-aleph-zero-mainnet.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -5437,7 +5381,7 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-kusama-bridge-hub.dwellir.com",
+        "url": "wss://api-bridge-hub-kusama.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -5706,7 +5650,7 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-frequency.dwellir.com",
+        "url": "wss://api-frequency.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -5899,7 +5843,7 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-pendulum.dwellir.com",
+        "url": "wss://api-pendulum.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -6482,14 +6426,6 @@
       {
         "url": "wss://bsc.publicnode.com",
         "name": "Public wss"
-      },
-      {
-        "url": "https://bsc-mainnet.blastapi.io/",
-        "name": "Blast https"
-      },
-      {
-        "url": "wss://bsc-mainnet.blastapi.io/",
-        "name": "Blast wss"
       },
       {
         "url": "https://bsc-dataseed1.ninicoin.io/",
@@ -7139,14 +7075,6 @@
     ],
     "nodes": [
       {
-        "url": "https://optimism-mainnet.blastapi.io/",
-        "name": "Blast https node"
-      },
-      {
-        "url": "wss://optimism-mainnet.blastapi.io/",
-        "name": "Blast wss node"
-      },
-      {
         "url": "https://optimism.publicnode.com/",
         "name": "Public http node"
       },
@@ -7429,10 +7357,6 @@
       {
         "url": "https://zkevm-rpc.com",
         "name": "Zkevm https node"
-      },
-      {
-        "url": "https://polygon-zkevm-mainnet.public.blastapi.io",
-        "name": "Blast https node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Polygon.svg",
@@ -7483,10 +7407,6 @@
       {
         "url": "wss://zeta-chain.drpc.org",
         "name": "Drpc wss node"
-      },
-      {
-        "url": "https://zetachain-mainnet.public.blastapi.io",
-        "name": "Blast https node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Zetachain.svg",
@@ -7828,7 +7748,7 @@
     ],
     "nodes": [
       {
-        "url": "wss://xxnetwork-rpc.dwellir.com",
+        "url": "wss://api-xxnetwork.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -7880,10 +7800,6 @@
       {
         "url": "wss://turing-testnet.avail-rpc.com",
         "name": "Ankr node"
-      },
-      {
-        "url": "wss://avail-turing.public.blastapi.io",
-        "name": "Blast node"
       },
       {
         "url": "wss://avail-turing-rpc.publicnode.com",
@@ -8475,10 +8391,6 @@
     ],
     "nodes": [
         {
-            "url": "wss://avail-mainnet.public.blastapi.io/",
-            "name": "Blastapi node"
-        },
-        {
           "url": "wss://mainnet.avail-rpc.com/",
           "name": " Ankr node"
         },
@@ -8795,7 +8707,7 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-polkadot-bridge-hub.dwellir.com",
+        "url": "wss://api-bridge-hub-polkadot.n.dwellir.com",
         "name": "Dwellir node"
       },
       {
@@ -8950,10 +8862,6 @@
       }
     ],
     "nodes": [
-      {
-        "url": "wss://api-invarch.dwellir.com",
-        "name": "Dwellir node"
-      },
       {
         "url": "wss://invarch.ibp.network",
         "name": "IBP1 node"

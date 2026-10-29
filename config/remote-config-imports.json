@@ -56,7 +56,7 @@
       "commit": "ca1c2655ff541ae5942d820423962d34fd29d7f9",
       "sourcePath": "chains/v13/chains.json",
       "upstreamSha256": "79a583f08f71139a31e00c825c746891cef50c04aa81318aaa492807757b9cec",
-      "ownedSha256": "60fa44c98c8a649aee5e2a73528f95846ea720479be2ac4746bcb26b1b305fe8"
+      "ownedSha256": "515c46814263a9dd6def819821311ece49ddcc7b33f26d6d4a408abe6c7ff39f"
     },
     {
       "path": "production/fiat/fiats.json",
@@ -4344,7 +4344,7 @@
       "commit": "f2ed4ccf1d3a6376b60ebd69d823a3f7748ddc4b",
       "sourcePath": "chains/v13/chains_dev_prod.json",
       "upstreamSha256": "8c7f01cd1ee0866df13ac3faa1315007361c96ce067cc062aea2d6e48ccc3235",
-      "ownedSha256": "7776c44f7ebf864567b7f63914bdc923f241a8e5109fb1a859fb39cf50841ced"
+      "ownedSha256": "6f87a1e3f2152638c6b695dcb2883a3830bd437095ee9ead3875e0b85599cb5e"
     },
     {
       "path": "development/fiat/fiats.json",
@@ -5167,6 +5167,8 @@
     "Omit unavailable optional Rootstock icon from bundled local_chains",
     "Correct bundled Latest Mainnet icon to latestchain.svg",
     "Disable unreachable Reef Mainnet in app-owned catalogs after retaining unavailable chain parents and clearing stale staking selection; configured RPC returned HTTP502 on 2026-10-25. Legacy shared feeds remain unchanged.",
-    "Keep XCM availableDestinations only for routes with a bundled definition (Polkadot -> Polkadot Asset Hub DOT, Kusama -> Kusama Asset Hub KSM, Liberland -> SORA LLD, LLM, XOR); 2026-10-28 live dry runs found Karura -> Kusama Asset Hub RMRK trapping funds, other listed routes refused at the origin and Rococo gone; Android executes none of them"
+    "Keep XCM availableDestinations only for routes with a bundled definition (Polkadot -> Polkadot Asset Hub DOT, Kusama -> Kusama Asset Hub KSM, Liberland -> SORA LLD, LLM, XOR); 2026-10-28 live dry runs found Karura -> Kusama Asset Hub RMRK trapping funds, other listed routes refused at the origin and Rococo gone; Android executes none of them",
+    "remote-config/production/chains/v13/chains.json: drop discontinued Blast API nodes; move Dwellir nodes from retired *.dwellir.com hosts to n.dwellir.com hosts that returned the network's genesis on 2026-10-29, and drop the rest unless a network has no other node. Only node entries change.",
+    "remote-config/development/chains/v13/chains_dev_prod.json: drop discontinued Blast API nodes; move Dwellir nodes from retired *.dwellir.com hosts to n.dwellir.com hosts that returned the network's genesis on 2026-10-29, and drop the rest unless a network has no other node. Only node entries change."
   ]
 }
