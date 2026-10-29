@@ -110,17 +110,6 @@
   <string name="backup_wallet_show_raw_seed">Mostrar semente original</string>
   <string name="backup_wallet_warning_about_lose_phrase">Se você perder o acesso a este dispositivo, seus fundos serão perdidos, a menos que você faça backup!</string>
   <string name="banners_backup_description">Se você perder seu dispositivo, seus fundos serão perdidos para sempre</string>
-  <string name="beacon_connect_warning">Aviso: Ao clicar em conectar, você permite que este dapp visualize seu endereço público. Esta é uma etapa de segurança importante para proteger seus dados contra possíveis riscos de phishing.</string>
-  <string name="beacon_connected">Conectado a %s</string>
-  <string name="beacon_connected_to">Conectado a</string>
-  <string name="beacon_decline_signing_message">Deseja recusar esta transação?</string>
-  <string name="beacon_declined">Recusado</string>
-  <string name="beacon_exit_message">Deseja encerrar esta conexão?</string>
-  <string name="beacon_pairing_cancelled">Pareamento cancelado</string>
-  <string name="beacon_sign_review">Por favor, revise as informações abaixo antes de confirmar</string>
-  <string name="beacon_signed">Aprovado</string>
-  <string name="beacon_title">Farol</string>
-  <string name="beacon_transaction_warning">Aviso: certifique-se de confiar neste site. Ao interagir com ele, você permite que este site acesse seus fundos.</string>
   <string name="btn_backup_with_google">Backup para o Google</string>
   <string name="buy_completed">Compra iniciada! Por favor aguarde até 60 minutos. Pode acompanhar o estado através do e-mail.</string>
   <string name="chain_selection_all_networks">Todas as redes</string>
@@ -193,7 +182,6 @@
   <string name="common_confirm_title">Confirmação</string>
   <string name="common_confirmation_title">Tem a certeza?</string>
   <string name="common_confirmed">Confirmado</string>
-  <string name="common_connect">Conectar</string>
   <string name="common_connection_problems">Problemas de conexão</string>
   <string name="common_continue">Continuar</string>
   <string name="common_copied">Copiado para a área de transferência</string>
@@ -477,8 +465,6 @@
   <string name="exchange_alert_message">Tenha cuidado, pois os endereços de depósito e retirada podem ser diferentes.</string>
   <string name="exchange_alert_title">Este endereço está marcado como uma corretora</string>
   <string name="exchange_warning_message">Este endereço está marcado como uma corretora, tome cuidado pois os endereços de depósito e saque podem ser diferentes.</string>
-  <string name="experimental_beacon">Beacon DAPP</string>
-  <string name="experimental_title">Recursos experimentais</string>
   <string name="export_ethereum_title">Exportar para Ethereum</string>
   <string name="export_json_password_confirm">Confirmar senha</string>
   <string name="export_json_password_explanation">A senha é necessária para encriptar a sua conta e armazenar como ficheiro de restauro JSON. Por favor, crie uma senha para continuar a operação.</string>
@@ -770,8 +756,6 @@
   <string name="pools_limit_has_reached_error_message">O limite de pools nesta rede foi atingido</string>
   <string name="pools_limit_has_reached_error_title">Você não pode criar mais pools</string>
   <string name="profile_accounts_title">Contas</string>
-  <string name="profile_experimets_subtitle">Dapps e mais...</string>
-  <string name="profile_experimets_title">Recursos experimentais</string>
   <string name="profile_language_title">Idioma</string>
   <string name="profile_logout_description">Esta ação resultará na eliminação de todas as contas deste dispositivo. Certifique-se de que fez o backup da sua frase-chave antes de prosseguir.</string>
   <string name="profile_logout_title">Sair</string>
@@ -1168,7 +1152,6 @@
   <string name="stories_version2_slide5_title">Harmonia com o ecossistema</string>
   <string name="substrate_crypto_type">Criptografia de par de chaves do tipo Substrate</string>
   <string name="substrate_secret_derivation_path">Caminho de derivação secreto da Substrate\n</string>
-  <string name="success_message">Você pode retornar ao seu navegador agora</string>
   <string name="support_and_feedback">Suporte &amp; Feedback</string>
   <string name="switch_node">Alternar node</string>
   <string name="switch_node_autoselect_title">Seleção automática de nodes</string>

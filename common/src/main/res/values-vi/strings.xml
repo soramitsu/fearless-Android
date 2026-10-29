@@ -119,17 +119,6 @@
   <string name="banner_addwallet_ton_title">Tham gia hệ sinh thái phát triển nhanh nhất từ trước đến nay</string>
   <string name="banners_backup_description">Nếu bạn làm mất thiết bị của mình, bạn\n sẽ mất tiền của bạn mãi mãi</string>
   <string name="banners_liquidity_pools_title">Pool thanh khoản</string>
-  <string name="beacon_connect_warning">Cảnh báo: Bằng cách nhấp vào kết nối, bạn cho phép dapp này xem địa chỉ công khai của bạn. Đây là một bước bảo mật quan trọng để bảo vệ dữ liệu của bạn khỏi các nguy cơ lừa đảo tiềm ẩn.</string>
-  <string name="beacon_connected">Đã kết nối với %s</string>
-  <string name="beacon_connected_to">Đã kết nối với</string>
-  <string name="beacon_decline_signing_message">Bạn có muốn từ chối giao dịch này?</string>
-  <string name="beacon_declined">Từ chối</string>
-  <string name="beacon_exit_message">Bạn có muốn đóng kết nối này không?</string>
-  <string name="beacon_pairing_cancelled">Đã hủy ghép nối</string>
-  <string name="beacon_sign_review">Vui lòng xem lại thông tin bên dưới trước khi xác nhận</string>
-  <string name="beacon_signed">Đã chấp thuận</string>
-  <string name="beacon_title">Beacon</string>
-  <string name="beacon_transaction_warning">Cảnh báo: Hãy chắc chắn rằng bạn tin tưởng trang web này. Bằng cách tương tác với nó, bạn cho phép trang web này truy cập tiền của bạn.</string>
   <string name="btn_backup_with_google">Sao lưu bằng Google</string>
   <string name="buy_completed">Đã bắt đầu mua hàng! Vui lòng đợi, tối đa 60 phút. Bạn có thể theo dõi trạng thái trên email.</string>
   <string name="chain_selection_all_networks">Tất cả các mạng</string>
@@ -205,7 +194,6 @@
   <string name="common_confirm_title">Xác nhận</string>
   <string name="common_confirmation_title">Bạn có chắc không?</string>
   <string name="common_confirmed">Đã xác nhận</string>
-  <string name="common_connect">Kết nối</string>
   <string name="common_connection_problems">Sự cố kết nối</string>
   <string name="common_contacts">Liên hệ</string>
   <string name="common_continue">Tiếp tục</string>
@@ -532,8 +520,6 @@
   <string name="exchange_alert_message">Hãy cẩn thận địa chỉ gửi và rút tiền có thể khác nhau.</string>
   <string name="exchange_alert_title">Địa chỉ này được đánh dấu là giao dịch</string>
   <string name="exchange_warning_message">Địa chỉ này được đánh dấu là một sàn giao dịch, hãy cẩn thận, địa chỉ gửi tiền và địa chỉ rút tiền có thể khác nhau.</string>
-  <string name="experimental_beacon">Báo hiệu DAPP</string>
-  <string name="experimental_title">Tính năng thử nghiệm</string>
   <string name="export_ethereum_title">Xuất Ethereum</string>
   <string name="export_json_password_confirm">Xác nhận mật khẩu</string>
   <string name="export_json_password_explanation">Bạn sẽ cần có mật khẩu để mã hóa tài khoản của bạn và lưu trữ dưới dạng file Restore JSON. Vui lòng tạo mật khẩu để tiếp tục.</string>
@@ -858,8 +844,6 @@
   <string name="pools_limit_has_reached_error_title">Bạn không thể tạo thêm pool</string>
   <string name="profile_account_score_title">Điểm nomis đa chuỗi</string>
   <string name="profile_accounts_title">Tài khoản</string>
-  <string name="profile_experimets_subtitle">Dapps và hơn thế nữa...</string>
-  <string name="profile_experimets_title">Tính năng thử nghiệm</string>
   <string name="profile_language_title">Ngôn ngữ</string>
   <string name="profile_logout_description">Hành động này sẽ dẫn đến việc xóa tất cả các tài khoản khỏi thiết bị này. Hãy đảm bảo rằng bạn đã sao lưu cụm mật khẩu của mình trước khi tiếp tục.</string>
   <string name="profile_logout_title">Đăng xuất</string>
@@ -1264,7 +1248,6 @@
   <string name="stories_version2_slide5_title">Hòa hợp với hệ sinh thái</string>
   <string name="substrate_crypto_type">Substrate keypair crypto type</string>
   <string name="substrate_secret_derivation_path">Substrate secret derivation path\n</string>
-  <string name="success_message">Bạn có thể quay lại trình duyệt của mình ngay bây giờ</string>
   <string name="success_message_transaction_sent">Giao dịch của bạn đã được gửi thành công đến blockchain</string>
   <string name="support_and_feedback">Hỗ trợ &amp; Phản hồi</string>
   <string name="switch_node">Chuyển đổi node</string>

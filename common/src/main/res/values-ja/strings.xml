@@ -114,17 +114,6 @@
   <string name="balance_locks_screen_title">ロックされた詳細</string>
   <string name="banners_backup_description">デバイスを失くすと、永久に資金も失います</string>
   <string name="banners_liquidity_pools_title">流動性プール</string>
-  <string name="beacon_connect_warning">警告：「接続」をタップすると、このDappがあなたのパブリック・アドレスを参照できるようになります。これは、潜在的なフィッシングのリスクからデータを保護するための重要なセキュリティの手順です。</string>
-  <string name="beacon_connected">%sに接続しました</string>
-  <string name="beacon_connected_to">に接続しました</string>
-  <string name="beacon_decline_signing_message">このトランザクションを拒否しますか？</string>
-  <string name="beacon_declined">拒否しました</string>
-  <string name="beacon_exit_message">このコネクションを閉じますか？</string>
-  <string name="beacon_pairing_cancelled">ペアリングがキャンセルされました</string>
-  <string name="beacon_sign_review">以下の情報を読んでから確認してください</string>
-  <string name="beacon_signed">承認済み</string>
-  <string name="beacon_title">ビーコン</string>
-  <string name="beacon_transaction_warning">警告：このサイトを信頼できるかどうかを確認してください。このサイトとやり取りすることにより、このサイトがあなたの資金にアクセスできるようになります</string>
   <string name="btn_backup_with_google">Googleでバックアップ</string>
   <string name="buy_completed">購入開始！ 60分ほどお待ちください。メールでステータスを追跡できます</string>
   <string name="chain_selection_all_networks">全てのネットワーク</string>
@@ -200,7 +189,6 @@
   <string name="common_confirm_title">確認</string>
   <string name="common_confirmation_title">本当によいですか？</string>
   <string name="common_confirmed">確認済み</string>
-  <string name="common_connect">接続</string>
   <string name="common_connection_problems">接続の問題</string>
   <string name="common_contacts">連絡先</string>
   <string name="common_continue">続行</string>
@@ -496,8 +484,6 @@
   <string name="exchange_alert_message">入金アドレスと出金アドレスが異なる場合があるので注意してください</string>
   <string name="exchange_alert_title">このアドレスは取引所としてマークされていますが</string>
   <string name="exchange_warning_message">このアドレスは取引所としてマークされていますが、入金アドレスと出金アドレスが異なる場合があるので注意してください</string>
-  <string name="experimental_beacon">ビーコンDapp</string>
-  <string name="experimental_title">実験的な機能</string>
   <string name="export_ethereum_title">イーサリアム(Ethereum)のエクスポート</string>
   <string name="export_json_password_confirm">パスワードの確認</string>
   <string name="export_json_password_explanation">アカウントを暗号化してリカバリJSONとして保存するには、パスワードが必要です。操作を続行するには、パスワードを作成してください</string>
@@ -818,8 +804,6 @@
   <string name="pools_limit_has_reached_error_title">これ以上プールを作成できません</string>
   <string name="profile_account_score_title">Nomisマルチチェーンスコア</string>
   <string name="profile_accounts_title">アカウント</string>
-  <string name="profile_experimets_subtitle">Dappsなど...</string>
-  <string name="profile_experimets_title">実験的な機能</string>
   <string name="profile_language_title">言語</string>
   <string name="profile_logout_description">このアクションを行うと、このデバイスから全アカウントが削除されます。続行する前に、パスフレーズのバックアップを取ったことを必ず確認してください</string>
   <string name="profile_logout_title">ログアウト</string>
@@ -1224,7 +1208,6 @@
   <string name="stories_version2_slide5_title">エコシステムとの調和</string>
   <string name="substrate_crypto_type">サブストレート(Substrate)キー・ペアの暗号方式</string>
   <string name="substrate_secret_derivation_path">サブストレート(Substrate)の秘密の派生パス(Derivation Path)</string>
-  <string name="success_message">ブラウザに戻ることができます</string>
   <string name="success_message_transaction_sent">取引が正常にブロックチェーンに送信されました</string>
   <string name="support_and_feedback">サポートとフィードバック</string>
   <string name="switch_node">ノードの切り替え</string>

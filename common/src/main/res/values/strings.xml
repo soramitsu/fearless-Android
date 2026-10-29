@@ -122,17 +122,6 @@
   <string name="banners_demeter_description">Stake and farm to earn yield\non Demeter Protocol</string>
   <string name="banners_demeter_title">Demeter Protocol</string>
   <string name="banners_liquidity_pools_title">Liquidity Pools</string>
-  <string name="beacon_connect_warning">Warning: By clicking connect, you allow this dapp to view your public address. This is an important security step to protect your data from potential phishing risks.</string>
-  <string name="beacon_connected">Connected to %s</string>
-  <string name="beacon_connected_to">Connected to</string>
-  <string name="beacon_decline_signing_message">Do you want to decline this transaction?</string>
-  <string name="beacon_declined">Declined</string>
-  <string name="beacon_exit_message">Do you want to close this connection?</string>
-  <string name="beacon_pairing_cancelled">Pairing cancelled</string>
-  <string name="beacon_sign_review">Please review information below before confirming</string>
-  <string name="beacon_signed">Approved</string>
-  <string name="beacon_title">Beacon</string>
-  <string name="beacon_transaction_warning">Warning: Make sure you trust this site. By interacting with it, you allow this site access your funds.</string>
   <string name="btn_backup_with_google">Backup with Google</string>
   <string name="buy_completed">Purchase initiated! Please wait up to 60 minutes. You can track the status with the confirmation email.</string>
   <string name="chain_selection_all_networks">All networks</string>
@@ -208,7 +197,6 @@
   <string name="common_confirm_title">Confirmation</string>
   <string name="common_confirmation_title">Are you sure?</string>
   <string name="common_confirmed">Confirmed</string>
-  <string name="common_connect">Connect</string>
   <string name="common_connection_problems">Connection Problems</string>
   <string name="common_contacts">Contacts</string>
   <string name="common_continue">Continue</string>
@@ -560,8 +548,6 @@
   <string name="exchange_alert_message">Be careful the deposit and withdrawal addresses may different.</string>
   <string name="exchange_alert_title">This address is marked as an exchange</string>
   <string name="exchange_warning_message">This address is marked as an exchange, be careful as the deposit and withdrawal addresses may different.</string>
-  <string name="experimental_beacon">Beacon DAPP</string>
-  <string name="experimental_title">Experimental Features</string>
   <string name="export_ethereum_title">Export Ethereum</string>
   <string name="export_json_password_confirm">Confirm password</string>
   <string name="export_json_password_explanation">A password is required to encrypt your account and store it as Restore JSON. Please create a password to continue the operation.</string>
@@ -889,8 +875,6 @@
   <string name="pools_limit_has_reached_error_title">You cannot create more pools</string>
   <string name="profile_account_score_title">Nomis multichain score</string>
   <string name="profile_accounts_title">Accounts</string>
-  <string name="profile_experimets_subtitle">Dapps and more...</string>
-  <string name="profile_experimets_title">Experimental features</string>
   <string name="profile_language_title">Language</string>
   <string name="profile_logout_description">This action will result in deleting all accounts from this device. Make sure you have backed up your passphrase before proceeding.</string>
   <string name="profile_logout_title">Logout</string>
@@ -1300,7 +1284,6 @@
   <string name="stories_version2_slide5_title">Harmony with the ecosystem</string>
   <string name="substrate_crypto_type">Substrate keypair crypto type</string>
   <string name="substrate_secret_derivation_path">Substrate secret derivation path\n</string>
-  <string name="success_message">You can return to your browser now</string>
   <string name="success_message_transaction_sent">Your transaction has been successfully sent to the blockchain</string>
   <string name="support_and_feedback">Support &amp; Feedback</string>
   <string name="switch_node">Switch node</string>

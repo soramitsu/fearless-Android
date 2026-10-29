@@ -115,17 +115,6 @@
   <string name="balance_locks_screen_title">Kilitli ayrıntılar</string>
   <string name="banners_backup_description">Fonlarınıza erişiminizi kaybetmekten kendinizi koruyun</string>
   <string name="banners_liquidity_pools_title">Likidite Havuzları</string>
-  <string name="beacon_connect_warning">Uyarı: Bağlan\'a tıklayarak bu dapp\'in genel adresinizi görüntülemesine izin vermiş olursunuz. Bu, verilerinizi potansiyel kimlik avı risklerinden korumak için önemli bir güvenlik adımıdır</string>
-  <string name="beacon_connected">Bağlı%s</string>
-  <string name="beacon_connected_to">Bağlı</string>
-  <string name="beacon_decline_signing_message">Bu işlemi reddetmek istiyor musunuz?</string>
-  <string name="beacon_declined">Reddedildi</string>
-  <string name="beacon_exit_message">Bu bağlantıyı kapatmak istiyor musunuz?</string>
-  <string name="beacon_pairing_cancelled">Eşleştirme iptal edildi</string>
-  <string name="beacon_sign_review">Lütfen onaylamadan önce aşağıdaki bilgileri inceleyin</string>
-  <string name="beacon_signed">Onaylı</string>
-  <string name="beacon_title">İşaret</string>
-  <string name="beacon_transaction_warning">Uyarı: Bu siteye güvendiğinizden emin olun. Onunla etkileşim kurarak bu sitenin fonlarınıza erişmesine izin vermiş olursunuz.</string>
   <string name="btn_backup_with_google">Google ile yedekleme</string>
   <string name="buy_completed">Satın alma başlatıldı! Lütfen 60 dakikaya kadar bekleyin. E-posta\'dan durumu takip edebilirsiniz.</string>
   <string name="chain_selection_all_networks">Tüm ağlar</string>
@@ -201,7 +190,6 @@
   <string name="common_confirm_title">Onayla</string>
   <string name="common_confirmation_title">Emin misiniz?</string>
   <string name="common_confirmed">Onaylandı</string>
-  <string name="common_connect">Bağlamak</string>
   <string name="common_connection_problems">Bağlantı Sorunları</string>
   <string name="common_contacts">Kişiler</string>
   <string name="common_continue">Devam etmek</string>
@@ -500,8 +488,6 @@
   <string name="exchange_alert_message">Para yatırma ve çekme adreslerinin farklı olabileceğine dikkat edin.</string>
   <string name="exchange_alert_title">Bu adres borsa olarak işaretlendiPara yatırma ve çekme adresleri farklı olabileceğinden dikkatli olun.</string>
   <string name="exchange_warning_message">Bu adres bir borsa olarak işaretlenmiştir, para yatırma ve çekme adresleri farklı olabileceğinden dikkatli olun.</string>
-  <string name="experimental_beacon">İşaret DAPP\'si</string>
-  <string name="experimental_title">Deneysel Özellikler</string>
   <string name="export_ethereum_title">Ethereum\'u dışa aktar</string>
   <string name="export_json_password_confirm">Parolayı onaylayın</string>
   <string name="export_json_password_explanation">Hesabınızı şifrelemek ve geri yükleme JSON\'u olarak saklamak için parola gereklidir. Lütfen işleme devam etmek için parola oluşturun.</string>
@@ -823,8 +809,6 @@
   <string name="pools_limit_has_reached_error_title">Daha fazla havuz oluşturamazsınız</string>
   <string name="profile_account_score_title">Nomis çoklu zincir skoru</string>
   <string name="profile_accounts_title">Hesaplar</string>
-  <string name="profile_experimets_subtitle">Dapp\'ler ve daha fazlası...</string>
-  <string name="profile_experimets_title">Deneysel özellikler</string>
   <string name="profile_language_title">Dil</string>
   <string name="profile_logout_description">Bu işlem ,cihazdaki tüm hesapların silinmesine neden olacak. Devam etmeden önce anahtar kelimelerinizi yedeklediğinizden emin olun.</string>
   <string name="profile_logout_title">Çıkış yap</string>
@@ -1231,7 +1215,6 @@
   <string name="stories_version2_slide5_title">Ekosistem ile uyumlu</string>
   <string name="substrate_crypto_type">Substrat anahtar çifti kripto türü</string>
   <string name="substrate_secret_derivation_path">Gizli türetme yolu</string>
-  <string name="success_message">Artık tarayıcınıza dönebilirsiniz</string>
   <string name="success_message_transaction_sent">İşleminiz başarıyla blockchain\'e gönderildi</string>
   <string name="support_and_feedback">Destek ve ; Geri bildirim</string>
   <string name="switch_node">Düğüm değiştir</string>

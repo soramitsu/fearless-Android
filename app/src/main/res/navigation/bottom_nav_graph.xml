@@ -430,10 +430,6 @@
             android:id="@+id/tonConnectionInfo"
             android:name="jp.co.soramitsu.tonconnect.impl.presentation.connectioninfo.TonConnectionInfoFragment"
             android:label="TonConnect app" />
-        <fragment
-            android:id="@+id/experimentalFragment"
-            android:name="jp.co.soramitsu.account.impl.presentation.experimental.ExperimentalFragment"
-            android:label="Preferences" />
     </navigation>
 
     <fragment

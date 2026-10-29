@@ -114,17 +114,6 @@
   <string name="balance_locks_screen_title">锁定的详细信息</string>
   <string name="banners_backup_description">保护自己避免失去对资金的访问权限。</string>
   <string name="banners_liquidity_pools_title">流动性池</string>
-  <string name="beacon_connect_warning">警告：点击连接按钮，您将允许此dapp查看您的公共地址。这是一个重要的安全步骤，以保护您的数据免受潜在的网络钓鱼风险。</string>
-  <string name="beacon_connected">连接到%s</string>
-  <string name="beacon_connected_to">已连接至</string>
-  <string name="beacon_decline_signing_message">您是否要拒绝此交易？</string>
-  <string name="beacon_declined">已拒绝</string>
-  <string name="beacon_exit_message">你想关闭这个连接吗？</string>
-  <string name="beacon_pairing_cancelled">配对已取消</string>
-  <string name="beacon_sign_review">请在确认之前仔细查看以下信息</string>
-  <string name="beacon_signed">已批准</string>
-  <string name="beacon_title">Beacon</string>
-  <string name="beacon_transaction_warning">警告：请确保您信任此网站。通过与其进行交互，您将允许该网站访问您的资金。</string>
   <string name="btn_backup_with_google">使用Google进行备份</string>
   <string name="buy_completed">购买已启动！请耐心等待最多60分钟。您可以通过确认电子邮件跟踪订单状态。</string>
   <string name="chain_selection_all_networks">所有网络</string>
@@ -200,7 +189,6 @@
   <string name="common_confirm_title">确认</string>
   <string name="common_confirmation_title">您确定吗？</string>
   <string name="common_confirmed">已确认</string>
-  <string name="common_connect">连接</string>
   <string name="common_connection_problems">连接问题</string>
   <string name="common_contacts">联系人</string>
   <string name="common_continue">继续</string>
@@ -496,8 +484,6 @@
   <string name="exchange_alert_message">请注意，存款和提款地址可能不同。</string>
   <string name="exchange_alert_title">这个地址被标记为一个交易所</string>
   <string name="exchange_warning_message">这个地址被标记为交易所，请注意存款和提款地址可能不同。</string>
-  <string name="experimental_beacon">Beacon DAPP</string>
-  <string name="experimental_title">实验性功能</string>
   <string name="export_ethereum_title">导出以太坊</string>
   <string name="export_json_password_confirm">确认密码</string>
   <string name="export_json_password_explanation">需要密码来加密您的账户并将其存储为还原JSON。请创建一个密码以继续操作。</string>
@@ -818,8 +804,6 @@
   <string name="pools_limit_has_reached_error_title">您无法创建更多的池</string>
   <string name="profile_account_score_title">Nomis 多链评分</string>
   <string name="profile_accounts_title">账户</string>
-  <string name="profile_experimets_subtitle">Dapps和更多...</string>
-  <string name="profile_experimets_title">实验性功能</string>
   <string name="profile_language_title">语言</string>
   <string name="profile_logout_description">此操作将导致删除该设备上的所有账户。在继续之前，请确保已备份您的密码短语。</string>
   <string name="profile_logout_title">登出</string>
@@ -1224,7 +1208,6 @@
   <string name="stories_version2_slide5_title">与生态系统和谐相处</string>
   <string name="substrate_crypto_type">Substrate密钥对加密类型</string>
   <string name="substrate_secret_derivation_path">Substrate密钥派生路径</string>
-  <string name="success_message">你现在可以返回到你的浏览器了</string>
   <string name="success_message_transaction_sent">您的交易已成功发送至区块链。</string>
   <string name="support_and_feedback">支持与反馈</string>
   <string name="switch_node">切换节点</string>

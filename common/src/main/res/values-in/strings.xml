@@ -114,17 +114,6 @@
   <string name="balance_locks_screen_title">Detail terkunci</string>
   <string name="banners_backup_description">Lindungi diri Anda dari kehilangan akses ke dana Anda</string>
   <string name="banners_liquidity_pools_title">Kumpulan Likuiditas</string>
-  <string name="beacon_connect_warning">Peringatan: Dengan mengeklik sambungkan, Anda mengizinkan dapp ini melihat alamat publik Anda. Ini adalah langkah keamanan penting untuk melindungi data Anda dari potensi risiko phishing.</string>
-  <string name="beacon_connected">Terhubung ke %s</string>
-  <string name="beacon_connected_to">Terhubung ke</string>
-  <string name="beacon_decline_signing_message">Apakah kamu mau menolak transaksi ini?</string>
-  <string name="beacon_declined">Ditolak</string>
-  <string name="beacon_exit_message">Apakah Anda ingin menutup koneksi ini?</string>
-  <string name="beacon_pairing_cancelled">Penyandingan dibatalkan</string>
-  <string name="beacon_sign_review">Harap tinjau informasi di bawah sebelum mengonfirmasi</string>
-  <string name="beacon_signed">Diterima</string>
-  <string name="beacon_title">Suar</string>
-  <string name="beacon_transaction_warning">Peringatan: Pastikan Anda memercayai situs ini. Dengan berinteraksi dengannya, Anda mengizinkan situs ini mengakses dana Anda</string>
   <string name="btn_backup_with_google">Cadangkan dengan google</string>
   <string name="buy_completed">Pembelian dimulai! Harap tunggu hingga 60 menit. Anda dapat melacak status di email.</string>
   <string name="chain_selection_all_networks">Semua jaringan</string>
@@ -200,7 +189,6 @@
   <string name="common_confirm_title">Konfirmasi</string>
   <string name="common_confirmation_title">Apakah kamu yakin</string>
   <string name="common_confirmed">Terkonfirmasi</string>
-  <string name="common_connect">Hubungkan</string>
   <string name="common_connection_problems">Masalah koneksi</string>
   <string name="common_contacts">Kontak</string>
   <string name="common_continue">Lanjutkan</string>
@@ -488,8 +476,6 @@
   <string name="exchange_alert_message">Hati-hati alamat penyetoran dan penarikan mungkin berbeda.</string>
   <string name="exchange_alert_title">Alamat ini ditandai sebagai pertukaran</string>
   <string name="exchange_warning_message">Alamat ini ditandai sebagai bursa, hati-hati karena alamat penyetoran dan penarikan mungkin berbeda.</string>
-  <string name="experimental_beacon">DAPP suar</string>
-  <string name="experimental_title">Fitur eksperimental</string>
   <string name="export_ethereum_title">Ekspor ethereum</string>
   <string name="export_json_password_confirm">Konfirmasi Password</string>
   <string name="export_json_password_explanation">Kata sandi diperlukan untuk mengenkripsi akun Anda dan menyimpannya sebagai Pemulihan JSON. Tolong, buat kata sandi untuk melanjutkan operasi.</string>
@@ -787,8 +773,6 @@
   <string name="pools_limit_has_reached_error_message">Batas kumpulan di jaringan ini telah tercapai</string>
   <string name="pools_limit_has_reached_error_title">Kamu tidak bisa membuat kumpulan lagi</string>
   <string name="profile_accounts_title">Akun</string>
-  <string name="profile_experimets_subtitle">Dapps dan banyak lagi...</string>
-  <string name="profile_experimets_title">Fitur percobaan</string>
   <string name="profile_language_title">Bahasa</string>
   <string name="profile_logout_description">Tindakan ini akan mengakibatkan penghapusan semua akun dari perangkat ini. Pastikan Anda telah membuat cadangan frasa sandi Anda sebelum melanjutkan.</string>
   <string name="profile_logout_title">Keluar</string>
@@ -1188,7 +1172,6 @@
   <string name="stories_version2_slide5_title">Harmoni dengan ekosistem</string>
   <string name="substrate_crypto_type">Jenis kripto pasangan kunci Ethereum</string>
   <string name="substrate_secret_derivation_path">Jalur derivasi rahasia substrat</string>
-  <string name="success_message">Anda dapat kembali ke browser Anda sekarang</string>
   <string name="support_and_feedback">Dukungan &amp; Timbal balik</string>
   <string name="switch_node">Alihkan node</string>
   <string name="switch_node_autoselect_title">Otomatis pilih node</string>
