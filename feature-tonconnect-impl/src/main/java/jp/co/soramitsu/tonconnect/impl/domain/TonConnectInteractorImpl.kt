@@ -14,26 +14,15 @@ import jp.co.soramitsu.coredb.model.TonConnectionLocal
 import jp.co.soramitsu.fearless_utils.encrypt.json.copyBytes
 import jp.co.soramitsu.fearless_utils.encrypt.xsalsa20poly1305.Keys
 import jp.co.soramitsu.fearless_utils.encrypt.xsalsa20poly1305.SecretBox
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonMainnetChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
-import jp.co.soramitsu.runtime.multiNetwork.chain.ton.TONOpCode
-import jp.co.soramitsu.runtime.multiNetwork.chain.ton.TonWalletContract.Companion.createIntMsg
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.V4R2WalletContract
-import jp.co.soramitsu.runtime.multiNetwork.chain.ton.cellFromBase64
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.hex
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.isBounce
-import jp.co.soramitsu.runtime.multiNetwork.chain.ton.loadAddress
-import jp.co.soramitsu.runtime.multiNetwork.chain.ton.loadCoins
-import jp.co.soramitsu.runtime.multiNetwork.chain.ton.loadMaybeRef
-import jp.co.soramitsu.runtime.multiNetwork.chain.ton.loadOpCode
-import jp.co.soramitsu.runtime.multiNetwork.chain.ton.storeMaybeRef
-import jp.co.soramitsu.runtime.multiNetwork.chain.ton.storeOpCode
-import jp.co.soramitsu.runtime.multiNetwork.chain.ton.storeQueryId
-import jp.co.soramitsu.runtime.multiNetwork.chain.ton.storeSeqAndValidUntil
-import jp.co.soramitsu.runtime.multiNetwork.chain.ton.storeStringTail
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectRepository
 import jp.co.soramitsu.tonconnect.api.model.AppEntity
@@ -43,20 +32,25 @@ import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
 import jp.co.soramitsu.tonconnect.api.model.DappConfig
 import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.tonconnect.api.model.JsonBuilder
+import jp.co.soramitsu.tonconnect.api.model.SSEvent
 import jp.co.soramitsu.tonconnect.api.model.Security.secureRandom
 import jp.co.soramitsu.tonconnect.api.model.TONProof
 import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
 import jp.co.soramitsu.tonconnect.api.model.TonConnectUrlValidator
 import jp.co.soramitsu.tonconnect.api.model.TonConnectionIdentity
+import jp.co.soramitsu.tonconnect.api.model.TonDappConnection
 import jp.co.soramitsu.tonconnect.api.model.optStringCompat
 import jp.co.soramitsu.tonconnect.api.model.optStringCompatJS
 import jp.co.soramitsu.tonconnect.api.model.post
 import jp.co.soramitsu.tonconnect.api.model.sse
 import jp.co.soramitsu.tonconnect.api.model.toDomain
-import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
+import jp.co.soramitsu.tonconnect.impl.data.TonConnectBridgeEventLedger
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
@@ -76,18 +70,12 @@ import org.ton.block.Either
 import org.ton.block.ExtInMsgInfo
 import org.ton.block.Maybe
 import org.ton.block.Message
-import org.ton.block.MessageRelaxed
-import org.ton.block.MsgAddressInt
 import org.ton.block.StateInit
 import org.ton.cell.Cell
 import org.ton.cell.CellBuilder
 import org.ton.cell.buildCell
-import org.ton.contract.wallet.MessageData
-import org.ton.contract.wallet.WalletTransfer
-import org.ton.contract.wallet.WalletTransferBuilder
 import org.ton.tlb.CellRef
 import org.ton.tlb.constructor.AnyTlbConstructor
-import org.ton.tlb.storeRef
 import org.ton.tlb.storeTlb
 import javax.inject.Named
 
@@ -99,10 +87,11 @@ class TonConnectInteractorImpl(
     private val tonApi: TonApi,
     private val tonConnectRepository: TonConnectRepository,
     private val tonRemoteSource: TonRemoteSource,
-    private val walletRepository: WalletRepository,
     private val keyPairRepository: KeypairProvider,
     @Named("TonSseClient") private val tonSseClient: OkHttpClient,
-    @Named("tonApiHttpClient") private val tonApiHttpClient: OkHttpClient
+    @Named("tonApiHttpClient") private val tonApiHttpClient: OkHttpClient,
+    private val bridgeEventLedger: TonConnectBridgeEventLedger,
+    private val currentTimeMillis: () -> Long = System::currentTimeMillis
 ) : TonConnectInteractor {
 
     override suspend fun getChain(): Chain {
@@ -114,8 +103,12 @@ class TonConnectInteractorImpl(
         request: ConnectRequest,
         signedRequest: JSONObject,
         app: AppEntity
-    ) {
-        val metaAccount = accountRepository.getSelectedMetaAccount()
+    ): TonDappConnection? {
+        val isConnectError = signedRequest.optString("event") == CONNECT_ERROR_EVENT
+        // The connection belongs to the wallet whose key the reply gives the dApp. It is
+        // resolved before anything reaches the dApp, so no reply is sent for a connection
+        // that could not be stored under that wallet.
+        val boundWalletId = if (isConnectError) null else boundWalletId(signedRequest)
 
         val privateKey = Keys.generatePrivateKey()
         val publicKey = Keys.generatePublicKey(privateKey)
@@ -132,39 +125,55 @@ class TonConnectInteractorImpl(
                 sendDappMessage(encryptedMessage, publicKeyHex, clientId)
             }
         }
-        if (signedRequest.getString("event") == "connect_error") {
-            return
+        if (boundWalletId == null) {
+            return null
         }
-        if (connectResult == null) {
-            @Suppress("MagicNumber")
-            val bytes = ByteArray(16)
-            secureRandom().nextBytes(bytes)
-            val dappBrowserClientId = bytes.toHexString(false)
+        val connection = if (clientId == null) {
+            TonConnectionLocal(
+                boundWalletId,
+                newDappBrowserClientId(),
+                app.name,
+                app.iconUrl,
+                app.url,
+                ConnectionSource.WEB
+            )
+        } else if (connectResult?.isSuccessful == true) {
+            TonConnectionLocal(
+                boundWalletId,
+                clientId,
+                app.name,
+                app.iconUrl,
+                app.url,
+                ConnectionSource.QR
+            )
+        } else {
+            return null
+        }
+        tonConnectRepository.saveConnection(connection, Keypair(publicKey, privateKey))
+        return TonDappConnection(connection)
+    }
 
-            tonConnectRepository.saveConnection(
-                TonConnectionLocal(
-                    metaAccount.id,
-                    dappBrowserClientId,
-                    app.name,
-                    app.iconUrl,
-                    app.url,
-                    ConnectionSource.WEB
-                ),
-                Keypair(publicKey, privateKey)
-            )
-        } else if (connectResult.isSuccessful) {
-            tonConnectRepository.saveConnection(
-                TonConnectionLocal(
-                    metaAccount.id,
-                    clientId,
-                    app.name,
-                    app.iconUrl,
-                    app.url,
-                    ConnectionSource.QR
-                ),
-                Keypair(publicKey, privateKey)
-            )
-        }
+    @Suppress("MagicNumber")
+    private fun newDappBrowserClientId(): String {
+        val bytes = ByteArray(16)
+        secureRandom().nextBytes(bytes)
+        return bytes.toHexString(false)
+    }
+
+    private suspend fun boundWalletId(signedRequest: JSONObject): Long {
+        val replyPublicKey = connectReplyPublicKey(signedRequest)
+        val wallets = accountRepository.allMetaAccounts().map { it.id to it.tonPublicKey }
+        val selectedWalletId = accountRepository.getSelectedMetaAccount().id
+        return TonConnectWalletBinding.boundWalletId(replyPublicKey, wallets, selectedWalletId)
+            ?: error("The connect reply names no wallet of this app")
+    }
+
+    private fun connectReplyPublicKey(signedRequest: JSONObject): ByteArray {
+        val items = signedRequest.getJSONObject("payload").getJSONArray("items")
+        val tonAddressItem = (0 until items.length())
+            .map(items::getJSONObject)
+            .single { it.optString("name") == TON_ADDRESS_ITEM }
+        return tonAddressItem.getString("publicKey").fromHex()
     }
 
     override suspend fun getDappsConfig(): List<DappConfig> {
@@ -253,7 +262,7 @@ class TonConnectInteractorImpl(
         )
     }
 
-    override fun eventsFlow(lastEventId: Long): Flow<BridgeEvent> {
+    override fun eventsFlow(): Flow<BridgeEvent> {
         return accountRepository.selectedMetaAccountFlow()
             .flatMapLatest { metaAccount ->
                 tonConnectRepository.observeConnections(
@@ -261,47 +270,70 @@ class TonConnectInteractorImpl(
                     source = ConnectionSource.QR
                 )
             }
-            .flatMapLatest { connections ->
-                val chain = getChain()
-                val clientIdParams = connections.mapNotNull {
-                    val keypair = tonConnectRepository.getConnectionKeypair(it.identity())
-                    keypair?.publicKey?.toHexString(false)
-                }.joinToString(",")
-                val bridgeUrl = chain.tonBridgeUrl ?: error("Chain ${chain.name} doesn't support Ton Connect")
-                val url = "$bridgeUrl/events?client_id=$clientIdParams"
-                tonSseClient.sse(url, lastEventId).filter { it.type == "message" }
-                    .mapNotNull { event ->
-                        val id = event.id?.toLongOrNull() ?: return@mapNotNull null
-                        val from = event.json.optStringCompat("from") ?: return@mapNotNull null
-                        val message =
-                            event.json.optStringCompatJS("message") ?: return@mapNotNull null
-                        val connection =
-                            connections.singleOrNull {
-                                it.clientId == from
-                            } ?: return@mapNotNull null
-
-                        val messageJsonObject = runCatching {
-                            val keyPair = tonConnectRepository.getConnectionKeypair(
-                                connection.identity()
-                            )
-                                ?: error("There is no keypair for clientId: ${connection.clientId}")
-
-                            val decryptedMessage = decryptEventMessage(
-                                connection.clientId,
-                                keyPair.privateKey,
-                                message
-                            )
-                            JSONObject(decryptedMessage)
-                        }.getOrNull() ?: return@mapNotNull null
-
-                        BridgeEvent(
-                            eventId = id,
-                            message = BridgeEvent.Message(messageJsonObject),
-                            connection = connection,
-                        )
-                    }
-            }
+            .flatMapLatest { connections -> bridgeEvents(connections) }
             .flowOn(Dispatchers.Default)
+    }
+
+    private suspend fun bridgeEvents(connections: List<TonDappConnection>): Flow<BridgeEvent> {
+        val subscribed = connections.mapNotNull { connection ->
+            tonConnectRepository.getConnectionKeypair(connection.identity())?.let { keypair ->
+                connection to keypair.publicKey.toHexString(false)
+            }
+        }
+        if (subscribed.isEmpty()) {
+            return emptyFlow()
+        }
+        val chain = getChain()
+        val bridgeUrl = chain.tonBridgeUrl ?: error("Chain ${chain.name} doesn't support Ton Connect")
+        val url = "$bridgeUrl/events?client_id=${subscribed.joinToString(",") { it.second }}"
+        val subscribedConnections = subscribed.map { it.first }
+        val clientIds = subscribedConnections.map { it.clientId }
+
+        // Every (re)connect resumes after the last recorded event instead of replaying the queue.
+        return tonSseClient.sse(url) { bridgeEventLedger.resumeEventId(bridgeUrl, clientIds) }
+            .filter { it.type == "message" }
+            .mapNotNull { event -> admitBridgeEvent(bridgeUrl, event, subscribedConnections) }
+    }
+
+    // A bridge event becomes a request for the wallet at most once per connection: events at
+    // or before the connection's last recorded event and requests already handed over are dropped.
+    private suspend fun admitBridgeEvent(
+        bridgeUrl: String,
+        event: SSEvent,
+        connections: List<TonDappConnection>
+    ): BridgeEvent? {
+        val eventId = event.id?.toLongOrNull()
+        val connection = event.json.optStringCompat("from")?.let { from ->
+            connections.singleOrNull { it.clientId == from }
+        }
+        if (eventId == null || connection == null) {
+            return null
+        }
+        if (!bridgeEventLedger.isNewEvent(bridgeUrl, connection.clientId, eventId)) {
+            return null
+        }
+
+        val message = readBridgeMessage(event, connection)
+        if (message == null) {
+            bridgeEventLedger.recordEvent(bridgeUrl, connection.clientId, eventId)
+            return null
+        }
+        val isFirstDelivery = bridgeEventLedger.admitRequest(bridgeUrl, connection.clientId, eventId, message.id)
+        return BridgeEvent(eventId = eventId, message = message, connection = connection).takeIf { isFirstDelivery }
+    }
+
+    private suspend fun readBridgeMessage(event: SSEvent, connection: TonDappConnection): BridgeEvent.Message? {
+        return try {
+            val encryptedMessage = event.json.optStringCompatJS("message") ?: return null
+            val keyPair = tonConnectRepository.getConnectionKeypair(connection.identity()) ?: return null
+            val decryptedMessage = decryptEventMessage(connection.clientId, keyPair.privateKey, encryptedMessage)
+            BridgeEvent.Message(JSONObject(decryptedMessage))
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (ignored: Exception) {
+            // A message that cannot be decrypted or parsed is dropped; it must not end the subscription.
+            null
+        }
     }
 
     private fun decryptEventMessage(
@@ -328,120 +360,55 @@ class TonConnectInteractorImpl(
         return secret
     }
 
-    @Suppress("MagicNumber", "CyclomaticComplexMethod")
+    override suspend fun prepareSignRequest(params: List<String>, metaId: Long): TonConnectSignRequest =
+        withContext(Dispatchers.Default) {
+            val signRequest = params.singleOrNull()
+                ?.let { param -> runCatching { TonConnectSignRequest(param) }.getOrNull() }
+                ?: throw BridgeError.Exception(BridgeError.BAD_REQUEST)
+            validUntilToSign(signRequest, V4R2WalletContract(tonPublicKey(metaId)))
+            signRequest
+        }
+
+    private suspend fun tonPublicKey(metaId: Long): ByteArray {
+        return accountRepository.getMetaAccount(metaId).tonPublicKey
+            ?: throw BridgeError.Exception(BridgeError.BAD_REQUEST)
+    }
+
+    private fun validUntilToSign(signRequest: TonConnectSignRequest, contract: V4R2WalletContract): Long {
+        return TonConnectSendTransactionPolicy.validUntilToSign(
+            request = signRequest,
+            wallet = contract.address,
+            nowSeconds = currentTimeMillis() / MILLIS_PER_SECOND,
+            maxMessages = contract.maxMessages
+        )
+    }
+
     override suspend fun signMessage(
         chain: Chain,
         method: String,
         signRequest: TonConnectSignRequest,
         metaId: Long
     ) = withContext(Dispatchers.Default) {
-        val connectedMetaAccount = async { accountRepository.getMetaAccount(metaId) }
-
-        val tonPublicKey = connectedMetaAccount.await().tonPublicKey ?: error("No account provided")
-
+        val tonPublicKey = tonPublicKey(metaId)
         val contract = V4R2WalletContract(tonPublicKey)
         val senderAccountId = contract.getAccountId(chain.isTestNet)
 
-        val validUntil: Long = signRequest.validUntil
+        // The request must come from this wallet, for mainnet, and not have expired. What is
+        // signed expires at the dApp's valid_until but never more than five minutes from now.
+        val validUntil = validUntilToSign(signRequest, contract)
         val seqnoDeferred = async { tonRemoteSource.getSeqno(chain, senderAccountId) }
 
-        val transfers = mutableListOf<WalletTransfer>()
-
-        val tonAssets = walletRepository.getAssets(connectedMetaAccount.await().id)
-            .filter { it.chainId == chain.id }
-
-        for (message in signRequest.messages) {
-            val jetton = tonAssets.firstOrNull {
-                message.addressValue == it.token.configuration.id
+        // Every message is signed exactly as the dApp requested and the user approved it.
+        val transfers = signRequest.messages.map { message ->
+            async {
+                val recipientAccountData = tonRemoteSource.loadAccountData(chain, message.addressValue)
+                TonConnectTransfers.transfer(message, isBounce(message.addressValue, recipientAccountData))
             }
-
-            val jettonCustomPayload = jetton?.let {
-                tonRemoteSource.getJettonTransferPayload(chain, senderAccountId, it.id)
-            }
-
-            val newStateInit = jettonCustomPayload?.stateInit
-            val newCustomPayload = jettonCustomPayload?.customPayload
-
-            val body = if (newCustomPayload != null) {
-                run {
-                    val payload = message.payloadValue?.cellFromBase64() ?: Cell.empty()
-                    val slice = payload.beginParse()
-                    val opCode = slice.loadOpCode()
-                    if (opCode != TONOpCode.JETTON_TRANSFER) {
-                        return@run newCustomPayload
-                    }
-
-                    val queryId = slice.loadUInt(64)
-                    val jettonAmount = slice.loadCoins()
-                    val receiverAddress = slice.loadAddress()
-                    val excessesAddress = slice.loadAddress()
-                    val customPayload = slice.loadMaybeRef()
-                    if (customPayload != null) {
-                        return@run payload
-                    }
-
-                    val forwardAmount = slice.loadCoins().amount.toLong()
-                    val forwardBody = slice.loadMaybeRef()
-                    val forwardPayload = body(forwardBody)
-
-                    buildCell {
-                        storeOpCode(TONOpCode.JETTON_TRANSFER)
-                        storeQueryId(queryId)
-                        storeTlb(Coins, jettonAmount)
-                        storeTlb(MsgAddressInt, receiverAddress)
-                        storeTlb(MsgAddressInt, excessesAddress)
-                        storeBit(false) // storeMaybeRef(customPayload)
-                        storeTlb(Coins, Coins.ofNano(forwardAmount))
-                        storeMaybeRef(forwardPayload)
-                    }
-                }
-            } else {
-                message.payload
-            }
-            val recipientAccountDataDeferred =
-                async { tonRemoteSource.loadAccountData(chain, message.addressValue) }
-            val builder = WalletTransferBuilder()
-            builder.destination = message.address
-            builder.messageData =
-                MessageData.Raw(body, newStateInit ?: message.stateInit?.let { CellRef(it) })
-            builder.bounceable = isBounce(message.addressValue, recipientAccountDataDeferred.await())
-            if (newCustomPayload != null) {
-                val defCoins = Coins.of(0.5)
-                if (defCoins.amount.value > message.coins.amount.value) {
-                    builder.coins = defCoins
-                } else {
-                    builder.coins = message.coins
-                }
-            } else {
-                builder.coins = message.coins
-            }
-            val transfer = builder.build()
-
-            transfers.add(transfer)
-        }
-
-        require(transfers.size <= contract.maxMessages) {
-            "Maximum number of messages in a single transfer is ${contract.maxMessages}"
-        }
+        }.awaitAll()
 
         val seqNo = seqnoDeferred.await()
-        val unsignedBody = CellBuilder.createCell {
-            storeUInt(contract.walletId, 32)
-            storeSeqAndValidUntil(seqNo, validUntil)
-            storeUInt(0, 8)
-            for (transfer in transfers) {
-                var sendMode = 3
-                if (transfer.sendMode > -1) {
-                    sendMode = transfer.sendMode
-                }
-                storeUInt(sendMode, 8)
-                val internalMessage = createIntMsg(transfer)
-                val internalMessageRef = CellRef(internalMessage)
-                this.storeRef(MessageRelaxed.tlbCodec(AnyTlbConstructor), internalMessageRef)
-            }
-        }
-        val keypair =
-            keyPairRepository.getKeypairFor(chain, connectedMetaAccount.await().tonPublicKey!!)
+        val unsignedBody = TonConnectTransfers.unsignedBody(contract.walletId, seqNo, validUntil, transfers)
+        val keypair = keyPairRepository.getKeypairFor(chain, tonPublicKey)
         val privateKey = PrivateKeyEd25519(keypair.privateKey)
         val hash = privateKey.sign(unsignedBody.hash().toByteArray())
         val signature = BitString(hash)
@@ -477,29 +444,6 @@ class TonConnectInteractorImpl(
         return@withContext cell.base64() to cell.hash().toHex()
     }
 
-    private fun body(body: Any?): Cell? {
-        if (body == null) {
-            return null
-        }
-        return when (body) {
-            is String -> text(body)
-            is Cell -> body
-            else -> null
-        }
-    }
-
-    fun text(text: String?): Cell? {
-        if (text.isNullOrEmpty()) {
-            return null
-        }
-
-        @Suppress("MagicNumber")
-        return buildCell {
-            storeUInt(0, 32)
-            storeStringTail(text)
-        }
-    }
-
     override suspend fun sendBlockchainMessage(chain: Chain, boc: String): Unit = withContext(Dispatchers.Default) {
         val request = SendBlockchainMessageRequest(boc)
         tonRemoteSource.sendBlockchainMessage(chain, request)
@@ -508,7 +452,7 @@ class TonConnectInteractorImpl(
     override suspend fun sendDappMessage(event: BridgeEvent, boc: String): Unit = withContext(Dispatchers.IO) {
         val message = JSONObject().apply {
             put("result", boc)
-            put("id", event.message.id)
+            put("id", event.requestId)
         }.toString()
         val keypair = tonConnectRepository.getConnectionKeypair(
             event.connection.identity()
@@ -554,11 +498,16 @@ class TonConnectInteractorImpl(
         )
     }
 
+    override suspend fun getConnection(identity: TonConnectionIdentity): TonConnectionLocal? {
+        return tonConnectRepository.getConnection(identity)
+    }
+
     override suspend fun respondDappError(event: BridgeEvent, error: BridgeError): Unit =
         withContext(Dispatchers.Default) {
             val chain = getChain()
             val bridgeUrl = chain.tonBridgeUrl ?: error("Chain ${chain.name} doesn't support Ton Connect")
-            val unsignedMessage = JsonBuilder.responseError(event.eventId, error).toString()
+            // A response names the dApp's request id, never the bridge's event id.
+            val unsignedMessage = JsonBuilder.responseError(event.requestId, error).toString()
 
             val keypair = tonConnectRepository.getConnectionKeypair(
                 event.connection.identity()
@@ -576,4 +525,10 @@ class TonConnectInteractorImpl(
             val url = "$bridgeUrl/message?client_id=${keypair.publicKey.toHexString(false)}&to=${event.connection.clientId}&ttl=300"
             tonApiHttpClient.post(url, requestBody)
         }
+
+    private companion object {
+        const val CONNECT_ERROR_EVENT = "connect_error"
+        const val TON_ADDRESS_ITEM = "ton_addr"
+        const val MILLIS_PER_SECOND = 1_000L
+    }
 }

@@ -20,7 +20,6 @@ import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.model.BridgeError
 import jp.co.soramitsu.tonconnect.api.model.BridgeMethod
 import jp.co.soramitsu.tonconnect.api.model.DappModel
-import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -196,13 +195,20 @@ class RootViewModel @Inject constructor(
         _showConnectingBar.update { true }
     }
 
+    // Each bridge request reaches this collector at most once (see TonConnectInteractor.eventsFlow).
     private fun observeTonConnectEvents() {
         tonConnectInteractor.eventsFlow().onEach { event ->
             try {
                 when(event.method) {
                     BridgeMethod.SEND_TRANSACTION -> {
-                        if (event.message.params.size > 1) throw IllegalStateException("Request contains excess transactions. Required: 1, Provided: ${event.message.params.size}")
-                        val signRequest = TonConnectSignRequest(event.message.params.first())
+                        // A request that is malformed, for another network or wallet, or expired is
+                        // answered with BAD_REQUEST and never shown.
+                        val signRequest = try {
+                            tonConnectInteractor.prepareSignRequest(event.message.params, event.connection.metaId)
+                        } catch (rejected: BridgeError.Exception) {
+                            tonConnectInteractor.respondDappError(event, rejected.error)
+                            return@onEach
+                        }
 
                         rootRouter.openTonSignRequestWithResult(DappModel(event.connection), event.method.title, signRequest)
                             .onSuccess { (boc, hex) ->
