@@ -148,11 +148,16 @@ class ProducerLoadedCatalogueContextTest {
         }
     }
 
-    private fun freshRows(fixture: ProducerCatalogueRetryFixture) = fixture.screen.catalogue.take(2).mapIndexed { index, row ->
-        row.copy(name = "Al refreshed $index", rewardsPercent = "9%")
-    }
+    private fun freshRows(fixture: ProducerCatalogueRetryFixture) =
+        fixture.screen.catalogue.take(2).mapIndexed { index, row ->
+            row.copy(name = "Al refreshed $index", rewardsPercent = "9%")
+        }
 
-    private suspend fun assertFresh(fixture: ProducerCatalogueRetryFixture, previous: Any, previousCalls: Int) {
+    private suspend fun assertFresh(
+        fixture: ProducerCatalogueRetryFixture,
+        previous: Any,
+        previousCalls: Int
+    ) {
         val state = fixture.screen.await {
             it is SearchBlockProducersState.Success && it.blockProducers.firstOrNull()?.name == "Al refreshed 0"
         } as SearchBlockProducersState.Success
