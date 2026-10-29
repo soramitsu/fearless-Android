@@ -189,8 +189,13 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
             .map { baseFeePerGas ->
                 // The gas of the transfer as reviewed. While the entered amount is above the balance
                 // the node refuses that estimate; show the amount-free one then, as before: the amount
-                // check reports the shortfall, and the send is estimated again with its amount.
-                val gasLimit = web3j.estimateGasOrNull(transactionBuilder.buildFeeEstimationCall(transfer))
+                // check reports the shortfall, and the send is estimated again with its amount. A request
+                // that fails is not a refusal: the fee fails and is retried instead of showing less.
+                val gasLimit = try {
+                    web3j.estimateGasOrRefusal(transactionBuilder.buildFeeEstimationCall(transfer))
+                } catch (failure: Exception) {
+                    throw GasServiceException("Failed to ethEstimateGas on chain ${chain.name}: ${failure.message}")
+                }
                     ?: web3j.estimateGasOrNull(transactionBuilder.buildAmountFreeFeeEstimationCall(transfer))
                     ?: throw GasServiceException("Failed to ethEstimateGas on chain ${chain.name}. Response is null")
 
@@ -220,9 +225,14 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
 
     /** The gas the node estimates for [call], or null when it refuses or cannot be reached. */
     private fun Ethereum.estimateGasOrNull(call: Transaction?): BigInteger? = runCatching {
-        val response = ethEstimateGas(call).send()
-        if (response.hasError()) null else response.amountUsed
+        estimateGasOrRefusal(call)
     }.getOrNull()
+
+    /** The gas the node estimates for [call], or null when the node answers with an error. A failed request throws. */
+    private fun Ethereum.estimateGasOrRefusal(call: Transaction?): BigInteger? {
+        val response = ethEstimateGas(requireNotNull(call) { "There is no fee estimation call for this transfer" }).send()
+        return if (response.hasError()) null else response.amountUsed
+    }
 
     suspend fun sendRawTransaction(
         chainId: ChainId,

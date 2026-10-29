@@ -15,6 +15,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.web3j.protocol.Web3j
 import org.web3j.protocol.core.Response
@@ -33,6 +34,9 @@ class EthereumRemoteSourceTest {
     /** Gas the node reports for a token transfer of the given amount; null when the node refuses it. */
     private var gasForAmount: (BigInteger) -> Long? = { TOKEN_TRANSFER_GAS }
 
+    /** Whether the estimate request for the given amount fails to complete, like a timeout. */
+    private var requestFailsForAmount: (BigInteger) -> Boolean = { false }
+
     private val source: EthereumRemoteSource by lazy {
         val connection = mockk<EthereumChainConnection>()
         every { connection.web3j } returns web3j
@@ -45,6 +49,9 @@ class EthereumRemoteSourceTest {
             val amount = BigInteger(firstArg<Transaction>().data.takeLast(UINT256_HEX_LENGTH), HEX_RADIX)
             estimatedAmounts.add(amount)
             val gas = gasForAmount(amount)
+            if (requestFailsForAmount(amount)) {
+                return@answers mockk { every { send() } throws java.io.IOException("timeout") }
+            }
             mockk {
                 every { send() } returns EthEstimateGas().apply {
                     if (gas == null) {
@@ -78,6 +85,17 @@ class EthereumRemoteSourceTest {
         val fee = source.listenGas(tokenTransfer(), chain).first()
 
         assertEquals(BigInteger.valueOf(ZERO_AMOUNT_GAS * FEE_PER_GAS), fee)
+    }
+
+    @Test
+    fun `a failed estimate request fails the fee instead of showing the amount-free one`() = runBlocking<Unit> {
+        gasForAmount = { amount -> if (amount.signum() == 0) ZERO_AMOUNT_GAS else TOKEN_TRANSFER_GAS }
+        requestFailsForAmount = { amount -> amount.signum() != 0 }
+
+        val failure = runCatching { source.listenGas(tokenTransfer(), chain).first() }.exceptionOrNull()
+
+        assertTrue(failure is GasServiceException)
+        assertEquals(listOf(BigInteger.valueOf(1234)), estimatedAmounts)
     }
 
     private val tokenAsset = Asset(
