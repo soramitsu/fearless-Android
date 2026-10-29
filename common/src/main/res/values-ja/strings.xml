@@ -879,7 +879,9 @@
   <string name="settings_hide_zero_balances">残高ゼロを隠す</string>
   <string name="share_referral_code">紹介コードを共有</string>
   <string name="signing_action_contract_call">コントラクト呼び出し</string>
+  <string name="signing_action_jetton_transfer">ジェトンの送金</string>
   <string name="signing_action_nft_approval">すべてのNFTの承認</string>
+  <string name="signing_action_nft_transfer">NFTの転送</string>
   <string name="signing_action_permit2_allowance">Permit2の許可</string>
   <string name="signing_action_permit2_transfer">Permit2による送金</string>
   <string name="signing_action_token_approval">トークンの承認</string>
@@ -892,15 +894,20 @@
   <string name="signing_field_beneficiary">受取人</string>
   <string name="signing_field_call">呼び出し</string>
   <string name="signing_field_chain_id">チェーンID</string>
+  <string name="signing_field_comment">コメント</string>
   <string name="signing_field_contract">コントラクト</string>
   <string name="signing_field_data_type">データ型</string>
   <string name="signing_field_destination">宛先</string>
   <string name="signing_field_domain">署名ドメイン</string>
+  <string name="signing_field_excess_to">余剰分の返却先</string>
   <string name="signing_field_expires">有効期限</string>
+  <string name="signing_field_forward_amount">転送されるTON</string>
   <string name="signing_field_gas_limit">ガス上限</string>
   <string name="signing_field_gas_price">単位あたりのガス価格</string>
+  <string name="signing_field_jetton_wallet">ジェトンウォレット</string>
   <string name="signing_field_max_fee">最大ネットワーク手数料</string>
   <string name="signing_field_function">関数</string>
+  <string name="signing_field_nft">NFT</string>
   <string name="signing_field_operator">オペレーター</string>
   <string name="signing_field_owner">送信元</string>
   <string name="signing_field_recipient">受取人</string>
@@ -908,6 +915,7 @@
   <string name="signing_field_spender">スペンダー</string>
   <string name="signing_field_tip">チップ</string>
   <string name="signing_field_token">トークン</string>
+  <string name="signing_field_ton_attached">添付するTON</string>
   <string name="signing_field_value">送付額</string>
   <string name="signing_field_verifying_contract">検証コントラクト</string>
   <string name="signing_refused_destination">Fearlessはこの送金に署名しません。%1$sはこのネットワークからの送金を受け付けなくなっており、資金が失われるためです。</string>
@@ -919,6 +927,7 @@
   <string name="signing_refused_undecoded_call">Fearlessはこのトランザクションに署名しません。呼び出しをこのネットワークのランタイムで解読できないため、内容を表示できません。</string>
   <string name="signing_section_call">呼び出し %1$s</string>
   <string name="signing_section_cross_chain">クロスチェーン送金</string>
+  <string name="signing_section_message">メッセージ %1$d / %2$d</string>
   <string name="signing_value_never">無期限</string>
   <string name="signing_value_parachain">パラチェーン %1$s</string>
   <string name="signing_value_raw_units">%1$s（最小単位）</string>
@@ -928,6 +937,7 @@
   <string name="signing_warning_cross_chain">この呼び出しは資金を別のネットワークへ送ります。宛先と受取人を確認してください。誤ったネットワークやアカウントへの送金は取り消せません。</string>
   <string name="signing_warning_nft_approval">オペレーターは、承認を取り消すまで、このコレクション内のあなたのNFTをすべて転送できます。</string>
   <string name="signing_warning_permit">署名すると、スペンダーはあなたに再度確認することなくトークンを移動できます。</string>
+  <string name="signing_warning_ton_state_init">このリクエストはコントラクトのデプロイも行います。</string>
   <string name="signing_warning_undecoded">Fearlessはこのリクエストをすべて解読できませんでした。生データを確認し、このdAppを信頼できる場合のみ署名してください。</string>
   <string name="signing_warning_unlimited_approval">スペンダーは、承認を取り消すまで、このトークンをウォレットからすべて引き出すことができます。</string>
   <string name="signing_warning_xcm_program">この呼び出しはdAppが作成したXCM命令を実行し、資金を任意のネットワークやアカウントへ移動できます。このdAppを完全に信頼できる場合にのみ署名してください。</string>

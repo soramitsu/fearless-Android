@@ -825,7 +825,9 @@
   <string name="settings_hide_zero_balances">Ocultar saldos nulos</string>
   <string name="share_referral_code">Partilhar código de referência</string>
   <string name="signing_action_contract_call">Chamada de contrato</string>
+  <string name="signing_action_jetton_transfer">Transferência de jetton</string>
   <string name="signing_action_nft_approval">Aprovação de todos os NFTs</string>
+  <string name="signing_action_nft_transfer">Transferência de NFT</string>
   <string name="signing_action_permit2_allowance">Permissão Permit2</string>
   <string name="signing_action_permit2_transfer">Transferência Permit2</string>
   <string name="signing_action_token_approval">Aprovação de token</string>
@@ -838,15 +840,20 @@
   <string name="signing_field_beneficiary">Beneficiário</string>
   <string name="signing_field_call">Chamada</string>
   <string name="signing_field_chain_id">ID da rede</string>
+  <string name="signing_field_comment">Comentário</string>
   <string name="signing_field_contract">Contrato</string>
   <string name="signing_field_data_type">Tipo de dados</string>
   <string name="signing_field_destination">Destino</string>
   <string name="signing_field_domain">Domínio de assinatura</string>
+  <string name="signing_field_excess_to">Excedente devolvido a</string>
   <string name="signing_field_expires">Expira</string>
+  <string name="signing_field_forward_amount">TON encaminhado</string>
   <string name="signing_field_gas_limit">Limite de gas</string>
   <string name="signing_field_gas_price">Preço do gas por unidade</string>
+  <string name="signing_field_jetton_wallet">Carteira de jetton</string>
   <string name="signing_field_max_fee">Taxa máxima de rede</string>
   <string name="signing_field_function">Função</string>
+  <string name="signing_field_nft">NFT</string>
   <string name="signing_field_operator">Operador</string>
   <string name="signing_field_owner">De</string>
   <string name="signing_field_recipient">Destinatário</string>
@@ -854,6 +861,7 @@
   <string name="signing_field_spender">Gastador</string>
   <string name="signing_field_tip">Gorjeta</string>
   <string name="signing_field_token">Token</string>
+  <string name="signing_field_ton_attached">TON anexado</string>
   <string name="signing_field_value">Valor enviado</string>
   <string name="signing_field_verifying_contract">Contrato verificador</string>
   <string name="signing_refused_destination">O Fearless não assina esta transferência: %1$s não entrega mais transferências desta rede, então os fundos seriam perdidos.</string>
@@ -865,6 +873,7 @@
   <string name="signing_refused_undecoded_call">O Fearless não assina esta transação: a chamada não pode ser decodificada com o runtime desta rede, então não pode ser mostrada a você.</string>
   <string name="signing_section_call">Chamada %1$s</string>
   <string name="signing_section_cross_chain">Transferência entre redes</string>
+  <string name="signing_section_message">Mensagem %1$d de %2$d</string>
   <string name="signing_value_never">Nunca</string>
   <string name="signing_value_parachain">Parachain %1$s</string>
   <string name="signing_value_raw_units">%1$s (unidades mínimas)</string>
@@ -874,6 +883,7 @@
   <string name="signing_warning_cross_chain">Esta chamada envia fundos para outra rede. Verifique o destino e o beneficiário: uma transferência para a rede ou conta errada não pode ser revertida.</string>
   <string name="signing_warning_nft_approval">O operador pode transferir todos os seus NFTs desta coleção até você revogar a aprovação.</string>
   <string name="signing_warning_permit">Ao assinar, o gastador poderá mover os seus tokens sem pedir confirmação novamente.</string>
+  <string name="signing_warning_ton_state_init">Este pedido também implanta um contrato.</string>
   <string name="signing_warning_undecoded">O Fearless não conseguiu decodificar todo este pedido. Verifique os dados brutos e assine apenas se confiar nesta dApp.</string>
   <string name="signing_warning_unlimited_approval">O gastador pode retirar todo este token da sua carteira até você revogar a aprovação.</string>
   <string name="signing_warning_xcm_program">Esta chamada executa instruções XCM escritas pelo dApp, que podem mover fundos para qualquer rede ou conta. Assine somente se você confia totalmente neste dApp.</string>

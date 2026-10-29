@@ -844,7 +844,9 @@
   <string name="settings_hide_zero_balances">Sembunyikan saldo Nol</string>
   <string name="share_referral_code">Bagikan kode rujukan</string>
   <string name="signing_action_contract_call">Panggilan kontrak</string>
+  <string name="signing_action_jetton_transfer">Transfer jetton</string>
   <string name="signing_action_nft_approval">Persetujuan untuk semua NFT</string>
+  <string name="signing_action_nft_transfer">Transfer NFT</string>
   <string name="signing_action_permit2_allowance">Izin Permit2</string>
   <string name="signing_action_permit2_transfer">Transfer Permit2</string>
   <string name="signing_action_token_approval">Persetujuan token</string>
@@ -857,15 +859,20 @@
   <string name="signing_field_beneficiary">Penerima</string>
   <string name="signing_field_call">Panggilan</string>
   <string name="signing_field_chain_id">ID jaringan</string>
+  <string name="signing_field_comment">Komentar</string>
   <string name="signing_field_contract">Kontrak</string>
   <string name="signing_field_data_type">Tipe data</string>
   <string name="signing_field_destination">Tujuan</string>
   <string name="signing_field_domain">Domain penandatanganan</string>
+  <string name="signing_field_excess_to">Sisa dikembalikan ke</string>
   <string name="signing_field_expires">Kedaluwarsa</string>
+  <string name="signing_field_forward_amount">TON yang diteruskan</string>
   <string name="signing_field_gas_limit">Batas gas</string>
   <string name="signing_field_gas_price">Harga gas per unit</string>
+  <string name="signing_field_jetton_wallet">Dompet jetton</string>
   <string name="signing_field_max_fee">Biaya jaringan maksimum</string>
   <string name="signing_field_function">Fungsi</string>
+  <string name="signing_field_nft">NFT</string>
   <string name="signing_field_operator">Operator</string>
   <string name="signing_field_owner">Dari</string>
   <string name="signing_field_recipient">Penerima</string>
@@ -873,6 +880,7 @@
   <string name="signing_field_spender">Pembelanja</string>
   <string name="signing_field_tip">Tip</string>
   <string name="signing_field_token">Token</string>
+  <string name="signing_field_ton_attached">TON terlampir</string>
   <string name="signing_field_value">Nilai yang dikirim</string>
   <string name="signing_field_verifying_contract">Kontrak verifikasi</string>
   <string name="signing_refused_destination">Fearless tidak menandatangani transfer ini: %1$s tidak lagi menerima transfer dari jaringan ini, sehingga dana akan hilang.</string>
@@ -884,6 +892,7 @@
   <string name="signing_refused_undecoded_call">Fearless tidak menandatangani transaksi ini: panggilannya tidak dapat didekode dengan runtime jaringan ini, sehingga tidak dapat ditampilkan kepada Anda.</string>
   <string name="signing_section_call">Panggilan %1$s</string>
   <string name="signing_section_cross_chain">Transfer lintas rantai</string>
+  <string name="signing_section_message">Pesan %1$d dari %2$d</string>
   <string name="signing_value_never">Tidak pernah</string>
   <string name="signing_value_parachain">Parachain %1$s</string>
   <string name="signing_value_raw_units">%1$s (satuan terkecil)</string>
@@ -893,6 +902,7 @@
   <string name="signing_warning_cross_chain">Panggilan ini mengirim dana ke jaringan lain. Periksa tujuan dan penerima: transfer ke jaringan atau akun yang salah tidak dapat dibatalkan.</string>
   <string name="signing_warning_nft_approval">Operator dapat mentransfer setiap NFT milik Anda dalam koleksi ini hingga Anda mencabut persetujuan.</string>
   <string name="signing_warning_permit">Dengan menandatangani, pembelanja dapat memindahkan token Anda tanpa meminta konfirmasi lagi.</string>
+  <string name="signing_warning_ton_state_init">Permintaan ini juga menerapkan sebuah kontrak.</string>
   <string name="signing_warning_undecoded">Fearless tidak dapat menguraikan seluruh permintaan ini. Periksa data mentah dan tandatangani hanya jika Anda memercayai dApp ini.</string>
   <string name="signing_warning_unlimited_approval">Pembelanja dapat mengambil seluruh token ini dari dompet Anda hingga Anda mencabut persetujuan.</string>
   <string name="signing_warning_xcm_program">Panggilan ini menjalankan instruksi XCM yang ditulis dApp, yang dapat memindahkan dana ke jaringan atau akun mana pun. Tanda tangani hanya jika Anda sepenuhnya memercayai dApp ini.</string>

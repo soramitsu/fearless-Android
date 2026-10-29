@@ -919,7 +919,9 @@
   <string name="settings_hide_zero_balances">Ẩn số dư bằng không</string>
   <string name="share_referral_code">Chia sẻ mã giới thiệu</string>
   <string name="signing_action_contract_call">Gọi hợp đồng</string>
+  <string name="signing_action_jetton_transfer">Chuyển jetton</string>
   <string name="signing_action_nft_approval">Phê duyệt tất cả NFT</string>
+  <string name="signing_action_nft_transfer">Chuyển NFT</string>
   <string name="signing_action_permit2_allowance">Cấp quyền Permit2</string>
   <string name="signing_action_permit2_transfer">Chuyển qua Permit2</string>
   <string name="signing_action_token_approval">Phê duyệt token</string>
@@ -932,15 +934,20 @@
   <string name="signing_field_beneficiary">Người thụ hưởng</string>
   <string name="signing_field_call">Lệnh gọi</string>
   <string name="signing_field_chain_id">ID chuỗi</string>
+  <string name="signing_field_comment">Ghi chú</string>
   <string name="signing_field_contract">Hợp đồng</string>
   <string name="signing_field_data_type">Kiểu dữ liệu</string>
   <string name="signing_field_destination">Đích đến</string>
   <string name="signing_field_domain">Miền ký</string>
+  <string name="signing_field_excess_to">Phần dư trả về</string>
   <string name="signing_field_expires">Hết hạn</string>
+  <string name="signing_field_forward_amount">TON được chuyển tiếp</string>
   <string name="signing_field_gas_limit">Giới hạn gas</string>
   <string name="signing_field_gas_price">Giá gas mỗi đơn vị</string>
+  <string name="signing_field_jetton_wallet">Ví jetton</string>
   <string name="signing_field_max_fee">Phí mạng tối đa</string>
   <string name="signing_field_function">Hàm</string>
+  <string name="signing_field_nft">NFT</string>
   <string name="signing_field_operator">Bên được ủy quyền</string>
   <string name="signing_field_owner">Từ</string>
   <string name="signing_field_recipient">Người nhận</string>
@@ -948,6 +955,7 @@
   <string name="signing_field_spender">Bên chi tiêu</string>
   <string name="signing_field_tip">Tiền boa</string>
   <string name="signing_field_token">Token</string>
+  <string name="signing_field_ton_attached">TON đính kèm</string>
   <string name="signing_field_value">Giá trị gửi</string>
   <string name="signing_field_verifying_contract">Hợp đồng xác minh</string>
   <string name="signing_refused_destination">Fearless không ký giao dịch chuyển này: %1$s không còn nhận giao dịch chuyển từ mạng này, nên số tiền sẽ bị mất.</string>
@@ -959,6 +967,7 @@
   <string name="signing_refused_undecoded_call">Fearless không ký giao dịch này: không thể giải mã lệnh gọi bằng runtime của mạng này, nên không thể hiển thị cho bạn.</string>
   <string name="signing_section_call">Lệnh gọi %1$s</string>
   <string name="signing_section_cross_chain">Chuyển khoản liên chuỗi</string>
+  <string name="signing_section_message">Tin nhắn %1$d/%2$d</string>
   <string name="signing_value_never">Không bao giờ</string>
   <string name="signing_value_parachain">Parachain %1$s</string>
   <string name="signing_value_raw_units">%1$s (đơn vị nhỏ nhất)</string>
@@ -968,6 +977,7 @@
   <string name="signing_warning_cross_chain">Lệnh gọi này gửi tiền sang một mạng khác. Hãy kiểm tra đích đến và người thụ hưởng: giao dịch chuyển sai mạng hoặc sai tài khoản không thể hoàn tác.</string>
   <string name="signing_warning_nft_approval">Bên được ủy quyền có thể chuyển mọi NFT của bạn trong bộ sưu tập này cho đến khi bạn thu hồi phê duyệt.</string>
   <string name="signing_warning_permit">Khi ký, bên chi tiêu có thể chuyển token của bạn mà không cần hỏi lại bạn.</string>
+  <string name="signing_warning_ton_state_init">Yêu cầu này cũng triển khai một hợp đồng.</string>
   <string name="signing_warning_undecoded">Fearless không thể giải mã toàn bộ yêu cầu này. Hãy kiểm tra dữ liệu thô và chỉ ký nếu bạn tin tưởng dApp này.</string>
   <string name="signing_warning_unlimited_approval">Bên chi tiêu có thể lấy toàn bộ token này khỏi ví của bạn cho đến khi bạn thu hồi phê duyệt.</string>
   <string name="signing_warning_xcm_program">Lệnh gọi này chạy các lệnh XCM do dApp soạn, có thể chuyển tiền đến bất kỳ mạng hoặc tài khoản nào. Chỉ ký nếu bạn hoàn toàn tin tưởng dApp này.</string>

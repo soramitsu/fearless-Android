@@ -885,7 +885,9 @@
   <string name="settings_hide_zero_balances">Sıfır bakiyeleri gizleyin</string>
   <string name="share_referral_code">Referans kodunuzu paylaşın</string>
   <string name="signing_action_contract_call">Sözleşme çağrısı</string>
+  <string name="signing_action_jetton_transfer">Jetton transferi</string>
   <string name="signing_action_nft_approval">Tüm NFT\'ler için onay</string>
+  <string name="signing_action_nft_transfer">NFT transferi</string>
   <string name="signing_action_permit2_allowance">Permit2 izni</string>
   <string name="signing_action_permit2_transfer">Permit2 transferi</string>
   <string name="signing_action_token_approval">Token onayı</string>
@@ -898,15 +900,20 @@
   <string name="signing_field_beneficiary">Alıcı</string>
   <string name="signing_field_call">Çağrı</string>
   <string name="signing_field_chain_id">Zincir kimliği</string>
+  <string name="signing_field_comment">Yorum</string>
   <string name="signing_field_contract">Sözleşme</string>
   <string name="signing_field_data_type">Veri türü</string>
   <string name="signing_field_destination">Hedef</string>
   <string name="signing_field_domain">İmza alanı</string>
+  <string name="signing_field_excess_to">Artan tutarın iade adresi</string>
   <string name="signing_field_expires">Son geçerlilik</string>
+  <string name="signing_field_forward_amount">İletilen TON</string>
   <string name="signing_field_gas_limit">Gas limiti</string>
   <string name="signing_field_gas_price">Birim başına gas fiyatı</string>
+  <string name="signing_field_jetton_wallet">Jetton cüzdanı</string>
   <string name="signing_field_max_fee">Maksimum ağ ücreti</string>
   <string name="signing_field_function">Fonksiyon</string>
+  <string name="signing_field_nft">NFT</string>
   <string name="signing_field_operator">Operatör</string>
   <string name="signing_field_owner">Gönderen</string>
   <string name="signing_field_recipient">Alıcı</string>
@@ -914,6 +921,7 @@
   <string name="signing_field_spender">Harcayıcı</string>
   <string name="signing_field_tip">Bahşiş</string>
   <string name="signing_field_token">Token</string>
+  <string name="signing_field_ton_attached">Eklenen TON</string>
   <string name="signing_field_value">Gönderilen değer</string>
   <string name="signing_field_verifying_contract">Doğrulayan sözleşme</string>
   <string name="signing_refused_destination">Fearless bu transferi imzalamaz: %1$s artık bu ağdan gelen transferleri teslim etmiyor, bu yüzden fonlar kaybolur.</string>
@@ -925,6 +933,7 @@
   <string name="signing_refused_undecoded_call">Fearless bu işlemi imzalamaz: çağrısı bu ağın çalışma zamanıyla çözülemediği için size gösterilemiyor.</string>
   <string name="signing_section_call">Çağrı %1$s</string>
   <string name="signing_section_cross_chain">Zincirler arası transfer</string>
+  <string name="signing_section_message">Mesaj %1$d / %2$d</string>
   <string name="signing_value_never">Hiçbir zaman</string>
   <string name="signing_value_parachain">Parachain %1$s</string>
   <string name="signing_value_raw_units">%1$s (en küçük birim)</string>
@@ -934,6 +943,7 @@
   <string name="signing_warning_cross_chain">Bu çağrı fonları başka bir ağa gönderir. Hedefi ve alıcıyı kontrol edin: yanlış ağa veya hesaba yapılan transfer geri alınamaz.</string>
   <string name="signing_warning_nft_approval">Operatör, onayı iptal edene kadar bu koleksiyondaki tüm NFT\'lerinizi transfer edebilir.</string>
   <string name="signing_warning_permit">İmzalarsanız harcayıcı, tokenlarınızı size tekrar sormadan taşıyabilir.</string>
+  <string name="signing_warning_ton_state_init">Bu istek ayrıca bir sözleşme dağıtır.</string>
   <string name="signing_warning_undecoded">Fearless bu isteğin tamamını çözemedi. Ham verileri kontrol edin ve yalnızca bu dApp\'e güveniyorsanız imzalayın.</string>
   <string name="signing_warning_unlimited_approval">Harcayıcı, onayı iptal edene kadar bu tokenın tamamını cüzdanınızdan alabilir.</string>
   <string name="signing_warning_xcm_program">Bu çağrı, dApp\'in yazdığı XCM talimatlarını çalıştırır ve fonları herhangi bir ağa veya hesaba taşıyabilir. Yalnızca bu dApp\'e tamamen güveniyorsanız imzalayın.</string>

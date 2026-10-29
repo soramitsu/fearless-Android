@@ -14,10 +14,12 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.PortfolioBalance
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.compose.component.SigningSummaryViewState
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.model.ConnectionSource
+import jp.co.soramitsu.feature_tonconnect_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
@@ -227,6 +229,44 @@ class TonSignRequestPortfolioAdoptionTest {
     }
 
     @Test
+    fun signingWaitsForTheDecodedRequestSummary() = runTest(dispatcher) {
+        val decoded = CompletableDeferred<SigningSummaryViewState>()
+        val summaries = mockk<TonSignRequestSummaries>()
+        coEvery { summaries.summary(chain, any(), any()) } coAnswers { decoded.await() }
+        balances.value = ready("Request wallet")
+        val vm = create(dapp(7), summaries)
+        runCurrent()
+        vm.onPreviewClick()
+        runCurrent()
+        assertNull((vm.state.value as TonSignPreviewViewState).summary)
+        vm.onSignClick()
+        runCurrent()
+        coVerify(exactly = 0) { interactor.signMessage(any(), any(), any(), any()) }
+
+        decoded.complete(SigningSummaryViewState("Transfer · 1 TON", emptyList(), emptyList(), showsRawData = false))
+        runCurrent()
+        val preview = vm.state.value as TonSignPreviewViewState
+        assertEquals("Transfer · 1 TON", preview.summary?.headline)
+        assertTrue(preview.tableItems.none { it.clickState != null })
+        vm.onSignClick()
+        runCurrent()
+        coVerify(exactly = 1) { interactor.signMessage(chain, "sendTransaction", any(), 7) }
+    }
+
+    @Test
+    fun undecodedRequestOffersRawDataBeforeSigning() = runTest(dispatcher) {
+        balances.value = ready("Request wallet")
+        val vm = create(dapp(7))
+        runCurrent()
+        assertEquals("text-${R.string.common_unknown}", (vm.state.value as TonSignRequestViewState).message.subtitle)
+        vm.onPreviewClick()
+        runCurrent()
+        val preview = vm.state.value as TonSignPreviewViewState
+        assertTrue(preview.summary?.showsRawData == true)
+        assertEquals(1, preview.tableItems.count { it.clickState != null })
+    }
+
+    @Test
     fun failedSigningDisplaysErrorAndReleasesLoadingForRetry() = runTest(dispatcher) {
         balances.value = ready("Request wallet")
         val vm = create(dapp(7))
@@ -318,7 +358,10 @@ class TonSignRequestPortfolioAdoptionTest {
         coVerify(exactly = 0) { interactor.signMessage(any(), any(), any(), any()) }
     }
 
-    private fun create(dapp: DappModel): TonSignRequestViewModel = TonSignRequestViewModel(
+    private fun create(
+        dapp: DappModel,
+        summaries: TonSignRequestSummaries = TonSignRequestSummaries(resources) { _, _ -> emptyMap() }
+    ): TonSignRequestViewModel = TonSignRequestViewModel(
         SavedStateHandle(
             mapOf(
                 TonSignRequestFragment.TON_SIGN_REQUEST_KEY to mockk<TonConnectSignRequest>(),
@@ -330,7 +373,8 @@ class TonSignRequestPortfolioAdoptionTest {
         router,
         resources,
         icons,
-        interactor
+        interactor,
+        summaries
     ).also(viewModels::add)
 
     private fun ready(

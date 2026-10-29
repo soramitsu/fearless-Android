@@ -879,7 +879,9 @@
   <string name="settings_hide_zero_balances">隐藏零余额</string>
   <string name="share_referral_code">分享推荐码</string>
   <string name="signing_action_contract_call">合约调用</string>
+  <string name="signing_action_jetton_transfer">Jetton 转账</string>
   <string name="signing_action_nft_approval">授权全部 NFT</string>
+  <string name="signing_action_nft_transfer">NFT 转移</string>
   <string name="signing_action_permit2_allowance">Permit2 授权</string>
   <string name="signing_action_permit2_transfer">Permit2 转账</string>
   <string name="signing_action_token_approval">代币授权</string>
@@ -892,15 +894,20 @@
   <string name="signing_field_beneficiary">受益人</string>
   <string name="signing_field_call">调用</string>
   <string name="signing_field_chain_id">链 ID</string>
+  <string name="signing_field_comment">备注</string>
   <string name="signing_field_contract">合约</string>
   <string name="signing_field_data_type">数据类型</string>
   <string name="signing_field_destination">目的地</string>
   <string name="signing_field_domain">签名域</string>
+  <string name="signing_field_excess_to">剩余退回至</string>
   <string name="signing_field_expires">过期时间</string>
+  <string name="signing_field_forward_amount">转发的 TON</string>
   <string name="signing_field_gas_limit">Gas 限额</string>
   <string name="signing_field_gas_price">每单位 Gas 价格</string>
+  <string name="signing_field_jetton_wallet">Jetton 钱包</string>
   <string name="signing_field_max_fee">最高网络手续费</string>
   <string name="signing_field_function">函数</string>
+  <string name="signing_field_nft">NFT</string>
   <string name="signing_field_operator">操作者</string>
   <string name="signing_field_owner">来自</string>
   <string name="signing_field_recipient">接收方</string>
@@ -908,6 +915,7 @@
   <string name="signing_field_spender">授权使用方</string>
   <string name="signing_field_tip">小费</string>
   <string name="signing_field_token">代币</string>
+  <string name="signing_field_ton_attached">附带的 TON</string>
   <string name="signing_field_value">发送金额</string>
   <string name="signing_field_verifying_contract">验证合约</string>
   <string name="signing_refused_destination">Fearless 不会签署此转账：%1$s 已不再接收来自此网络的转账，资金将会丢失。</string>
@@ -919,6 +927,7 @@
   <string name="signing_refused_undecoded_call">Fearless 不会签署此交易：无法用该网络的运行时解码其调用，因此无法向您展示其内容。</string>
   <string name="signing_section_call">调用 %1$s</string>
   <string name="signing_section_cross_chain">跨链转账</string>
+  <string name="signing_section_message">消息 %1$d/%2$d</string>
   <string name="signing_value_never">永不</string>
   <string name="signing_value_parachain">平行链 %1$s</string>
   <string name="signing_value_raw_units">%1$s（最小单位）</string>
@@ -928,6 +937,7 @@
   <string name="signing_warning_cross_chain">此调用会将资金发送到另一个网络。请检查目的地和受益人：发送到错误网络或账户的转账无法撤回。</string>
   <string name="signing_warning_nft_approval">在您撤销授权之前，操作者可以转移您在此系列中的所有 NFT。</string>
   <string name="signing_warning_permit">签名后，授权使用方无需再次询问即可转移您的代币。</string>
+  <string name="signing_warning_ton_state_init">此请求还会部署一个合约。</string>
   <string name="signing_warning_undecoded">Fearless 无法完全解析此请求。请检查原始数据，仅在信任此 dApp 时签名。</string>
   <string name="signing_warning_unlimited_approval">在您撤销授权之前，授权使用方可以从您的钱包中取走全部该代币。</string>
   <string name="signing_warning_xcm_program">此调用会执行 dApp 编写的 XCM 指令，可将资金转移到任何网络或账户。仅在您完全信任此 dApp 时才签署。</string>

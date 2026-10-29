@@ -905,7 +905,9 @@
   <string name="settings_hide_zero_balances">Скрыть нулевые балансы</string>
   <string name="share_referral_code">Поделиться реферальным кодом</string>
   <string name="signing_action_contract_call">Вызов контракта</string>
+  <string name="signing_action_jetton_transfer">Перевод джеттонов</string>
   <string name="signing_action_nft_approval">Разрешение на все NFT</string>
+  <string name="signing_action_nft_transfer">Перевод NFT</string>
   <string name="signing_action_permit2_allowance">Разрешение Permit2</string>
   <string name="signing_action_permit2_transfer">Перевод через Permit2</string>
   <string name="signing_action_token_approval">Разрешение на токен</string>
@@ -918,15 +920,20 @@
   <string name="signing_field_beneficiary">Получатель</string>
   <string name="signing_field_call">Вызов</string>
   <string name="signing_field_chain_id">ID сети</string>
+  <string name="signing_field_comment">Комментарий</string>
   <string name="signing_field_contract">Контракт</string>
   <string name="signing_field_data_type">Тип данных</string>
   <string name="signing_field_destination">Назначение</string>
   <string name="signing_field_domain">Домен подписи</string>
+  <string name="signing_field_excess_to">Остаток вернётся на</string>
   <string name="signing_field_expires">Истекает</string>
+  <string name="signing_field_forward_amount">Пересылаемые TON</string>
   <string name="signing_field_gas_limit">Лимит газа</string>
   <string name="signing_field_gas_price">Цена за единицу газа</string>
+  <string name="signing_field_jetton_wallet">Кошелёк джеттона</string>
   <string name="signing_field_max_fee">Максимальная комиссия сети</string>
   <string name="signing_field_function">Функция</string>
+  <string name="signing_field_nft">NFT</string>
   <string name="signing_field_operator">Оператор</string>
   <string name="signing_field_owner">От</string>
   <string name="signing_field_recipient">Получатель</string>
@@ -934,6 +941,7 @@
   <string name="signing_field_spender">Спендер</string>
   <string name="signing_field_tip">Чаевые</string>
   <string name="signing_field_token">Токен</string>
+  <string name="signing_field_ton_attached">Прилагаемые TON</string>
   <string name="signing_field_value">Отправляемая сумма</string>
   <string name="signing_field_verifying_contract">Проверяющий контракт</string>
   <string name="signing_refused_destination">Fearless не подписывает этот перевод: %1$s больше не принимает переводы из этой сети, и средства будут потеряны.</string>
@@ -945,6 +953,7 @@
   <string name="signing_refused_undecoded_call">Fearless не подписывает эту транзакцию: её вызов не удаётся декодировать средой выполнения этой сети, поэтому его нельзя вам показать.</string>
   <string name="signing_section_call">Вызов %1$s</string>
   <string name="signing_section_cross_chain">Межсетевой перевод</string>
+  <string name="signing_section_message">Сообщение %1$d из %2$d</string>
   <string name="signing_value_never">Никогда</string>
   <string name="signing_value_parachain">Парачейн %1$s</string>
   <string name="signing_value_raw_units">%1$s (минимальные единицы)</string>
@@ -954,6 +963,7 @@
   <string name="signing_warning_cross_chain">Этот вызов отправляет средства в другую сеть. Проверьте назначение и получателя: перевод в неверную сеть или на неверный счёт нельзя отменить.</string>
   <string name="signing_warning_nft_approval">Оператор сможет переводить все ваши NFT из этой коллекции, пока вы не отзовёте разрешение.</string>
   <string name="signing_warning_permit">Подписав, вы позволите спендеру перемещать ваши токены без повторного подтверждения.</string>
+  <string name="signing_warning_ton_state_init">Этот запрос также развёртывает контракт.</string>
   <string name="signing_warning_undecoded">Fearless не удалось полностью расшифровать этот запрос. Проверьте исходные данные и подписывайте, только если доверяете этому dApp.</string>
   <string name="signing_warning_unlimited_approval">Спендер сможет забрать весь этот токен из вашего кошелька, пока вы не отзовёте разрешение.</string>
   <string name="signing_warning_xcm_program">Этот вызов выполняет инструкции XCM, составленные dApp, и может перевести средства в любую сеть или на любой счёт. Подписывайте, только если полностью доверяете этому dApp.</string>
