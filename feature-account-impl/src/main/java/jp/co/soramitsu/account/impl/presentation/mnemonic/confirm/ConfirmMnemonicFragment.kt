@@ -10,6 +10,7 @@ import android.widget.ImageView
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.account.impl.presentation.common.SecureScreenGuard
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.view.MnemonicWordView
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.utils.doOnGlobalLayout
@@ -30,9 +31,33 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
 
     private lateinit var binding: FragmentConfirmMnemonicBinding
 
+    // The shuffled recovery phrase words must never reach a screenshot, a
+    // recording, a cast or the recents thumbnail.
+    private val secureScreen = SecureScreenGuard(this)
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentConfirmMnemonicBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        secureScreen.onViewCreated()
+        super.onViewCreated(view, savedInstanceState)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        secureScreen.onStart()
+    }
+
+    override fun onStop() {
+        secureScreen.onStop()
+        super.onStop()
+    }
+
+    override fun onDestroyView() {
+        secureScreen.onDestroyView()
+        super.onDestroyView()
     }
 
     override fun initViews() {

@@ -1,6 +1,8 @@
 package jp.co.soramitsu.account.impl.presentation.mnemonic.backup
 
+import android.app.Dialog
 import android.os.Bundle
+import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -22,6 +24,15 @@ import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomShe
 class BackupMnemonicDialog : BaseComposeBottomSheetDialogFragment<BackupMnemonicViewModel>() {
 
     override val viewModel: BackupMnemonicViewModel by viewModels()
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        // The sheet shows the recovery phrase in its own window, which never
+        // inherits the Activity window flags. Mark it secure before it is
+        // first drawn; the flag goes away with the window.
+        return super.onCreateDialog(savedInstanceState).apply {
+            window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
+    }
 
     @Composable
     override fun Content(padding: PaddingValues) {
