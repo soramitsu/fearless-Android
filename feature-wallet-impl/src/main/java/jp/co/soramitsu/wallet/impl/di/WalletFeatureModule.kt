@@ -193,7 +193,7 @@ class WalletFeatureModule {
 
     @Provides
     fun provideHistoryApi(networkApiCreator: NetworkApiCreator): OperationsHistoryApi {
-        return networkApiCreator.create(OperationsHistoryApi::class.java)
+        return networkApiCreator.create(OperationsHistoryApi::class.java, followRedirects = false)
     }
 
     @Provides

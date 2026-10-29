@@ -57,6 +57,8 @@ android {
         buildConfigField "String", "WALLET_CONNECT_PROJECT_ID", readSecretInQuotes("FL_WALLET_CONNECT_PROJECT_ID")
         buildConfigField "String", "FL_DWELLIR_API_KEY", readSecretInQuotes("FL_DWELLIR_API_KEY")
         buildConfigField "String", "FL_ANDROID_TON_API_KEY", readSecretInQuotes("FL_ANDROID_TON_API_KEY")
+        buildConfigField "String", "NOMIS_API_KEY", readSecretInQuotes("FL_NOMIS_API_KEY")
+        buildConfigField "String", "NOMIS_CLIENT_ID", readSecretInQuotes("FL_NOMIS_CLIENT_ID")
         def tonIndexerUrl = readOptionalSecret("FL_ANDROID_TON_INDEXER_URL") ?: "https://ti.soramitsu.io"
         buildConfigField "String", "TON_INDEXER_URL", "\"${tonIndexerUrl}\""
         // TON uses TI only after TI's service-info proves the network. Until then the registry's TON node answers
