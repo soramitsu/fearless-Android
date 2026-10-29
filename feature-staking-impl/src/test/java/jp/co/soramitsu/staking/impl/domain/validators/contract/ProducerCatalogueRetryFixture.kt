@@ -25,7 +25,8 @@ internal class ProducerCatalogueRetryFixture {
 
     suspend fun start(query: String = "al") {
         screen.data.defaults()
-        whenever(screen.producer.observeSelectionContext()).thenReturn(screen.data.interactor.observeSelectionContext())
+        val selectionContext = screen.data.interactor.observeSelectionContext()
+        whenever(screen.producer.observeSelectionContext()).thenReturn(selectionContext)
         whenever(screen.resources.getString(R.string.common_error_general_title)).thenReturn("Error")
         whenever(screen.resources.getString(R.string.common_error_general_message)).thenReturn("Please try again later")
         whenever(screen.resources.getString(R.string.common_retry)).thenReturn("Retry")

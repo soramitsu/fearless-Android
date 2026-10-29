@@ -66,7 +66,8 @@ internal class ProducerSearchScreenFixture(parachain: Boolean = false) {
 
     suspend fun start() {
         data.defaults()
-        whenever(producer.observeSelectionContext()).thenReturn(data.interactor.observeSelectionContext())
+        val selectionContext = data.interactor.observeSelectionContext()
+        whenever(producer.observeSelectionContext()).thenReturn(selectionContext)
         whenever(resources.getString(any(), any<Int>())).thenAnswer { "Results: ${it.arguments[1]}" }
         whenever(resources.getString(any())).thenReturn("Validator blocked")
         whenever(producer.getBlockProducers(any())).thenReturn(catalogue)
