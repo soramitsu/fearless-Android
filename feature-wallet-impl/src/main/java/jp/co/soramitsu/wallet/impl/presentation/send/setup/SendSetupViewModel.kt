@@ -49,6 +49,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.validation.ExistentialDepositCrossedWarning
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.utils.isValidAddress
+import jp.co.soramitsu.runtime.ext.isValidRecipientAddress
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -244,7 +245,7 @@ class SendSetupViewModel @Inject constructor(
 
     private val isInputAddressValidFlow =
         combine(addressInputTrimmedFlow, selectedChain.filterNotNull()) { addressInput, chain ->
-            chain.isValidAddress(addressInput)
+            chain.isValidRecipientAddress(addressInput)
         }.stateIn(this, SharingStarted.Eagerly, false)
 
     private val chainSelectorStateFlow =
@@ -1036,7 +1037,7 @@ class SendSetupViewModel @Inject constructor(
             }
         }
         val addressChains = accountSupportedChains.filter {
-            runCatching { it.isValidAddress(address) }.getOrNull() == true
+            runCatching { it.isValidRecipientAddress(address) }.getOrNull() == true
         }
         return addressChains
     }

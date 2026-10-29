@@ -47,3 +47,6 @@ FL_ANDROID_TON_INDEXER_URL=<your_ton_indexer_base_url>
 # TON uses TI only after its service-info proves the network; until then the verified registry TonAPI node answers.
 # Set to false once TI serves TON mainnet to use TI only (default true).
 # FL_ANDROID_TON_REGISTRY_NODE_FALLBACK=true
+# Optional Solana mainnet JSON-RPC provider, asked before the selected node and the public nodes: an https
+# URL with a host, the provider key in its path or query. Empty means none; a malformed value fails the build.
+# FL_ANDROID_SOLANA_RPC_URL=https://<your_solana_mainnet_rpc_provider>/<key>

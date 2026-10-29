@@ -1581,6 +1581,12 @@
     <string name="send_recent_payment">Recent payment</string>
     <string name="send_pending_message">The result of this payment is still unknown. Check its status or retry the same payment. Do not create a replacement payment.</string>
     <string name="send_pending_expired">The blockhash for this payment has expired, but it may already have landed. Keep checking its status or the explorer. Fearless will not sign a replacement while the outcome is unknown.</string>
+    <string name="send_solana_not_sent">This payment did not reach the Solana network, so nothing was sent and nothing left your wallet. Check your connection and send it again.</string>
+    <string name="send_solana_refused">The Solana network refused this payment before relaying it, so nothing was sent and nothing left your wallet. Review the payment and try again.</string>
+    <string name="send_solana_expired_not_sent">This payment expired before the network recorded it, so nothing was sent and nothing left your wallet. You can make a new payment.</string>
+    <string name="send_solana_payment_unverified">Fearless could not verify whether this payment landed and has stopped tracking it. Check your balance and the explorer before sending again.</string>
+    <string name="send_solana_prior_expired">An earlier payment expired before the network recorded it, so nothing was sent for it. This payment has not been sent yet. Review it and confirm again.</string>
+    <string name="send_solana_prior_unverified">Fearless could not verify whether an earlier payment landed and has stopped tracking it. Check your balance and the explorer before sending again. This payment has not been sent.</string>
     <string name="send_confirmed_message">The network confirmed this payment.</string>
     <string name="send_failed_message">The network reported that this payment failed. The original transaction is retained.</string>
     <string name="send_check_status">Check status</string>
@@ -1594,6 +1600,7 @@
     <string name="send_review_changed">The wallet, fee, balance or quote changed. Return to the amount screen and review the payment again.</string>
     <string name="send_pending_network_unavailable">The original network for this saved payment cannot be verified. The payment is kept on this device. Status checks and retries are unavailable.</string>
     <string name="send_unsupported_account">This account or token cannot send with this wallet. Standard SPL tokens are supported; Token-2022 sends are unavailable.</string>
+    <string name="send_solana_token2022_unsupported">This token can\'t be sent yet. This version sends SOL and standard SPL tokens, and this token uses Token-2022. It stays in your wallet, and you can still receive it.</string>
     <string name="send_storage_unavailable">The retained payment could not be verified. Sending is blocked to prevent a duplicate. Keep this app data and try again.</string>
     <string name="send_bitcoin_address_help">Bitcoin Send supports native SegWit addresses only: bc1q on Bitcoin, or tb1q on Bitcoin Testnet. Other address types cannot receive this send.</string>
     <string name="send_insufficient_spendable">The spendable balance is too low for this amount and its network fee. Pending Bitcoin funds must confirm first.</string>

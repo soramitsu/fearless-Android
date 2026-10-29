@@ -27,7 +27,9 @@ import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.xnetworking.lib.datasources.txhistory.api.adapters.HistoryInfoRemoteLoader
+import jp.co.soramitsu.wallet.impl.data.network.subquery.ExplorerOnlyHistoryException
 import kotlinx.coroutines.runBlocking
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -180,6 +182,35 @@ class SolanaHistorySourceTest {
     }
 
     @Test
+    fun `no indexer data for this cluster points to the explorer instead of an empty list or an error`() = runBlocking {
+        val otherCluster = SolanaIndexerServiceInfo(1, "si.soramitsu.io", "Solswap Indexer", "solana", "solana:devnet", "devnet",
+            "https://si.soramitsu.io", true)
+        val notFound = retrofit2.HttpException(retrofit2.Response.error<Any>(404, "".toResponseBody(null)))
+        val failures = listOf<FakeSolanaIndexerClient.() -> Unit>(
+            { serviceInfoFailure = notFound },
+            { serviceInfoFailure = jp.co.soramitsu.common.data.network.solana.SolanaIndexerIdentityException(otherCluster) },
+            { transactionsFailure = java.io.IOException("indexer unreachable") },
+            { transactionsFailure = notFound },
+            { transactionsFailure = com.google.gson.JsonSyntaxException("unreadable page") }
+        )
+        for (failure in failures) {
+            val client = FakeSolanaIndexerClient(response = transactionsResponse(listOf(transaction()))).apply(failure)
+            val source = SolanaHistorySource(SolanaTransactionHistorySync(client), INDEXER_URL)
+            val result = runCatching {
+                source.getOperations(25, null, setOf(TransactionFilter.TRANSFER), byteArrayOf(), solanaChain(), solanaAsset(), WALLET)
+            }
+            assertTrue(result.exceptionOrNull() is ExplorerOnlyHistoryException)
+        }
+        // A page for another wallet is not this account's history either.
+        val mismatched = FakeSolanaIndexerClient(response = transactionsResponse(listOf(transaction())).copy(wallet = OTHER_WALLET))
+        val result = runCatching {
+            SolanaHistorySource(SolanaTransactionHistorySync(mismatched), INDEXER_URL)
+                .getOperations(25, null, setOf(TransactionFilter.TRANSFER), byteArrayOf(), solanaChain(), solanaAsset(), WALLET)
+        }
+        assertTrue(result.exceptionOrNull() is ExplorerOnlyHistoryException)
+    }
+
+    @Test
     fun `provider routes solana history type to solana source`() {
         val provider = HistorySourceProvider(
             walletOperationsApi = mock(OperationsHistoryApi::class.java),
@@ -198,6 +229,8 @@ class SolanaHistorySourceTest {
         private val response: SolanaWalletTransactionsResponse = transactionsResponse(emptyList())
     ) : SolanaIndexerClient {
         val verifiedBaseUrls = mutableListOf<String>()
+        var serviceInfoFailure: Throwable? = null
+        var transactionsFailure: Throwable? = null
         var transactionCalls = 0
             private set
         var lastWallet: String? = null
@@ -215,6 +248,7 @@ class SolanaHistorySourceTest {
 
         override suspend fun verifyServiceInfo(baseUrl: String?): SolanaIndexerServiceInfo {
             verifiedBaseUrls += baseUrl.orEmpty()
+            serviceInfoFailure?.let { throw it }
             return SolanaIndexerServiceInfo(
                 schemaVersion = 1,
                 serviceId = "si.soramitsu.io",
@@ -251,6 +285,7 @@ class SolanaHistorySourceTest {
             limit: Int
         ): SolanaWalletTransactionsResponse {
             transactionCalls += 1
+            transactionsFailure?.let { throw it }
             lastWallet = wallet
             lastBaseUrl = baseUrl
             lastBefore = before
@@ -273,6 +308,7 @@ class SolanaHistorySourceTest {
     private companion object {
         const val INDEXER_URL = "https://si.soramitsu.io"
         const val WALLET = "HAgk14JpMQLgt6rVgv7cBQFJWFto5Dqxi472uT3DKpqk"
+        const val OTHER_WALLET = "9hSR6S7WPtxmTojgo6GG3k4yDPecgJY292j7xrsUGWBu"
         val SIGNATURE_0 = "1".repeat(88)
         val SIGNATURE_1 = "2".repeat(88)
         val SIGNATURE_2 = "3".repeat(88)

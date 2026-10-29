@@ -1554,6 +1554,12 @@
     <string name="send_recent_payment">Son ödeme</string>
     <string name="send_pending_message">Bu ödemenin sonucu henüz bilinmiyor. Durumunu kontrol edin veya aynı ödemeyi yeniden gönderin. Yerine yeni bir ödeme oluşturmayın.</string>
     <string name="send_pending_expired">Bu ödemenin blockhash süresi doldu, ancak ödeme işlenmiş olabilir. Durumu veya gezgini kontrol etmeye devam edin. Sonuç bilinmiyorken Fearless yeni bir ödeme imzalamaz.</string>
+    <string name="send_solana_not_sent">Bu ödeme Solana ağına ulaşmadı; bu yüzden hiçbir şey gönderilmedi ve cüzdanınızdan para çıkmadı. Bağlantınızı kontrol edip yeniden gönderin.</string>
+    <string name="send_solana_refused">Solana ağı bu ödemeyi iletmeden önce reddetti; bu yüzden hiçbir şey gönderilmedi ve cüzdanınızdan para çıkmadı. Ödemeyi gözden geçirip yeniden deneyin.</string>
+    <string name="send_solana_expired_not_sent">Bu ödemenin süresi ağ tarafından kaydedilmeden önce doldu; bu yüzden hiçbir şey gönderilmedi ve cüzdanınızdan para çıkmadı. Yeni bir ödeme yapabilirsiniz.</string>
+    <string name="send_solana_payment_unverified">Fearless bu ödemenin işlenip işlenmediğini doğrulayamadı ve takibini bıraktı. Yeniden göndermeden önce bakiyenizi ve gezgini kontrol edin.</string>
+    <string name="send_solana_prior_expired">Önceki bir ödemenin süresi ağ tarafından kaydedilmeden önce doldu; bu yüzden onun için hiçbir şey gönderilmedi. Bu ödeme henüz gönderilmedi. Gözden geçirip yeniden onaylayın.</string>
+    <string name="send_solana_prior_unverified">Fearless önceki bir ödemenin işlenip işlenmediğini doğrulayamadı ve takibini bıraktı. Yeniden göndermeden önce bakiyenizi ve gezgini kontrol edin. Bu ödeme henüz gönderilmedi.</string>
     <string name="send_confirmed_message">Bu ödeme ağ tarafından onaylandı.</string>
     <string name="send_failed_message">Ağ bu ödemenin başarısız olduğunu bildirdi. Orijinal işlem saklanıyor.</string>
     <string name="send_check_status">Durumu kontrol et</string>
@@ -1567,6 +1573,7 @@
     <string name="send_review_changed">Cüzdan, ücret, bakiye veya hesaplama değişti. Tutar ekranına dönüp ödemeyi yeniden inceleyin.</string>
     <string name="send_pending_network_unavailable">Kaydedilen bu ödemenin asıl ağı doğrulanamıyor. Ödeme bu cihazda saklanır. Durum kontrolü ve yeniden gönderme kullanılamıyor.</string>
     <string name="send_unsupported_account">Bu hesap veya token bu cüzdanla gönderim yapamaz. Standart SPL tokenleri desteklenir; Token-2022 gönderimleri kullanılamaz.</string>
+    <string name="send_solana_token2022_unsupported">Bu token henüz gönderilemez. Bu sürüm SOL ve standart SPL tokenleri gönderir; bu token ise Token-2022 kullanır. Token cüzdanınızda kalır ve almaya devam edebilirsiniz.</string>
     <string name="send_storage_unavailable">Saklanan ödeme doğrulanamadı. Yinelenen ödemeyi önlemek için gönderim engellendi. Uygulama verilerini koruyun ve tekrar deneyin.</string>
     <string name="send_bitcoin_address_help">Bitcoin gönderimi yalnızca yerel SegWit adreslerini destekler: Bitcoin için bc1q, Bitcoin Testnet için tb1q. Diğer adres türleri bu gönderimi alamaz.</string>
     <string name="send_insufficient_spendable">Harcanabilir bakiye bu tutar ve ağ ücreti için yetersiz. Bekleyen Bitcoin fonları önce onaylanmalıdır.</string>

@@ -1619,6 +1619,12 @@
     <string name="send_recent_payment">Pagamento recente</string>
     <string name="send_pending_message">O resultado deste pagamento ainda é desconhecido. Verifique o estado ou reenvie o mesmo pagamento. Não crie um pagamento substituto.</string>
     <string name="send_pending_expired">O blockhash deste pagamento expirou, mas ele pode já ter sido processado. Continue verificando o estado ou o explorador. A Fearless não assinará um substituto enquanto o resultado for desconhecido.</string>
+    <string name="send_solana_not_sent">Este pagamento não chegou à rede Solana, então nada foi enviado e nada saiu da sua carteira. Verifique sua conexão e envie novamente.</string>
+    <string name="send_solana_refused">A rede Solana recusou este pagamento antes de retransmiti-lo, então nada foi enviado e nada saiu da sua carteira. Revise o pagamento e tente novamente.</string>
+    <string name="send_solana_expired_not_sent">Este pagamento expirou antes de a rede registrá-lo, então nada foi enviado e nada saiu da sua carteira. Você pode fazer um novo pagamento.</string>
+    <string name="send_solana_payment_unverified">A Fearless não conseguiu verificar se este pagamento foi processado e deixou de acompanhá-lo. Verifique seu saldo e o explorador antes de enviar novamente.</string>
+    <string name="send_solana_prior_expired">Um pagamento anterior expirou antes de a rede registrá-lo, então nada foi enviado por ele. Este pagamento ainda não foi enviado. Revise-o e confirme novamente.</string>
+    <string name="send_solana_prior_unverified">A Fearless não conseguiu verificar se um pagamento anterior foi processado e deixou de acompanhá-lo. Verifique seu saldo e o explorador antes de enviar novamente. Este pagamento ainda não foi enviado.</string>
     <string name="send_confirmed_message">Este pagamento foi confirmado pela rede.</string>
     <string name="send_failed_message">A rede informou que este pagamento falhou. A transação original foi preservada.</string>
     <string name="send_check_status">Verificar estado</string>
@@ -1632,6 +1638,7 @@
     <string name="send_review_changed">A carteira, a taxa, o saldo ou a cotação mudou. Volte à tela de valor e revise o pagamento novamente.</string>
     <string name="send_pending_network_unavailable">Não é possível verificar a rede original deste pagamento salvo. O pagamento é mantido neste dispositivo. A consulta de status e o reenvio estão indisponíveis.</string>
     <string name="send_unsupported_account">Esta conta ou este token não pode enviar com esta carteira. Tokens SPL padrão são aceitos; envios de Token-2022 não estão disponíveis.</string>
+    <string name="send_solana_token2022_unsupported">Este token ainda não pode ser enviado. Esta versão envia SOL e tokens SPL padrão, e este token usa Token-2022. Ele continua na sua carteira, e você ainda pode recebê-lo.</string>
     <string name="send_storage_unavailable">Não foi possível verificar o pagamento preservado. O envio está bloqueado para evitar duplicação. Mantenha os dados deste aplicativo e tente novamente.</string>
     <string name="send_bitcoin_address_help">O envio de Bitcoin aceita apenas endereços SegWit nativos: bc1q no Bitcoin ou tb1q no Bitcoin Testnet. Outros tipos de endereço não podem receber este envio.</string>
     <string name="send_insufficient_spendable">O saldo disponível não cobre este valor e a taxa de rede. Os fundos Bitcoin pendentes precisam ser confirmados primeiro.</string>

@@ -244,6 +244,14 @@ procedure.
   farming and Bitcoin/Solana sends stay on for every upgrader. Never publish a
   veto preemptively. On the release build, smoke-test a small funded SORA swap,
   adding and removing liquidity, and a Demeter deposit and withdrawal.
+- Solana uses public JSON-RPC nodes unless the optional repository secret
+  `FL_ANDROID_SOLANA_RPC_URL` names an `https` mainnet provider for the build
+  (asked first; the key goes in the URL path or query, and a malformed value
+  fails the build). Without one, token balances come from
+  api.mainnet-beta.solana.com or, when it is busy, public.rpc.solanavibestation.com
+  (publicnode refuses token-account reads).
+  Run a small funded SOL and SPL canary on the release build; see
+  `docs/solana-send.md`.
 - From the workspace root, run
   `bash scripts/audit-passkey-backup-prerequisites.sh` and confirm
   `config/passkey-backup-production.json` still matches Android passkey code,

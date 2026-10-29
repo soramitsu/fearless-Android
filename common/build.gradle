@@ -65,6 +65,28 @@ android {
         // (verified the same way) so TON holders keep balances and sends. Set to false once TI serves TON mainnet.
         def tonRegistryNodeFallback = readOptionalSecret("FL_ANDROID_TON_REGISTRY_NODE_FALLBACK")?.trim()?.toLowerCase() != "false"
         buildConfigField "boolean", "TON_REGISTRY_NODE_FALLBACK", "${tonRegistryNodeFallback}"
+        // Optional Solana mainnet JSON-RPC provider, asked before the selected node and the public mainnet nodes.
+        // Empty means none. Otherwise it must be an https URL with a host, and the provider key is part of the URL
+        // path or query, because the app sends no auth header. Surrounding quotes are dropped like other secrets;
+        // any other malformed value fails the build instead of being ignored at runtime.
+        def solanaRpcProviderUrl = (readOptionalSecret("FL_ANDROID_SOLANA_RPC_URL") ?: "").trim()
+        if (solanaRpcProviderUrl ==~ /(["']).*\1/) {
+            solanaRpcProviderUrl = solanaRpcProviderUrl.substring(1, solanaRpcProviderUrl.length() - 1).trim()
+        }
+        if (!solanaRpcProviderUrl.isEmpty()) {
+            def provider = null
+            try {
+                provider = new URI(solanaRpcProviderUrl)
+            } catch (URISyntaxException ignored) {
+            }
+            if (provider == null || !(solanaRpcProviderUrl ==~ /[!-~]{1,8192}/) || provider.scheme != "https" ||
+                    !provider.host || provider.rawUserInfo != null || provider.rawFragment != null) {
+                // The value itself is never printed: it carries the provider key.
+                throw new GradleException("FL_ANDROID_SOLANA_RPC_URL must be empty or an https URL with a host and no " +
+                        "user info or fragment; put the provider key in the URL path or query.")
+            }
+        }
+        buildConfigField "String", "SOLANA_RPC_PROVIDER_URL", "\"${solanaRpcProviderUrl}\""
 
         buildConfigField("String", "DAPPS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/development/appConfigs/dapps.json\"")
     }

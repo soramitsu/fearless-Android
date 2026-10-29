@@ -1543,6 +1543,12 @@
     <string name="send_recent_payment">最近付款</string>
     <string name="send_pending_message">此付款的结果尚未确定。请检查状态或重新提交同一笔付款。请勿创建替代付款。</string>
     <string name="send_pending_expired">此付款的区块哈希已过期，但付款可能已经完成。请继续检查状态或区块浏览器。结果未知时，Fearless 不会签署替代付款。</string>
+    <string name="send_solana_not_sent">此付款未到达 Solana 网络，因此没有发送任何内容，您的钱包也没有资金转出。请检查网络连接后重新发送。</string>
+    <string name="send_solana_refused">Solana 网络在转发之前拒绝了此付款，因此没有发送任何内容，您的钱包也没有资金转出。请检查付款后重试。</string>
+    <string name="send_solana_expired_not_sent">此付款在网络记录之前已过期，因此没有发送任何内容，您的钱包也没有资金转出。您可以发起新的付款。</string>
+    <string name="send_solana_payment_unverified">Fearless 无法确认此付款是否已完成，已停止跟踪。再次发送之前，请检查您的余额和区块浏览器。</string>
+    <string name="send_solana_prior_expired">之前的一笔付款在网络记录之前已过期，因此该付款没有发送任何内容。此付款尚未发送。请检查后再次确认。</string>
+    <string name="send_solana_prior_unverified">Fearless 无法确认之前的一笔付款是否已完成，已停止跟踪。再次发送之前，请检查您的余额和区块浏览器。此付款尚未发送。</string>
     <string name="send_confirmed_message">此付款已获得网络确认。</string>
     <string name="send_failed_message">网络报告此付款失败。原始交易仍已保留。</string>
     <string name="send_check_status">检查状态</string>
@@ -1556,6 +1562,7 @@
     <string name="send_review_changed">钱包、费用、余额或报价已更改。请返回金额页面，重新核对付款。</string>
     <string name="send_pending_network_unavailable">无法验证这笔已保存付款的原始网络。付款记录仍保留在此设备上，暂时无法查询状态或重试。</string>
     <string name="send_unsupported_account">此账户或代币无法使用此钱包发送。支持标准 SPL 代币；暂不支持发送 Token-2022。</string>
+    <string name="send_solana_token2022_unsupported">此代币暂时无法发送。此版本可发送 SOL 和标准 SPL 代币，而此代币使用 Token-2022。它会保留在您的钱包中，您仍可接收该代币。</string>
     <string name="send_storage_unavailable">无法验证已保留的付款。为防止重复付款，发送已被阻止。请保留此应用的数据并重试。</string>
     <string name="send_bitcoin_address_help">Bitcoin 发送仅支持原生 SegWit 地址：Bitcoin 使用 bc1q，Bitcoin Testnet 使用 tb1q。其他类型的地址无法接收此笔转账。</string>
     <string name="send_insufficient_spendable">可用余额不足以支付此金额及网络费用。待处理的 Bitcoin 资金必须先获得确认。</string>

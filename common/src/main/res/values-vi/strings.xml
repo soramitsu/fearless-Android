@@ -1502,6 +1502,12 @@
     <string name="send_recent_payment">Thanh toán gần đây</string>
     <string name="send_pending_message">Chưa xác định được kết quả thanh toán này. Kiểm tra trạng thái hoặc gửi lại đúng thanh toán đó. Không tạo thanh toán thay thế.</string>
     <string name="send_pending_expired">Blockhash của thanh toán này đã hết hạn, nhưng thanh toán có thể đã được xử lý. Tiếp tục kiểm tra trạng thái hoặc trình khám phá. Fearless sẽ không ký thanh toán thay thế khi chưa biết kết quả.</string>
+    <string name="send_solana_not_sent">Thanh toán này không đến được mạng Solana, nên chưa có gì được gửi và không có tiền nào rời khỏi ví của bạn. Hãy kiểm tra kết nối và gửi lại.</string>
+    <string name="send_solana_refused">Mạng Solana đã từ chối thanh toán này trước khi chuyển tiếp, nên chưa có gì được gửi và không có tiền nào rời khỏi ví của bạn. Hãy xem lại thanh toán và thử lại.</string>
+    <string name="send_solana_expired_not_sent">Thanh toán này đã hết hạn trước khi mạng ghi nhận, nên chưa có gì được gửi và không có tiền nào rời khỏi ví của bạn. Bạn có thể tạo thanh toán mới.</string>
+    <string name="send_solana_payment_unverified">Fearless không thể xác minh thanh toán này đã được xử lý hay chưa và đã ngừng theo dõi nó. Hãy kiểm tra số dư và trình khám phá trước khi gửi lại.</string>
+    <string name="send_solana_prior_expired">Một thanh toán trước đó đã hết hạn trước khi mạng ghi nhận, nên chưa có gì được gửi cho thanh toán đó. Thanh toán này chưa được gửi. Hãy xem lại và xác nhận lần nữa.</string>
+    <string name="send_solana_prior_unverified">Fearless không thể xác minh thanh toán trước đó đã được xử lý hay chưa và đã ngừng theo dõi nó. Hãy kiểm tra số dư và trình khám phá trước khi gửi lại. Thanh toán này chưa được gửi.</string>
     <string name="send_confirmed_message">Thanh toán này đã được mạng xác nhận.</string>
     <string name="send_failed_message">Mạng báo thanh toán này thất bại. Giao dịch gốc vẫn được giữ lại.</string>
     <string name="send_check_status">Kiểm tra trạng thái</string>
@@ -1515,6 +1521,7 @@
     <string name="send_review_changed">Ví, phí, số dư hoặc báo giá đã thay đổi. Quay lại màn hình số tiền và kiểm tra lại thanh toán.</string>
     <string name="send_pending_network_unavailable">Không thể xác minh mạng ban đầu của khoản thanh toán đã lưu này. Khoản thanh toán vẫn được giữ trên thiết bị này. Hiện không thể kiểm tra trạng thái hoặc gửi lại.</string>
     <string name="send_unsupported_account">Tài khoản hoặc token này không thể gửi bằng ví này. Hỗ trợ token SPL tiêu chuẩn; chưa hỗ trợ gửi Token-2022.</string>
+    <string name="send_solana_token2022_unsupported">Chưa thể gửi token này. Phiên bản này gửi được SOL và token SPL tiêu chuẩn, còn token này dùng Token-2022. Token vẫn nằm trong ví của bạn và bạn vẫn có thể nhận token này.</string>
     <string name="send_storage_unavailable">Không thể xác minh thanh toán đã lưu. Tạm chặn gửi để tránh trùng lặp. Giữ nguyên dữ liệu ứng dụng và thử lại.</string>
     <string name="send_bitcoin_address_help">Gửi Bitcoin chỉ hỗ trợ địa chỉ SegWit gốc: bc1q trên Bitcoin hoặc tb1q trên Bitcoin Testnet. Các loại địa chỉ khác không thể nhận lần gửi này.</string>
     <string name="send_insufficient_spendable">Số dư khả dụng không đủ cho số tiền này và phí mạng. Bitcoin đang chờ phải được xác nhận trước.</string>

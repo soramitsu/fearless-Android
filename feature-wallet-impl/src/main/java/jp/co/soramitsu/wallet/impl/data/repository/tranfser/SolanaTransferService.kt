@@ -6,7 +6,9 @@ import jp.co.soramitsu.common.data.network.send.ReviewedWalletSend
 import jp.co.soramitsu.common.data.network.send.PendingWalletSend
 import jp.co.soramitsu.common.data.network.send.SolanaSendNetworkIdentity
 import jp.co.soramitsu.common.data.network.send.WalletSendJournal
+import jp.co.soramitsu.common.data.network.solana.SolanaBroadcastException
 import jp.co.soramitsu.common.data.network.solana.SolanaBroadcastOptions
+import jp.co.soramitsu.common.data.network.solana.SolanaSignatureOutcome
 import jp.co.soramitsu.common.data.network.solana.SolanaPaymentPlanner
 import jp.co.soramitsu.common.data.network.solana.SolanaPublicKeyCodec
 import jp.co.soramitsu.common.data.network.solana.SolanaRpcClient
@@ -105,10 +107,20 @@ class SolanaTransferService(
                 solanaNetwork = networkIdentity)
         }, submit = { retained ->
             requireRetainedNetwork(retained, binding)
-            // Expired ambiguity stays retained for history polling; expiry cannot prove non-inclusion.
+            // A blockhash past its height is not broadcast; the status check settles the payment once the
+            // network proves the expiry. A height read that fails leaves the payment pending.
             if (client.blockHeight() <= requireNotNull(retained.lastValidBlockHeight)) {
                 guard.requireCurrent(binding)
-                val signature = client.sendRawTransaction(retained.signedPayload, SolanaBroadcastOptions(maxRetries = 3))
+                val signature = try {
+                    client.sendRawTransaction(retained.signedPayload, SolanaBroadcastOptions(maxRetries = 3))
+                } catch (refusal: SolanaBroadcastException) {
+                    // Every endpoint answered before relaying: the executor may release a first submission.
+                    when (refusal.outcome) {
+                        SolanaBroadcastException.Outcome.NOT_SENT -> throw NativeSendNeverLandedException(NativeSendNeverLandedException.Reason.NOT_SENT)
+                        SolanaBroadcastException.Outcome.REFUSED -> throw NativeSendNeverLandedException(NativeSendNeverLandedException.Reason.REFUSED)
+                        SolanaBroadcastException.Outcome.AMBIGUOUS -> throw refusal
+                    }
+                }
                 require(signature == retained.transactionId)
             }
         }, status = { retained ->
@@ -117,9 +129,19 @@ class SolanaTransferService(
             repeat(3) { attempt ->
                 if (result == null) {
                     guard.requireCurrent(binding)
-                    val observed = client.signatureStatus(retained.transactionId)
+                    val observed = client.signatureOutcome(retained.transactionId, requireNotNull(retained.lastValidBlockHeight))
                     guard.requireCurrent(binding)
-                    if (observed?.isConfirmed == true) result = if (observed.errorJson == null) PendingWalletSend.State.Confirmed else PendingWalletSend.State.Failed
+                    when (observed) {
+                        is SolanaSignatureOutcome.Seen -> if (observed.status.isConfirmed) {
+                            result = if (observed.status.errorJson == null) PendingWalletSend.State.Confirmed else PendingWalletSend.State.Failed
+                        }
+                        // Final past its blockhash height with no trace: it can never land. Whether that shows
+                        // nothing left the wallet depends on how many endpoints proved it.
+                        is SolanaSignatureOutcome.Expired -> throw NativeSendNeverLandedException(
+                            NativeSendNeverLandedException.Reason.EXPIRED, corroborated = observed.corroborated
+                        )
+                        SolanaSignatureOutcome.Unknown -> Unit
+                    }
                     if (result == null && attempt < 2) delay(pollDelayMillis)
                 }
             }

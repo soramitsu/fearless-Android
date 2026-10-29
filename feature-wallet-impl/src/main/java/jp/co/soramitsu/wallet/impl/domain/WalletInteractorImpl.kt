@@ -41,7 +41,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset.StakingType
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.Ecosystem
-import jp.co.soramitsu.core.utils.isValidAddress
+import jp.co.soramitsu.runtime.ext.isValidRecipientAddress
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -310,7 +310,7 @@ class WalletInteractorImpl(
         withContext(Dispatchers.Default) {
             val chain = chainsRepository.getChain(chainId)
 
-            chain.isValidAddress(address)
+            chain.isValidRecipientAddress(address)
         }
 
     override suspend fun isAddressFromPhishingList(address: String): Boolean {

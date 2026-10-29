@@ -10,7 +10,8 @@ interface TransactionHistoryUi {
 
     sealed class State {
 
-        class Empty(val message: String? = null) : State()
+        /** [explorerOnly]: the history service has no data for this account, so [message] points to the explorer. */
+        class Empty(val message: String? = null, val explorerOnly: Boolean = false) : State()
 
         object EmptyProgress : State()
 

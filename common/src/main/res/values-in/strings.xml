@@ -1584,6 +1584,12 @@
     <string name="send_recent_payment">Pembayaran terakhir</string>
     <string name="send_pending_message">Status pembayaran ini belum pasti. Periksa statusnya atau coba kirim ulang pembayaran yang sama. Jangan membuat pembayaran pengganti.</string>
     <string name="send_pending_expired">Blockhash pembayaran ini telah kedaluwarsa, tetapi pembayaran mungkin sudah masuk. Terus periksa status atau penjelajah. Fearless tidak akan menandatangani pengganti selama hasilnya belum diketahui.</string>
+    <string name="send_solana_not_sent">Pembayaran ini tidak mencapai jaringan Solana, jadi tidak ada yang dikirim dan tidak ada dana yang keluar dari dompet Anda. Periksa koneksi Anda dan kirim lagi.</string>
+    <string name="send_solana_refused">Jaringan Solana menolak pembayaran ini sebelum meneruskannya, jadi tidak ada yang dikirim dan tidak ada dana yang keluar dari dompet Anda. Tinjau pembayaran dan coba lagi.</string>
+    <string name="send_solana_expired_not_sent">Pembayaran ini kedaluwarsa sebelum dicatat oleh jaringan, jadi tidak ada yang dikirim dan tidak ada dana yang keluar dari dompet Anda. Anda dapat membuat pembayaran baru.</string>
+    <string name="send_solana_payment_unverified">Fearless tidak dapat memastikan apakah pembayaran ini sudah masuk dan telah berhenti melacaknya. Periksa saldo Anda dan penjelajah sebelum mengirim lagi.</string>
+    <string name="send_solana_prior_expired">Pembayaran sebelumnya kedaluwarsa sebelum dicatat oleh jaringan, jadi tidak ada yang dikirim untuknya. Pembayaran ini belum dikirim. Tinjau dan konfirmasi lagi.</string>
+    <string name="send_solana_prior_unverified">Fearless tidak dapat memastikan apakah pembayaran sebelumnya sudah masuk dan telah berhenti melacaknya. Periksa saldo Anda dan penjelajah sebelum mengirim lagi. Pembayaran ini belum dikirim.</string>
     <string name="send_confirmed_message">Pembayaran ini telah dikonfirmasi oleh jaringan.</string>
     <string name="send_failed_message">Jaringan melaporkan bahwa pembayaran ini gagal. Transaksi asli tetap disimpan.</string>
     <string name="send_check_status">Periksa status</string>
@@ -1597,6 +1603,7 @@
     <string name="send_review_changed">Dompet, biaya, saldo, atau penawaran berubah. Kembali ke layar jumlah dan tinjau pembayaran lagi.</string>
     <string name="send_pending_network_unavailable">Jaringan asal pembayaran tersimpan ini tidak dapat diverifikasi. Pembayaran tetap disimpan di perangkat ini. Pemeriksaan status dan pengiriman ulang tidak tersedia.</string>
     <string name="send_unsupported_account">Akun atau token ini tidak dapat mengirim dengan dompet ini. Token SPL standar didukung; pengiriman Token-2022 tidak tersedia.</string>
+    <string name="send_solana_token2022_unsupported">Token ini belum dapat dikirim. Versi ini mengirim SOL dan token SPL standar, sedangkan token ini menggunakan Token-2022. Token tetap ada di dompet Anda, dan Anda masih dapat menerimanya.</string>
     <string name="send_storage_unavailable">Pembayaran tersimpan tidak dapat diverifikasi. Pengiriman diblokir untuk mencegah duplikasi. Simpan data aplikasi ini dan coba lagi.</string>
     <string name="send_bitcoin_address_help">Pengiriman Bitcoin hanya mendukung alamat SegWit asli: bc1q untuk Bitcoin, atau tb1q untuk Bitcoin Testnet. Jenis alamat lain tidak dapat menerima pengiriman ini.</string>
     <string name="send_insufficient_spendable">Saldo yang dapat dibelanjakan tidak cukup untuk jumlah ini dan biaya jaringan. Dana Bitcoin tertunda harus dikonfirmasi terlebih dahulu.</string>

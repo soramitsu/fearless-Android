@@ -1543,6 +1543,12 @@
     <string name="send_recent_payment">最近の送金</string>
     <string name="send_pending_message">この送金の結果はまだ確定していません。状態を確認するか、同じ送金を再送してください。代わりの送金を作成しないでください。</string>
     <string name="send_pending_expired">この送金のブロックハッシュは期限切れですが、すでに処理された可能性があります。状態やエクスプローラーを確認してください。結果が不明な間、Fearlessは代わりの送金に署名しません。</string>
+    <string name="send_solana_not_sent">この送金はSolanaネットワークに届かなかったため、何も送信されておらず、ウォレットから資金は出ていません。接続を確認して、もう一度送金してください。</string>
+    <string name="send_solana_refused">Solanaネットワークが中継前にこの送金を拒否したため、何も送信されておらず、ウォレットから資金は出ていません。送金内容を確認して、もう一度お試しください。</string>
+    <string name="send_solana_expired_not_sent">この送金はネットワークに記録される前に期限切れになったため、何も送信されておらず、ウォレットから資金は出ていません。新しい送金を作成できます。</string>
+    <string name="send_solana_payment_unverified">Fearlessはこの送金が処理されたかどうかを確認できず、追跡を終了しました。もう一度送金する前に、残高とエクスプローラーを確認してください。</string>
+    <string name="send_solana_prior_expired">以前の送金はネットワークに記録される前に期限切れになったため、何も送信されていません。この送金はまだ送信されていません。内容を確認して、もう一度確定してください。</string>
+    <string name="send_solana_prior_unverified">Fearlessは以前の送金が処理されたかどうかを確認できず、追跡を終了しました。もう一度送金する前に、残高とエクスプローラーを確認してください。この送金はまだ送信されていません。</string>
     <string name="send_confirmed_message">この送金はネットワークで承認されました。</string>
     <string name="send_failed_message">ネットワークから送金失敗が報告されました。元のトランザクションは保持されています。</string>
     <string name="send_check_status">状態を確認</string>
@@ -1556,6 +1562,7 @@
     <string name="send_review_changed">ウォレット、手数料、残高、または見積もりが変わりました。金額画面に戻り、送金内容を再確認してください。</string>
     <string name="send_pending_network_unavailable">この保存済みの送金の元のネットワークを確認できません。送金の記録はこの端末に保持されます。状態の確認や再送はできません。</string>
     <string name="send_unsupported_account">このアカウントまたはトークンはこのウォレットから送金できません。標準SPLトークンに対応しています。Token-2022の送金には対応していません。</string>
+    <string name="send_solana_token2022_unsupported">このトークンはまだ送金できません。このバージョンで送金できるのはSOLと標準SPLトークンで、このトークンはToken-2022を使用しています。トークンはウォレットに残り、引き続き受け取ることができます。</string>
     <string name="send_storage_unavailable">保持された送金を検証できません。二重送金を防ぐため、送金は停止されています。アプリのデータを保持して、もう一度お試しください。</string>
     <string name="send_bitcoin_address_help">Bitcoinの送金はネイティブSegWitアドレスのみ対応しています。Bitcoinではbc1q、Bitcoin Testnetではtb1qで始まるアドレスを使用してください。他の種類のアドレスへは送金できません。</string>
     <string name="send_insufficient_spendable">利用可能残高が送金額とネットワーク手数料に足りません。保留中のBitcoinは先に承認される必要があります。</string>
