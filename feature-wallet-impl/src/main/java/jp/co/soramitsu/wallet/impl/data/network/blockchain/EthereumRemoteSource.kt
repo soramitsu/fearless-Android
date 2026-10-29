@@ -1,9 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain
 
 import java.math.BigInteger
-import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.account.api.domain.model.address
-import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
 import jp.co.soramitsu.common.utils.failure
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
@@ -17,7 +14,6 @@ import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.data.network.model.response.NewHeadsNotificationExtended
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -49,10 +45,6 @@ import org.web3j.protocol.websocket.WebSocketService
 import org.web3j.utils.Numeric
 
 class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectionPool) {
-    companion object {
-        private const val ETHEREUM_BALANCES_UPDATE_DELAY = 30_000L
-    }
-
     suspend fun getTotalBalance(
         chainAsset: Asset,
         chain: Chain,
@@ -95,44 +87,6 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
 
             return@withContext Result.success(transactionHash)
         }
-
-
-    private val ethereumBalancesSubscriptionJob: MutableMap<ChainId, Job?> = mutableMapOf()
-
-    suspend fun subscribeEthereumBalance(
-        chain: Chain,
-        account: MetaAccount
-    ): Result<Flow<Result<Pair<Asset, SimpleBalanceData>>>> {
-        val connection = ethereumConnectionPool.await(chain.id)
-        val web3 = connection?.web3j
-            ?: return Result.failure("There is no connection created for chain ${chain.name}, ${chain.id}")
-
-        ethereumBalancesSubscriptionJob[chain.id]?.cancel()
-        ethereumBalancesSubscriptionJob[chain.id] = Job()
-        val flow = withContext(Dispatchers.Default + ethereumBalancesSubscriptionJob[chain.id]!!) {
-            flow {
-
-                while (ethereumBalancesSubscriptionJob[chain.id]?.isActive == true) {
-                    val address = account.address(chain)
-                    if (address == null) {
-                        emit(Result.failure("Can't find address for chain ${chain.name} : ${chain.id}, metaAccount: ${account.name}"))
-                        continue
-                    }
-
-                    chain.assets.forEach { asset ->
-                        val balance =
-                            kotlin.runCatching { web3.fetchEthBalance(asset, address) }.getOrElse {
-                                emit(Result.failure("Can't fetchEthBalance for ${asset.name}, ${chain.name}, address: $address"))
-                                return@forEach
-                            }
-                        emit(Result.success(asset to SimpleBalanceData(balance)))
-                    }
-                    delay(ETHEREUM_BALANCES_UPDATE_DELAY)
-                }
-            }
-        }
-        return Result.success(flow)
-    }
 
     suspend fun fetchEthBalance(
         asset: Asset,
