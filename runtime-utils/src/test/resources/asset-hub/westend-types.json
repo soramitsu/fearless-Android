@@ -1,0 +1,23 @@
+{
+  "chainId": "67f9723393ef76214df0118c34bbbd3dbebc8ed46a10973a8c969d48fe7598c9",
+  "runtime_id": 1025002,
+  "types": {},
+  "versioning": [
+    {
+      "runtime_range": [
+        0,
+        null
+      ],
+      "types": {
+        "Balance": "u128",
+        "Index": "u32",
+        "Phase": "frame_system::Phase",
+        "Address": "sp_runtime::multiaddress::MultiAddress",
+        "ExtrinsicSignature": "sp_runtime::MultiSignature",
+        "sp_core::crypto::AccountId32": "GenericAccountId",
+        "asset_hub_westend_runtime::RuntimeCall": "GenericCall",
+        "asset_hub_westend_runtime::RuntimeEvent": "GenericEvent"
+      }
+    }
+  ]
+}
