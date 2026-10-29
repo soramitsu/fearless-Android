@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## 4.3.0
+
+- Networks: remove 40 networks that stopped producing blocks or have no
+  reachable node (among them Moonbeam, Moonriver, Polygon zkEVM, Polkadex,
+  KILT, Phala, Centrifuge, Interlay and both SORA parachains) and every
+  disabled catalog entry. Wallet rows for a removed network stay on the device.
+- Staking: remove relay-chain staking, nomination pools and crowdloans from
+  Polkadot, Kusama and Westend, which hold no staking state since the Asset
+  Hub migration. Legacy crowdloan recovery remains.
+- Code: remove the unreachable crowdloan contribution screens and partner
+  integrations.
+- History: drop indexers that no longer answer; those networks show history
+  as unsupported.
+- Nodes: drop dead and misconfigured nodes, fail over from an unreachable
+  Substrate node while Auto select is on, and follow Dwellir's host move.
+- Security: port the build 231 signing, secret-screen, backup-exclusion and
+  dependency fixes, harden WalletConnect signing and cross-chain
+  configuration, and add remote kill switches for dApp signing.
+
 ## 4.2.0
 
 - Wallet safety: replace destructive database fallback with a complete,
