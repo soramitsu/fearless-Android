@@ -2,6 +2,14 @@
 
 # Roadmap & Technical Debt
 
+## Unbond confirmation regression scheduling — 29 October 2026
+
+The stale-source confirmation test now awaits both the immediate rejection and
+the background error-fee projection. Its existing no-builder and no-submission
+assertions still protect the old review from authorization. Retain local test
+results against the exact source and patch digests; release qualification remains
+separate from this fixture repair.
+
 ## dApp signing and cross-chain hardening — 29 October 2026
 
 WalletConnect signs only with the account the session approved on the request's

@@ -2,6 +2,14 @@
 
 # Status Summary
 
+## Unbond confirmation regression scheduling — 29 October 2026
+
+The stale-source confirmation test now waits for the background fee projection
+as well as the immediate error dialog. The retained failing result observed a
+null fee before that projection completed. The no-builder, no-submission and
+error-fee assertions remain in place; production signing code is unchanged.
+Local focused verification is recorded in the impact-assessment takeover receipt.
+
 ## dApp signing and cross-chain hardening — 29 October 2026
 
 WalletConnect signs only with the account the session approved on the request's
