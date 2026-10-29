@@ -283,7 +283,9 @@ class AccountInteractorImpl(
 
     override suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File> =
         runCatching {
-            fileProvider.getFileInExternalCacheStorage(fileName)
+            // Keystore exports stay in internal storage; the FileProvider
+            // shares this one directory with the app the user picks.
+            fileProvider.getFileInInternalShareStorage(fileName)
         }
 
     override suspend fun updateAccountName(metaId: Long, name: String) {

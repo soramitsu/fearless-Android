@@ -62,9 +62,11 @@ class AccountInteractorImplTest {
         }
 
         fileProvider = object : FileProvider {
-            override suspend fun getFileInExternalCacheStorage(fileName: String): File = File(fileName)
+            override suspend fun getFileInExternalCacheStorage(fileName: String): File = File(EXTERNAL_CACHE, fileName)
 
-            override suspend fun getFileInInternalCacheStorage(fileName: String): File = File(fileName)
+            override suspend fun getFileInInternalCacheStorage(fileName: String): File = File(INTERNAL_CACHE, fileName)
+
+            override suspend fun getFileInInternalShareStorage(fileName: String): File = File(INTERNAL_SHARE, fileName)
         }
 
         backupService = allocateWithoutConstructor(BackupService::class.java)
@@ -271,6 +273,23 @@ class AccountInteractorImplTest {
     }
 
     @Test
+    fun `keystore export file is created in the internal share storage`() = runBlocking {
+        val interactor = AccountInteractorImpl(
+            accountRepository = accountRepository,
+            fileProvider = fileProvider,
+            preferences = preferences,
+            backupService = backupService,
+            walletInteractor = walletInteractor
+        )
+
+        val file = interactor.createFileInTempStorageAndRetrieveAsset("5Grwva.json").getOrThrow()
+
+        // Never shared external storage: the password-encrypted keystore JSON
+        // is served only from the FileProvider's internal export directory.
+        assertEquals(File(INTERNAL_SHARE, "5Grwva.json"), file)
+    }
+
+    @Test
     fun `universalWalletMigrationSnapshotFlow maps public light accounts without secret access`() {
         runBlocking {
             val interactor = interactorWithLightAccounts(
@@ -394,6 +413,9 @@ class AccountInteractorImplTest {
         const val CUTOFF_AT = 1_710_000_000_000L
         const val EVALUATED_AT = 1_710_000_000_100L
         const val DAY_MILLIS = 24 * 60 * 60_000L
+        const val EXTERNAL_CACHE = "external-cache"
+        const val INTERNAL_CACHE = "internal-cache"
+        const val INTERNAL_SHARE = "internal-cache/shared_exports"
     }
 
     private class InMemoryPreferences : Preferences {
