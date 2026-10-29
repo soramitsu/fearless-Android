@@ -427,6 +427,38 @@ class WalletConnectInteractorImplTest {
     }
 
     @Test
+    fun `a pause that arrives while the key is read returns no signature`() {
+        val keypair = SubstrateKeypairFactory.generate(EncryptionType.ED25519, seed(1))
+        val address = SS58Encoder.encode(keypair.publicKey, 0)
+        sessionClient.activeSession = session("${polkadotChain.caip2id}:$address")
+        coEvery { keypairProvider.getCryptoTypeFor(polkadotChain, sameBytes(keypair.publicKey)) } returns CryptoType.ED25519
+        coEvery { keypairProvider.getKeypairFor(polkadotChain, sameBytes(keypair.publicKey)) } answers {
+            featureToggles.rememberRemoteVetoes(FeatureToggleConfig(polkadotDappSigningEnabled = false))
+            keypair
+        }
+
+        val outcome = sign(polkadotChain, polkadotSignMessage(id = 67, address = address))
+
+        assertTrue(outcome.signError is DappSigningPausedException)
+        assertEquals(67L, (sessionClient.responses.single() as Wallet.Model.JsonRpcResponse.JsonRpcError).id)
+    }
+
+    @Test
+    fun `a pause that arrives after an EVM transaction is signed stops its broadcast`() {
+        val address = approveEvmAccount()
+        coEvery { ethereumSource.signRawTransaction("1", any(), any()) } answers {
+            featureToggles.rememberRemoteVetoes(FeatureToggleConfig(evmDappSigningEnabled = false))
+            Result.success("0xsigned")
+        }
+
+        val outcome = sign(ethereumChain, ethTransaction(id = 68, from = address))
+
+        assertTrue(outcome.signError is DappSigningPausedException)
+        assertEquals(emptyList<String>(), transactionSender.sent)
+        assertEquals(68L, (sessionClient.responses.single() as Wallet.Model.JsonRpcResponse.JsonRpcError).id)
+    }
+
+    @Test
     fun `a pause holds through fetches without the key until an explicit true lifts it`() {
         val keypair = SubstrateKeypairFactory.generate(EncryptionType.ED25519, seed(1))
         val address = SS58Encoder.encode(keypair.publicKey, 0)

@@ -205,16 +205,24 @@ class WalletConnectInteractorImpl internal constructor(
     ) {
         // Every read of the dApp's params happens in here: a malformed request fails, it never throws.
         // A retry after a failed response re-sends what was signed: nothing is signed or broadcast twice.
+        val method = recentSession.request.method
+        // A veto can arrive while the request waits for the ledger, Reown or a runtime, so it is checked again
+        // before the key is read, before a broadcast and before a signature is handed to the dApp.
+        val requireSigningAllowed = { if (featureToggles.pausesDappSigning(method)) throw DappSigningPausedException() }
         val signResult = try {
             // Checked before the ledger: a paused family signs nothing and sends nothing signed earlier.
-            if (featureToggles.pausesDappSigning(recentSession.request.method)) throw DappSigningPausedException()
+            requireSigningAllowed()
             signedRequests.responseFor(
                 request = recentSession,
-                sign = { signRequest(chain, topic, recentSession) },
+                sign = { signRequest(chain, topic, recentSession, requireSigningAllowed) },
                 broadcast = { transaction ->
+                    requireSigningAllowed()
                     transactionSender.send(transaction.chainId, transaction.signedTransaction)
                 }
-            )
+            ).also {
+                // The hash of a transaction already sent is still reported; a signature is not handed over.
+                if (method != WalletConnectMethod.EthereumSendTransaction.method) requireSigningAllowed()
+            }
         } catch (error: CancellationException) {
             throw error
         } catch (rejection: WalletConnectRequestRejectedException) {
@@ -254,7 +262,8 @@ class WalletConnectInteractorImpl internal constructor(
     private suspend fun signRequest(
         chain: Chain,
         topic: String,
-        recentSession: Wallet.Model.SessionRequest
+        recentSession: Wallet.Model.SessionRequest,
+        requireSigningAllowed: () -> Unit
     ): SignedRequest {
         val method = WalletConnectMethod.values().firstOrNull { it.method == recentSession.request.method }
             ?: rejectRequest("The method is not supported")
@@ -263,7 +272,12 @@ class WalletConnectInteractorImpl internal constructor(
             sessionClient.getVerifyContext(recentSession.request.id)
         }.getOrNull()
         requireRequest(!verifyContext.isFlaggedAsScam) { "Reown Verify reports the dApp as a scam" }
-        val account = SigningAccount(keypairProvider, chain, approvedAccountId(chain, topic, recentSession))
+        val account = SigningAccount(
+            keypairProvider,
+            chain,
+            approvedAccountId(chain, topic, recentSession),
+            requireSigningAllowed
+        )
 
         return when (method) {
             WalletConnectMethod.EthereumSign,
@@ -524,10 +538,15 @@ class WalletConnectInteractorImpl internal constructor(
 private class SigningAccount(
     private val keypairProvider: KeypairProvider,
     val chain: Chain,
-    val accountId: ByteArray
+    val accountId: ByteArray,
+    private val requireSigningAllowed: () -> Unit
 ) {
-    suspend fun keypair(): Keypair = withContext(Dispatchers.IO) {
-        keypairProvider.getKeypairFor(chain, accountId)
+    // Checked on both sides of the read: the key is neither read nor used once signing is paused.
+    suspend fun keypair(): Keypair {
+        requireSigningAllowed()
+        return withContext(Dispatchers.IO) {
+            keypairProvider.getKeypairFor(chain, accountId)
+        }.also { requireSigningAllowed() }
     }
 
     suspend fun cryptoType(): CryptoType = withContext(Dispatchers.IO) {
