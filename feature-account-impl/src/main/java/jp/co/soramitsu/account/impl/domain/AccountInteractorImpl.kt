@@ -27,6 +27,7 @@ import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.data.storage.pin.PinAttemptClock
 import jp.co.soramitsu.common.data.storage.pin.PinAttemptLimiter
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.model.UNIVERSAL_WALLET_CUTOFF_AT_MILLIS
@@ -68,12 +69,12 @@ class AccountInteractorImpl(
     private val backupService: BackupService,
     private val walletInteractor: WalletInteractor,
     private val context: CoroutineContext = Dispatchers.Default,
-    private val nowProvider: () -> Long = { System.currentTimeMillis() },
+    private val pinAttemptClock: PinAttemptClock = PinAttemptClock.system,
     private val migrationSnapshotBuilder: AndroidUniversalWalletMigrationSnapshotBuilder =
         AndroidUniversalWalletMigrationSnapshotBuilder(UNIVERSAL_WALLET_CUTOFF_AT_MILLIS)
 ) : AccountInteractor {
 
-    private val pinAttemptLimiter = PinAttemptLimiter(preferences, nowProvider)
+    private val pinAttemptLimiter = PinAttemptLimiter(preferences, pinAttemptClock)
 
     override suspend fun generateMnemonic(length: Mnemonic.Length): List<String> {
         return accountRepository.generateMnemonic(length)
@@ -161,20 +162,30 @@ class AccountInteractorImpl(
     }
 
     override suspend fun isPinCorrect(code: String): Boolean {
-        if (pinAttemptLimiter.lockedUntil() != null) {
+        // No PIN is read or compared while a wrong-PIN delay runs.
+        if (pinAttemptLimiter.remainingDelayMillis() > 0L) {
             return false
         }
 
         val pinCode = accountRepository.getPinCode()
-        val isCorrect = PinHealth.assess(true, pinCode) == PinHealth.HEALTHY && pinCode == code
+        if (PinHealth.assess(true, pinCode) != PinHealth.HEALTHY) {
+            // Nothing can match a PIN this device cannot read, so it is no wrong guess.
+            return false
+        }
 
-        if (isCorrect) {
+        if (pinCode == code) {
             pinAttemptLimiter.reset()
             return true
         }
 
         pinAttemptLimiter.registerFailure()
         return false
+    }
+
+    override suspend fun getPinRetryDelayMillis(): Long = pinAttemptLimiter.remainingDelayMillis()
+
+    override suspend fun registerBiometricUnlock() {
+        pinAttemptLimiter.reset()
     }
 
     override suspend fun isBiometricEnabled(): Boolean {
@@ -272,7 +283,9 @@ class AccountInteractorImpl(
 
     override suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File> =
         runCatching {
-            fileProvider.getFileInExternalCacheStorage(fileName)
+            // Keystore exports stay in internal storage; the FileProvider
+            // shares this one directory with the app the user picks.
+            fileProvider.getFileInInternalShareStorage(fileName)
         }
 
     override suspend fun updateAccountName(metaId: Long, name: String) {

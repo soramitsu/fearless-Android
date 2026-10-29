@@ -37,6 +37,9 @@ FL_ANDROID_OKX_PASSPHRASE=<your_okx_passphrase>
 FL_WALLET_CONNECT_PROJECT_ID=<your_wallet_connect_project_id>
 FL_ANDROID_ALCHEMY_API_ETHEREUM_KEY=<your_alchemy_api_eth_key>
 FL_DWELLIR_API_KEY=<your_dwellir_api_key>
+# Nomis multichain score API; sent only to the Nomis API as the X-API-Key and X-ClientId headers.
+FL_NOMIS_API_KEY=<your_nomis_api_key>
+FL_NOMIS_CLIENT_ID=<your_nomis_client_id>
 
 FL_ANDROID_TON_API_KEY=<your_ton_api_key>
 # Optional for local or non-mainnet TON testing. Mainnet always uses https://ti.soramitsu.io.
@@ -44,3 +47,6 @@ FL_ANDROID_TON_INDEXER_URL=<your_ton_indexer_base_url>
 # TON uses TI only after its service-info proves the network; until then the verified registry TonAPI node answers.
 # Set to false once TI serves TON mainnet to use TI only (default true).
 # FL_ANDROID_TON_REGISTRY_NODE_FALLBACK=true
+# Optional Solana mainnet JSON-RPC provider, asked before the selected node and the public nodes: an https
+# URL with a host, the provider key in its path or query. Empty means none; a malformed value fails the build.
+# FL_ANDROID_SOLANA_RPC_URL=https://<your_solana_mainnet_rpc_provider>/<key>

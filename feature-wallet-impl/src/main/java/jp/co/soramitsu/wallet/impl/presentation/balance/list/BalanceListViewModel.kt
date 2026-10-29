@@ -1201,12 +1201,6 @@ class BalanceListViewModel @Inject constructor(
                 }
 
                 else -> {
-                    val cbdcFormat = interactor.tryReadCBDCAddressFormat(content)
-                    if (cbdcFormat != null) {
-                        router.openCBDCSend(cbdcQrInfo = cbdcFormat)
-                        return@launch
-                    }
-
                     val soraFormat =
                         interactor.tryReadSoraFormat(content)
                     if (soraFormat != null) {

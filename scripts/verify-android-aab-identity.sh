@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 EXPECTED_ANDROID_GRADLE_PLUGIN_VERSION="8.10.1"
 EXPECTED_R8_VERSION="8.10.24"
-EXPECTED_MANIFEST_COMPONENTS_SHA256="4609a48938cd2a48d687f95a1937f777676b4e969934964437346247595dc6ad"
+EXPECTED_MANIFEST_COMPONENTS_SHA256="3bc445497950147312ac32e4539d137a6dd4a34b92d412a9d75a7f0929473e96"
 temporary_files=()
 
 cleanup() {
@@ -802,11 +802,6 @@ expected_components = [
         "provider",
         "com.google.firebase.provider.FirebaseInitProvider",
         authorities=[f"{production_package}.firebaseinitprovider"],
-    ),
-    expected_component(
-        "provider",
-        "it.airgap.beaconsdk.core.provider.BeaconInitProvider",
-        authorities=[f"{production_package}.beaconinitprovider"],
     ),
 ]
 expected_components.sort(key=lambda component: (component["type"], component["name"]))

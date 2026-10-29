@@ -366,7 +366,8 @@ private fun TransactionHistory(
                 MarginVertical(margin = 12.dp)
                 H5(
                     modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(id = R.string.transfers_empty),
+                    // Without history data the list must not read as "no operations": say so; the explorer link is above.
+                    text = history.message?.takeIf { history.explorerOnly } ?: stringResource(id = R.string.transfers_empty),
                     color = gray2,
                     textAlign = TextAlign.Center
                 )

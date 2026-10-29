@@ -101,11 +101,7 @@ interface AccountRouter : SecureRouter {
 
     fun openChangePinCode()
 
-    fun openBeacon(qrContent: String? = null)
-
     fun openOnboardingNavGraph(chainId: ChainId, metaId: Long, isImport: Boolean)
-
-    fun openExperimentalFeatures()
 
     fun openOptionsAddAccount(metaId: Long, type: WalletEcosystem)
 

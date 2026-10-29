@@ -25,7 +25,6 @@ import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSourceImpl
 import jp.co.soramitsu.account.impl.domain.AccountInteractorImpl
 import jp.co.soramitsu.account.impl.domain.AssetNotNeedAccountUseCaseImpl
-import jp.co.soramitsu.account.impl.domain.BeaconConnectedUseCase
 import jp.co.soramitsu.account.impl.domain.NodeHostValidator
 import jp.co.soramitsu.account.impl.domain.NomisScoreInteractorImpl
 import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
@@ -292,10 +291,5 @@ class AccountFeatureModule {
         selectedFiat: SelectedFiat
     ): AssetNotNeedAccountUseCase {
         return AssetNotNeedAccountUseCaseImpl(chainRegistry, assetDao, tokenPriceDao, selectedFiat)
-    }
-
-    @Provides
-    fun provideBeaconConnectedUseCase(preferences: Preferences): BeaconConnectedUseCase {
-        return BeaconConnectedUseCase(preferences)
     }
 }

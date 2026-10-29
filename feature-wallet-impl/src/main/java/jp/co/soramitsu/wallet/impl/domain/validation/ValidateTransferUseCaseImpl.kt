@@ -15,6 +15,9 @@ import jp.co.soramitsu.core.utils.normalizedAssetSymbol
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.addressByteOrNull
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
+import jp.co.soramitsu.runtime.ext.isAppOwnedPaymentNetwork
+import jp.co.soramitsu.runtime.ext.isSameRecipientAddress
+import jp.co.soramitsu.runtime.ext.isValidRecipientAddress
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.kusamaChainId
@@ -61,19 +64,24 @@ class ValidateTransferUseCaseImpl(
         val chainId = asset.token.configuration.chainId
         val chain = chainsRepository.getChain(chainId)
 
-        val validateAddressResult = kotlin.runCatching { chain.isValidAddress(destinationAddress) }
+        val validateAddressResult = kotlin.runCatching { chain.isValidRecipientAddress(destinationAddress) }
 
         val initialChecks = mapOf(
             TransferValidationResult.InvalidAddress to (validateAddressResult.getOrNull() in listOf(
                 null,
                 false
             )),
-            TransferValidationResult.TransferToTheSameAddress to (!transferMyselfAvailable && destinationAddress == senderAddress)
+            TransferValidationResult.TransferToTheSameAddress to (!transferMyselfAvailable && chain.isSameRecipientAddress(destinationAddress, senderAddress))
         )
 
         val initialCheck = performChecks(initialChecks, confirmedValidations, skipEdValidation)
         if (initialCheck != TransferValidationResult.Valid) {
             return Result.success(initialCheck)
+        }
+        // Bitcoin and Solana have no Substrate minimum or tip: their quote enforces balance, fee, rent and
+        // recipient-account rules before review, and Confirm shows its errors.
+        if (chain.isAppOwnedPaymentNetwork()) {
+            return Result.success(TransferValidationResult.Valid)
         }
 
         val validationChecksProvider = when (chain.ecosystem) {
@@ -385,6 +393,10 @@ class ValidateTransferUseCaseImpl(
         }
         val transferable = originAsset.transferableInPlanks
             ?: return Result.success(TransferValidationResult.BalanceUnavailable)
+        // App-owned networks have no existential deposit; their quote checks account rent instead.
+        if (chainsRepository.getChain(originChainId).isAppOwnedPaymentNetwork()) {
+            return@runCatching TransferValidationResult.Valid
+        }
         val originExistentialDepositResult = existentialDepositUseCase(originAssetConfig)
             .onFailure { if (it is CancellationException) throw it }
         val originExistentialDeposit = originExistentialDepositResult.getOrNull().orZero()

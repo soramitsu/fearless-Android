@@ -160,15 +160,46 @@ class WalletSendJournalTest {
         }
     }
 
+    @Test
+    fun `only the exact pending payment can be released and a failed removal blocks sending`() {
+        val store = Store()
+        val journal = WalletSendJournal(store.preferences)
+        val payment = journal.retain(SCOPE, payment())
+        val changed = assertThrows(WalletSendJournalException::class.java) { journal.discard(SCOPE, payment.copy(feeUnits = "777")) }
+        assertEquals(WalletSendJournalException.Code.CHANGED_RECORD, changed.code)
+        assertThrows(IllegalArgumentException::class.java) { journal.discard(SCOPE, payment.copy(state = PendingWalletSend.State.Confirmed)) }
+        journal.discard(SCOPE, payment)
+        assertEquals(null, WalletSendJournal(store.preferences).read(SCOPE))
+        // Released: a new payment may be retained.
+        val next = payment.copy(quoteId = UUID.randomUUID().toString(), signedPayload = "00bb")
+        assertEquals(next, journal.retain(SCOPE, next))
+        // A settled payment is chain evidence and is never released.
+        val settled = journal.settle(SCOPE, next, PendingWalletSend.State.Confirmed)
+        assertThrows(IllegalArgumentException::class.java) { journal.discard(SCOPE, settled) }
+        assertEquals(settled, journal.read(SCOPE))
+
+        for (failure in listOf("commit", "readback")) {
+            val failing = Store()
+            val failingJournal = WalletSendJournal(failing.preferences)
+            val retained = failingJournal.retain(SCOPE, payment())
+            if (failure == "commit") failing.commitResult = false else failing.keepRemovedKeys = true
+            val error = assertThrows(WalletSendJournalException::class.java) { failingJournal.discard(SCOPE, retained) }
+            assertEquals(WalletSendJournalException.Code.STORAGE_UNAVAILABLE, error.code)
+            assertEquals(retained, WalletSendJournal(failing.preferences).read(SCOPE))
+        }
+    }
+
     private class Store {
         val values = mutableMapOf<String, String>()
         var commitResult = true
         var corruptReadback = false
+        var keepRemovedKeys = false
         val preferences = mock(Preferences::class.java).also { prefs ->
             `when`(prefs.getString(anyString())).thenAnswer { values[it.getArgument<String>(0)] }
             `when`(prefs.replaceStringsDurably(anyMap(), anySet())).thenAnswer { invocation ->
                 val updates = invocation.getArgument<Map<String, String>>(0)
                 updates.forEach { (key, value) -> values[key] = if (corruptReadback) "$value!" else value }
+                if (commitResult && !keepRemovedKeys) invocation.getArgument<Set<String>>(1).forEach(values::remove)
                 commitResult
             }
         }

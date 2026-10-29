@@ -11,6 +11,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
+import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.data.network.model.response.NewHeadsNotificationExtended
@@ -84,7 +85,8 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
                 builder.build(transfer).onFailure { return@withContext Result.failure(it) }
                     .requireValue()
 
-            val signed = TransactionEncoder.signMessage(rawTransaction, cred)
+            val evmChainId = transfer.chainAsset.chainId.requireHexPrefix().drop(2).toLong()
+            val signed = signEvmTransfer(rawTransaction, evmChainId, cred)
 
             val transactionHash = kotlin.runCatching {
                 web3.ethSendRawTransaction(signed.toHexString(true)).send().resultOrThrow()
@@ -359,6 +361,14 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         return@withContext Result.success(signed.toHexString(true))
     }
 }
+
+/**
+ * Signs a wallet transfer so that it is valid only on [chainId]. EIP-1559 transactions carry the
+ * id in their payload; legacy ones, built when a node does not report EIP-1559 fees, get EIP-155
+ * replay protection instead of a chain-less signature another EVM network would also accept.
+ */
+internal fun signEvmTransfer(rawTransaction: RawTransaction, chainId: Long, credentials: Credentials): ByteArray =
+    TransactionEncoder.signMessage(rawTransaction, chainId, credentials)
 
 class GasServiceException(message: String) : RuntimeException(message)
 

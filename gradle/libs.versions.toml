@@ -4,9 +4,8 @@ activityCompose = "1.9.3"
 android_plugin = "8.10.1"
 appcompat = "1.7.0"
 architectureComponentVersion = "2.8.7"
-beaconVersion = "3.2.4"
 biometricVersion = "1.1.0"
-bouncyCastleVersion = "1.78"
+bouncyCastleVersion = "1.85"
 cardViewVersion = "1.0.0"
 coilVersion = "2.7.0"
 compose = "1.7.6"
@@ -22,13 +21,14 @@ customview = "1.2.0-alpha02"
 customviewPoolingcontainer = "1.0.0"
 dagger = "2.56"
 detekt = "1.23.6"
-firebaseAppdistributionGradle = "4.2.0"
+firebaseAppdistributionGradle = "5.3.1"
 fragmentKtx = "1.8.5"
 gmsPlayServices = "18.5.0"
 googlePlayServicesAuth = "21.6.0"
-googleDriveApi = "v3-rev197-1.25.0"
-googleApiClientAndroid = "1.26.0"
-googleHttpClientGson = "1.43.3"
+googleDriveApi = "v3-rev20261011-2.0.0"
+googleApiClientAndroid = "2.9.2"
+googleHttpClientGson = "2.2.0"
+googleOauthClient = "1.39.0"
 playIntegrity = "1.6.0"
 googleServices = "4.4.1"
 gson = "2.10.1"
@@ -177,8 +177,10 @@ material = { module = "com.google.android.material:material", version.ref = "mat
 play-services-base = { module = "com.google.android.gms:play-services-base", version.ref = "gmsPlayServices" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "googlePlayServicesAuth" }
 google-api-services-drive = { module = "com.google.apis:google-api-services-drive", version.ref = "googleDriveApi" }
+google-api-client = { module = "com.google.api-client:google-api-client", version.ref = "googleApiClientAndroid" }
 google-api-client-android = { module = "com.google.api-client:google-api-client-android", version.ref = "googleApiClientAndroid" }
 google-http-client-gson = { module = "com.google.http-client:google-http-client-gson", version.ref = "googleHttpClientGson" }
+google-oauth-client = { module = "com.google.oauth-client:google-oauth-client", version.ref = "googleOauthClient" }
 play-integrity = { module = "com.google.android.play:integrity", version.ref = "playIntegrity" }
 
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
@@ -186,8 +188,6 @@ coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-androi
 
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 detekt-cli = { module = "io.gitlab.arturbosch.detekt:detekt-cli", version.ref = "detekt" }
-
-beacon-android-sdk = { module = "com.github.airgap-it:beacon-android-sdk", version.ref = "beaconVersion" }
 
 web3jDep = { module = "org.web3j:core", version.ref = "web3j" }
 reownBomDep = { module = "com.reown:android-bom", version.ref = "reownBom" }

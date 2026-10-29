@@ -1,7 +1,6 @@
 package jp.co.soramitsu.app.root.navigation
 
 import android.annotation.SuppressLint
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import androidx.annotation.IdRes
 import androidx.appcompat.app.AppCompatActivity
@@ -16,7 +15,6 @@ import androidx.navigation.NavOptions
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import co.jp.soramitsu.walletconnect.model.ChainChooseResult
 import co.jp.soramitsu.walletconnect.model.ChainChooseState
-import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
@@ -29,7 +27,6 @@ import jp.co.soramitsu.account.impl.presentation.account.details.AccountDetailsD
 import jp.co.soramitsu.account.impl.presentation.account.rename.RenameAccountDialog
 import jp.co.soramitsu.account.impl.presentation.backup_wallet.BackupWalletDialog
 import jp.co.soramitsu.account.impl.presentation.create_backup_password.CreateBackupPasswordDialog
-import jp.co.soramitsu.account.impl.presentation.experimental.SuccessfulFragment
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.account.impl.presentation.exporting.json.password.ExportJsonPasswordFragment
@@ -132,10 +129,8 @@ import jp.co.soramitsu.tonconnect.impl.presentation.tonconnectiondetails.TonConn
 import jp.co.soramitsu.tonconnect.impl.presentation.tonsignrequest.TonSignRequestFragment
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.api.presentation.AssetSelectPurpose
-import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
-import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.addressbook.CreateContactFragment
@@ -150,10 +145,6 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.detail.legacy.LegacyCrow
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
-import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment
-import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
-import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.SignBeaconTransactionFragment
-import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment
 import jp.co.soramitsu.wallet.impl.presentation.contacts.ContactsFragment
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm.CrossChainConfirmFragment
@@ -164,7 +155,6 @@ import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment
-import jp.co.soramitsu.wallet.impl.presentation.send.setupcbdc.CBDCSendSetupFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment
@@ -887,12 +877,6 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         navigateInMainTabOrRoot(R.id.sendSetupFragment, bundle)
     }
 
-    override fun openCBDCSend(cbdcQrInfo: QrContentCBDC) {
-        val bundle = CBDCSendSetupFragment.getBundle(cbdcQrInfo)
-
-        navigateInMainTabOrRoot(R.id.cbdcSendSetupFragment, bundle)
-    }
-
     override fun openCrossChainSend(assetPayload: AssetPayload?) {
         val bundle = CrossChainSetupFragment.getBundle(assetPayload)
         navigateInMainTabOrRoot(R.id.crossChainFragment, bundle)
@@ -1015,8 +999,8 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         navigateInMainTabOrRoot(R.id.connectionInfoFragment, bundle)
     }
 
-    override fun openRequestPreview(topic: String) {
-        val bundle = RequestPreviewFragment.getBundle(topic)
+    override fun openRequestPreview(topic: String, requestId: Long) {
+        val bundle = RequestPreviewFragment.getBundle(topic, requestId)
         navigateInMainTabOrRoot(R.id.requestPreviewFragment, bundle)
     }
 
@@ -1254,19 +1238,6 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         navigateInMainTabOrRoot(R.id.receiveFragment, bundle)
     }
 
-    override fun openSignBeaconTransaction(payload: SubstrateSignerPayload, dAppMetadata: DAppMetadataModel) {
-        navController?.navigate(R.id.signBeaconTransactionFragment, SignBeaconTransactionFragment.getBundle(payload, dAppMetadata))
-    }
-
-    override val beaconSignStatus: Flow<SignStatus>
-        get() = navController!!.currentBackStackEntry!!.savedStateHandle
-            .getLiveData<SignStatus>(SignBeaconTransactionFragment.SIGN_RESULT_KEY)
-            .asFlow()
-
-    override fun setBeaconSignStatus(status: SignStatus) {
-        navController!!.previousBackStackEntry!!.savedStateHandle.set(SignBeaconTransactionFragment.SIGN_RESULT_KEY, status)
-    }
-
     override fun returnToWallet() {
         // to achieve smooth animation
         postToUiThread {
@@ -1420,12 +1391,6 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         navigateInMainTabOrRoot(R.id.pincodeFragment, bundle)
     }
 
-    override fun openBeacon(qrContent: String?) {
-        qrContent?.let {
-            navController?.navigate(R.id.actionOpenBeaconFragment, BeaconFragment.getBundle(it))
-        } ?: navController?.navigate(R.id.actionOpenBeaconFragment)
-    }
-
     override fun withPinCodeCheckRequired(
         delayedNavigation: DelayedNavigation,
         createMode: Boolean,
@@ -1515,20 +1480,6 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
     fun educationalStoriesCompleted() {
         navController?.previousBackStackEntry?.savedStateHandle?.set(StoryFragment.KEY_STORY, true)
         navController?.navigateUp()
-    }
-
-    override fun openExperimentalFeatures() {
-        navigateInMainTabOrRoot(R.id.experimentalFragment)
-    }
-
-    override fun openSuccessFragment(avatar: Drawable) {
-        SuccessfulFragment.avatar = avatar
-        navController?.navigate(R.id.successFragment)
-    }
-
-    override fun openTransactionRawData(rawData: String) {
-        val bundle = TransactionRawDataFragment.createBundle(rawData)
-        navController?.navigate(R.id.transactionRawDataFragment, bundle)
     }
 
     override fun setWalletSelectorPayload(payload: WalletSelectorPayload) {

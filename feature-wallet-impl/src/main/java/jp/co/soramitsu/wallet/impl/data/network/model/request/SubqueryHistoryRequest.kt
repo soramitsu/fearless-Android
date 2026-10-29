@@ -35,7 +35,7 @@ class SubqueryHistoryRequest(
     {
         query {
             historyElements(
-                after: ${if (cursor == null) null else "\"$cursor\""},
+                after: ${graphqlStringLiteral(cursor)},
                 first: $pageSize,
                 orderBy: TIMESTAMP_DESC,
                 filter: { 

@@ -118,6 +118,13 @@ class DappScreenFragment : BaseComposeBottomSheetDialogFragment<DappScreenViewMo
 
         webView.addCallback(webViewCallback)
 
+        val initialUrl = state.url?.let {
+            runCatching { TonConnectUrlValidator.normalizeDappUrl(it) }.getOrNull()
+        } ?: return
+        val trustedOrigin = TonConnectUrlValidator.origin(initialUrl)
+        allowedOrigin = trustedOrigin
+        webView.trustedOrigin = trustedOrigin
+
         val appVersionName = requireContext()
             .packageManager
             .getPackageInfo(requireContext().packageName, 0)
@@ -127,12 +134,13 @@ class DappScreenFragment : BaseComposeBottomSheetDialogFragment<DappScreenViewMo
         @Suppress("MagicNumber")
         val tonContractMaxMessages = 4 // for wallet v3 and v4
 
+        // Bridge calls run on the main thread; each names the main frame's current page.
         webView.jsBridge = DAppBridge(
             deviceInfo = JsonBuilder.device(tonContractMaxMessages, appVersionName).toString(),
-            send = viewModel::send,
-            connect = viewModel::connect,
-            restoreConnection = { viewModel.restoreConnection(webView?.url) },
-            disconnect = viewModel::disconnect,
+            send = { array -> viewModel.send(array, webView.url) },
+            connect = { version, request -> viewModel.connect(version, request, webView.url) },
+            restoreConnection = { viewModel.restoreConnection(webView.url) },
+            disconnect = { viewModel.disconnect(webView.url) },
             tonapiFetch = { url, options ->
                 val method = if (options.isBlank()) {
                     "GET"
@@ -151,11 +159,6 @@ class DappScreenFragment : BaseComposeBottomSheetDialogFragment<DappScreenViewMo
             },
         )
 
-        val initialUrl = state.url?.let {
-            runCatching { TonConnectUrlValidator.normalizeDappUrl(it) }.getOrNull()
-        } ?: return
-
-        allowedOrigin = TonConnectUrlValidator.origin(initialUrl)
         webView.loadUrl(initialUrl)
     }
 

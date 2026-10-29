@@ -1230,14 +1230,6 @@ file_provider = add_component(
         attribute_grant_uri_permissions: "true",
     },
 )
-beacon_provider = add_component(
-    "provider",
-    "it.airgap.beaconsdk.core.provider.BeaconInitProvider",
-    **{
-        attribute_authorities: f"{package_name}.beaconinitprovider",
-        attribute_exported: "false",
-    },
-)
 firebase_provider = add_component(
     "provider",
     "com.google.firebase.provider.FirebaseInitProvider",
@@ -1380,7 +1372,7 @@ elif mode == "receiver-intent-mutated":
         attribute_name, "com.google.android.c2dm.intent.ATTACK"
     )
 elif mode == "missing-provider":
-    remove_component(beacon_provider)
+    remove_component(startup_provider)
 elif mode == "unexpected-provider":
     add_component(
         "provider",
@@ -1395,7 +1387,7 @@ elif mode == "file-provider-exported-true":
 elif mode == "authority-mutated":
     file_provider.set(attribute_authorities, f"{package_name}.mutated")
 elif mode == "authority-duplicated":
-    beacon_provider.set(
+    startup_provider.set(
         attribute_authorities, firebase_provider.get(attribute_authorities)
     )
 elif mode == "authority-repeated":

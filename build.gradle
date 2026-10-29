@@ -99,8 +99,6 @@ allprojects {
                     }
                 }
                 filter {
-                    includeGroup "com.github.airgap-it"
-                    includeGroupByRegex "com[.]github[.]airgap-it([.].*)?"
                     includeGroup "com.github.ildixhaferri"
                     includeGroupByRegex "com[.]github[.]komputing([.].*)?"
                     includeGroup "com.github.multiformats"
@@ -119,7 +117,11 @@ allprojects {
         }
     }
 
-    configurations.configureEach {
+    // The staged Iroha bridge and its smoke test resolve their own checksum-pinned
+    // graph (see iroha-sdk-bridge/build.gradle); they are not part of the app.
+    def resolvesStagedIrohaBridge = project.path in [':iroha-sdk-bridge', ':iroha-sdk-bridge-kotlin-smoke']
+
+    configurations.configureEach { configuration ->
         resolutionStrategy {
             // add dependency substitution rules
             eachDependency { DependencyResolveDetails details ->
@@ -130,8 +132,66 @@ allprojects {
                     // never be packaged in the wallet.
                     details.useTarget('com.madgag.spongycastle:prov:1.58.0.0')
                 }
-                if (details.requested.group == 'org.bouncycastle' && details.requested.name == 'bcprov-jdk15on') {
-                    details.useTarget("org.bouncycastle:bcprov-jdk18on:1.78")
+                if (details.requested.group == 'org.bouncycastle' &&
+                        details.requested.name in ['bcprov-jdk15on', 'bcprov-jdk18on'] &&
+                        !resolvesStagedIrohaBridge) {
+                    // bcprov-jdk18on 1.78.1 has CVE-2025-14813 (GOST CTR keystream
+                    // reuse), CVE-2026-0636 (LDAP injection), CVE-2026-8763 (name
+                    // constraints bypass) and CVE-2026-13506 (ASN.1 nesting-depth guard
+                    // reset); 1.85 is the first release without any of them. The wallet
+                    // uses digests, encoders and EC/Ed25519 primitives only.
+                    details.useTarget('org.bouncycastle:bcprov-jdk18on:1.85')
+                    details.because('CVE-2025-14813, CVE-2026-0636, CVE-2026-8763, CVE-2026-13506: bcprov-jdk18on before 1.85')
+                }
+                if (details.requested.group == 'org.java-websocket' && details.requested.name == 'Java-WebSocket') {
+                    // CVE-2020-11050 / GHSA-gw55-jm4h-x339: Java-WebSocket before 1.5.0
+                    // never checks that the TLS certificate names the dialed host, so
+                    // any publicly trusted certificate could impersonate a wss:// EVM
+                    // RPC node. web3j core 4.8.8-android still requests 1.3.8. From
+                    // 1.5.0 the client enables HTTPS endpoint identification, which
+                    // Android supports from API 24 (minSdk is 26).
+                    details.useVersion('1.6.0')
+                    details.because('CVE-2020-11050: Java-WebSocket before 1.5.0 skips TLS hostname verification')
+                }
+                if (details.requested.group == 'org.lz4' && details.requested.name == 'lz4-java') {
+                    // org.lz4:lz4-java stopped at 1.8.0 (1.8.1 only relocates);
+                    // at.yawk.lz4:lz4-java is its maintained drop-in with the same
+                    // net.jpountz API. 1.11.4 is the first release without CVE-2025-12183,
+                    // CVE-2025-66566, CVE-2026-59949 and CVE-2026-106449 to CVE-2026-106453.
+                    details.useTarget('at.yawk.lz4:lz4-java:1.11.4')
+                    details.because('CVE-2025-12183, CVE-2025-66566: org.lz4:lz4-java is unmaintained; at.yawk.lz4 1.11.4 fixes every listed lz4-java advisory')
+                }
+                if (details.requested.group == 'commons-beanutils' && details.requested.name == 'commons-beanutils') {
+                    // CVE-2025-48734: before 1.11.0, PropertyUtilsBean exposes the
+                    // declaredClass property, so a crafted property path reaches the class
+                    // loader. opencsv depends on it; the app only uses opencsv to read the
+                    // phishing list CSV by header.
+                    details.useVersion('1.11.0')
+                    details.because('CVE-2025-48734: commons-beanutils before 1.11.0 exposes declaredClass')
+                }
+                if (details.requested.group.startsWith('com.fasterxml.jackson') && !resolvesStagedIrohaBridge) {
+                    // web3j parses untrusted RPC replies. Keep the Jackson 2.x family aligned;
+                    // 2.18.11 includes bounded nesting and the subsequent 2026 parser fixes.
+                    details.useVersion('2.18.11')
+                    details.because('CVE-2025-52999 and 2026 Jackson advisories: bound untrusted RPC JSON parsing')
+                }
+                if (details.requested.group == 'com.google.guava' && details.requested.name == 'guava') {
+                    // The Java API client requests Guava JRE. Select the Android variant
+                    // for Android compile/runtime graphs; compiler/plugin graphs stay separate.
+                    def androidClasspath = (
+                            project.plugins.hasPlugin('com.android.application') ||
+                                    project.plugins.hasPlugin('com.android.library')
+                    ) && (
+                            configuration.name.endsWith('CompileClasspath') ||
+                                    configuration.name.endsWith('RuntimeClasspath')
+                    )
+                    details.useVersion(androidClasspath ? '33.4.8-android' :
+                            (details.requested.version?.endsWith('-jre') ? '33.3.1-jre' : '33.3.1-android'))
+                    details.because('CVE-2020-8908, CVE-2023-2976: private temporary files in Guava')
+                }
+                if (details.requested.group == 'org.apache.commons' && details.requested.name == 'commons-lang3') {
+                    details.useVersion('3.18.0')
+                    details.because('CVE-2025-48924: reject excessively nested class names without unbounded recursion')
                 }
             }
 
@@ -260,6 +320,9 @@ tasks.register('printPolkadotSdkAlignment') {
         println(" - DEFAULT_V13_TYPES_URL: ${defaultV13TypesUrl}")
         println(" - CHAINS_URL (debug): ${chainsUrlDebug}")
         println(" - CHAINS_URL (release): ${chainsUrlRelease}")
+        // Type registry overrides apply to debug builds only; release builds read the reviewed registries.
+        println(" - TYPES_URL (release): ${typesUrlDefault}")
+        println(" - DEFAULT_V13_TYPES_URL (release): ${defaultV13TypesUrlDefault}")
     }
 }
 

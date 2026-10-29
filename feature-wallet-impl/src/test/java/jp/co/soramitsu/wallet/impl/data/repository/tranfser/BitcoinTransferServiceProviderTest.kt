@@ -10,18 +10,25 @@ import jp.co.soramitsu.common.data.network.bitcoin.BitcoinEsploraUtxo
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerClient
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerRoutes
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountAssetListResponse
+import jp.co.soramitsu.common.data.network.iroha.IrohaAccountHistoryPage
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountListItem
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountListResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaAssetDefinitionListResponse
-import jp.co.soramitsu.common.data.network.iroha.IrohaMcpJsonRpcRequest
-import jp.co.soramitsu.common.data.network.iroha.IrohaMcpJsonRpcResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaPipelineTransactionStatusResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiClient
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiRoutes
 import jp.co.soramitsu.common.data.network.iroha.IrohaTransactionSubmissionPayload
 import jp.co.soramitsu.common.data.network.iroha.IrohaTransactionSubmissionReceipt
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
+import jp.co.soramitsu.common.data.network.WalletProviderPool
+import jp.co.soramitsu.common.data.network.send.PendingWalletSend
+import jp.co.soramitsu.common.data.network.solana.RetrofitSolanaRpcClient
 import jp.co.soramitsu.common.data.network.solana.SolanaBalanceSync
+import jp.co.soramitsu.common.data.network.solana.SolanaBroadcastException
 import jp.co.soramitsu.common.data.network.solana.SolanaBroadcastOptions
+import jp.co.soramitsu.common.data.network.solana.SolanaRpcApi
+import jp.co.soramitsu.common.data.network.solana.SolanaSignatureOutcome
 import jp.co.soramitsu.common.data.network.solana.SolanaFeeForMessageResponse
 import jp.co.soramitsu.common.data.network.solana.SolanaIndexerClient
 import jp.co.soramitsu.common.data.network.solana.SolanaIndexerServiceInfo
@@ -73,10 +80,14 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.async
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.mockito.Mockito.mock
+import retrofit2.HttpException
+import retrofit2.Response
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.`when`
 import jp.co.soramitsu.common.data.network.send.WalletSendJournal
@@ -196,7 +207,7 @@ class BitcoinTransferServiceProviderTest {
         assertEquals(true, rpc.lastSimulationOptions?.sigVerify)
         assertEquals(rpc.simulated, rpc.broadcasted)
         assertEquals(null, indexer.lastBalancesWallet)
-        assertEquals(listOf(UniversalWalletRegistry.SOLANA_MAINNET_RPC_URL, "https://solana-rpc.publicnode.com"), rpc.endpoints)
+        assertEquals(PUBLIC_SOLANA_MAINNET, rpc.endpoints)
         assertEquals(UniversalWalletRegistry.SOLANA_MAINNET_GENESIS_HASH, rpc.genesisHash)
     }
 
@@ -779,7 +790,8 @@ class BitcoinTransferServiceProviderTest {
         val service = provider(accountRepository(solanaMetaAccount(chain), MNEMONIC), solanaRpcClient = rpc,
             currentChain = { current }).provide(chain)
         service.getTransferFee(Transfer(SOLANA_ADDRESS, SOLANA_RECIPIENT, BigDecimal("0.001"), chain.assets.single()))
-        assertEquals(listOf(selected), rpc.endpoints)
+        // The current selection is asked first; the public mainnet nodes follow under the same genesis binding.
+        assertEquals(listOf(selected) + PUBLIC_SOLANA_MAINNET, rpc.endpoints)
         assertEquals(UniversalWalletRegistry.SOLANA_MAINNET_GENESIS_HASH, rpc.genesisHash)
     }
 
@@ -825,9 +837,119 @@ class BitcoinTransferServiceProviderTest {
         val retry = FakeSolanaRpcClient()
         val restarted = provider(accounts, solanaRpcClient = retry, journal = journal, currentChain = { current }).provide(chain)
         restarted.transfer(reviewed)
-        assertEquals(listOf(selected), retry.endpoints)
+        assertEquals(listOf(selected) + PUBLIC_SOLANA_MAINNET, retry.endpoints)
         assertEquals(retained.signedPayload, retry.broadcasted)
         assertEquals(retained.transactionId, journal.read("1:${chain.id.length}:${chain.id}")?.transactionId)
+    }
+
+    @Test fun `solana broadcast verdicts release a first submission only when nothing can have been relayed`() = kotlinx.coroutines.test.runTest {
+        val chain = solanaChain(); val scope = "1:${chain.id.length}:${chain.id}"
+        for ((outcome, code) in listOf(SolanaBroadcastException.Outcome.NOT_SENT to NativeSendException.Code.PAYMENT_NOT_SENT,
+            SolanaBroadcastException.Outcome.REFUSED to NativeSendException.Code.PAYMENT_REFUSED)) {
+            val rpc = FakeSolanaRpcClient().apply { broadcastFailure = SolanaBroadcastException(outcome) }; val journal = testJournal()
+            val service = provider(accountRepository(solanaMetaAccount(chain), MNEMONIC), solanaRpcClient = rpc, journal = journal).provide(chain)
+            val intent = solanaIntent(chain)
+            val error = runCatching { service.transfer(intent.copy(estimateFee = service.getTransferFee(intent))) }.exceptionOrNull()
+            assertEquals(code, (error as NativeSendException).code)
+            assertNull(journal.read(scope))
+        }
+        // A broadcast that may have been relayed keeps the exact payment, and a different payment waits for it.
+        val rpc = FakeSolanaRpcClient().apply { broadcastFailure = SolanaBroadcastException(SolanaBroadcastException.Outcome.AMBIGUOUS) }
+        val journal = testJournal()
+        val service = provider(accountRepository(solanaMetaAccount(chain), MNEMONIC), solanaRpcClient = rpc, journal = journal).provide(chain)
+        val intent = solanaIntent(chain)
+        val signature = service.transfer(intent.copy(estimateFee = service.getTransferFee(intent)))
+        val retained = requireNotNull(journal.read(scope))
+        assertEquals(PendingWalletSend.State.Pending, retained.state); assertEquals(signature, retained.transactionId)
+        val other = solanaIntent(chain, "0.002")
+        val blocked = runCatching { service.transfer(other.copy(estimateFee = service.getTransferFee(other))) }.exceptionOrNull()
+        assertEquals(NativeSendException.Code.PAYMENT_PENDING, (blocked as NativeSendException).code)
+        assertEquals(retained, journal.read(scope))
+    }
+
+    @Test fun `solana expiry proven after a broadcast releases the payment instead of leaving it pending`() = kotlinx.coroutines.test.runTest {
+        // Two proving endpoints show that nothing left the wallet; a single one only that the payment can't land.
+        for ((proving, code) in listOf(2 to NativeSendException.Code.PAYMENT_EXPIRED, 1 to NativeSendException.Code.PAYMENT_UNVERIFIED)) {
+            val chain = solanaChain(); val scope = "1:${chain.id.length}:${chain.id}"; val journal = testJournal()
+            val rpc = FakeSolanaRpcClient().apply { outcome = { SolanaSignatureOutcome.Expired(proving) } }
+            val service = provider(accountRepository(solanaMetaAccount(chain), MNEMONIC), solanaRpcClient = rpc, journal = journal).provide(chain)
+            val intent = solanaIntent(chain)
+            val error = runCatching { service.transfer(intent.copy(estimateFee = service.getTransferFee(intent))) }.exceptionOrNull()
+            assertEquals(code, (error as NativeSendException).code)
+            assertNull(journal.read(scope)); assertEquals(1, rpc.broadcasts)
+        }
+    }
+
+    @Test fun `solana payment found expired before a new one stops that call and the next confirmation sends`() = kotlinx.coroutines.test.runTest {
+        val chain = solanaChain(); val scope = "1:${chain.id.length}:${chain.id}"; val journal = testJournal()
+        val rpc = FakeSolanaRpcClient().apply { broadcastFailure = SolanaBroadcastException(SolanaBroadcastException.Outcome.AMBIGUOUS) }
+        val service = provider(accountRepository(solanaMetaAccount(chain), MNEMONIC), solanaRpcClient = rpc, journal = journal).provide(chain)
+        val first = solanaIntent(chain)
+        val lost = service.transfer(first.copy(estimateFee = service.getTransferFee(first)))
+        rpc.broadcastFailure = null; rpc.outcome = { SolanaSignatureOutcome.Expired(2) }
+        val next = solanaIntent(chain, "0.002"); val fee = service.getTransferFee(next); val broadcasts = rpc.broadcasts
+        val stopped = runCatching { service.transfer(next.copy(estimateFee = fee)) }.exceptionOrNull()
+        assertEquals(NativeSendException.Code.PRIOR_PAYMENT_EXPIRED, (stopped as NativeSendException).code)
+        assertEquals(lost, stopped.transactionId); assertEquals(broadcasts, rpc.broadcasts); assertNull(journal.read(scope))
+        rpc.outcome = null
+        val sent = service.transfer(next.copy(estimateFee = fee))
+        assertEquals(broadcasts + 1, rpc.broadcasts); assertEquals(sent, journal.read(scope)?.transactionId)
+    }
+
+    @Test fun `solana never broadcasts a retained payment once its blockhash height has passed`() = kotlinx.coroutines.test.runTest {
+        val chain = solanaChain(); val scope = "1:${chain.id.length}:${chain.id}"; val journal = testJournal()
+        // The quote's last valid height is 99: still valid while signing, past it by the time of the broadcast.
+        val rpc = FakeSolanaRpcClient().apply { heightProvider = { if (journal.read(scope) == null) 1L else 100L } }
+        val service = provider(accountRepository(solanaMetaAccount(chain), MNEMONIC), solanaRpcClient = rpc, journal = journal).provide(chain)
+        val intent = solanaIntent(chain)
+        val signature = service.transfer(intent.copy(estimateFee = service.getTransferFee(intent)))
+        assertEquals(0, rpc.broadcasts); assertEquals(null, rpc.broadcasted)
+        // It stays pending until the network proves the expiry.
+        assertEquals(signature, journal.read(scope)?.transactionId)
+        assertEquals(PendingWalletSend.State.Pending, journal.read(scope)?.state)
+    }
+
+    @Test fun `solana refusal and ambiguity reach the wallet through the production RPC client`() = kotlinx.coroutines.test.runTest {
+        val chain = solanaChain(); val scope = "1:${chain.id.length}:${chain.id}"
+        val accounts = accountRepository(solanaMetaAccount(chain), MNEMONIC)
+        // Every endpoint refuses the request before a node sees it: nothing was sent.
+        var journal = testJournal()
+        var service = provider(accounts, solanaRpcClient = rpcBacked { _, method, _ ->
+            if (method == "sendTransaction") throw HttpException(Response.error<JsonObject>(403, "".toResponseBody(null))) else null
+        }, journal = journal).provide(chain)
+        var intent = solanaIntent(chain)
+        val notSent = runCatching { service.transfer(intent.copy(estimateFee = service.getTransferFee(intent))) }.exceptionOrNull()
+        assertEquals(NativeSendException.Code.PAYMENT_NOT_SENT, (notSent as NativeSendException).code)
+        assertNull(journal.read(scope))
+
+        // A node's preflight verdict refuses the transaction before relaying it: released, and no other node is asked.
+        val refusals = mutableListOf<String>()
+        journal = testJournal()
+        service = provider(accounts, solanaRpcClient = rpcBacked { url, method, body ->
+            if (method == "sendTransaction") rpcError(body, -32002, "Transaction simulation failed").also { refusals += url } else null
+        }, journal = journal).provide(chain)
+        intent = solanaIntent(chain)
+        val refused = runCatching { service.transfer(intent.copy(estimateFee = service.getTransferFee(intent))) }.exceptionOrNull()
+        assertEquals(NativeSendException.Code.PAYMENT_REFUSED, (refused as NativeSendException).code)
+        assertNull(journal.read(scope)); assertEquals(listOf(UniversalWalletRegistry.SOLANA_MAINNET_RPC_URL), refusals)
+
+        // A gateway error after the request may have been relayed, then timeouts: the payment stays retained and
+        // every later endpoint is asked only to relay the same bytes.
+        val relays = mutableListOf<JsonObject>()
+        journal = testJournal()
+        service = provider(accounts, solanaRpcClient = rpcBacked { url, method, body ->
+            when {
+                method != "sendTransaction" -> null
+                url == UniversalWalletRegistry.SOLANA_MAINNET_RPC_URL -> rpcError(body, -32603, "Internal error")
+                else -> { relays += body; throw java.net.SocketTimeoutException("timeout") }
+            }
+        }, journal = journal).provide(chain)
+        intent = solanaIntent(chain)
+        val signature = service.transfer(intent.copy(estimateFee = service.getTransferFee(intent)))
+        val retained = requireNotNull(journal.read(scope))
+        assertEquals(PendingWalletSend.State.Pending, retained.state); assertEquals(signature, retained.transactionId)
+        assertEquals(2, relays.size)
+        assertTrue(relays.all { it["params"].asJsonArray[1].asJsonObject["skipPreflight"].asBoolean })
     }
 
     private fun provider(
@@ -861,12 +983,51 @@ class BitcoinTransferServiceProviderTest {
         )
     }
 
+    private fun solanaIntent(chain: Chain, amount: String = "0.001") =
+        Transfer(SOLANA_ADDRESS, SOLANA_RECIPIENT, BigDecimal(amount), chain.assets.single(), quoteId = UUID.randomUUID().toString())
+
+    /**
+     * Quotes, signs and simulates with the canned client, while broadcast and status go through the production
+     * JSON-RPC client over [answer]; a null answer uses the default: mainnet genesis, finalized progress not yet
+     * past the payment's last valid height (99), and no trace of the signature.
+     */
+    private fun rpcBacked(quotes: FakeSolanaRpcClient = FakeSolanaRpcClient(),
+        answer: suspend (url: String, method: String, body: JsonObject) -> JsonObject?): SolanaRpcClient {
+        val api = object : SolanaRpcApi {
+            override suspend fun postJsonRpc(url: String, body: JsonObject): JsonObject {
+                val method = body["method"].asString
+                val id = body["id"].asLong
+                return answer(url, method, body) ?: when (method) {
+                    "getGenesisHash" -> rpcResult(id, "\"${UniversalWalletRegistry.SOLANA_MAINNET_GENESIS_HASH}\"")
+                    "getEpochInfo" -> rpcResult(id, """{"absoluteSlot":1000,"blockHeight":50,"epoch":1,"slotIndex":5,"slotsInEpoch":432000}""")
+                    "getSignatureStatuses" -> rpcResult(id, """{"context":{"slot":1000},"value":[null]}""")
+                    else -> error("Unexpected JSON-RPC method $method")
+                }
+            }
+        }
+        val production = RetrofitSolanaRpcClient(api, providers = WalletProviderPool { 0L })
+        return object : SolanaRpcClient by quotes {
+            override fun withGenesisHash(expectedGenesisHash: String): SolanaRpcClient = this
+            override fun withEndpoints(rpcUrls: List<String>): SolanaRpcClient = this
+            override suspend fun sendRawTransaction(transactionBase64: String, options: SolanaBroadcastOptions, rpcUrl: String?): String =
+                production.sendRawTransaction(transactionBase64, options, rpcUrl)
+            override suspend fun signatureOutcome(signature: String, lastValidBlockHeight: Long, rpcUrl: String?): SolanaSignatureOutcome =
+                production.signatureOutcome(signature, lastValidBlockHeight, rpcUrl)
+        }
+    }
+
+    private fun rpcResult(id: Long, json: String): JsonObject =
+        JsonParser.parseString("""{"jsonrpc":"2.0","id":$id,"result":$json}""").asJsonObject
+
+    private fun rpcError(body: JsonObject, code: Int, message: String): JsonObject =
+        JsonParser.parseString("""{"jsonrpc":"2.0","id":${body["id"]},"error":{"code":$code,"message":"$message"}}""").asJsonObject
+
     private fun testJournal(): WalletSendJournal {
         val values = mutableMapOf<String, String>()
         val preferences = mock(Preferences::class.java)
         `when`(preferences.getString(anyString())).thenAnswer { values[it.getArgument<String>(0)] }
         `when`(preferences.replaceStringsDurably(anyMap(), anySet())).thenAnswer {
-            values.putAll(it.getArgument<Map<String, String>>(0)); true
+            values.putAll(it.getArgument<Map<String, String>>(0)); it.getArgument<Set<String>>(1).forEach(values::remove); true
         }
         return WalletSendJournal(preferences)
     }
@@ -984,10 +1145,18 @@ class BitcoinTransferServiceProviderTest {
         var genesisHash: String? = null
         var beforeFee: suspend () -> Unit = {}
         var beforeStatus: suspend () -> Unit = {}
+        /** Thrown by every broadcast once set, before anything is recorded as broadcast. */
+        var broadcastFailure: Throwable? = null
+        var broadcasts = 0
+        /** Replaces the status-derived outcome, for example to prove an expiry. */
+        var outcome: (suspend () -> SolanaSignatureOutcome)? = null
+        var heightProvider: (() -> Long)? = null
         override fun withGenesisHash(expectedGenesisHash: String): SolanaRpcClient { genesisHash = expectedGenesisHash; return this }
         override fun withEndpoints(rpcUrls: List<String>): SolanaRpcClient { endpoints = rpcUrls; return this }
         override suspend fun balance(address: String, commitment: SolanaRpcCommitment, rpcUrl: String?) = 10_000_000_000L
-        override suspend fun blockHeight(commitment: SolanaRpcCommitment, rpcUrl: String?) = height
+        override suspend fun blockHeight(commitment: SolanaRpcCommitment, rpcUrl: String?) = heightProvider?.invoke() ?: height
+        override suspend fun signatureOutcome(signature: String, lastValidBlockHeight: Long, rpcUrl: String?): SolanaSignatureOutcome =
+            outcome?.invoke() ?: super.signatureOutcome(signature, lastValidBlockHeight, rpcUrl)
         override suspend fun recentPrioritizationFees(rpcUrl: String?) = listOf(1000L)
         override suspend fun signatureStatus(signature: String, rpcUrl: String?): SolanaRpcSignatureStatus? {
             beforeStatus()
@@ -1079,6 +1248,8 @@ class BitcoinTransferServiceProviderTest {
             rpcUrl: String?
         ): String {
             urls += rpcUrl
+            broadcasts++
+            broadcastFailure?.let { throw it }
             broadcasted = transactionBase64
             lastExpectedSignature = firstSignature(transactionBase64)
             return lastExpectedSignature!!
@@ -1196,8 +1367,7 @@ class BitcoinTransferServiceProviderTest {
         override suspend fun accounts(
             baseUrl: String?,
             limit: Int?,
-            offset: Long?,
-            countMode: IrohaToriiRoutes.CountMode?
+            cursor: String?
         ): IrohaAccountListResponse = error("Unexpected Iroha accounts call")
 
         override suspend fun account(
@@ -1210,10 +1380,7 @@ class BitcoinTransferServiceProviderTest {
             accountId: String,
             baseUrl: String?,
             limit: Int?,
-            offset: Long?,
-            countMode: IrohaToriiRoutes.CountMode?,
-            asset: String?,
-            scope: String?,
+            cursor: String?,
             network: UniversalWalletRegistry.IrohaNetwork
         ): IrohaAccountAssetListResponse = error("Unexpected Iroha account-assets call")
 
@@ -1245,19 +1412,19 @@ class BitcoinTransferServiceProviderTest {
             scope: IrohaToriiRoutes.TransactionStatusScope
         ): IrohaPipelineTransactionStatusResponse = error("Unexpected Iroha transaction-status call")
 
-        override suspend fun mcpCapabilities(
-            network: UniversalWalletRegistry.IrohaNetwork,
-            baseUrl: String?
-        ): Map<String, Any?> = error("Unexpected Iroha mcp capabilities call")
-
-        override suspend fun mcpJsonRpc(
-            request: IrohaMcpJsonRpcRequest,
-            network: UniversalWalletRegistry.IrohaNetwork,
-            baseUrl: String?
-        ): IrohaMcpJsonRpcResponse = error("Unexpected Iroha mcp call")
+        override suspend fun accountHistory(
+            accountId: String,
+            baseUrl: String?,
+            limit: Int?,
+            cursor: String?,
+            filter: String?,
+            network: UniversalWalletRegistry.IrohaNetwork
+        ): IrohaAccountHistoryPage = error("Unexpected Iroha account-history call")
     }
 
     companion object {
+        val PUBLIC_SOLANA_MAINNET = listOf(UniversalWalletRegistry.SOLANA_MAINNET_RPC_URL, "https://solana-rpc.publicnode.com",
+            "https://public.rpc.solanavibestation.com")
         const val MNEMONIC = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
         const val OTHER_MNEMONIC = "legal winner thank year wave sausage worth useful legal winner thank yellow"
         const val MAINNET_ADDRESS = "bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu"
