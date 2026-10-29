@@ -37,17 +37,22 @@ master did not have are ported; the WalletConnect part came with the entry below
   failed only when two distinct hosts proved it (see `docs/solana-send.md`).
 - Iroha: transfer history comes from Torii REST (`/v1/accounts/{id}/history`, cursor
   paging, transfer filter); the app no longer calls the MCP endpoint, and the
-  send-readiness audit fails on `/v1/mcp` or `tools/call` in main sources.
+  send-readiness audit fails on `/v1/mcp` or `tools/call` in main sources. Torii scans
+  about 500 blocks per request, so after ten empty pages the screen shows what was
+  found and keeps the cursor instead of an error, as the web wallet does.
 
 Unit tests (debug, before -> after): app 189 -> 206, common 768 -> 846,
 account 915 -> 953 and its API 106, TON Connect 96 -> 168 and its API 13 -> 23,
-wallet 718 -> 751 and its API 130, WalletConnect 161, runtime 396 -> 407, staking
+wallet 718 -> 752 and its API 130, WalletConnect 161, runtime 396 -> 407, staking
 1,315 -> 1,318, core-backup 372 -> 378, core-db 521, core-api 133, runtime-utils
-432, runtime-websocket 114; no failures, skips unchanged; Detekt clean.
+432, runtime-websocket 114; no failures, skips unchanged. Detekt is clean, but its
+configuration excludes common, core modules, account, staking, wallet, runtime and app,
+so of the changed modules it checks only TON Connect and core-backup.
 
 Open: the replaced Play upload certificate is not pinned on master (owner decision);
-the Nomis key that was in the source should be rotated; no device or emulator run
-covers this port.
+the Nomis key that was in the source should be rotated; Taira rejects the Iroha
+balance loader's `offset`/`count_mode` paging with HTTP 400, so Taira balances keep
+their last values (separate bug); no device or emulator run covers this port.
 
 ## dApp signing and cross-chain hardening — 29 October 2026
 
