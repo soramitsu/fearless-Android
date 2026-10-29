@@ -2,6 +2,26 @@
 
 # Roadmap & Technical Debt
 
+## Taira balance paging and build verification — 29 October 2026
+
+Torii account, account-asset and definition lists now send `limit` and opaque
+`cursor` tokens. The balance loader follows `next_cursor`, including empty
+continuation pages, and rejects cursor cycles, missing items and scans exceeding
+1,000 pages before publishing any balance updates. Saved balances remain intact
+when any page fails. Unsupported offset/count-mode and asset/scope query options
+were removed from the client contract; history continues using Torii REST.
+
+JUnit BOM 5.11.0-M2 and 5.11.2 Gradle module metadata now have strict SHA-256 pins.
+Their bytes match Maven Central's published hashes and its second endpoint;
+strict local dependency verification accepts both. No verification rule was relaxed.
+
+Local cursor and malformed-response regressions and the existing Iroha/Bitcoin
+wallet tests are the validation gates for this follow-up. Live read-only Taira
+replay accepted the new list requests and rejected the old query parameters.
+Nexus remains covered by unit tests; no device or release artifact is qualified here.
+The stale unbond confirmation regression also awaits its background fee projection
+before asserting the rejected state; its no-sign/no-submit assertions are unchanged.
+
 ## Build 231 security port — 29 October 2026
 
 The security and fund-safety fixes of the 4.2.0 build 231 Play testing line that
@@ -50,9 +70,8 @@ configuration excludes common, core modules, account, staking, wallet, runtime a
 so of the changed modules it checks only TON Connect and core-backup.
 
 Open: the replaced Play upload certificate is not pinned on master (owner decision);
-the Nomis key that was in the source should be rotated; Taira rejects the Iroha
-balance loader's `offset`/`count_mode` paging with HTTP 400, so Taira balances keep
-their last values (separate bug); no device or emulator run covers this port.
+the Nomis key that was in the source should be rotated; no device or emulator run
+covers this port. The Taira balance paging defect is fixed in the follow-up above.
 
 ## dApp signing and cross-chain hardening — 29 October 2026
 

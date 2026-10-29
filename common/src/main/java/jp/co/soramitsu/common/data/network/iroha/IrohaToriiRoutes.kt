@@ -16,10 +16,9 @@ object IrohaToriiRoutes {
     fun accountsUrl(
         baseUrl: String = requireToriiBaseUrl(UniversalWalletRegistry.taira),
         limit: Int? = null,
-        offset: Long? = null,
-        countMode: CountMode? = null
+        cursor: String? = null
     ): String {
-        return appendQuery("${normalizeBaseUrl(baseUrl)}/v1/accounts", pageQuery(limit, offset, countMode))
+        return appendQuery("${normalizeBaseUrl(baseUrl)}/v1/accounts", pageQuery(limit, cursor))
     }
 
     fun accountUrl(
@@ -33,14 +32,9 @@ object IrohaToriiRoutes {
         accountId: String,
         baseUrl: String = requireToriiBaseUrl(UniversalWalletRegistry.taira),
         limit: Int? = null,
-        offset: Long? = null,
-        countMode: CountMode? = null,
-        asset: String? = null,
-        scope: String? = null
+        cursor: String? = null
     ): String {
-        val query = pageQuery(limit, offset, countMode).toMutableList()
-        asset?.let { query += "asset=${encodeQueryValue(normalizeAssetSelector(it))}" }
-        scope?.let { query += "scope=${encodeQueryValue(normalizeScope(it))}" }
+        val query = pageQuery(limit, cursor)
 
         return appendQuery("${accountUrl(accountId, baseUrl)}/assets", query)
     }
@@ -52,8 +46,7 @@ object IrohaToriiRoutes {
         cursor: String? = null,
         filter: String? = null
     ): String {
-        val query = pageQuery(limit, offset = null, countMode = null).toMutableList()
-        cursor?.let { query += "cursor=${normalizeCursor(it)}" }
+        val query = pageQuery(limit, cursor).toMutableList()
         filter?.let { query += "filter=${encodeQueryValue(normalizeFilter(it))}" }
 
         return appendQuery("${accountUrl(accountId, baseUrl)}/history", query)
@@ -72,12 +65,11 @@ object IrohaToriiRoutes {
     fun assetDefinitionsUrl(
         baseUrl: String = requireToriiBaseUrl(UniversalWalletRegistry.taira),
         limit: Int? = null,
-        offset: Long? = null,
-        countMode: CountMode? = null
+        cursor: String? = null
     ): String {
         return appendQuery(
             "${normalizeBaseUrl(baseUrl)}/v1/assets/definitions",
-            pageQuery(limit, offset, countMode)
+            pageQuery(limit, cursor)
         )
     }
 
@@ -130,15 +122,6 @@ object IrohaToriiRoutes {
         return network.toriiBaseUrl ?: throw IrohaToriiRouteException(ErrorCode.MISSING_TORII_BASE_URL)
     }
 
-    private fun normalizeScope(scope: String): String {
-        val normalized = scope.trim()
-        if (normalized != "global" && !DATASPACE_SCOPE.matches(normalized)) {
-            throw IrohaToriiRouteException(ErrorCode.INVALID_SCOPE)
-        }
-
-        return normalized
-    }
-
     private fun normalizePathValue(value: String, errorCode: ErrorCode): String {
         val normalized = value.trim()
         if (normalized.isEmpty() || normalized.length > 256 || normalized.any { it <= ' ' } || PATH_FORBIDDEN.containsMatchIn(normalized)) {
@@ -178,7 +161,7 @@ object IrohaToriiRoutes {
         return value.replace("\\", "\\\\").replace("\"", "\\\"")
     }
 
-    private fun pageQuery(limit: Int?, offset: Long?, countMode: CountMode?): List<String> {
+    private fun pageQuery(limit: Int?, cursor: String?): List<String> {
         val query = mutableListOf<String>()
 
         limit?.let {
@@ -187,15 +170,7 @@ object IrohaToriiRoutes {
             }
             query += "limit=$it"
         }
-        offset?.let {
-            if (it < 0) {
-                throw IrohaToriiRouteException(ErrorCode.INVALID_OFFSET)
-            }
-            query += "offset=$it"
-        }
-        countMode?.let {
-            query += "count_mode=${it.apiValue}"
-        }
+        cursor?.let { query += "cursor=${normalizeCursor(it)}" }
 
         return query
     }
@@ -219,17 +194,10 @@ object IrohaToriiRoutes {
         MISSING_TORII_BASE_URL,
         INVALID_ACCOUNT_ID,
         INVALID_ASSET,
-        INVALID_SCOPE,
         INVALID_HASH,
         INVALID_LIMIT,
-        INVALID_OFFSET,
         INVALID_CURSOR,
         INVALID_FILTER
-    }
-
-    enum class CountMode(val apiValue: String) {
-        Bounded("bounded"),
-        Exact("exact")
     }
 
     enum class TransactionStatusScope(val apiValue: String) {
@@ -240,7 +208,6 @@ object IrohaToriiRoutes {
 
     private val PATH_FORBIDDEN = Regex("[/?#]")
     private val ASSET_FORBIDDEN = Regex("[/?]")
-    private val DATASPACE_SCOPE = Regex("^dataspace:[A-Za-z0-9._:-]{1,128}$")
     private val HASH_256 = Regex("^[0-9a-f]{64}$")
     private val CURSOR = Regex("^[A-Za-z0-9_-]{1,4096}$")
     private const val MAX_FILTER_LENGTH = 2048

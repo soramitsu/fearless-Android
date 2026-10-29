@@ -1367,8 +1367,7 @@ class BitcoinTransferServiceProviderTest {
         override suspend fun accounts(
             baseUrl: String?,
             limit: Int?,
-            offset: Long?,
-            countMode: IrohaToriiRoutes.CountMode?
+            cursor: String?
         ): IrohaAccountListResponse = error("Unexpected Iroha accounts call")
 
         override suspend fun account(
@@ -1381,10 +1380,7 @@ class BitcoinTransferServiceProviderTest {
             accountId: String,
             baseUrl: String?,
             limit: Int?,
-            offset: Long?,
-            countMode: IrohaToriiRoutes.CountMode?,
-            asset: String?,
-            scope: String?,
+            cursor: String?,
             network: UniversalWalletRegistry.IrohaNetwork
         ): IrohaAccountAssetListResponse = error("Unexpected Iroha account-assets call")
 

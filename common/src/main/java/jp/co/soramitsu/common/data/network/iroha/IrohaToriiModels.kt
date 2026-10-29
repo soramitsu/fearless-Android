@@ -2,30 +2,11 @@ package jp.co.soramitsu.common.data.network.iroha
 
 import com.google.gson.annotations.SerializedName
 
-data class IrohaPageMetadata(
-    @SerializedName("has_more")
-    val hasMore: Boolean,
-    @SerializedName("count_mode")
-    val countMode: String,
-    @SerializedName("total")
-    val total: Long? = null,
-    @SerializedName("indexed_height")
-    val indexedHeight: Long? = null,
-    @SerializedName("indexed_block_hash")
-    val indexedBlockHash: String? = null,
-    @SerializedName("query_source")
-    val querySource: String? = null
-)
-
 data class IrohaAccountListResponse(
     @SerializedName("items")
-    val items: List<IrohaAccountListItem> = emptyList(),
-    @SerializedName("has_more")
-    val hasMore: Boolean,
-    @SerializedName("count_mode")
-    val countMode: String,
-    @SerializedName("total")
-    val total: Long? = null
+    val items: List<IrohaAccountListItem>,
+    @SerializedName("next_cursor")
+    val nextCursor: String? = null
 )
 
 data class IrohaAccountListItem(
@@ -45,13 +26,9 @@ data class IrohaAccountListItem(
 
 data class IrohaAccountAssetListResponse(
     @SerializedName("items")
-    val items: List<IrohaAccountAssetListItem> = emptyList(),
-    @SerializedName("has_more")
-    val hasMore: Boolean,
-    @SerializedName("count_mode")
-    val countMode: String,
-    @SerializedName("total")
-    val total: Long? = null
+    val items: List<IrohaAccountAssetListItem>,
+    @SerializedName("next_cursor")
+    val nextCursor: String? = null
 )
 
 data class IrohaAccountAssetListItem(
@@ -73,13 +50,9 @@ data class IrohaAccountAssetListItem(
 
 data class IrohaAssetDefinitionListResponse(
     @SerializedName("items")
-    val items: List<IrohaAssetDefinitionListItem> = emptyList(),
-    @SerializedName("has_more")
-    val hasMore: Boolean,
-    @SerializedName("count_mode")
-    val countMode: String,
-    @SerializedName("total")
-    val total: Long? = null
+    val items: List<IrohaAssetDefinitionListItem>,
+    @SerializedName("next_cursor")
+    val nextCursor: String? = null
 )
 
 data class IrohaAssetDefinitionListItem(

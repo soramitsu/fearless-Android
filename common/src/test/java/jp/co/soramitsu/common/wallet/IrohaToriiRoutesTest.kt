@@ -2,9 +2,10 @@ package jp.co.soramitsu.common.wallet
 
 import com.google.gson.Gson
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountAssetListResponse
+import jp.co.soramitsu.common.data.network.iroha.IrohaAccountListResponse
+import jp.co.soramitsu.common.data.network.iroha.IrohaAssetDefinitionListResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountHistoryPage
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiRoutes
-import jp.co.soramitsu.common.data.network.iroha.IrohaToriiRoutes.CountMode
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiRoutes.ErrorCode
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiRoutes.IrohaToriiRouteException
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiRoutes.TransactionStatusScope
@@ -21,30 +22,27 @@ class IrohaToriiRoutesTest {
     fun `builds taira torii endpoint urls with validated parameters`() {
         assertEquals("https://taira.sora.org/health", IrohaToriiRoutes.healthUrl())
         assertEquals(
-            "https://taira.sora.org/v1/accounts?limit=50&offset=10&count_mode=exact",
-            IrohaToriiRoutes.accountsUrl(limit = 50, offset = 10, countMode = CountMode.Exact)
+            "https://taira.sora.org/v1/accounts?limit=50&cursor=page_2",
+            IrohaToriiRoutes.accountsUrl(limit = 50, cursor = "page_2")
         )
         assertEquals(
             "https://taira.sora.org/v1/accounts/$ENCODED_ACCOUNT",
             IrohaToriiRoutes.accountUrl(ACCOUNT)
         )
         assertEquals(
-            "https://taira.sora.org/v1/accounts/$ENCODED_ACCOUNT/assets?limit=25&count_mode=bounded&asset=xor%23sora&scope=global",
+            "https://taira.sora.org/v1/accounts/$ENCODED_ACCOUNT/assets?limit=25&cursor=assets_page-2",
             IrohaToriiRoutes.accountAssetsUrl(
                 accountId = ACCOUNT,
                 limit = 25,
-                countMode = CountMode.Bounded,
-                asset = "xor#sora",
-                scope = "global"
+                cursor = "assets_page-2"
             )
         )
         assertEquals("https://taira.sora.org/v1/assets/definitions", IrohaToriiRoutes.assetDefinitionsUrl())
         assertEquals(
-            "https://taira.sora.org/v1/assets/definitions?limit=500&offset=500&count_mode=bounded",
+            "https://taira.sora.org/v1/assets/definitions?limit=500&cursor=definitions_page-2",
             IrohaToriiRoutes.assetDefinitionsUrl(
                 limit = 500,
-                offset = 500,
-                countMode = CountMode.Bounded
+                cursor = "definitions_page-2"
             )
         )
         assertEquals("https://taira.sora.org/v1/pipeline/transactions", IrohaToriiRoutes.submitTransactionUrl())
@@ -118,20 +116,14 @@ class IrohaToriiRoutesTest {
         assertRouteError(ErrorCode.INVALID_ACCOUNT_ID) {
             IrohaToriiRoutes.accountUrl("../bad")
         }
-        assertRouteError(ErrorCode.INVALID_ASSET) {
-            IrohaToriiRoutes.accountAssetsUrl(ACCOUNT, asset = "../bad")
-        }
-        assertRouteError(ErrorCode.INVALID_SCOPE) {
-            IrohaToriiRoutes.accountAssetsUrl(ACCOUNT, scope = "bad/scope")
-        }
         assertRouteError(ErrorCode.INVALID_LIMIT) {
             IrohaToriiRoutes.accountsUrl(limit = 0)
         }
         assertRouteError(ErrorCode.INVALID_LIMIT) {
             IrohaToriiRoutes.accountsUrl(limit = 501)
         }
-        assertRouteError(ErrorCode.INVALID_OFFSET) {
-            IrohaToriiRoutes.accountsUrl(offset = -1)
+        assertRouteError(ErrorCode.INVALID_CURSOR) {
+            IrohaToriiRoutes.accountsUrl(cursor = "a=b")
         }
         assertRouteError(ErrorCode.INVALID_HASH) {
             IrohaToriiRoutes.transactionStatusUrl("not-a-hash")
@@ -143,6 +135,9 @@ class IrohaToriiRoutesTest {
             assertRouteError(ErrorCode.INVALID_CURSOR) {
                 IrohaToriiRoutes.accountHistoryUrl(ACCOUNT, cursor = cursor)
             }
+            assertRouteError(ErrorCode.INVALID_CURSOR) { IrohaToriiRoutes.accountsUrl(cursor = cursor) }
+            assertRouteError(ErrorCode.INVALID_CURSOR) { IrohaToriiRoutes.accountAssetsUrl(ACCOUNT, cursor = cursor) }
+            assertRouteError(ErrorCode.INVALID_CURSOR) { IrohaToriiRoutes.assetDefinitionsUrl(cursor = cursor) }
         }
         listOf(" ", "type = \"TRANSFER\"\nor true", "x".repeat(2049)).forEach { filter ->
             assertRouteError(ErrorCode.INVALID_FILTER) {
@@ -169,17 +164,30 @@ class IrohaToriiRoutesTest {
                   "scope": "global"
                 }
               ],
-              "has_more": false,
-              "count_mode": "exact",
-              "total": 1
+              "next_cursor": "assets_page-2"
             }
             """.trimIndent(),
             IrohaAccountAssetListResponse::class.java
         )
 
         assertEquals("340282366920938463463374607431768211455", response.items.single().quantity)
-        assertEquals("exact", response.countMode)
-        assertEquals(1L, response.total)
+        assertEquals("assets_page-2", response.nextCursor)
+    }
+
+    @Test
+    fun `parses account and definition continuation tokens from torii json`() {
+        val accounts = Gson().fromJson(
+            """{"items":[{"id":"$ACCOUNT"}],"next_cursor":"accounts_page-2"}""",
+            IrohaAccountListResponse::class.java
+        )
+        val definitions = Gson().fromJson(
+            """{"items":[{"id":"$XOR_DEFINITION"}],"next_cursor":"definitions_page-2"}""",
+            IrohaAssetDefinitionListResponse::class.java
+        )
+        assertEquals(ACCOUNT, accounts.items.single().id)
+        assertEquals("accounts_page-2", accounts.nextCursor)
+        assertEquals(XOR_DEFINITION, definitions.items.single().id)
+        assertEquals("definitions_page-2", definitions.nextCursor)
     }
 
     @Test

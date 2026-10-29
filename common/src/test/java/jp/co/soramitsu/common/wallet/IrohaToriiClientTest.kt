@@ -29,31 +29,28 @@ class IrohaToriiClientTest {
         val api = FakeIrohaToriiApi()
         val client = RetrofitIrohaToriiClient(api)
 
-        client.accounts(limit = 50, offset = 10, countMode = IrohaToriiRoutes.CountMode.Exact)
+        client.accounts(limit = 50, cursor = "page_2")
         assertEquals(
-            "https://taira.sora.org/v1/accounts?limit=50&offset=10&count_mode=exact",
+            "https://taira.sora.org/v1/accounts?limit=50&cursor=page_2",
             api.lastUrl
         )
 
         client.accountAssets(
             accountId = ACCOUNT,
             limit = 25,
-            countMode = IrohaToriiRoutes.CountMode.Bounded,
-            asset = "xor#sora",
-            scope = "global"
+            cursor = "assets_page-2"
         )
         assertEquals(
-            "https://taira.sora.org/v1/accounts/$ENCODED_ACCOUNT/assets?limit=25&count_mode=bounded&asset=xor%23sora&scope=global",
+            "https://taira.sora.org/v1/accounts/$ENCODED_ACCOUNT/assets?limit=25&cursor=assets_page-2",
             api.lastUrl
         )
 
         client.assetDefinitionsPage(
             limit = 500,
-            offset = 500,
-            countMode = IrohaToriiRoutes.CountMode.Bounded
+            cursor = "definitions_page-2"
         )
         assertEquals(
-            "https://taira.sora.org/v1/assets/definitions?limit=500&offset=500&count_mode=bounded",
+            "https://taira.sora.org/v1/assets/definitions?limit=500&cursor=definitions_page-2",
             api.lastUrl
         )
 
@@ -154,9 +151,7 @@ class IrohaToriiClientTest {
         override suspend fun accounts(url: String): IrohaAccountListResponse {
             lastUrl = url
             return IrohaAccountListResponse(
-                items = listOf(IrohaAccountListItem(id = ACCOUNT)),
-                hasMore = false,
-                countMode = "bounded"
+                items = listOf(IrohaAccountListItem(id = ACCOUNT))
             )
         }
 
@@ -175,9 +170,7 @@ class IrohaToriiClientTest {
                         quantity = "1",
                         scope = "global"
                     )
-                ),
-                hasMore = false,
-                countMode = "bounded"
+                )
             )
         }
 
@@ -189,9 +182,7 @@ class IrohaToriiClientTest {
         override suspend fun assetDefinitions(url: String): IrohaAssetDefinitionListResponse {
             lastUrl = url
             return IrohaAssetDefinitionListResponse(
-                items = emptyList(),
-                hasMore = false,
-                countMode = "bounded"
+                items = emptyList()
             )
         }
 
