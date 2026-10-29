@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -69,6 +70,8 @@ class AddressHistoryViewModel @Inject constructor(
     }.distinctUntilChanged()
 
     private val imagesFlow: MutableStateFlow<Map<String, PictureDrawable?>> = MutableStateFlow(emptyMap())
+
+    private var hasLeftScreen = false
 
     init {
         observeAddressBook()
@@ -247,16 +250,39 @@ class AddressHistoryViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    /** The user dismissed the sheet (swipe, outside tap or system back) without picking a recipient. */
+    fun onScreenClosed() {
+        hasLeftScreen = true
+    }
+
     override fun onAddressClick(address: Address) {
-        sharedState.updateAddress(address.address)
-        router.backWithResult(AddressHistoryFragment.RESULT_ADDRESS to address.address)
+        leaveScreen {
+            sharedState.updateAddress(address.address)
+            router.backWithResult(AddressHistoryFragment.RESULT_ADDRESS to address.address)
+        }
     }
 
     override fun onNavigationClick() {
-        router.back()
+        leaveScreen(router::back)
     }
 
     override fun onCreateContactClick(addressChainId: ChainId?, address: String?) {
+        if (!canAct()) return
         router.openCreateContact(addressChainId ?: chainId, address)
+    }
+
+    private fun canAct() = !hasLeftScreen && viewModelScope.isActive
+
+    /** The sheet has one outcome: the first pick or close wins, and a late tap cannot replace it. */
+    private inline fun leaveScreen(navigation: () -> Unit) {
+        if (!canAct()) return
+        hasLeftScreen = true
+        try {
+            navigation()
+        } catch (failure: Exception) {
+            // The sheet is still open, so it stays usable; the failure surfaces as before.
+            hasLeftScreen = false
+            throw failure
+        }
     }
 }
