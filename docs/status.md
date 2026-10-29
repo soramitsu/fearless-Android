@@ -2,14 +2,6 @@
 
 # Status Summary
 
-## Unbond confirmation regression scheduling — 29 October 2026
-
-The stale-source confirmation test now waits for the background fee projection
-as well as the immediate error dialog. The retained failing result observed a
-null fee before that projection completed. The no-builder, no-submission and
-error-fee assertions remain in place; production signing code is unchanged.
-Local focused verification is recorded in the impact-assessment takeover receipt.
-
 ## dApp signing and cross-chain hardening — 29 October 2026
 
 WalletConnect signs only with the account the session approved on the request's
@@ -2105,3 +2097,11 @@ Candidate-v2 SHA `0667a85ceb7c48f840cfb75d8a0ad0ad8406ded290f170a36b50898554c65f
 Selection ownership follows actual selectionItem emissions, not every wallet/registry/preference intent; prior relay publication admission remains separate. Non-cooperative work can delay progress until it returns. New actual-root recovery tests cover relay and pool, not a fresh parachain round trip. Retained root-alert callbacks, equal-text alert adapter rebinding and action-to-info holder reuse are next source-based candidates requiring controlled baselines. The optional payout listener is unchanged; current-selection reads alone do not establish wrong-identity writes. Automatic root-alert/registry freshness, full native/design, migration, physical-device, signing/store and release gates remain open.
 
 Integration verified at `d9a40d065fb091f2a42c91aa410a755d08f51a29`: whole4,347-file executable tree,376utils/84transport and944evidence pins exact; verification `18147baf25141426aa423e777dcf2ae504e18291322e039729c8b5021bab738b`. No additional build or native run is claimed.
+
+## Unbond confirmation regression scheduling — 29 October 2026
+
+The stale-source confirmation test now waits for the background fee projection
+as well as the immediate error dialog. The retained failing result observed a
+null fee before that projection completed. The no-builder, no-submission and
+error-fee assertions remain in place; production signing code is unchanged.
+Local focused verification is recorded in the impact-assessment takeover receipt.
