@@ -56,7 +56,7 @@
       "commit": "ca1c2655ff541ae5942d820423962d34fd29d7f9",
       "sourcePath": "chains/v13/chains.json",
       "upstreamSha256": "79a583f08f71139a31e00c825c746891cef50c04aa81318aaa492807757b9cec",
-      "ownedSha256": "4c3f3889de54a2ed38b686df381b9dcb746645830ff560d87f2a83b66234d556"
+      "ownedSha256": "30f3c7cba4f21d1e2d7170538eb881d588acd67648353257580b9f7deb57a58a"
     },
     {
       "path": "production/fiat/fiats.json",
@@ -5166,6 +5166,7 @@
     "remote-config/production/crowdloan/polkadot.json: canonical filename case remote-config/production/crowdloan/icons/Litentry.png",
     "Omit unavailable optional Rootstock icon from bundled local_chains",
     "Correct bundled Latest Mainnet icon to latestchain.svg",
-    "Disable unreachable Reef Mainnet in app-owned catalogs after retaining unavailable chain parents and clearing stale staking selection; configured RPC returned HTTP502 on 2026-10-25. Legacy shared feeds remain unchanged."
+    "Disable unreachable Reef Mainnet in app-owned catalogs after retaining unavailable chain parents and clearing stale staking selection; configured RPC returned HTTP502 on 2026-10-25. Legacy shared feeds remain unchanged.",
+    "remote-config/production/chains/v13/chains.json: drop discontinued Blast API nodes; move Dwellir nodes from retired *.dwellir.com hosts to n.dwellir.com hosts that returned the network's genesis on 2026-10-29, and drop the rest unless a network has no other node. Only node entries change."
   ]
 }
