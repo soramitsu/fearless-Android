@@ -966,11 +966,13 @@
   <string name="signing_field_token">Token</string>
   <string name="signing_field_value">Giá trị gửi</string>
   <string name="signing_field_verifying_contract">Hợp đồng xác minh</string>
+  <string name="signing_paused_title">Đã tạm dừng ký cho dApp</string>
   <string name="signing_refused_destination">Fearless không ký giao dịch chuyển này: %1$s không còn nhận giao dịch chuyển từ mạng này, nên số tiền sẽ bị mất.</string>
   <string name="signing_refused_format">Fearless không ký giao dịch này: không hỗ trợ giao dịch dApp theo định dạng của mạng này.</string>
   <string name="signing_refused_never_expires">Fearless không ký giao dịch này: giao dịch không bao giờ hết hạn, nên dApp có thể gửi nó vào bất kỳ lúc nào sau này.</string>
   <string name="signing_refused_other_network">Fearless không ký giao dịch này: giao dịch dành cho một mạng khác với mạng mà dApp đã chỉ định.</string>
   <string name="signing_refused_other_runtime">Fearless không ký giao dịch này: giao dịch được tạo cho một phiên bản runtime khác của mạng này. Hãy yêu cầu dApp tạo lại.</string>
+  <string name="signing_refused_paused">Fearless đã tạm dừng ký cho dApp trên mạng này để bảo vệ bạn. Chưa có gì được ký. Hãy thử lại sau.</string>
   <string name="signing_refused_relay_reserve">Fearless không ký giao dịch chuyển này: kể từ khi chuyển sang Asset Hub, relay chain không còn là nơi dự trữ token của nó, nên giao dịch chuyển dự trữ này sẽ làm mất tiền. Hãy gửi từ Asset Hub.</string>
   <string name="signing_refused_undecoded_call">Fearless không ký giao dịch này: không thể giải mã lệnh gọi bằng runtime của mạng này, nên không thể hiển thị cho bạn.</string>
   <string name="signing_section_call">Lệnh gọi %1$s</string>

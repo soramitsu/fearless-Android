@@ -28,6 +28,9 @@ class ProductFeatureToggleStoreTest {
         assertTrue(store.demeterMutationsEnabled)
         assertTrue(store.bitcoinSendEnabled)
         assertTrue(store.solanaSendEnabled)
+        assertTrue(store.polkadotDappSigningEnabled)
+        assertTrue(store.evmDappSigningEnabled)
+        assertTrue(store.tonDappSigningEnabled)
         assertFalse(store.polkamarktMutationsEnabled)
         assertFalse(store.xcmMutationsEnabled)
         assertFalse(store.polkaswapBridgeMutationsEnabled)
@@ -43,6 +46,9 @@ class ProductFeatureToggleStoreTest {
         assertTrue(store.demeterMutationsEnabled)
         assertTrue(store.bitcoinSendEnabled)
         assertTrue(store.solanaSendEnabled)
+        assertTrue(store.polkadotDappSigningEnabled)
+        assertTrue(store.evmDappSigningEnabled)
+        assertTrue(store.tonDappSigningEnabled)
     }
 
     @Test
@@ -66,6 +72,42 @@ class ProductFeatureToggleStoreTest {
         store.update(FeatureToggleConfig(bitcoinSendEnabled = true, solanaSendEnabled = false))
         assertTrue(store.bitcoinSendEnabled)
         assertFalse(store.solanaSendEnabled)
+    }
+
+    @Test
+    fun `explicit false pauses dApp signing for its family only`() {
+        val store = ProductFeatureToggleStore(mapBackedPreferences(), mock(MutationAuthorizationStore::class.java))
+
+        store.update(FeatureToggleConfig(polkadotDappSigningEnabled = false))
+        assertFalse(store.polkadotDappSigningEnabled)
+        assertTrue(store.evmDappSigningEnabled)
+        assertTrue(store.tonDappSigningEnabled)
+
+        store.update(FeatureToggleConfig(polkadotDappSigningEnabled = true, evmDappSigningEnabled = false, tonDappSigningEnabled = false))
+        assertTrue(store.polkadotDappSigningEnabled)
+        assertFalse(store.evmDappSigningEnabled)
+        assertFalse(store.tonDappSigningEnabled)
+        // Signing vetoes leave the wallet's own sends and swaps alone.
+        assertTrue(store.solanaSendEnabled)
+        assertTrue(store.polkaswapMutationsEnabled)
+    }
+
+    @Test
+    fun `dApp signing veto survives omitted keys and restarts until an explicit true`() {
+        val preferences = mapBackedPreferences()
+        val store = ProductFeatureToggleStore(preferences, mock(MutationAuthorizationStore::class.java))
+
+        store.rememberRemoteVetoes(FeatureToggleConfig(evmDappSigningEnabled = false, tonDappSigningEnabled = false))
+        store.update(FeatureToggleConfig())
+
+        val restarted = ProductFeatureToggleStore(preferences, mock(MutationAuthorizationStore::class.java))
+        assertFalse(restarted.evmDappSigningEnabled)
+        assertFalse(restarted.tonDappSigningEnabled)
+        assertTrue(restarted.polkadotDappSigningEnabled)
+
+        restarted.rememberRemoteVetoes(FeatureToggleConfig(evmDappSigningEnabled = true, tonDappSigningEnabled = true))
+        assertTrue(restarted.evmDappSigningEnabled)
+        assertTrue(restarted.tonDappSigningEnabled)
     }
 
     @Test
@@ -161,6 +203,10 @@ class ProductFeatureToggleStoreTest {
         assertNull(config.polkaswapMutationsEnabled)
         assertNull(config.bitcoinSendEnabled)
         assertNull(config.solanaSendEnabled)
+        // `dapp_enabled` is an unrelated legacy key: it must never read as a dApp signing veto.
+        assertNull(config.polkadotDappSigningEnabled)
+        assertNull(config.evmDappSigningEnabled)
+        assertNull(config.tonDappSigningEnabled)
 
         val store = ProductFeatureToggleStore(mapBackedPreferences(), mock(MutationAuthorizationStore::class.java))
         store.update(config)
@@ -169,6 +215,9 @@ class ProductFeatureToggleStoreTest {
         assertTrue(store.demeterMutationsEnabled)
         assertTrue(store.bitcoinSendEnabled)
         assertTrue(store.solanaSendEnabled)
+        assertTrue(store.polkadotDappSigningEnabled)
+        assertTrue(store.evmDappSigningEnabled)
+        assertTrue(store.tonDappSigningEnabled)
     }
 
     @Test
@@ -185,6 +234,33 @@ class ProductFeatureToggleStoreTest {
         assertFalse(store.solanaSendEnabled)
         assertTrue(store.polkaswapMutationsEnabled)
         assertTrue(store.demeterMutationsEnabled)
+    }
+
+    @Test
+    fun `dApp signing veto template decodes to the vetoed families only`() {
+        val config = Gson().fromJson(
+            """{"pendulum_case_enabled":false,"nft_enabled":false,"dapp_enabled":false,"polkadot_dapp_signing_enabled":false,"ton_dapp_signing_enabled":false}""",
+            FeatureToggleConfig::class.java
+        )
+        val store = ProductFeatureToggleStore(mapBackedPreferences(), mock(MutationAuthorizationStore::class.java))
+
+        store.update(config)
+
+        assertFalse(store.polkadotDappSigningEnabled)
+        assertFalse(store.tonDappSigningEnabled)
+        assertTrue(store.evmDappSigningEnabled)
+        assertTrue(store.bitcoinSendEnabled)
+    }
+
+    @Test
+    fun `a switch written as a string other than true reads as a veto`() {
+        // Gson reads JSON strings leniently; scripts/verify-owned-remote-config.py refuses such a file.
+        val config = Gson().fromJson("""{"evm_dapp_signing_enabled":"no"}""", FeatureToggleConfig::class.java)
+        val store = ProductFeatureToggleStore(mapBackedPreferences(), mock(MutationAuthorizationStore::class.java))
+
+        store.update(config)
+
+        assertFalse(store.evmDappSigningEnabled)
     }
 
     private fun mapBackedPreferences(values: MutableMap<String, Boolean> = mutableMapOf()): Preferences {

@@ -926,11 +926,13 @@
   <string name="signing_field_token">代币</string>
   <string name="signing_field_value">发送金额</string>
   <string name="signing_field_verifying_contract">验证合约</string>
+  <string name="signing_paused_title">dApp 签名已暂停</string>
   <string name="signing_refused_destination">Fearless 不会签署此转账：%1$s 已不再接收来自此网络的转账，资金将会丢失。</string>
   <string name="signing_refused_format">Fearless 不会签署此交易：不支持该网络格式的 dApp 交易。</string>
   <string name="signing_refused_never_expires">Fearless 不会签署此交易：它永不过期，dApp 可以在之后任何时候提交它。</string>
   <string name="signing_refused_other_network">Fearless 不会签署此交易：它属于 dApp 所指定网络以外的另一个网络。</string>
   <string name="signing_refused_other_runtime">Fearless 不会签署此交易：它是为该网络的另一个运行时版本构建的。请让 dApp 重新创建。</string>
+  <string name="signing_refused_paused">为了您的安全，Fearless 已暂停此网络上的 dApp 签名。未签署任何内容。请稍后再试。</string>
   <string name="signing_refused_relay_reserve">Fearless 不会签署此转账：自 Asset Hub 迁移后，中继链不再是其代币的储备链，此储备转账会导致资金丢失。请改为从 Asset Hub 发送。</string>
   <string name="signing_refused_undecoded_call">Fearless 不会签署此交易：无法用该网络的运行时解码其调用，因此无法向您展示其内容。</string>
   <string name="signing_section_call">调用 %1$s</string>

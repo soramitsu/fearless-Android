@@ -48,6 +48,12 @@ data class FeatureToggleConfig(
     val bitcoinSendEnabled: Boolean? = null,
     @SerializedName("solana_send_enabled")
     val solanaSendEnabled: Boolean? = null,
+    @SerializedName("polkadot_dapp_signing_enabled")
+    val polkadotDappSigningEnabled: Boolean? = null,
+    @SerializedName("evm_dapp_signing_enabled")
+    val evmDappSigningEnabled: Boolean? = null,
+    @SerializedName("ton_dapp_signing_enabled")
+    val tonDappSigningEnabled: Boolean? = null,
     @SerializedName("polkamarkt_mutations_enabled")
     val polkamarktMutationsEnabled: Boolean? = null,
     @SerializedName("xcm_mutations_enabled")
