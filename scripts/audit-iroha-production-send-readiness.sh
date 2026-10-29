@@ -304,7 +304,21 @@ const expected = `return TransferServiceProvider(
             sendPausePolicy = sendPausePolicy,
             quoteStore = quoteStore,
             sendJournal = jp.co.soramitsu.common.data.network.send.WalletSendJournal(preferences),
-            currentChain = { chainRegistry.getChain(it) }
+            currentChain = { chainRegistry.getChain(it) },
+            onPaymentReleased = { payment, verified ->
+                // The pending row from this app is closed: failed when the payment provably never reached the chain,
+                // unknown when it was too old for its expiry to prove that.
+                val reviewed = payment.reviewed
+                if (reviewed != null) {
+                    operationDao.getOperation(payment.transactionId)?.takeIf {
+                        it.source == jp.co.soramitsu.coredb.model.OperationLocal.Source.APP && it.chainId == reviewed.chainId &&
+                            it.address == reviewed.sender && it.status == jp.co.soramitsu.coredb.model.OperationLocal.Status.PENDING
+                    }?.let {
+                        operationDao.insert(it.copy(status = if (verified) jp.co.soramitsu.coredb.model.OperationLocal.Status.FAILED
+                            else jp.co.soramitsu.coredb.model.OperationLocal.Status.UNKNOWN))
+                    }
+                }
+            }
         )`;
 
 if (calls.length !== 1 || !source.includes(expected)) {
