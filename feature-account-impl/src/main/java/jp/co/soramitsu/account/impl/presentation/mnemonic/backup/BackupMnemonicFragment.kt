@@ -130,6 +130,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
             googleBackupButton.setOnClickListener {
                 viewModel.onGoogleBackupClick(
                     advancedBlockView.getSubstrateDerivationPath(),
+                    advancedBlockView.getEthereumDerivationPath(),
                     launcher
                 )
             }
