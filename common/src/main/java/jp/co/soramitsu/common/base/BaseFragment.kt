@@ -49,6 +49,9 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment {
                 positiveButtonText = errorDialogState.positiveButtonText,
                 negativeButtonText = errorDialogState.negativeButtonText,
                 positiveClick = errorDialogState.positiveClick,
+                negativeClick = errorDialogState.negativeClick,
+                onBackClick = errorDialogState.onBackClick,
+                buttonsOrientation = errorDialogState.buttonsOrientation,
                 isHideable = errorDialogState.isHideable
             ).show(childFragmentManager)
         }

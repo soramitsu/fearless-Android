@@ -3,18 +3,19 @@ package jp.co.soramitsu.staking.impl.domain.validators
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.toHexAccountId
 import jp.co.soramitsu.core.utils.utilityAsset
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.reefChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
 import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculationTarget
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
@@ -32,10 +33,7 @@ class ValidatorProvider(
     private val stakingConstantsRepository: StakingConstantsRepository
 ) {
 
-    suspend fun getValidators(
-        chain: Chain,
-        source: ValidatorSource
-    ): List<Validator> = coroutineScope {
+    suspend fun getValidators(chain: Chain, source: ValidatorSource): List<Validator> = coroutineScope {
         val chainId = chain.id
 
         val allValidatorPrefsDeferred = async { stakingRepository.getAllValidatorPrefs(chainId) }
@@ -104,8 +102,9 @@ class ValidatorProvider(
                     ownStake = it.own,
                     nominatorStakes = it.others,
                     apy = runCatching { rewardCalculator.getApyFor(accountIdHex.fromHex()) }
+                        .onFailure { if (it is CancellationException) throw it }
                         .getOrNull().orZero(),
-                    isOversubscribed = maxNominators?.let { value -> it.others.size > value} ?: false
+                    isOversubscribed = maxNominators?.let { value -> it.others.size > value } ?: false
                 )
             }
 
