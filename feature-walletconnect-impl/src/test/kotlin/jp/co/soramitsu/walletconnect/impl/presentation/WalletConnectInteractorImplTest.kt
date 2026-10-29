@@ -459,6 +459,21 @@ class WalletConnectInteractorImplTest {
     }
 
     @Test
+    fun `a pause that arrives while the node is being reached stops the broadcast`() {
+        val address = approveEvmAccount()
+        coEvery { ethereumSource.signRawTransaction("1", any(), any()) } returns Result.success("0xsigned")
+        transactionSender.whileConnecting = {
+            featureToggles.rememberRemoteVetoes(FeatureToggleConfig(evmDappSigningEnabled = false))
+        }
+
+        val outcome = sign(ethereumChain, ethTransaction(id = 69, from = address))
+
+        assertTrue(outcome.signError is DappSigningPausedException)
+        assertEquals(emptyList<String>(), transactionSender.sent)
+        assertEquals(69L, (sessionClient.responses.single() as Wallet.Model.JsonRpcResponse.JsonRpcError).id)
+    }
+
+    @Test
     fun `a pause holds through fetches without the key until an explicit true lifts it`() {
         val keypair = SubstrateKeypairFactory.generate(EncryptionType.ED25519, seed(1))
         val address = SS58Encoder.encode(keypair.publicKey, 0)
@@ -618,7 +633,16 @@ class WalletConnectInteractorImplTest {
         val sent = mutableListOf<String>()
         var failNextSends = 0
 
-        override suspend fun send(chainId: String, signedTransaction: String): String {
+        /** Runs while the node is being reached, before the pre-send check. */
+        var whileConnecting: () -> Unit = {}
+
+        override suspend fun send(
+            chainId: String,
+            signedTransaction: String,
+            beforeSend: () -> Unit
+        ): String {
+            whileConnecting()
+            beforeSend()
             sent += signedTransaction
             if (failNextSends > 0) {
                 failNextSends -= 1

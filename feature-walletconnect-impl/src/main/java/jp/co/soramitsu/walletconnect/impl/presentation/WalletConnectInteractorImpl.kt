@@ -217,7 +217,8 @@ class WalletConnectInteractorImpl internal constructor(
                 sign = { signRequest(chain, topic, recentSession, requireSigningAllowed) },
                 broadcast = { transaction ->
                     requireSigningAllowed()
-                    transactionSender.send(transaction.chainId, transaction.signedTransaction)
+                    // Checked again once the node is reached: waiting for a connection can take a while.
+                    transactionSender.send(transaction.chainId, transaction.signedTransaction, requireSigningAllowed)
                 }
             ).also {
                 // The hash of a transaction already sent is still reported; a signature is not handed over.
