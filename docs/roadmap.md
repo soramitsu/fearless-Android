@@ -36,6 +36,20 @@ the TON Connect summaries and other TON hardening of the build 231 line are not
 ported; Beacon signing has no entry point and is not removed; there is no remote
 veto for dApp signing; the wallet does not compute RFC-78 metadata hashes itself.
 
+## dApp signing kill switches — 29 October 2026
+
+Closes the open "no remote veto for dApp signing" item of the entry above. The
+`feature_toggle` file has one veto per dApp family: `polkadot_dapp_signing_enabled`
+(WalletConnect `polkadot_*`), `evm_dapp_signing_enabled` (WalletConnect `eth_*` and
+`personal_sign`) and `ton_dapp_signing_enabled` (TON Connect `sendTransaction` and
+`ton_proof`). They follow the send switches' rules: on by default, an explicit
+`false` is remembered across restarts, offline launches and fetches without the key,
+and only an explicit `true` lifts it. A paused request is shown with the reason and
+Sign disabled; the wallet refuses it right before signing and the dApp gets an
+error, also for an `eth_sendTransaction` signed before the pause. The owned-config
+verifier refuses switch values that are not JSON booleans. See
+`docs/remote-feature-switches.md`.
+
 ## Local app instrumentation profiles — 26 October 2026
 
 The full local runner now distinguishes ordinary portable tests, mandatory
