@@ -4344,7 +4344,7 @@
       "commit": "f2ed4ccf1d3a6376b60ebd69d823a3f7748ddc4b",
       "sourcePath": "chains/v13/chains_dev_prod.json",
       "upstreamSha256": "8c7f01cd1ee0866df13ac3faa1315007361c96ce067cc062aea2d6e48ccc3235",
-      "ownedSha256": "1c33c1d44cb07db8861a150f51ccd03840bcf89ce3925438b9557aaf794ca1e2"
+      "ownedSha256": "c62ba8c502adec4ec74042ff7e417b27af18ad1310ff06325df7c066707ebebb"
     },
     {
       "path": "development/fiat/fiats.json",
@@ -5167,6 +5167,7 @@
     "Omit unavailable optional Rootstock icon from bundled local_chains",
     "Correct bundled Latest Mainnet icon to latestchain.svg",
     "Disable unreachable Reef Mainnet in app-owned catalogs after retaining unavailable chain parents and clearing stale staking selection; configured RPC returned HTTP502 on 2026-10-25. Legacy shared feeds remain unchanged.",
-    "remote-config/production/chains/v13/chains.json: drop discontinued Blast API nodes; move Dwellir nodes from retired *.dwellir.com hosts to n.dwellir.com hosts that returned the network's genesis on 2026-10-29, and drop the rest unless a network has no other node. Only node entries change."
+    "remote-config/production/chains/v13/chains.json: drop discontinued Blast API nodes; move Dwellir nodes from retired *.dwellir.com hosts to n.dwellir.com hosts that returned the network's genesis on 2026-10-29, and drop the rest unless a network has no other node. Only node entries change.",
+    "remote-config/development/chains/v13/chains_dev_prod.json: drop discontinued Blast API nodes; move Dwellir nodes from retired *.dwellir.com hosts to n.dwellir.com hosts that returned the network's genesis on 2026-10-29, and drop the rest unless a network has no other node. Only node entries change."
   ]
 }
