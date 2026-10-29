@@ -12,7 +12,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 
@@ -69,13 +68,16 @@ class StakingAssetSelector(
                 )
             }
 
-            val selectedItem = stakingSharedState.selectionItem.first()
+            // A stored choice that is no longer offered still opens the chooser, with nothing preselected.
+            val selectedItem = stakingSharedState.settledSelectionOrNull()
 
-            val selectedModel = models.firstOrNull {
-                it.selectionItem.chainAssetId == selectedItem.chainAssetId &&
-                    it.selectionItem.chainId == selectedItem.chainId &&
-                    it.selectionItem.type == selectedItem.type
-            } ?: models.firstOrNull()
+            val selectedModel = selectedItem?.let {
+                models.firstOrNull {
+                    it.selectionItem.chainAssetId == selectedItem.chainAssetId &&
+                        it.selectionItem.chainId == selectedItem.chainId &&
+                        it.selectionItem.type == selectedItem.type
+                } ?: models.firstOrNull()
+            }
 
             showAssetChooser.value = Event(DynamicListBottomSheet.Payload(models, selectedModel))
         }

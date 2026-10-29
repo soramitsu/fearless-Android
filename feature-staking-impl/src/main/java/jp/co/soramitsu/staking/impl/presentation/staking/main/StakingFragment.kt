@@ -175,6 +175,14 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
             }
         }
 
+        // No network info belongs to a stored choice that is no longer offered; the selector asks for a network.
+        viewModel.stakingTypeFlow.observe { stakingType ->
+            if (stakingType == null) {
+                binding.stakingNetworkInfo.isVisible = false
+                binding.parachainStakingNetworkInfo.isVisible = false
+            }
+        }
+
         viewModel.stories.observe {
             binding.stakingNetworkInfo.submitStories(it)
             binding.parachainStakingNetworkInfo.submitStories(it)

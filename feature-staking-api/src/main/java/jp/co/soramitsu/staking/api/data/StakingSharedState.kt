@@ -140,6 +140,17 @@ class StakingSharedState(
 
     val selectionItem: Flow<StakingAssetSelection> = selectionItemAvailability.filterNotNull()
 
+    /**
+     * The choice of each completed catalog read: null when the stored choice is no longer offered, for example
+     * after its network or staking type left the catalog. Screens use it to offer the chooser instead of waiting.
+     */
+    val settledSelection: Flow<StakingAssetSelection?> = observation
+        .filterNotNull()
+        .map { it.selected }
+        .distinctUntilChanged()
+
+    suspend fun settledSelectionOrNull(): StakingAssetSelection? = observation.filterNotNull().first().selected
+
     val assetWithChainAvailability: Flow<SingleAssetSharedState.AssetWithChain?> = observation
         .map { state ->
             state?.selectedAsset?.let { SingleAssetSharedState.AssetWithChain(it.chain, it.configuration) }
