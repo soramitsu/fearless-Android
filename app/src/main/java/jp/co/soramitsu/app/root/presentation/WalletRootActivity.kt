@@ -113,6 +113,15 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // super.onCreate() creates the NavHost graph, which handles
+        // getIntent() as a deep link. Keep only the allowlisted entry data so
+        // no extra or URI can open a destination past splash and the PIN.
+        setIntent(
+            intent.toWalletInternalHandoff(
+                context = this,
+                target = WalletRootActivity::class.java
+            )
+        )
         super.onCreate(savedInstanceState)
         if (!contentInitializationAllowed) return
 
@@ -289,11 +298,17 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
     }
 
     override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
+        // Listeners, the retained Intent and the restart redirect only ever
+        // see the allowlisted entry data, exactly as in onCreate().
+        val entryIntent = intent.toWalletInternalHandoff(
+            context = this,
+            target = WalletRootActivity::class.java
+        )
+        super.onNewIntent(entryIntent)
         // Keep the Activity's retained Intent aligned with the newest handoff.
         // If secure storage is invalidated later, the restart redirect must
         // forward this payload instead of replaying the original launch Intent.
-        setIntent(intent)
+        setIntent(entryIntent)
         if (!contentInitializationAllowed) return
         if (!WalletStartupSession.isReady()) {
             contentInitializationAllowed = false
@@ -301,7 +316,7 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
             return
         }
 
-        processIntent(intent)
+        processIntent(entryIntent)
     }
 
     @SuppressLint("ClickableViewAccessibility")
