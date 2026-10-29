@@ -2,6 +2,24 @@
 
 # Status Summary
 
+## Substrate node failover — 29 October 2026
+
+Substrate networks again leave a catalog node that keeps failing while Auto
+select is on, the default. Each network connected only to its selected node,
+and only the node list screen could change it, so the dead first nodes left by
+the Blast and Dwellir shutdowns kept Polkadot, Kusama and the Asset Hubs offline.
+`ChainConnection` counts failed connection attempts per logical binding from
+socket transitions. After three in a row, `ConnectionPool` admits
+`ChainDao.selectNextCatalogNode` with `admitObserved` from the settled read
+behind the failing binding. The DAO moves the selection by rowid to the next
+catalog node, wrapping to the first. Custom nodes are never replaced or chosen,
+Auto select is rechecked inside the writer, and the switch never retires a
+pending explicit selection or catalog replacement; one admitted later wins.
+
+Host tests for core-api, core-db and runtime pass: 1,063 with 14 inherited skips
+(baseline 1,041), including 22 new failure-count, writer and pool cases. A
+schema-84 SQLite replay of the new queries passes. No device run.
+
 ## Local app instrumentation profiles — 26 October 2026
 
 The full local runner now distinguishes ordinary portable tests, mandatory

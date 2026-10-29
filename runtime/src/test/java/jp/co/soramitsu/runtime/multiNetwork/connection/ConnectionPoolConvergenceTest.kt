@@ -120,7 +120,8 @@ class ConnectionPoolConvergenceTest {
                         }
                     })
             }
-            pool = ConnectionPool(provider, observedPermission, dao, network)
+            // Automatic node failover has its own suite; a mocked storage keeps Auto select off here.
+            pool = ConnectionPool(provider, observedPermission, dao, network, mock(jp.co.soramitsu.runtime.storage.NodesSettingsStorage::class.java))
             check(initialRequirementApplied.await(5, TimeUnit.SECONDS)) { "fixture initial requirement deadline" }
         }
         suspend fun setup(id: String = "a") = pool.setupConnection(mapChainLocalToChain(checkNotNull(latest[id])))
