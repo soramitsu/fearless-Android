@@ -163,12 +163,17 @@ class CreateBackupPasswordViewModel @Inject constructor(
     }
 
     override fun onOriginPasswordChange(password: String) {
+        if (isPasswordFixed()) return
         originPassword.value = password
     }
 
     override fun onConfirmPasswordChange(password: String) {
+        if (isPasswordFixed()) return
         confirmPassword.value = password
     }
+
+    // While a backup is being saved, and once one is saved, the fields keep showing its password.
+    private fun isPasswordFixed() = isLoading.value || isBackupUploaded
 
     override fun onIsUserAgreedWithStatementsChange(isChecked: Boolean) {
         isUserAgreedWithStatements.value = isChecked
@@ -180,13 +185,17 @@ class CreateBackupPasswordViewModel @Inject constructor(
 
     override fun onApplyPasswordClick() {
         if (isLoading.value) return
+        // Read before anything suspends, so the backup is encrypted with the password the user
+        // confirmed. "Try again" and the Google callbacks get here without the enabled button.
+        val password = originPassword.value
+        if (!isBackupUploaded && (password.isEmpty() || password != confirmPassword.value)) return
         isLoading.value = true
 
         viewModelScope.launch {
             try {
                 val walletId = createdWalletId ?: payload?.walletId ?: createWallet()
                 if (!isBackupUploaded) {
-                    leftOutBackupTypes = interactor.saveGoogleBackupAccount(walletId, originPassword.value)
+                    leftOutBackupTypes = interactor.saveGoogleBackupAccount(walletId, password)
                     isBackupUploaded = true
                 }
                 // Only a backup that reached Drive marks the wallet as backed up.
