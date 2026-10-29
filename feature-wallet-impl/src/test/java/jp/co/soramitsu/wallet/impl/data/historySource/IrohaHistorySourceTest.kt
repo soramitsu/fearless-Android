@@ -167,26 +167,50 @@ class IrohaHistorySourceTest {
     }
 
     @Test
-    fun `bounds empty continuation pages without reporting false empty history`() {
+    fun `stops empty continuation pages at the bound and keeps the cursor instead of failing`() = runBlocking {
+        // Torii scans about 500 blocks per request, so an account without recent transfers only
+        // sees empty pages; the source stops after ten and returns the cursor to resume from.
         val client = FakeIrohaToriiClient(
             *Array(20) { index -> IrohaAccountHistoryPage(nextCursor = "c$index") }
         )
         val source = IrohaHistorySource(client, INDEXER_URL)
 
-        assertThrows(IOException::class.java) {
-            runBlocking {
-                source.getOperations(
-                    pageSize = 25,
-                    cursor = null,
-                    filters = setOf(TransactionFilter.TRANSFER),
-                    accountId = byteArrayOf(),
-                    chain = irohaChain(),
-                    chainAsset = irohaAsset(),
-                    accountAddress = ADDRESS
-                )
-            }
-        }
+        val page = source.getOperations(
+            pageSize = 25,
+            cursor = null,
+            filters = setOf(TransactionFilter.TRANSFER),
+            accountId = byteArrayOf(),
+            chain = irohaChain(),
+            chainAsset = irohaAsset(),
+            accountAddress = ADDRESS
+        )
+
         assertEquals(10, client.requests.size)
+        assertTrue(page.items.isEmpty())
+        assertEquals("c9", page.nextCursor)
+    }
+
+    @Test
+    fun `resumes from a bounded cursor and finds older transfers`() = runBlocking {
+        val client = FakeIrohaToriiClient(
+            IrohaAccountHistoryPage(nextCursor = "c10"),
+            IrohaAccountHistoryPage(items = listOf(movement()), nextCursor = null)
+        )
+        val source = IrohaHistorySource(client, INDEXER_URL)
+
+        val page = source.getOperations(
+            pageSize = 25,
+            cursor = "c9",
+            filters = setOf(TransactionFilter.TRANSFER),
+            accountId = byteArrayOf(),
+            chain = irohaChain(),
+            chainAsset = irohaAsset(),
+            accountAddress = ADDRESS
+        )
+
+        assertEquals(listOf("c9", "c10"), client.requests.map(HistoryRequest::cursor))
+        assertEquals(listOf("$TX_HASH:0"), page.items.map(Operation::id))
+        assertNull(page.nextCursor)
     }
 
     @Test

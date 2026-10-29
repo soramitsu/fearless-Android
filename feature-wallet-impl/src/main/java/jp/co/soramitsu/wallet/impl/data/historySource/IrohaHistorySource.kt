@@ -44,8 +44,11 @@ class IrohaHistorySource(
         val seenCursors = mutableSetOf<String?>()
         var operations: List<Operation>
 
-        // Empty filtered pages are continuations, not the end of history. Bound their cost,
-        // but report an error rather than erase cached history if the bound is exhausted.
+        // Torii scans a fixed window of blocks per request, so a filtered page can be empty while
+        // older history remains. Follow those continuations up to MAX_PAGE_REQUESTS, then return
+        // what was found with the cursor, as the web wallet does: an account without recent
+        // transfers shows no history rather than an error, and paging can resume from the cursor.
+        // The repository keeps the rows it already has when a page comes back empty.
         do {
             seenCursors.add(nextCursor)
             val page = toriiClient.accountHistory(
@@ -64,10 +67,7 @@ class IrohaHistorySource(
             if (nextCursor != null && nextCursor in seenCursors) {
                 throw IOException("Iroha history cursor did not advance")
             }
-            if (operations.isEmpty() && nextCursor != null && requests >= MAX_PAGE_REQUESTS) {
-                throw IOException("Iroha history exceeded the empty-page limit")
-            }
-        } while (operations.isEmpty() && nextCursor != null)
+        } while (operations.isEmpty() && nextCursor != null && requests < MAX_PAGE_REQUESTS)
 
         // Let network errors and cancellation reach the caller's retry state. Returning an
         // empty page here would replace the repository's cached operations and cursor.
