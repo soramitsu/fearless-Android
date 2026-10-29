@@ -133,12 +133,14 @@ class ChainRegistryModule {
         socketProvider: Provider<SocketService>,
         externalRequirementsFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
         chainDao: ChainDao,
-        networkStateService: NetworkStateService
+        networkStateService: NetworkStateService,
+        nodesSettingsStorage: NodesSettingsStorage
     ) = ConnectionPool(
         socketProvider,
         externalRequirementsFlow,
         chainDao,
-        networkStateService
+        networkStateService,
+        nodesSettingsStorage
     )
 
     @Provides
