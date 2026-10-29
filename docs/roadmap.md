@@ -2,6 +2,50 @@
 
 # Roadmap & Technical Debt
 
+## Build 231 security port — 29 October 2026
+
+The security and fund-safety fixes of the 4.2.0 build 231 Play testing line that
+master did not have are ported; the WalletConnect part came with the entry below.
+
+- Signing: the wallet's own EVM transfers are always signed with the chain id
+  (EIP-155 also for legacy transactions). TON Connect `sendTransaction` requests are
+  checked before they are shown and again when signed (mainnet only, `from` is the
+  connection's wallet, unexpired, one to four well-formed messages), the signed
+  message expires within five minutes, every message is signed exactly as sent,
+  bridge requests reach the wallet at most once, a new connection is bound to the
+  wallet whose key the reply gave, and the in-app bridge answers only the dApp's own
+  main-frame page. The sign screen shows a decoded summary of what the request does
+  and stays disabled until it exists.
+- Startup and secrets: the exported launcher passes only the allowlisted VIEW data
+  into the wallet; phrase, seed, keystore, import, PIN and recovery screens hold
+  FLAG_SECURE through SecureScreenGuard; Android 12+ device transfer and cloud backup
+  exclude all app data; keystore exports are shared from internal storage only;
+  wrong-PIN delays escalate to five minutes on the since-boot clock and the PIN
+  screen shows the wait; pre-installed wallet import is compiled off in release;
+  Nomis credentials come from build secrets.
+- Data APIs: the history client does not follow redirects, OKLink accepts only its
+  HTTPS endpoint, GraphQL cursors and Reef reward pagination are bounded, and Nomis
+  calls follow the scoring preference.
+- Dependencies: Beacon (integration and SDK) is removed; Java-WebSocket 1.6.0
+  (TLS hostname verification), bcprov 1.85, lz4-java 1.11.4 (maintained fork),
+  commons-beanutils 1.11.0, Jackson 2.18.11, Guava 33.x, commons-lang3 3.18.0 and the
+  Drive/Google API/OAuth 2.x clients, with locks and strict checksums.
+- Solana and Bitcoin sends: the send screen accepts their recipients; Solana reads
+  fail over between ordered endpoints and pace the rate-limited public node by host;
+  Token-2022 sends are refused; broadcasts are classified before any release, a
+  pending payment is released only on a proven expiry, and the history row closes as
+  failed only when two distinct hosts proved it (see `docs/solana-send.md`).
+
+Unit tests (debug, before -> after): app 189 -> 206, common 768 -> 850,
+account 915 -> 953 and its API 106, TON Connect 96 -> 168 and its API 13 -> 23,
+wallet 718 -> 746 and its API 130, WalletConnect 161, runtime 396 -> 407, staking
+1,315 -> 1,318, core-backup 372 -> 378, core-db 521, core-api 133, runtime-utils
+432, runtime-websocket 114; no failures, skips unchanged; Detekt clean.
+
+Open: the replaced Play upload certificate is not pinned on master (owner decision);
+Iroha history still uses the MCP endpoint; the Nomis key that was in the source
+should be rotated; no device or emulator run covers this port.
+
 ## dApp signing and cross-chain hardening — 29 October 2026
 
 WalletConnect signs only with the account the session approved on the request's
@@ -32,9 +76,8 @@ it; sending it again takes an explicit choice.
 
 Unit tests: walletconnect 161, common 768, runtime 396 (10 unchanged skips), wallet
 API 130, wallet 718 debug and 726 release, app 189, no failures; Detekt clean. Open:
-the TON Connect summaries and other TON hardening of the build 231 line are not
-ported; Beacon signing has no entry point and is not removed; there is no remote
-veto for dApp signing; the wallet does not compute RFC-78 metadata hashes itself.
+there is no remote veto for dApp signing; the wallet does not compute RFC-78
+metadata hashes itself. (The TON Connect and Beacon items are done; see the entry above.)
 
 ## Local app instrumentation profiles — 26 October 2026
 
