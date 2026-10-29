@@ -172,6 +172,7 @@ class WalletConnectPayloadAlignmentTest {
         keypairProvider = keypairProvider,
         runtimeSource = { runtime },
         transactionSender = mockk(),
+        featureToggles = featureToggleStore(),
         sessionClient = sessionClient,
         signedRequests = WalletConnectSignedRequests()
     )

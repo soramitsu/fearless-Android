@@ -128,6 +128,33 @@ class WalletConnectSummaryPresenterTest {
     }
 
     @Test
+    fun `a paused request is headed by the pause, still shows what it asks and cannot be signed`() {
+        val transfer = WalletConnectRequestSummary.EvmTransaction(TOKEN, BigInteger.TEN, null, null)
+
+        val paused = presenter.present(ethereumChain, transfer, paused = true)
+
+        assertTrue(paused.blocksSigning)
+        assertEquals("string:${R.string.signing_refused_paused}", paused.headline)
+        assertEquals("string:${R.string.signing_refused_paused}", paused.warnings.first())
+        assertEquals(presenter.present(ethereumChain, transfer).sections, paused.sections)
+    }
+
+    @Test
+    fun `a paused request that is also refused says the pause first and keeps the refusal`() {
+        val transfer = PolkadotCallSummary("Balances", "transfer_keep_alive", emptyList())
+        val refused = WalletConnectRequestSummary.PolkadotTransaction(transfer, BigInteger.ZERO, false, PolkadotRefusal.OtherRuntime)
+
+        val paused = presenter.present(ethereumChain, refused, paused = true)
+
+        assertTrue(paused.blocksSigning)
+        assertEquals("string:${R.string.signing_refused_paused}", paused.headline)
+        assertEquals(
+            listOf("string:${R.string.signing_refused_paused}", "string:${R.string.signing_refused_other_runtime}"),
+            paused.warnings.take(2)
+        )
+    }
+
+    @Test
     fun `cross-chain calls show destination beneficiary and amount with warnings`() {
         val teleport = CrossChainCall(
             name = "XcmPallet.limited_teleport_assets",

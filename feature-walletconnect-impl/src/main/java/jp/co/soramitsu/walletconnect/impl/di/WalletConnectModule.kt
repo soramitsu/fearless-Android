@@ -6,6 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -25,13 +26,15 @@ class WalletConnectModule {
         accountRepository: AccountRepository,
         keypairProvider: KeypairProvider,
         chainRegistry: ChainRegistry,
-        ethereumConnectionPool: EthereumConnectionPool
+        ethereumConnectionPool: EthereumConnectionPool,
+        featureToggles: ProductFeatureToggleStore
     ): WalletConnectInteractor = WalletConnectInteractorImpl(
         chainsRepository = chainsRepository,
         ethereumSource = ethereumSource,
         accountRepository = accountRepository,
         keypairProvider = keypairProvider,
         runtimeSource = chainRegistryRuntimeSource(chainRegistry),
-        transactionSender = PoolEvmTransactionSender(ethereumConnectionPool)
+        transactionSender = PoolEvmTransactionSender(ethereumConnectionPool),
+        featureToggles = featureToggles
     )
 }
