@@ -21,12 +21,14 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
+import org.mockito.Mockito.mockingDetails
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doSuspendableAnswer
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import kotlin.coroutines.Continuation
 
 class ProducerSearchScreenFailureReviewTest {
     @get:Rule val environment: TestRule = RuleChain.outerRule(SearchContractEnvironment()).around(ProducerScreenArchitectureRule())
@@ -75,14 +77,16 @@ class ProducerSearchScreenFailureReviewTest {
 
     @Test fun returnedCancellationCancelsOnlyItsActionWithoutAnError() = runTest {
         val f = ProducerSearchScreenFixture()
-        var action: Job? = null
         try {
             f.start()
-            whenever(f.producer.blockProducerSelected(any(), any(), any())).doSuspendableAnswer {
-                action = currentCoroutineContext()[Job]
+            whenever(f.producer.blockProducerSelected(any(), any(), any())).thenReturn(
                 Result.failure(CancellationException("Screen action cancelled"))
-            }
+            )
             f.model.blockProducerClicked(f.row())
+            val invocation = mockingDetails(f.producer).invocations.single {
+                it.method.name.startsWith("blockProducerSelected")
+            }
+            val action = (invocation.rawArguments.last() as Continuation<*>).context[Job]
             assertTrue(action?.isCancelled == true)
             assertTrue(f.model.coroutineContext[Job]?.isActive == true)
             assertNull(f.model.errorLiveData.value)
