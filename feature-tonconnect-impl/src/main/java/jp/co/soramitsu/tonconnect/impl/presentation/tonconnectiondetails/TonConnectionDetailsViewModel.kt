@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.compose.component.InfoItemSetViewState
 import jp.co.soramitsu.common.compose.component.InfoItemViewState
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
+import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
@@ -41,6 +42,7 @@ class TonConnectionDetailsViewModel @Inject constructor(
     private val resourceManager: ResourceManager,
     private val accountRepository: AccountRepository,
     private val iconGenerator: AddressIconGenerator,
+    private val featureToggles: ProductFeatureToggleStore,
     savedStateHandle: SavedStateHandle
 ) : TonConnectionDetailsScreenInterface, BaseViewModel() {
 
@@ -113,6 +115,20 @@ class TonConnectionDetailsViewModel @Inject constructor(
             val initialSelectedWalletId = accountRepository.getSelectedLightMetaAccount().id
             selectedWalletId.value = initialSelectedWalletId
         }
+        if (isProofPaused()) showSigningPaused()
+    }
+
+    // A connection that asks for ton_proof needs a signature, which a remote kill switch can pause.
+    private fun isProofPaused() = proofPayload != null && !featureToggles.tonDappSigningEnabled
+
+    private fun showSigningPaused() {
+        showError(
+            title = resourceManager.getString(R.string.signing_paused_title),
+            message = resourceManager.getString(R.string.signing_refused_paused),
+            positiveButtonText = resourceManager.getString(R.string.common_close),
+            positiveClick = ::onClose,
+            onBackClick = ::onClose
+        )
     }
 
     override fun onClose() {
@@ -132,6 +148,13 @@ class TonConnectionDetailsViewModel @Inject constructor(
             if (tonPublicKey == null) {
                 showError("There is no ton account for this wallet")
                 tonConnectRouter.backWithResult(TonConnectionDetailsFragment.TON_CONNECT_RESULT_KEY to JsonBuilder.connectEventError(BridgeError.UNKNOWN).toString())
+                return@launch
+            }
+
+            // Checked again right before signing: the switch may have been vetoed while the request was shown.
+            if (isProofPaused()) {
+                isApproving.value = false
+                showSigningPaused()
                 return@launch
             }
 
