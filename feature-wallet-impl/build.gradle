@@ -159,9 +159,6 @@ dependencies {
 
     // JNA is added as direct dependency to prevent class duplication from 3rd party libraries
     implementation libs.jna
-    // Exclude JNA from beacon SDK to prevent class duplication - using direct JNA dependency above
-    implementation libs.beacon.android.sdk, withoutJna
-
 
     implementation(libs.converter.gson)
     implementation(libs.converter.scalars)

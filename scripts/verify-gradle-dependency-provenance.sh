@@ -294,7 +294,8 @@ import sys
 path = Path(sys.argv[1])
 reviewed_policy_digests = {
     # App-owned runtime modules; existing repository and IAS bootstrap policies retained.
-    path: "7f4475d50fc5b26a8f036fee0568ba599ade6cdc0b1cde82de69ee899d79dc6b",
+    # The Beacon SDK removal dropped the airgap-it JitPack groups.
+    path: "6b58ab95f49108ecf714acb9e930d7d24b88b112c34cd8ac7ac31e9bb5796a30",
     Path(sys.argv[2]): "f9cc5ef8c17933f0ea29483a4346bb312d87e9fd669120ac9bc7419e58a0e78d",
     Path(sys.argv[3]): "46cac72bd782b6467d7bdaf34b3cede2a6da17a333d7f7902cfecc142e837b0b",
 }
@@ -498,8 +499,6 @@ if (dependencyProvenanceRequired) {
                     }
                 }
                 filter {
-                    includeGroup 'com.github.airgap-it'
-                    includeGroupByRegex 'com[.]github[.]airgap-it([.].*)?'
                     includeGroup 'com.github.ildixhaferri'
                     includeGroupByRegex 'com[.]github[.]komputing([.].*)?'
                     includeGroup 'com.github.multiformats'

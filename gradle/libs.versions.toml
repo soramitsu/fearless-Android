@@ -4,9 +4,8 @@ activityCompose = "1.9.3"
 android_plugin = "8.10.1"
 appcompat = "1.7.0"
 architectureComponentVersion = "2.8.7"
-beaconVersion = "3.2.4"
 biometricVersion = "1.1.0"
-bouncyCastleVersion = "1.78"
+bouncyCastleVersion = "1.85"
 cardViewVersion = "1.0.0"
 coilVersion = "2.7.0"
 compose = "1.7.6"
@@ -186,8 +185,6 @@ coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-androi
 
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 detekt-cli = { module = "io.gitlab.arturbosch.detekt:detekt-cli", version.ref = "detekt" }
-
-beacon-android-sdk = { module = "com.github.airgap-it:beacon-android-sdk", version.ref = "beaconVersion" }
 
 web3jDep = { module = "org.web3j:core", version.ref = "web3j" }
 reownBomDep = { module = "com.reown:android-bom", version.ref = "reownBom" }
