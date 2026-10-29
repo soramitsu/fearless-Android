@@ -602,6 +602,10 @@ jobs:
           FL_DWELLIR_API_KEY: ${{ secrets.FL_DWELLIR_API_KEY }}
           FL_ANDROID_TON_API_KEY: ${{ secrets.FL_ANDROID_TON_API_KEY }}
           FL_ANDROID_TON_INDEXER_URL: ${{ secrets.FL_ANDROID_TON_INDEXER_URL }}
+          # Optional: an https Solana mainnet JSON-RPC URL carrying the provider key; unset means public nodes only.
+          FL_ANDROID_SOLANA_RPC_URL: ${{ secrets.FL_ANDROID_SOLANA_RPC_URL }}
+          FL_NOMIS_API_KEY: ${{ secrets.FL_NOMIS_API_KEY }}
+          FL_NOMIS_CLIENT_ID: ${{ secrets.FL_NOMIS_CLIENT_ID }}
         run: |
           set -euo pipefail
           ./scripts/install-android-release-sdk.sh verify

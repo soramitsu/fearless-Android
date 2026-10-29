@@ -1,5 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Only what the app shares through its FileProvider: keystore JSON exports
+    in an internal cache directory (FileProviderImpl.INTERNAL_SHARE_DIRECTORY)
+    and the receive-screen QR image in the app-specific external cache.
+-->
 <paths>
-    <external-path
-        name="external_files"
+    <cache-path
+        name="shared_exports"
+        path="shared_exports/" />
+    <external-cache-path
+        name="external_cache"
         path="." />
 </paths>

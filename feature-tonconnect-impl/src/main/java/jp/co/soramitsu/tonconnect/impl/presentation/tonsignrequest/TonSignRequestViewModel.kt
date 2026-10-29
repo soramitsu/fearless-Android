@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.compose.component.InfoItemViewState
+import jp.co.soramitsu.common.compose.component.SigningSummaryViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
@@ -23,11 +24,13 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.model.ConnectionSource
 import jp.co.soramitsu.feature_tonconnect_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
 import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
@@ -46,7 +49,8 @@ class TonSignRequestViewModel @Inject constructor(
     private val tonConnectRouter: TonConnectRouter,
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator,
-    private val tonConnectInteractor: TonConnectInteractor
+    private val tonConnectInteractor: TonConnectInteractor,
+    private val summaries: TonSignRequestSummaries
 ) : TonSignRequestScreenInterface, TonSignPreviewScreenInterface, BaseViewModel() {
 
     private val signRequest: TonConnectSignRequest =
@@ -69,6 +73,10 @@ class TonSignRequestViewModel @Inject constructor(
 
     val state: MutableStateFlow<TonSignRequestFlowState?> = MutableStateFlow(null)
 
+    // What the request signs, decoded once its wallet is known. Nothing can be signed before.
+    private val summary = MutableStateFlow<SigningSummaryViewState?>(null)
+    private var summaryJob: Job? = null
+
     init {
         buildInitialState()
     }
@@ -77,8 +85,8 @@ class TonSignRequestViewModel @Inject constructor(
         state.value = TonSignRequestViewState(
             connectionUrl = dApp.url,
             message = InfoItemViewState(
-                title = resourceManager.getString(R.string.common_message),
-                subtitle = method,
+                title = resourceManager.getString(R.string.common_transaction),
+                subtitle = "",
                 singleLine = true
             ),
             wallet = requestWalletItem
@@ -132,6 +140,7 @@ class TonSignRequestViewModel @Inject constructor(
             }.collect { captured ->
                 requestPortfolioSource = captured.source
                 val ready = captured.source as? TotalBalance.Ready
+                ready?.meta?.tonPublicKey?.let { tonPublicKey -> decodeSummaryOnce(requestChain, tonPublicKey) }
                 requestWalletItem = WalletItemViewState(
                     id = targetId,
                     title = ready?.meta?.name.orEmpty(),
@@ -159,6 +168,48 @@ class TonSignRequestViewModel @Inject constructor(
             invalidateRequestPortfolio()
         }
     }
+
+    // The decode reads at most four messages, and its only I/O is a suspending jetton lookup.
+    private fun decodeSummaryOnce(chain: Chain, tonPublicKey: ByteArray) {
+        if (summaryJob != null) return
+        summaryJob = viewModelScope.launch {
+            try {
+                showSummary(summaries.summary(chain, signRequest, tonPublicKey))
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                // Without a summary the request cannot be signed; the user can only close it.
+                showError(failure)
+            }
+        }
+    }
+
+    private fun showSummary(requestSummary: SigningSummaryViewState) {
+        summary.value = requestSummary
+        state.update { prevState ->
+            when (prevState) {
+                is TonSignRequestViewState -> prevState.copy(message = prevState.message.copy(subtitle = requestSummary.headline))
+                is TonSignPreviewViewState -> prevState.copy(
+                    tableItems = previewTableItems(prevState.tableItems, requestSummary),
+                    summary = requestSummary
+                )
+                else -> prevState
+            }
+        }
+    }
+
+    // Raw data is the fallback for what could not be decoded, not the way a request is shown.
+    private fun previewTableItems(requestItems: List<TitleValueViewState>, requestSummary: SigningSummaryViewState?) =
+        requestItems.filterNot { it.clickState?.identifier == TRANSACTION_RAW_DATA_CLICK_ID } + listOfNotNull(
+            TitleValueViewState(
+                resourceManager.getString(R.string.common_transaction_raw_data),
+                value = "",
+                clickState = TitleValueViewState.ClickState.Value(
+                    R.drawable.ic_right_arrow_24_align_right,
+                    TRANSACTION_RAW_DATA_CLICK_ID
+                )
+            ).takeIf { requestSummary?.showsRawData == true }
+        )
 
     private fun invalidateRequestPortfolio() {
         requestBindingInvalidated = true
@@ -219,23 +270,16 @@ class TonSignRequestViewModel @Inject constructor(
                     TitleValueViewState(
                         resourceManager.getString(R.string.common_network),
                         chain.name
-                    ),
-                    TitleValueViewState(
-                        resourceManager.getString(R.string.common_transaction_raw_data),
-                        value = "",
-                        clickState = TitleValueViewState.ClickState.Value(
-                            R.drawable.ic_right_arrow_24_align_right,
-                            TRANSACTION_RAW_DATA_CLICK_ID
-                        )
                     )
                 )
 
                 val previewState = TonSignPreviewViewState(
                     chainIcon = icon,
                     method = method,
-                    tableItems = tableItems,
+                    tableItems = previewTableItems(tableItems, summary.value),
                     wallet = walletItemState,
-                    loading = false
+                    loading = false,
+                    summary = summary.value
                 )
 
                 state.update { prevState ->
@@ -256,7 +300,7 @@ class TonSignRequestViewModel @Inject constructor(
     override fun onSignClick() {
         viewModelScope.launch {
             val preview = state.value as? TonSignPreviewViewState ?: return@launch
-            if (preview.loading) return@launch
+            if (preview.loading || summary.value == null) return@launch
             val captured = requestPortfolioSource as? TotalBalance.Ready ?: return@launch
             // Own the in-flight confirmation before the first suspension, including binding lookups.
             state.value = preview.copy(loading = true)

@@ -78,7 +78,12 @@ class TransferServiceProvider(
     private val sendPausePolicy: SendPausePolicy = SendPausePolicy.Unrestricted,
     private val quoteStore: NativeSendQuoteStore = NativeSendQuoteStore(),
     private val sendJournal: jp.co.soramitsu.common.data.network.send.WalletSendJournal? = null,
-    private val currentChain: (suspend (String) -> Chain)? = null
+    private val currentChain: (suspend (String) -> Chain)? = null,
+    /**
+     * Told before a retained payment is released because it can never land, so its history row can close;
+     * `verified` is false when the payment was too old for its expiry to show that nothing left the wallet.
+     */
+    private val onPaymentReleased: suspend (jp.co.soramitsu.common.data.network.send.PendingWalletSend, Boolean) -> Unit = { _, _ -> }
 ) {
     fun provide(chain: Chain): TransferService {
         if (sendPausePolicy.isPaused(chain)) {
@@ -99,7 +104,7 @@ class TransferServiceProvider(
                 accountRepository = accountRepository,
                 rpcClient = solanaRpcClient,
                 quotes = quoteStore,
-                executor = NativeSendExecutor(requireNotNull(sendJournal)),
+                executor = NativeSendExecutor(requireNotNull(sendJournal), onPaymentReleased),
                 pausePolicy = sendPausePolicy,
                 currentChain = { currentChain?.invoke(chain.id) ?: chain }
             )

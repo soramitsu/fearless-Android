@@ -27,6 +27,25 @@ class SolanaAccountPreflightTest {
     }
 
     @Test
+    fun `SOL may go to an existing off-curve System account but never to a missing off-curve address or a program`() {
+        val vault = SolanaTransferTransactionBuilder.deriveAssociatedTokenAccountAddress(WALLET, MINT)
+        // A funded multisig vault at a program-derived address is a plain System account.
+        SolanaAccountPreflight.requireNativeRecipient(vault, account(ByteArray(0), SYSTEM))
+        SolanaAccountPreflight.requireNativeRecipient(WALLET, null)
+        SolanaAccountPreflight.requireNativeRecipient(WALLET, account(ByteArray(0), SYSTEM))
+        fails(Code.RECIPIENT_CANNOT_SIGN) { SolanaAccountPreflight.requireNativeRecipient(vault, null) }
+        fails(Code.RECIPIENT_CANNOT_SIGN) { SolanaAccountPreflight.requireNativeRecipient(SYSTEM, null) }
+        fails(Code.RECIPIENT_CANNOT_SIGN) { SolanaAccountPreflight.requireNativeRecipient("not-base58", null) }
+        for (invalid in listOf(account(tokenData()), account(tokenData(), TOKEN2022), account(ByteArray(0), SYSTEM).copy(executable = true),
+            account(byteArrayOf(0), SYSTEM), account(ByteArray(0), "BPFLoaderUpgradeab1e11111111111111111111111"))) {
+            fails(Code.RECIPIENT_IS_NOT_WALLET) { SolanaAccountPreflight.requireNativeRecipient(vault, invalid) }
+            fails(Code.RECIPIENT_IS_NOT_WALLET) { SolanaAccountPreflight.requireNativeRecipient(WALLET, invalid) }
+        }
+        // Token sends keep requiring a signing owner key.
+        fails(Code.RECIPIENT_CANNOT_SIGN) { SolanaAccountPreflight.requireWallet(vault, account(ByteArray(0), SYSTEM)) }
+    }
+
+    @Test
     fun `mint requires exact program initialized data and expected decimals`() {
         val mint = ByteArray(82).also { it[44] = 6; it[45] = 1 }
         SolanaAccountPreflight.requireMint(account(mint), 6)

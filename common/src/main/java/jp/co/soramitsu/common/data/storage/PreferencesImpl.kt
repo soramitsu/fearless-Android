@@ -339,28 +339,26 @@ class PreferencesImpl(
         field: String,
         initialValue: Boolean
     ): Flow<Boolean> = callbackFlow {
-        if (contains(field)) {
-            send(getBoolean(field, initialValue))
-        } else {
-            putBoolean(field, initialValue)
-
-            send(initialValue)
-        }
-
+        val observationLock = Any()
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (key == field) {
-                trySend(getBoolean(field, initialValue))
+            if (key == field || key == null) {
+                synchronized(observationLock) {
+                    trySend(getBoolean(field, initialValue))
+                }
             }
         }
 
-        listeners.add(listener)
-        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
-
-        awaitClose {
-            listeners.remove(listener)
+        try {
+            sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+            // Observe only after registration, without initializing over a concurrent choice.
+            synchronized(observationLock) {
+                trySend(getBoolean(field, initialValue))
+            }
+            awaitClose()
+        } finally {
             sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
         }
-    }
+    }.buffer(Channel.CONFLATED)
 }
 
 var Preferences.appConfig: AppConfigRemote

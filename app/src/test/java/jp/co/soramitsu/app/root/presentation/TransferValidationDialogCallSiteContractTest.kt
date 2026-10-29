@@ -70,11 +70,6 @@ class TransferValidationDialogCallSiteContractTest {
         ),
         CallSite(
             "feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/" +
-                "presentation/send/setupcbdc/CBDCSendSetupFragment.kt",
-            "CBDC_SEND_SETUP"
-        ),
-        CallSite(
-            "feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/" +
                 "presentation/cross_chain/confirm/CrossChainConfirmFragment.kt",
             "CROSS_CHAIN_CONFIRM"
         ),

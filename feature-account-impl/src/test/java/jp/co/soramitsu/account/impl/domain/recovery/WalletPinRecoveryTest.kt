@@ -80,7 +80,12 @@ class WalletPinRecoveryTest {
         assertFalse(service.isAuthorized(id))
         assertFalse(WalletViewOnlyAccess.isEnabled())
         assertTrue(runCatching { service.saveNewPin(id, "654321") }.isFailure)
-        verify { preferences.removeField("prefs_pin_failed_attempts"); preferences.removeField("prefs_pin_lock_until_ms") }
+        verify {
+            preferences.removeField("prefs_pin_failed_attempts")
+            preferences.removeField("prefs_pin_delay_start_since_boot_ms")
+            preferences.removeField("prefs_pin_delay_start_wall_clock_ms")
+            preferences.removeField("prefs_pin_lock_until_ms")
+        }
     }
 
     @Test fun previouslyDisabledBiometricsCannotAuthorizeReset() = runTest {

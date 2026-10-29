@@ -6,13 +6,13 @@ import android.text.method.DigitsKeyListener
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import androidx.core.view.isVisible
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
+import jp.co.soramitsu.account.impl.presentation.common.SecureScreenGuard
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.FileRequester
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportError
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
@@ -70,7 +70,10 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     private lateinit var binding: FragmentImportAccountBinding
-    private var hadSecureFlag = false
+
+    // Every import mode shows a recovery phrase, raw seed or keystore JSON as it is entered, so
+    // none of them may reach a screen capture, including during the PIN round trip of a recovery.
+    private val secureScreen = SecureScreenGuard(this)
 
     override val viewModel: ImportAccountViewModel by viewModels()
 
@@ -81,20 +84,29 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     ): View {
         binding = FragmentImportAccountBinding.inflate(inflater, container, false)
         if (viewModel.isRebinding) {
-            hadSecureFlag = requireActivity().window.attributes.flags and WindowManager.LayoutParams.FLAG_SECURE != 0
-            requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
             binding.root.excludeRecoveryInputFromPersistence()
         }
         return binding.root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        secureScreen.onViewCreated()
+        super.onViewCreated(view, savedInstanceState)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        secureScreen.onStart()
+    }
+
     override fun onStop() {
         viewModel.recoveryScreenStopped()
+        secureScreen.onStop()
         super.onStop()
     }
 
     override fun onDestroyView() {
-        if (viewModel.isRebinding && !hadSecureFlag) requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        secureScreen.onDestroyView()
         super.onDestroyView()
     }
 

@@ -72,16 +72,25 @@ class WalletStartupRestartContractTest {
         val newIntent = source.substringAfter(
             "override fun onNewIntent(intent: Intent)"
         ).substringBefore("@SuppressLint")
-        val retainIntentIndex = newIntent.indexOf("setIntent(intent)")
+        // The newest Intent is retained only after it was reduced to the
+        // allowlisted entry data; the raw caller Intent is never retained.
+        val sanitizeIntentIndex = newIntent.indexOf(
+            "val entryIntent = intent.toWalletInternalHandoff("
+        )
+        val retainIntentIndex = newIntent.indexOf("setIntent(entryIntent)")
         val initializationGuardIndex = newIntent.indexOf(
             "if (!contentInitializationAllowed)"
         )
-        val processIntentIndex = newIntent.indexOf("processIntent(intent)")
+        val processIntentIndex = newIntent.indexOf("processIntent(entryIntent)")
+        assertTrue(sanitizeIntentIndex >= 0)
         assertTrue(retainIntentIndex >= 0)
         assertTrue(initializationGuardIndex >= 0)
         assertTrue(processIntentIndex >= 0)
+        assertTrue(sanitizeIntentIndex < retainIntentIndex)
         assertTrue(retainIntentIndex < initializationGuardIndex)
         assertTrue(retainIntentIndex < processIntentIndex)
+        assertFalse(newIntent.contains("setIntent(intent)"))
+        assertFalse(newIntent.contains("processIntent(intent)"))
     }
 
     private fun repositoryRoot(): File {

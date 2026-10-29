@@ -467,6 +467,51 @@ class ChainSyncServiceTest {
     }
 
     @Test
+    fun `a release build drops remote nodes that are not encrypted endpoints`() = runBlocking<Unit> {
+        val logs = mutableListOf<String>()
+        val service = ChainSyncService(dao, chainFetcher, metaAccountDao, assetsDao, contextManager, RemoteNodeUrlPolicy.Release) { logs += it }
+        val nodes = listOf("ws://hostile.example", "wss://rpc.example", "http://hostile.example").map { ChainNodeRemote(url = it, name = it) }
+        localReturns(emptyList())
+        remoteReturns(listOf(REMOTE_CHAIN.copy(nodes = nodes)))
+
+        service.syncUp()
+
+        val synced = checkNotNull(observedCatalog).chains.single { it.chain.id == REMOTE_CHAIN.chainId }
+        assertEquals(listOf("wss://rpc.example"), synced.nodes.map { it.url })
+        assertTrue(synced.nodes.single().isActive)
+        assertTrue(logs.any { it.startsWith("dropped 2 node(s) of remote chain ${REMOTE_CHAIN.chainId}") })
+    }
+
+    @Test
+    fun `a release build keeps the cached row of a remote chain with only plaintext nodes`() = runBlocking<Unit> {
+        val service = ChainSyncService(dao, chainFetcher, metaAccountDao, assetsDao, contextManager, RemoteNodeUrlPolicy.Release)
+        val cached = mapChainToChainLocal(REMOTE_CHAIN.copy(name = "Cached").toChain())
+        localReturns(listOf(cached))
+        remoteReturns(listOf(REMOTE_CHAIN.copy(name = "Redirected", nodes = listOf(ChainNodeRemote(url = "ws://hostile.example", name = "hostile")))))
+
+        service.syncUp()
+
+        val plan = checkNotNull(observedCatalog)
+        assertTrue(REMOTE_CHAIN.chainId in plan.preservedCatalogChains)
+        assertEquals("Cached", plan.chains.single { it.chain.id == REMOTE_CHAIN.chainId }.chain.name)
+        assertTrue(service.getCurrentProcessXcmDiscoveryChains().isEmpty())
+    }
+
+    @Test
+    fun `a debug build keeps local development nodes`() = runBlocking<Unit> {
+        val service = ChainSyncService(dao, chainFetcher, metaAccountDao, assetsDao, contextManager, RemoteNodeUrlPolicy.Debug)
+        localReturns(emptyList())
+        remoteReturns(listOf(REMOTE_CHAIN.copy(nodes = listOf(ChainNodeRemote(url = "ws://127.0.0.1:9944", name = "local")))))
+
+        service.syncUp()
+
+        assertEquals(
+            listOf("ws://127.0.0.1:9944"),
+            checkNotNull(observedCatalog).chains.single { it.chain.id == REMOTE_CHAIN.chainId }.nodes.map { it.url }
+        )
+    }
+
+    @Test
     fun `online refresh does not mark fetched catalog values preserved`() = runBlocking<Unit> {
         localReturns(listOf(LOCAL_CHAIN.copy(chain = LOCAL_CHAIN.chain.copy(xcm = null))))
         remoteReturns(listOf(REMOTE_CHAIN.copy(name = "Fresh registry")))

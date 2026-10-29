@@ -23,3 +23,9 @@
 /**/*Key* @soramitsu/fearless @soramitsu/android-developers @soramitsu/security
 /**/*Keystore* @soramitsu/fearless @soramitsu/android-developers @soramitsu/security
 /**/*Signer* @soramitsu/fearless @soramitsu/android-developers @soramitsu/security
+
+# Every install reads the production chain catalog and app configuration from master within minutes, so changes
+# to them need the security team. The reviewed XCM route snapshot that guards the catalog belongs with them.
+/remote-config/production/chains/ @soramitsu/security
+/remote-config/production/appConfigs/ @soramitsu/security
+/runtime/src/test/resources/reviewed-production-xcm-routes.tsv @soramitsu/security

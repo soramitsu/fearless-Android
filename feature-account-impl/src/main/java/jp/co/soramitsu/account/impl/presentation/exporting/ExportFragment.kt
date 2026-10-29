@@ -20,12 +20,17 @@ import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import jp.co.soramitsu.account.impl.presentation.common.SecureScreenGuard
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseFragment
 
 abstract class ExportFragment<V : ExportViewModel> : BaseFragment<V>() {
 
     private lateinit var securityWarningResultGate: SecurityWarningResultGate
+
+    // Mnemonic, seed and keystore JSON exports must never reach a
+    // screenshot, a recording, a cast or the recents thumbnail.
+    private val secureScreen = SecureScreenGuard(this)
 
     companion object {
         const val CHOOSER_REQUEST_CODE = 101
@@ -34,6 +39,26 @@ abstract class ExportFragment<V : ExportViewModel> : BaseFragment<V>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         securityWarningResultGate = SecurityWarningResultGate(savedInstanceState)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        secureScreen.onViewCreated()
+        super.onViewCreated(view, savedInstanceState)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        secureScreen.onStart()
+    }
+
+    override fun onStop() {
+        secureScreen.onStop()
+        super.onStop()
+    }
+
+    override fun onDestroyView() {
+        secureScreen.onDestroyView()
+        super.onDestroyView()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

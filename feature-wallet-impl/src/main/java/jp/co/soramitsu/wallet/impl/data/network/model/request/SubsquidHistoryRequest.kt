@@ -7,7 +7,7 @@ class SubsquidHistoryRequest(
 ) {
     val query = """
     query MyQuery {
-  historyElementsConnection(where: {address_eq: "$accountAddress"}, orderBy: timestamp_DESC, first: $limit, after: $offset) {
+  historyElementsConnection(where: {address_eq: "$accountAddress"}, orderBy: timestamp_DESC, first: $limit, after: ${graphqlStringLiteral(offset)}) {
     pageInfo {
       hasNextPage
       endCursor
