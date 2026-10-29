@@ -20,6 +20,17 @@ All notable changes to this project will be documented in this file.
 - Security: port the build 231 signing, secret-screen, backup-exclusion and
   dependency fixes, harden WalletConnect signing and cross-chain
   configuration, and add remote kill switches for dApp signing.
+- Sends: bind a send to the reviewed account before signing, and never report
+  a transfer the network accepted as failed, so it cannot be sent twice.
+- Ethereum: tip the node's priority fee in EIP-1559 transfers instead of paying
+  the whole fee cap, and estimate the fee for the amount being sent.
+- Backups: encrypt Google backups with the confirmed password, back up the
+  wallet and derivation paths the user reviewed, and keep a wallet marked
+  unbacked when only an added account's phrase was confirmed.
+- WalletConnect: check the dApp-signing pause again after every wait.
+- Staking: show the network chooser when the saved choice is no longer
+  offered, and compute payouts in exact integer arithmetic.
+- Dependencies: Guava 33.7.2 (CVE-2026-102554).
 
 ## 4.2.0
 

@@ -24,8 +24,8 @@ procedure.
   absent from Android artifacts.
 - Confirm `versioning/version.properties` contains an unused Play version code
   greater than every active, draft, and historical testing-track artifact.
-  Build 231 is reserved because production is already 229 and internal
-  builds used 230.
+  Production is 229, internal builds used 230 and Open testing holds 231, so
+  4.3.0 uses 232.
 - Run `bash scripts/test-android-release-signed-tag-policy.sh`,
   `bash scripts/test-android-release-governance.sh`,
   `bash scripts/test-android-play-release-guards.sh`,

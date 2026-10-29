@@ -2,6 +2,31 @@
 
 # Status Summary
 
+## Production release 4.3.0 (232) — 29 October 2026
+
+Master plus #1265–#1269 becomes the 4.3.0 production candidate (versionCode 232,
+database 84). Networks and features that no longer work are removed:
+
+- 40 enabled production networks that stopped producing blocks or have no
+  reachable node, and every disabled entry; production keeps 50 of 116. Wallet
+  rows for a removed network stay on the device.
+- Relay staking, nomination pools and crowdloans on Polkadot, Kusama and
+  Westend: their relays hold no staking state since the Asset Hub migration.
+- The unreachable crowdloan contribution flow and its partner integrations;
+  legacy crowdloan recovery remains.
+- History indexers, staking indexers and nodes that cannot answer.
+
+The release review also fixed: sends bound to the reviewed account and never
+reported failed after the network accepted them; EIP-1559 tips and amount-aware
+fee estimates; Google backups with the confirmed password and reviewed paths; an
+added account no longer marking the wallet backed up; dApp-signing pause
+rechecks; the stuck staking screen; exact payouts; and Guava 33.7.2.
+
+Release signing pins the replacement upload certificate
+`AD:6C:1D:07:…:57:C1:BD:E8`. Evidence and the release record:
+`docs/releases/4.3.0.md`. Not included: Asset Hub staking, so Polkadot and
+Kusama staking is unavailable in this version.
+
 ## Taira balance paging and build verification — 29 October 2026
 
 Torii account, account-asset and definition lists now send `limit` and opaque
