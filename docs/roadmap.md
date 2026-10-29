@@ -120,6 +120,19 @@ error, also for an `eth_sendTransaction` signed before the pause. The owned-conf
 verifier refuses switch values that are not JSON booleans. See
 `docs/remote-feature-switches.md`.
 
+## Substrate node failover — 29 October 2026
+
+Auto select now moves a Substrate network off a catalog node after three failed
+connection attempts in a row, through the endpoint mutation lane (see
+`docs/status.md`). Remaining:
+
+- A connection that hangs without failing is not counted: the app's
+  `WebSocketFactory` sets no connect timeout.
+- Networks with a single catalog node stay down until the catalog lists a live
+  one.
+- Device or emulator run against a dead first node.
+
+
 ## Local app instrumentation profiles — 26 October 2026
 
 The full local runner now distinguishes ordinary portable tests, mandatory
