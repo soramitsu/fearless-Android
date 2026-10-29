@@ -10,6 +10,7 @@ import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumChainConnection
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import org.web3j.crypto.transaction.type.Transaction1559
 import org.web3j.crypto.transaction.type.TransactionType
@@ -90,6 +91,36 @@ class EthereumTransactionBuilderTest {
         assertEquals(BigInteger.ZERO, raw.value)
         // web3j keeps raw transaction data without the hex prefix.
         assertEquals(tokenTransferData(1234).removePrefix("0x"), raw.data)
+    }
+
+    @Test
+    fun `native fee estimate carries the reviewed amount`() {
+        val call = requireNotNull(builder.buildFeeEstimationCall(transfer(nativeAsset)))
+
+        assertEquals(SENDER, call.from)
+        assertEquals(RECIPIENT, call.to)
+        assertEquals("0x4d2", call.value)
+    }
+
+    @Test
+    fun `token fee estimate encodes the reviewed amount for the recipient`() {
+        val call = requireNotNull(builder.buildFeeEstimationCall(transfer(tokenAsset)))
+
+        assertEquals(SENDER, call.from)
+        assertEquals(TOKEN_CONTRACT, call.to)
+        assertEquals("0x0", call.value)
+        assertEquals(tokenTransferData(1234), call.data)
+    }
+
+    @Test
+    fun `amount-free fee estimate leaves the amount out`() {
+        val native = requireNotNull(builder.buildAmountFreeFeeEstimationCall(transfer(nativeAsset)))
+        val token = requireNotNull(builder.buildAmountFreeFeeEstimationCall(transfer(tokenAsset)))
+
+        assertEquals(RECIPIENT, native.to)
+        assertNull(native.value)
+        assertEquals(TOKEN_CONTRACT, token.to)
+        assertEquals(tokenTransferData(0), token.data)
     }
 
     private fun transfer(asset: Asset) = Transfer(

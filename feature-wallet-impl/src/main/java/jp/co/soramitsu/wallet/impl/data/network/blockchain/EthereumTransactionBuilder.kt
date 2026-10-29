@@ -201,7 +201,18 @@ class EthereumTransactionBuilder(ethereumWebSocketConnection: EthereumChainConne
         }?.let { Result.success(it) } ?: Result.failure("Cannot find ")
     }
 
-    fun buildFeeEstimationCall(transfer: Transfer): Transaction? {
+    /**
+     * The gas estimate call for [transfer] as reviewed: its sender, recipient and amount. A token
+     * transfer that moves a real amount costs more gas than one of zero.
+     */
+    fun buildFeeEstimationCall(transfer: Transfer): Transaction? =
+        buildFeeEstimationCall(EvmTransfer.createFromTransfer(transfer))
+
+    /**
+     * The same call without the amount. A node refuses to estimate an amount above the sender's
+     * balance, so this keeps a fee on screen while the entered amount is still too large.
+     */
+    fun buildAmountFreeFeeEstimationCall(transfer: Transfer): Transaction? {
         val evmTransfer = EvmTransfer(
             transfer.sender,
             recipient = transfer.recipient,

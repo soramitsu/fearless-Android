@@ -233,15 +233,11 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
 
         return connection.subscribeBaseFeePerGas()
             .map { baseFeePerGas ->
-                val call = transactionBuilder.buildFeeEstimationCall(transfer)
-
-                val gasLimit = kotlin.runCatching {
-                    val response = web3j.ethEstimateGas(call).send()
-                    if (response.hasError()) {
-                        throw GasServiceException("Failed to ethEstimateGas on chain ${chain.name}: ${response.error}")
-                    }
-                    response.amountUsed
-                }.getOrNull()
+                // The gas of the transfer as reviewed. While the entered amount is above the balance
+                // the node refuses that estimate; show the amount-free one then, as before: the amount
+                // check reports the shortfall, and the send is estimated again with its amount.
+                val gasLimit = web3j.estimateGasOrNull(transactionBuilder.buildFeeEstimationCall(transfer))
+                    ?: web3j.estimateGasOrNull(transactionBuilder.buildAmountFreeFeeEstimationCall(transfer))
                     ?: throw GasServiceException("Failed to ethEstimateGas on chain ${chain.name}. Response is null")
 
                 val priorityFee = withContext(Dispatchers.IO) {
@@ -267,6 +263,12 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
             }
             .flowOn(Dispatchers.IO)
     }
+
+    /** The gas the node estimates for [call], or null when it refuses or cannot be reached. */
+    private fun Ethereum.estimateGasOrNull(call: Transaction?): BigInteger? = runCatching {
+        val response = ethEstimateGas(call).send()
+        if (response.hasError()) null else response.amountUsed
+    }.getOrNull()
 
     suspend fun sendRawTransaction(
         chainId: ChainId,
