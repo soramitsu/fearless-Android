@@ -115,6 +115,27 @@ class OwnedConfigTest(unittest.TestCase):
         path.write_text(json.dumps({'registry': {'source': old}, 'icon': old}))
         self.rejected()
 
+    def put_feature_toggle(self, document):
+        (self.root / 'remote-config/production/appConfigs').mkdir(parents=True, exist_ok=True)
+        self.put('production/appConfigs/feature_toggle', json.dumps(document).encode())
+        self.save()
+
+    def test_boolean_feature_switches(self):
+        self.put_feature_toggle({'dapp_enabled': False, 'ton_dapp_signing_enabled': True, 'mutation_authorization': 'token'})
+        self.assertEqual(3, VERIFY.verify(self.root))
+
+    def test_string_feature_switch(self):
+        self.put_feature_toggle({'evm_dapp_signing_enabled': 'false'})
+        self.rejected()
+
+    def test_number_feature_switch(self):
+        self.put_feature_toggle({'polkadot_dapp_signing_enabled': 0})
+        self.rejected()
+
+    def test_feature_toggle_not_an_object(self):
+        self.put_feature_toggle([{'solana_send_enabled': False}])
+        self.rejected()
+
     def test_imported_repository(self):
         self.assertGreater(VERIFY.verify(ROOT), 600)
 

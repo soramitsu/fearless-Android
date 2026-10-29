@@ -872,11 +872,13 @@
   <string name="signing_field_token">Token</string>
   <string name="signing_field_value">Valor enviado</string>
   <string name="signing_field_verifying_contract">Contrato verificador</string>
+  <string name="signing_paused_title">Assinatura de dApps pausada</string>
   <string name="signing_refused_destination">O Fearless não assina esta transferência: %1$s não entrega mais transferências desta rede, então os fundos seriam perdidos.</string>
   <string name="signing_refused_format">O Fearless não assina esta transação: transações de dApps no formato desta rede não são compatíveis.</string>
   <string name="signing_refused_never_expires">O Fearless não assina esta transação: ela nunca expira, então o dApp poderia enviá-la a qualquer momento depois.</string>
   <string name="signing_refused_other_network">O Fearless não assina esta transação: ela é para uma rede diferente da que o dApp indicou.</string>
   <string name="signing_refused_other_runtime">O Fearless não assina esta transação: ela foi criada para outra versão do runtime desta rede. Peça ao dApp para criá-la novamente.</string>
+  <string name="signing_refused_paused">O Fearless pausou a assinatura de dApps nesta rede para sua segurança. Nada foi assinado. Tente novamente mais tarde.</string>
   <string name="signing_refused_relay_reserve">O Fearless não assina esta transferência: desde a migração para o Asset Hub, a relay chain não é mais a reserva do seu token, então esta transferência de reserva perderia os fundos. Envie a partir do Asset Hub.</string>
   <string name="signing_refused_undecoded_call">O Fearless não assina esta transação: a chamada não pode ser decodificada com o runtime desta rede, então não pode ser mostrada a você.</string>
   <string name="signing_section_call">Chamada %1$s</string>

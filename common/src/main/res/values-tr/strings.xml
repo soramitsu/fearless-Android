@@ -932,11 +932,13 @@
   <string name="signing_field_token">Token</string>
   <string name="signing_field_value">Gönderilen değer</string>
   <string name="signing_field_verifying_contract">Doğrulayan sözleşme</string>
+  <string name="signing_paused_title">dApp imzalama duraklatıldı</string>
   <string name="signing_refused_destination">Fearless bu transferi imzalamaz: %1$s artık bu ağdan gelen transferleri teslim etmiyor, bu yüzden fonlar kaybolur.</string>
   <string name="signing_refused_format">Fearless bu işlemi imzalamaz: bu ağın biçimindeki dApp işlemleri desteklenmiyor.</string>
   <string name="signing_refused_never_expires">Fearless bu işlemi imzalamaz: işlemin süresi hiç dolmaz, bu yüzden dApp onu daha sonra herhangi bir zamanda gönderebilir.</string>
   <string name="signing_refused_other_network">Fearless bu işlemi imzalamaz: işlem, dApp\'in belirttiği ağdan farklı bir ağ içindir.</string>
   <string name="signing_refused_other_runtime">Fearless bu işlemi imzalamaz: işlem bu ağın başka bir çalışma zamanı sürümü için oluşturulmuş. dApp\'ten işlemi yeniden oluşturmasını isteyin.</string>
+  <string name="signing_refused_paused">Fearless, güvenliğiniz için bu ağda dApp imzalamayı duraklattı. Hiçbir şey imzalanmadı. Daha sonra tekrar deneyin.</string>
   <string name="signing_refused_relay_reserve">Fearless bu transferi imzalamaz: Asset Hub geçişinden beri relay zinciri kendi tokeninin rezervi değildir, bu yüzden bu rezerv transferi fonları kaybettirir. Bunun yerine Asset Hub\'dan gönderin.</string>
   <string name="signing_refused_undecoded_call">Fearless bu işlemi imzalamaz: çağrısı bu ağın çalışma zamanıyla çözülemediği için size gösterilemiyor.</string>
   <string name="signing_section_call">Çağrı %1$s</string>

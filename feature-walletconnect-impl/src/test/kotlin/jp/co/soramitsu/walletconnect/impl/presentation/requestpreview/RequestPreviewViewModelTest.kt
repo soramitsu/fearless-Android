@@ -14,12 +14,16 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.compose.component.SigningSummaryViewState
+import jp.co.soramitsu.common.data.network.config.FeatureToggleConfig
+import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.walletconnect.impl.presentation.DappSigningPausedException
 import jp.co.soramitsu.walletconnect.impl.presentation.TEST_TOPIC
 import jp.co.soramitsu.walletconnect.impl.presentation.awaitErrorDialog
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import jp.co.soramitsu.walletconnect.impl.presentation.ethereumChain
+import jp.co.soramitsu.walletconnect.impl.presentation.featureToggleStore
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionRequest
 import jp.co.soramitsu.walletconnect.impl.presentation.summary.WalletConnectRequestDecoder
 import jp.co.soramitsu.walletconnect.impl.presentation.summary.WalletConnectRequestSummaries
@@ -34,6 +38,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.withTimeout
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -116,7 +121,7 @@ class RequestPreviewViewModelTest {
         val pending = CompletableDeferred<SigningSummaryViewState>()
         val summaries = mockk<WalletConnectRequestSummaries>()
         coEvery { summaries.summary(any(), any()) } coAnswers { pending.await() }
-        val model = viewModel(shown.request.id, summaries, awaitSummary = false)
+        val model = viewModel(shown.request.id, summaries = summaries, awaitSummary = false)
         model.onSignClick()
         coVerify(exactly = 0) { interactor.handleSignAction(any(), any(), any(), any(), any(), any()) }
 
@@ -124,6 +129,31 @@ class RequestPreviewViewModelTest {
         runBlocking { withTimeout(10_000) { model.state.first { it.summary != null } } }
         model.onSignClick()
         coVerify { interactor.handleSignAction(ethereumChain, TEST_TOPIC, shown, any(), any(), any()) }
+    }
+
+    @Test
+    fun `a paused request says why and is never signed`() {
+        val toggles = featureToggleStore().apply { rememberRemoteVetoes(FeatureToggleConfig(evmDappSigningEnabled = false)) }
+        val model = viewModel(requestId = shown.request.id, featureToggles = toggles)
+
+        model.onSignClick()
+
+        assertEquals("string:${R.string.signing_refused_paused}", model.state.value.summary?.headline)
+        coVerify(exactly = 0) { interactor.handleSignAction(any(), any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `a pause that arrives while the request is shown closes it with the reason`() {
+        coEvery { interactor.handleSignAction(any(), any(), any(), any(), any(), any()) } coAnswers {
+            arg<(Exception) -> Unit>(3).invoke(DappSigningPausedException())
+        }
+        val model = viewModel(requestId = shown.request.id)
+
+        model.onSignClick()
+        val dialog = model.awaitErrorDialog { it.message == "string:${R.string.signing_refused_paused}" }
+        dialog.positiveClick()
+
+        verify { router.back() }
     }
 
     @Test
@@ -145,8 +175,9 @@ class RequestPreviewViewModelTest {
 
     private fun viewModel(
         requestId: Long?,
+        featureToggles: ProductFeatureToggleStore = featureToggleStore(),
         summaries: WalletConnectRequestSummaries = WalletConnectRequestSummaries(
-            WalletConnectRequestDecoder { null }, WalletConnectSummaryPresenter(resourceManager)
+            WalletConnectRequestDecoder { null }, WalletConnectSummaryPresenter(resourceManager), featureToggles
         ),
         awaitSummary: Boolean = true
     ) = RequestPreviewViewModel(

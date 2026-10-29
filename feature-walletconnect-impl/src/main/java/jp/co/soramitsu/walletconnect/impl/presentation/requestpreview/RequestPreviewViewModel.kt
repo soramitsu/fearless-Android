@@ -18,6 +18,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.walletconnect.impl.presentation.DappSigningPausedException
 import jp.co.soramitsu.walletconnect.impl.presentation.WalletConnectRequestRejectedException
 import jp.co.soramitsu.walletconnect.impl.presentation.address
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
@@ -216,6 +217,11 @@ class RequestPreviewViewModel @Inject constructor(
 
     private fun onSignError(e: Exception) {
         isLoading.value = false
+        if (e is DappSigningPausedException) {
+            // Paused while the request was shown: the dApp has been answered with an error.
+            viewModelScope.launch(Dispatchers.Main) { showSigningPausedError() }
+            return
+        }
         if (e is WalletConnectRequestRejectedException) {
             // The dApp has been answered with an error, so this request is over: nothing to retry.
             viewModelScope.launch(Dispatchers.Main) { showRequestClosedError() }
@@ -234,6 +240,16 @@ class RequestPreviewViewModel @Inject constructor(
         showError(
             title = resourceManager.getString(R.string.common_error_general_title),
             message = resourceManager.getString(R.string.common_undefined_error_message),
+            positiveButtonText = resourceManager.getString(R.string.common_close),
+            positiveClick = walletConnectRouter::back,
+            onBackClick = walletConnectRouter::back
+        )
+    }
+
+    private fun showSigningPausedError() {
+        showError(
+            title = resourceManager.getString(R.string.signing_paused_title),
+            message = resourceManager.getString(R.string.signing_refused_paused),
             positiveButtonText = resourceManager.getString(R.string.common_close),
             positiveClick = walletConnectRouter::back,
             onBackClick = walletConnectRouter::back
