@@ -156,6 +156,10 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
             binding.pinCodeView.pinCodeMatchingError()
         }
 
+        viewModel.pinRetryDelayEvent.observeEvent {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+        }
+
         viewModel.resetInputEvent.observeEvent {
             binding.pinCodeView.resetInput()
             binding.pinCodeView.setTitle(it)

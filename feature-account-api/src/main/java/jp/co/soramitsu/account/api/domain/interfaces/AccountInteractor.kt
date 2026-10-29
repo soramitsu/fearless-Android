@@ -68,6 +68,12 @@ interface AccountInteractor {
 
     suspend fun isPinCorrect(code: String): Boolean
 
+    /** Milliseconds until a PIN can be checked again after repeated wrong PINs; zero when it can be checked now. */
+    suspend fun getPinRetryDelayMillis(): Long
+
+    /** A biometric unlock clears the wrong-PIN count, as the right PIN does. */
+    suspend fun registerBiometricUnlock()
+
     suspend fun isBiometricEnabled(): Boolean
 
     suspend fun setBiometricOn()
