@@ -35,16 +35,19 @@ master did not have are ported; the WalletConnect part came with the entry below
   Token-2022 sends are refused; broadcasts are classified before any release, a
   pending payment is released only on a proven expiry, and the history row closes as
   failed only when two distinct hosts proved it (see `docs/solana-send.md`).
+- Iroha: transfer history comes from Torii REST (`/v1/accounts/{id}/history`, cursor
+  paging, transfer filter); the app no longer calls the MCP endpoint, and the
+  send-readiness audit fails on `/v1/mcp` or `tools/call` in main sources.
 
-Unit tests (debug, before -> after): app 189 -> 206, common 768 -> 850,
+Unit tests (debug, before -> after): app 189 -> 206, common 768 -> 846,
 account 915 -> 953 and its API 106, TON Connect 96 -> 168 and its API 13 -> 23,
-wallet 718 -> 746 and its API 130, WalletConnect 161, runtime 396 -> 407, staking
+wallet 718 -> 751 and its API 130, WalletConnect 161, runtime 396 -> 407, staking
 1,315 -> 1,318, core-backup 372 -> 378, core-db 521, core-api 133, runtime-utils
 432, runtime-websocket 114; no failures, skips unchanged; Detekt clean.
 
 Open: the replaced Play upload certificate is not pinned on master (owner decision);
-Iroha history still uses the MCP endpoint; the Nomis key that was in the source
-should be rotated; no device or emulator run covers this port.
+the Nomis key that was in the source should be rotated; no device or emulator run
+covers this port.
 
 ## dApp signing and cross-chain hardening — 29 October 2026
 
