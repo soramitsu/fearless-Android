@@ -169,6 +169,21 @@ allprojects {
                     details.useVersion('1.11.0')
                     details.because('CVE-2025-48734: commons-beanutils before 1.11.0 exposes declaredClass')
                 }
+                if (details.requested.group.startsWith('com.fasterxml.jackson') && !resolvesStagedIrohaBridge) {
+                    // web3j parses untrusted RPC replies. Keep the Jackson 2.x family aligned;
+                    // 2.18.11 includes bounded nesting and the subsequent 2026 parser fixes.
+                    details.useVersion('2.18.11')
+                    details.because('CVE-2025-52999 and 2026 Jackson advisories: bound untrusted RPC JSON parsing')
+                }
+                if (details.requested.group == 'com.google.guava' && details.requested.name == 'guava') {
+                    // Keep the JVM tooling variant and Android runtime variant separate.
+                    details.useVersion(details.requested.version?.endsWith('-jre') ? '33.3.1-jre' : '33.3.1-android')
+                    details.because('CVE-2020-8908, CVE-2023-2976: private temporary files in Guava')
+                }
+                if (details.requested.group == 'org.apache.commons' && details.requested.name == 'commons-lang3') {
+                    details.useVersion('3.18.0')
+                    details.because('CVE-2025-48924: reject excessively nested class names without unbounded recursion')
+                }
             }
 
             // Force native-heavy dependencies to versions built with 16 KB page support.
