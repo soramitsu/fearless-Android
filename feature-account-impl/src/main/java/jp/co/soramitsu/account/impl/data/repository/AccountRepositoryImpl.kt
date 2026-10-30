@@ -575,24 +575,26 @@ class AccountRepositoryImpl(
         metaId: Long?,
         chainId: ChainId
     ): EncodableStruct<ChainAccountSecrets>? {
-        return (metaId?.let { getMetaAccount(it) } ?: getSelectedMetaAccount()).let { metaAccount ->
-            if (metaAccount.hasChainAccount((chainId))) {
-                metaAccount.chainAccounts[chainId]?.let { chainAccount ->
-                    walletSecretAccessGuard.requireAccess(
-                        metaId = metaAccount.id,
-                        scope = WalletSecretScope.chainAccount(chainAccount.accountId)
-                    )
-                    legacyStoreV2.getChainAccountSecretsWithVerifiedRecovery(
-                        metaId = metaAccount.id,
-                        accountId = chainAccount.accountId,
-                        expectedPublicKey = chainAccount.publicKey,
-                        expectedCryptoType = chainAccount.cryptoType
-                    )
-                }
-            } else {
-                null
-            }
-        }
+        val metaAccount = metaId?.let { getMetaAccount(it) } ?: getSelectedMetaAccount()
+        return readValidatedChainAccountSecrets(metaAccount, chainId)
+    }
+
+    /** Reads the secrets of the exact chain account [metaAccount] names, never a later reread of the wallet. */
+    private suspend fun readValidatedChainAccountSecrets(
+        metaAccount: MetaAccount,
+        chainId: ChainId
+    ): EncodableStruct<ChainAccountSecrets>? {
+        val chainAccount = metaAccount.chainAccounts[chainId] ?: return null
+        walletSecretAccessGuard.requireAccess(
+            metaId = metaAccount.id,
+            scope = WalletSecretScope.chainAccount(chainAccount.accountId)
+        )
+        return legacyStoreV2.getChainAccountSecretsWithVerifiedRecovery(
+            metaId = metaAccount.id,
+            accountId = chainAccount.accountId,
+            expectedPublicKey = chainAccount.publicKey,
+            expectedCryptoType = chainAccount.cryptoType
+        )
     }
 
     override suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String) =
@@ -602,7 +604,8 @@ class AccountRepositoryImpl(
             require(metaAccount.hasSubstrate || metaAccount.hasEthereum)
             val hasChainAccount = metaAccount.hasChainAccount(chainId)
             val (keypairSchema, seed) = if (hasChainAccount) {
-                val secrets = getChainAccountSecrets(metaId, chainId)
+                // The address and crypto type below come from this same wallet read.
+                val secrets = readValidatedChainAccountSecrets(metaAccount, chainId)
 
                 val keypairSchema = secrets?.get(ChainAccountSecrets.Keypair)
 
@@ -617,21 +620,18 @@ class AccountRepositoryImpl(
                     WalletSecretScope.Substrate
                 }
                 requireScopeAccess(metaAccount, keyScope)
-                val substrateSecrets = if (isScopeAccessible(metaAccount, WalletSecretScope.Substrate)) {
-                    readValidatedSubstrateSecrets(metaAccount)
+                if (chain.isEthereumBased) {
+                    // The seed travels with the key it belongs to; a Substrate seed never goes into an Ethereum export.
+                    val ethereumSecrets = readValidatedEthereumSecrets(metaAccount)
+                    ethereumSecrets?.get(EthereumSecrets.EthereumKeypair) to ethereumSecrets?.get(EthereumSecrets.Seed)
                 } else {
-                    null
+                    val substrateSecrets = if (isScopeAccessible(metaAccount, WalletSecretScope.Substrate)) {
+                        readValidatedSubstrateSecrets(metaAccount)
+                    } else {
+                        null
+                    }
+                    substrateSecrets?.get(SubstrateSecrets.SubstrateKeypair) to substrateSecrets?.get(SubstrateSecrets.Seed)
                 }
-
-                val keypairSchema = if (chain.isEthereumBased) {
-                    readValidatedEthereumSecrets(metaAccount)
-                        ?.get(EthereumSecrets.EthereumKeypair)
-                } else {
-                    substrateSecrets?.get(SubstrateSecrets.SubstrateKeypair)
-                }
-
-                val seed = substrateSecrets?.get(SubstrateSecrets.Seed)
-                keypairSchema to seed
             }
 
             val publicKey = keypairSchema?.get(KeyPairSchema.PublicKey)
