@@ -21,6 +21,7 @@ import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.runtime.assethub.AssetHubStaking
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.data.StakingType
@@ -636,7 +637,14 @@ internal fun mapStashNoneStakeStatus(status: StashNoneStatus, eraDisplay: String
     }
 }
 
-private fun StakingState.Stash.supportsPayouts(): Boolean {
+private fun StakingState.Stash.supportsPayouts(): Boolean = relayPayoutsSupported(chain)
+
+/**
+ * A staking Asset Hub finds pending payouts on chain and has no staking indexer, so it always offers Payouts; other
+ * networks find them through their staking indexer.
+ */
+internal fun relayPayoutsSupported(chain: Chain): Boolean {
+    if (AssetHubStaking.isHub(chain.id)) return true
     val supportedTypes = setOf(
         Chain.ExternalApi.Section.Type.SUBQUERY,
         Chain.ExternalApi.Section.Type.SUBSQUID,

@@ -396,20 +396,22 @@ class StakingRelayChainScenarioRepository(
         val staking = runtime.metadata.staking()
         val full = staking.numberConstant("BondingDuration", runtime)
         val fast = staking.numberConstant("NominatorFastUnbondDuration", runtime)
-        val slashable = remoteStorage.query(
+        // Acknowledged reads: a failed read must never look like an absent value, which for LastValidatorEra would mean
+        // "never a validator" and the fast period. A failure reaches the caller, which shows the full duration.
+        val slashable = remoteStorage.queryResult(
             chainId = chainId,
             keyBuilder = { staking.storage("AreNominatorsSlashable").storageKey() },
             binding = { scale, snapshot ->
                 scale?.let { staking.storage("AreNominatorsSlashable").returnType().fromHex(snapshot, it) as Boolean } ?: true
             }
-        )
-        val lastValidatorEra = remoteStorage.query(
+        ).getOrThrow()
+        val lastValidatorEra = remoteStorage.queryResult(
             chainId = chainId,
             keyBuilder = { staking.storage("LastValidatorEra").storageKey(it, stash) },
             binding = { scale, snapshot ->
                 scale?.let { staking.storage("LastValidatorEra").returnType().fromHex(snapshot, it) as BigInteger }
             }
-        )
+        ).getOrThrow()
         return assetHubUnbondingDuration(full, fast, slashable, getActiveEraIndex(chainId), lastValidatorEra)
     }
 

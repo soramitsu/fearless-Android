@@ -19,8 +19,8 @@ selected commits, not merged wholesale), versionCode 233, database 84.
   not slash); when it cannot be read, the full `BondingDuration` is shown.
   Rewards are estimated from completed-era budgets, not relay inflation, and an
   unreadable history gives a zero estimate. Validator identities come from the
-  People chains. Payouts are offered only from validators that are still
-  bonded. The validator choice screens and the balance screen's unbonding list
+  People chains. Payouts are offered from the Manage menu on the Hubs, only
+  from validators that are still bonded. The validator choice screens and the balance screen's unbonding list
   offer a retry when they cannot be loaded, and Redeem waits for a successful
   ledger refresh.
 - Activation: the catalogue marks those two assets with `"staking": "assetHub"`.

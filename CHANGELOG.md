@@ -9,8 +9,8 @@ All notable changes to this project will be documented in this file.
   destination, paged payouts, slash warnings and nomination pools. The
   unbonding period follows the account (fast unbonding for nominators the
   runtime does not slash), and estimated rewards come from the eras the Hub
-  actually paid. Payouts are offered only from validators that are still
-  bonded. A DOT or KSM choice saved before the upgrade opens its Hub when the
+  actually paid. Payouts are offered from the Manage menu on the Hubs, only
+  from validators that are still bonded. A DOT or KSM choice saved before the upgrade opens its Hub when the
   wallet uses the same account on the relay and the Hub.
 - Staking: enabled by the catalogue value `"staking": "assetHub"` on the Hub
   native assets, which 4.3.0 ignores; relays never offer staking again.
