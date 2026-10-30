@@ -24,7 +24,8 @@ All notable changes to this project will be documented in this file.
   screen offers a retry when its unbonding list cannot be read. A Hub active
   era that cannot be read no longer closes the staking screens, and the
   Current Validators and pool Selected Validators lists offer a retry when
-  they cannot be read.
+  they cannot be read. A minimum stake that cannot be read yet is shown as
+  loading or offers a retry instead of closing the app.
 - Accounts: a network-account JSON export reads the wallet once, and an
   Ethereum export never carries the Substrate seed.
 

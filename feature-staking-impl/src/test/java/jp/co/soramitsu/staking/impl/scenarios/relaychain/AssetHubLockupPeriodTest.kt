@@ -8,6 +8,9 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId
 import jp.co.soramitsu.runtime.state.SingleAssetSharedState
 import jp.co.soramitsu.staking.api.data.StakingSharedState
+import jp.co.soramitsu.staking.api.domain.model.IndividualExposure
+import jp.co.soramitsu.staking.api.domain.model.LegacyExposure
+import jp.co.soramitsu.staking.impl.domain.MinimumStakeUnavailableException
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.model.NetworkInfo
@@ -154,6 +157,38 @@ class AssetHubLockupPeriodTest {
         assertEquals(168, (f.interactor.observeNetworkInfoState().first() as NetworkInfo.RelayChain).lockupPeriodInHours)
         whenever(f.constants.lockupPeriodInEras(ternoaChainId)).thenThrow(IllegalStateException("no constant"))
         assertEquals(0, (f.interactor.observeNetworkInfoState().first() as NetworkInfo.RelayChain).lockupPeriodInHours)
+    }
+
+    @Test
+    fun `an unreadable minimum with no cached exposures waits and is read again instead of crashing`() = runTest {
+        val f = Fixture(AssetHubStaking.POLKADOT).apply { setUp() }
+        whenever(f.repository.minimumActiveStake(AssetHubStaking.POLKADOT)).thenReturn(null, 25.toBigInteger())
+        val info = f.interactor.observeNetworkInfoState().first() as NetworkInfo.RelayChain
+        assertEquals(25.toBigInteger(), info.minimumStake)
+    }
+
+    @Test
+    fun `missing nominator pages still give a minimum from the cached nominations`() = runTest {
+        val f = Fixture(AssetHubStaking.KUSAMA).apply { setUp() }
+        whenever(f.repository.minimumActiveStake(AssetHubStaking.KUSAMA)).thenReturn(null)
+        val partial = mapOf(
+            "00" to LegacyExposure(BigInteger.TEN, BigInteger.TEN, emptyList()),
+            "01" to LegacyExposure(BigInteger.TEN, BigInteger.ONE, listOf(IndividualExposure(fastAccount, 40.toBigInteger())))
+        )
+        whenever(f.repository.legacyElectedExposuresInActiveEra(AssetHubStaking.KUSAMA)).thenReturn(flowOf(partial))
+        assertEquals(40.toBigInteger(), (f.interactor.observeNetworkInfoState().first() as NetworkInfo.RelayChain).minimumStake)
+        assertEquals(40.toBigInteger(), f.interactor.getMinimumStake(f.native))
+    }
+
+    @Test
+    fun `an unavailable minimum is reported as such, and the unbonding period does not wait on it`() = runTest {
+        val f = Fixture(AssetHubStaking.POLKADOT).apply { setUp() }
+        whenever(f.repository.minimumActiveStake(AssetHubStaking.POLKADOT)).thenReturn(null)
+        val failure = runCatching { f.interactor.getMinimumStake(f.native) }.exceptionOrNull()
+        assertTrue(failure.toString(), failure is MinimumStakeUnavailableException)
+        val selected = wallet(fastAccount)
+        whenever(f.accounts.getSelectedMetaAccount()).thenReturn(selected)
+        assertEquals(48, f.interactor.unbondingPeriodInHours())
     }
 
     private companion object {

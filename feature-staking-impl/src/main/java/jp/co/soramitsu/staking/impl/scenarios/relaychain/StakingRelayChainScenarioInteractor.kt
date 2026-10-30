@@ -59,6 +59,8 @@ import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.staking.impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.staking.impl.domain.EraTimeCalculator
 import jp.co.soramitsu.staking.impl.domain.EraTimeCalculatorFactory
+import jp.co.soramitsu.staking.impl.domain.MinimumStakeUnavailableException
+import jp.co.soramitsu.staking.impl.domain.lowestActiveStake
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.common.isWaiting
 import jp.co.soramitsu.staking.impl.domain.isNominationActive
@@ -116,6 +118,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -132,6 +135,7 @@ import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -140,6 +144,8 @@ import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 val ERA_OFFSET = 1.toBigInteger()
 const val HOURS_IN_DAY = 24
+private const val MINIMUM_STAKE_RETRY_MILLIS = 5_000L
+private const val MINIMUM_STAKE_RETRY_MAX_MILLIS = 60_000L
 
 class StakingRelayChainScenarioInteractor(
     private val stakingInteractor: StakingInteractor,
@@ -197,8 +203,8 @@ class StakingRelayChainScenarioInteractor(
                     stakingRelayChainScenarioRepository.minimumNominatorBond(it)
                 }.orZero()
 
-                val minActiveStake = stakingRelayChainScenarioRepository.minimumActiveStake(chain.id)
-                    ?: exposures.minOf { exposure -> exposure.others.minOf { it.value } }
+                val minActiveStake = lowestActiveStake(stakingRelayChainScenarioRepository.minimumActiveStake(chain.id), exposures)
+                    ?: throw MinimumStakeUnavailableException()
 
                 val minimalStakeInPlanks =
                     minActiveStake.coerceAtLeast(minimumNominatorBond)
@@ -210,6 +216,13 @@ class StakingRelayChainScenarioInteractor(
                     nominatorsCount = activeNominators(chain.id, exposures),
                     shouldUseMinimumStakeMultiplier = true
                 )
+            }
+            // The minimum is unknown while its read fails and no exposures are cached yet (a Hub's first load, an era
+            // change): the information stays loading and is read again, instead of showing a wrong minimum.
+            .retryWhen { cause, attempt ->
+                (cause is MinimumStakeUnavailableException).also { retry ->
+                    if (retry) delay(minOf(MINIMUM_STAKE_RETRY_MILLIS * (attempt + 1), MINIMUM_STAKE_RETRY_MAX_MILLIS))
+                }
             }
     }
 
@@ -339,8 +352,8 @@ class StakingRelayChainScenarioInteractor(
         exposures: Collection<LegacyExposure>,
         minimumNominatorBond: BigInteger
     ): BigInteger {
-        val minActiveStake = stakingRelayChainScenarioRepository.minimumActiveStake(chainId)
-            ?: kotlin.runCatching { exposures.minOf { exposure -> exposure.others.minOf { it.value } } }.getOrNull() ?: BigInteger.ZERO
+        val minActiveStake = lowestActiveStake(stakingRelayChainScenarioRepository.minimumActiveStake(chainId), exposures)
+            ?: BigInteger.ZERO
         return minActiveStake.coerceAtLeast(minimumNominatorBond)
     }
 
@@ -693,10 +706,10 @@ class StakingRelayChainScenarioInteractor(
             val minimumNominatorBond =
                 stakingRelayChainScenarioRepository.minimumNominatorBond(chainAsset).orZero()
 
-            val minActiveStake =
-                stakingRelayChainScenarioRepository.minimumActiveStake(chainAsset.chainId)
-                    ?: exposuresDeferred.await()
-                        .minOf { exposure -> exposure.others.minOf { it.value } }
+            val minActiveStake = lowestActiveStake(
+                stakingRelayChainScenarioRepository.minimumActiveStake(chainAsset.chainId),
+                exposuresDeferred.await()
+            ) ?: throw MinimumStakeUnavailableException()
 
             val minimalStakeInPlanks =
                 minActiveStake.coerceAtLeast(minimumNominatorBond)
@@ -773,6 +786,8 @@ class StakingRelayChainScenarioInteractor(
     override suspend fun unstakingPeriod(): Int {
         return getLockupPeriodInHours()
     }
+
+    override suspend fun unbondingPeriodInHours(): Int = getLockupPeriodInHours()
 
     override suspend fun stakePeriodInHours(): Int {
         return getEraHoursLength()
