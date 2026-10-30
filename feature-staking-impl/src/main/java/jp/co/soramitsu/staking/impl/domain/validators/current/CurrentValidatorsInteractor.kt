@@ -44,7 +44,7 @@ class CurrentValidatorsInteractor(
 
         return stakingRepository.observeActiveEraIndex(chainId).map { activeEra ->
 
-            // The era observed here, not a second (on a Hub, remote) era read that could fail the screen.
+            // The era observed here throughout, not a second (on a Hub, remote) era read that could fail the screen.
             val exposures = stakingRepository.getLegacyElectedValidatorsExposure(chainId, activeEra)
 
             val activeNominations = exposures.mapValues { (_, exposure) ->
@@ -59,7 +59,8 @@ class CurrentValidatorsInteractor(
 
             val groupedByStatusClass = validatorProvider.getValidators(
                 chain = chain,
-                source = ValidatorSource.Custom(nominatedValidatorIds.toList())
+                source = ValidatorSource.Custom(nominatedValidatorIds.toList()),
+                activeEra = activeEra
             )
                 .map { validator ->
                     val userIndividualExposure = activeNominations[validator.accountIdHex]

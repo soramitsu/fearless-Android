@@ -10,6 +10,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.reefChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
+import jp.co.soramitsu.staking.api.domain.model.EraIndex
+import jp.co.soramitsu.staking.api.domain.model.LegacyExposure
 import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculationTarget
@@ -33,7 +35,21 @@ class ValidatorProvider(
     private val stakingConstantsRepository: StakingConstantsRepository
 ) {
 
-    suspend fun getValidators(chain: Chain, source: ValidatorSource): List<Validator> = coroutineScope {
+    suspend fun getValidators(chain: Chain, source: ValidatorSource): List<Validator> =
+        validators(chain, source) { stakingRepository.getLegacyActiveElectedValidatorsExposures(chain.id) }
+
+    /**
+     * For a caller that already observes the active era: the exposures of [activeEra], with no era read of the
+     * provider's own (on an Asset Hub that read is remote and could fail where the observed era is at hand).
+     */
+    suspend fun getValidators(chain: Chain, source: ValidatorSource, activeEra: EraIndex): List<Validator> =
+        validators(chain, source) { stakingRepository.getLegacyElectedValidatorsExposure(chain.id, activeEra) }
+
+    private suspend fun validators(
+        chain: Chain,
+        source: ValidatorSource,
+        electedExposures: suspend () -> Map<String, LegacyExposure>
+    ): List<Validator> = coroutineScope {
         val chainId = chain.id
 
         val allValidatorPrefsDeferred = async { stakingRepository.getAllValidatorPrefs(chainId) }
@@ -49,7 +65,7 @@ class ValidatorProvider(
         val identitiesDeferred = async { identityRepository.getIdentitiesFromIds(chain, requestedValidatorIds) }
         val slashesDeferred = async { stakingRepository.getSlashes(chainId, requestedValidatorIds) }
 
-        val electedValidatorExposures = stakingRepository.getLegacyActiveElectedValidatorsExposures(chainId)
+        val electedValidatorExposures = electedExposures()
         val rewardCalculatorDeferred = async {
             val calculationTargets = electedValidatorExposures.keys.mapNotNull { accountIdHex ->
                 val exposure = electedValidatorExposures[accountIdHex] ?: return@mapNotNull null
