@@ -27,6 +27,16 @@ Release signing pins the replacement upload certificate
 `docs/releases/4.3.0.md`. Not included: Asset Hub staking, so Polkadot and
 Kusama staking is unavailable in this version.
 
+## JSON export of derived ed25519 and ECDSA accounts — 31 October 2026
+
+A JSON export of a Substrate ed25519 or ECDSA account created with a derivation
+path held the wallet's root seed beside the derived account's public key.
+Importing the file opened the root account instead, and the root seed opens
+every account derived from that phrase. The export now writes the secret that
+reopens the exported account and refuses to export when no stored secret does.
+Accounts without a derivation path export exactly as before, and files exported
+by earlier versions import as they did.
+
 ## Taira balance paging and build verification — 29 October 2026
 
 Torii account, account-asset and definition lists now send `limit` and opaque
