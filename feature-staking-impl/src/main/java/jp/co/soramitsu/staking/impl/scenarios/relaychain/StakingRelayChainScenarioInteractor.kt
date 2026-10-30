@@ -173,9 +173,7 @@ class StakingRelayChainScenarioInteractor(
             .flatMapLatest { (chain, _) ->
                 // A Hub's unbonding period depends on the account, so it follows the selected wallet.
                 if (AssetHubStaking.isHub(chain.id)) {
-                    accountRepository.selectedMetaAccountFlow().map { account ->
-                        chain to requireNotNull(account.accountId(chain)) { "Selected wallet has no staking account" }
-                    }
+                    accountRepository.selectedMetaAccountFlow().map { account -> chain to account.accountId(chain) }
                 } else {
                     flowOf(chain to null)
                 }
@@ -186,7 +184,7 @@ class StakingRelayChainScenarioInteractor(
 
     private suspend fun networkInfoForChain(chain: Chain, accountId: AccountId?): Flow<NetworkInfo> {
         val lockupPeriod = runCatching { getLockupPeriodInHours(chain.id, accountId) }.getOrElse {
-            // A Hub period that cannot be read must not be shown as no period at all.
+            // A Hub's era clock that cannot be read must not be shown as no period at all.
             if (it is CancellationException || AssetHubStaking.isHub(chain.id)) throw it
             0
         }
@@ -237,11 +235,24 @@ class StakingRelayChainScenarioInteractor(
 
     private suspend fun getLockupPeriodInHours(chainId: ChainId, accountId: AccountId?): Int {
         val eras = if (AssetHubStaking.isHub(chainId)) {
-            stakingRelayChainScenarioRepository.assetHubUnbondingEras(chainId, requireNotNull(accountId))
+            assetHubUnbondingEras(chainId, accountId)
         } else {
             stakingConstantsRepository.lockupPeriodInEras(chainId)
         }
         return eras.toInt() * stakingRelayChainScenarioRepository.hoursInEra(chainId)
+    }
+
+    /**
+     * The account's Hub unbonding period. When it cannot be read the full bonding duration is used, which no account
+     * waits longer than: a shorter or zero period is never shown, and no screen fails over a remote read.
+     */
+    private suspend fun assetHubUnbondingEras(chainId: ChainId, accountId: AccountId?): BigInteger {
+        if (accountId != null) {
+            runCatching { stakingRelayChainScenarioRepository.assetHubUnbondingEras(chainId, accountId) }
+                .onSuccess { return it }
+                .onFailure { if (it is CancellationException) throw it }
+        }
+        return stakingConstantsRepository.lockupPeriodInEras(chainId)
     }
 
     override fun stakingStateFlow(): Flow<StakingState> {
@@ -695,11 +706,7 @@ class StakingRelayChainScenarioInteractor(
 
     suspend fun getLockupPeriodInHours() = withContext(Dispatchers.Default) {
         val chain = stakingSharedState.chain()
-        val accountId = if (AssetHubStaking.isHub(chain.id)) {
-            requireNotNull(accountRepository.getSelectedMetaAccount().accountId(chain)) { "Selected wallet has no staking account" }
-        } else {
-            null
-        }
+        val accountId = if (AssetHubStaking.isHub(chain.id)) accountRepository.getSelectedMetaAccount().accountId(chain) else null
         getLockupPeriodInHours(chain.id, accountId)
     }
 

@@ -17,6 +17,7 @@ import jp.co.soramitsu.staking.impl.domain.error.accountIdNotFound
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -36,13 +37,11 @@ class RewardCalculatorFactory(
         calculationTargets: List<RewardCalculationTarget>
     ): ManualRewardCalculator = withContext(Dispatchers.Default) {
         val annualRewards = if (AssetHubStaking.isHub(chainId)) {
-            val era = relayChainRepository.getActiveEraIndex(chainId)
-            val rewards = relayChainRepository.getErasValidatorRewards(chainId)
-                .filterKeys { it < era }.toSortedMap().values.filterNotNull().takeLast(REWARD_HISTORY_ERAS)
-            require(rewards.isNotEmpty()) { "Completed Asset Hub era rewards are unavailable" }
-            val eraMillis = relayChainRepository.sessionLength(chainId) *
-                relayChainRepository.blockCreationTime(chainId) * relayChainRepository.eraLength(chainId)
-            annualStakingRewards(rewards, eraMillis)
+            // Estimates are display only: reward history that cannot be read gives no estimate, not a failed screen.
+            runCatching { assetHubAnnualRewards(chainId) }.getOrElse {
+                if (it is CancellationException) throw it
+                BigDecimal.ZERO
+            }
         } else {
             null
         }
@@ -53,6 +52,16 @@ class RewardCalculatorFactory(
             totalIssuance = totalIssuance,
             annualStakerRewards = annualRewards
         )
+    }
+
+    private suspend fun assetHubAnnualRewards(chainId: String): BigDecimal {
+        val era = relayChainRepository.getActiveEraIndex(chainId)
+        val rewards = relayChainRepository.getErasValidatorRewards(chainId)
+            .filterKeys { it < era }.toSortedMap().values.filterNotNull().takeLast(REWARD_HISTORY_ERAS)
+        require(rewards.isNotEmpty()) { "Completed Asset Hub era rewards are unavailable" }
+        val eraMillis = relayChainRepository.sessionLength(chainId) *
+            relayChainRepository.blockCreationTime(chainId) * relayChainRepository.eraLength(chainId)
+        return annualStakingRewards(rewards, eraMillis)
     }
 
     fun createSubquery(): SubqueryRewardCalculator {

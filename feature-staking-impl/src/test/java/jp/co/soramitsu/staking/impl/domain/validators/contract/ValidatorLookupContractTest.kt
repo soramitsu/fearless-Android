@@ -72,7 +72,7 @@ class ValidatorLookupContractTest {
         f.defaults()
         assertEquals(BigDecimal("0.125"), f.elected().first().electedInfo?.apy)
         verify(f.rewards).createSora(eq(f.asset), argThat { single().accountIdHex == f.hex[0] }, isNull())
-        verify(f.rewards, never()).createManual(any(), any(), anyOrNull())
+        verify(f.rewards, never()).createManual(any(), any())
     }
 
     @Test fun createReefReceivesTheUtilityAssetAndExactTargetSet() = runTest {
@@ -80,14 +80,14 @@ class ValidatorLookupContractTest {
         f.defaults()
         assertEquals(BigDecimal("0.125"), f.elected().first().electedInfo?.apy)
         verify(f.rewards).createReef(eq(f.asset), argThat { single().accountIdHex == f.hex[0] }, isNull())
-        verify(f.rewards, never()).createManual(any(), any(), anyOrNull())
+        verify(f.rewards, never()).createManual(any(), any())
     }
 
     @Test fun createTernoaReceivesTheUtilityAssetAndExactTargetSet() = runTest {
         val f = ValidatorCatalogueFixture(jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId)
         f.defaults()
         assertEquals(BigDecimal("0.125"), f.elected().first().electedInfo?.apy)
-        verify(f.rewards).createTernoa(eq(f.asset), argThat { single().accountIdHex == f.hex[0] }, isNull())
-        verify(f.rewards, never()).createManual(any(), any(), anyOrNull())
+        verify(f.rewards).createTernoa(eq(f.asset), argThat { single().accountIdHex == f.hex[0] })
+        verify(f.rewards, never()).createManual(any(), any())
     }
 }

@@ -12,6 +12,7 @@ import jp.co.soramitsu.staking.impl.domain.recommendations.ValidatorRecommendato
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
+import jp.co.soramitsu.staking.impl.presentation.validators.awaitValidatorCatalogue
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -56,7 +57,8 @@ class StartSelectValidatorsViewModel @Inject constructor(
 
     init {
         launch {
-            validatorRecommendatorFactory.awaitBlockCreatorsLoading(router.currentStackEntryLifecycle)
+            val lifecycle = router.currentStackEntryLifecycle
+            awaitValidatorCatalogue(resourceManager) { validatorRecommendatorFactory.awaitBlockCreatorsLoading(lifecycle) }
             loadingState.value = false
 
             router.listenAlertResultFlowFromStartSelectValidatorsScreen(KEY_ALERT_RESULT).collect {

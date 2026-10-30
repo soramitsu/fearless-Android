@@ -15,6 +15,7 @@ import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
+import jp.co.soramitsu.staking.impl.presentation.validators.awaitValidatorCatalogue
 import jp.co.soramitsu.staking.impl.presentation.validators.change.retractValidators
 import jp.co.soramitsu.staking.impl.presentation.validators.compose.StartSelectValidatorsViewModel
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
@@ -78,7 +79,8 @@ class StartChangeValidatorsViewModel @Inject constructor(
 
     init {
         launch {
-            validatorRecommendatorFactory.awaitBlockCreatorsLoading(router.currentStackEntryLifecycle)
+            val lifecycle = router.currentStackEntryLifecycle
+            awaitValidatorCatalogue(resourceManager) { validatorRecommendatorFactory.awaitBlockCreatorsLoading(lifecycle) }
 
             validatorsLoading.value = false
 

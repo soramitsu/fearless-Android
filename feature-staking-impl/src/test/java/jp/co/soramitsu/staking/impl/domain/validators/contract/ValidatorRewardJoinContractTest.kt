@@ -12,7 +12,6 @@ import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
-import org.mockito.kotlin.isNull
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -65,7 +64,7 @@ class ValidatorRewardJoinContractTest {
             .thenReturn(linkedMapOf(f.hex[0] to f.exposure, f.hex[2] to f.exposure))
         f.elected()
         val targets = argumentCaptor<List<RewardCalculationTarget>>()
-        verify(f.rewards).createManual(eq(f.chainId), targets.capture(), isNull())
+        verify(f.rewards).createManual(eq(f.chainId), targets.capture())
         val target = targets.firstValue.single()
         assertEquals(f.hex[0], target.accountIdHex)
         assertEquals("1200", target.totalStake.toString())

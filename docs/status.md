@@ -16,8 +16,11 @@ selected commits, not merged wholesale), versionCode 233, database 84.
   warnings from `ValidatorSlashInEra` and `UnappliedSlashes`, and the era clock
   from the relay (`Babe`, `Session`) with `BondedEras`. The unbonding period is
   read per account (`NominatorFastUnbondDuration` for nominators the runtime does
-  not slash). Rewards are estimated from completed-era budgets, not relay
-  inflation. Validator identities come from the People chains.
+  not slash); when it cannot be read, the full `BondingDuration` is shown.
+  Rewards are estimated from completed-era budgets, not relay inflation, and an
+  unreadable history gives a zero estimate. Validator identities come from the
+  People chains, and the validator choice screens offer a retry when the
+  validator list cannot be loaded.
 - Activation: the catalogue marks those two assets with `"staking": "assetHub"`.
   4.3.0 maps that value to unsupported (shown with 4.3.0's own compiled mapping),
   so older builds keep staking off; removing it turns 4.3.1's Hub staking off.

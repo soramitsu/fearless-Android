@@ -16,6 +16,8 @@ All notable changes to this project will be documented in this file.
   metadata; an unknown one is accepted only when it takes no bytes.
 - Validators: the validator search keeps its catalogue and selection bound to
   the network and account it was opened for, and recovers after a failed load.
+  The validator choice screens offer a retry when the validator list cannot be
+  loaded instead of closing the app.
 - Accounts: a network-account JSON export reads the wallet once, and an
   Ethereum export never carries the Substrate seed.
 

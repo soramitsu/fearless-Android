@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.utils.numberConstant
 import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.core.runtime.storage.returnType
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromHexOrNull
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
@@ -18,20 +19,22 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindCurrentE
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindEraRewardPoints
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindExposure
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindExposurePage
-import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindNominations
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindValidatorPrefs
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withTimeout
 import java.math.BigInteger
 
 /**
  * On-chain discovery includes former nominations; it does not depend on a relay-chain indexer.
  *
- * Exposures of the eras elected after the account's nominations were submitted back exactly its current targets,
- * so only those targets' pages are read for them. Every page of an earlier era is scanned, as for an account
- * without nominations: on Polkadot Asset Hub a full history is about 50 000 pages (70 MB), the current targets'
- * pages a few thousand.
+ * The current targets are not a history (a validator's `kick` removes a target and keeps `submitted_in`), so every
+ * era is searched. Only unclaimed pages can pay, and within days of an era nearly all its pages are claimed, so a
+ * page is read only when its validator has not claimed it: on Polkadot Asset Hub (2026-10-30) a full history is
+ * about 50 000 pages (70 MB), of which a few hundred are unclaimed.
  */
 internal class AssetHubPayoutRepository(
     private val registry: ChainRegistry
@@ -41,63 +44,77 @@ internal class AssetHubPayoutRepository(
         val snapshot = AssetHubStorageSnapshot.capture(registry, state.chain.id)
         val runtime = snapshot.runtime
         val staking = runtime.metadata.staking()
-        val paged = staking.storage("ErasStakersPaged")
-        val eraKeys = listOf(
-            staking.storage("CurrentEra").storageKey(),
-            staking.storage("ActiveEra").storageKey(),
-            staking.storage("Nominators").storageKey(runtime, state.stashId)
-        )
+        val eraKeys = listOf(staking.storage("CurrentEra").storageKey(), staking.storage("ActiveEra").storageKey())
         val eraValues = snapshot.query(eraKeys)
         val currentEra = bindCurrentEra(requireNotNull(eraValues[eraKeys[0]]), runtime)
         val activeEra = bindActiveEra(requireNotNull(eraValues[eraKeys[1]]), runtime)
         val firstEra = (currentEra - staking.numberConstant("HistoryDepth", runtime)).max(BigInteger.ZERO)
-        val nominations = eraValues[eraKeys[2]]?.let { bindNominations(it, runtime) }
-        // A nomination submitted in era s can miss the election already running for s + 1.
-        val targetedFrom = nominations?.let { (it.submittedInEra + ELECTION_LAG).max(firstEra).min(activeEra) } ?: activeEra
-        val scanned = eraRange(firstEra, targetedFrom).flatMap { era -> snapshot.discoverKeys(paged.storageKey(runtime, era)) }
-        val targeted = nominations?.let { targetPageKeys(snapshot, eraRange(targetedFrom, activeEra), it.targets) }.orEmpty()
-        val keys = scanned + targeted
-        require(keys.all { assetHubExposureKey(it).era.let { era -> era >= firstEra && era < activeEra } }) {
-            "Exposure page outside the reward history"
-        }
-        val result = mutableListOf<Payout>()
+        // Eras are independent reads at one block. One at a time, a full history took 130-140 s of the timeout from
+        // a desktop connection (2026-10-30); a few in flight keep it well inside on a phone.
+        val keys = inParallel(eraRange(firstEra, activeEra)) { era -> unclaimedPageKeys(snapshot, era) }.flatten()
         // Bound memory and RPC payloads while retaining every historical page.
-        for (chunk in keys.chunked(PAGE_BATCH)) {
-            currentCoroutineContext().ensureActive()
-            val pages = snapshot.query(chunk)
-            val relevant = chunk.mapNotNull { key ->
-                val raw = pages[key] ?: error("Exposure disappeared from finalized staking state")
-                val page = requireNotNull(bindExposurePage(raw, runtime)) { "Malformed staking exposure page" }
-                val identity = assetHubExposureKey(key)
-                require(staking.storage("ErasStakersPaged").storageKey(runtime, identity.era, identity.validator, identity.page) == key)
-                val ownValidator = identity.validator.contentEquals(state.stashId)
-                if (ownValidator || page.others.any { it.who.contentEquals(state.stashId) }) identity to page else null
-            }
-            result += calculate(snapshot, state, relevant)
-        }
-        result += ownStakeOnlyPayouts(snapshot, state, firstEra, activeEra)
-        result
+        val relevant = inParallel(keys.chunked(PAGE_BATCH)) { chunk -> stashPages(snapshot, state, chunk) }.flatten()
+        calculate(snapshot, state, relevant) + ownStakeOnlyPayouts(snapshot, state, firstEra, activeEra)
     }
 
-    /** Keys of every exposure page of [validators] in [eras], from their overviews' page counts. */
-    private suspend fun targetPageKeys(
+    /** The exposure pages among [keys] that pay the stash: as the page's validator or as one of its nominators. */
+    private suspend fun stashPages(
         snapshot: AssetHubStorageSnapshot,
-        eras: List<BigInteger>,
-        validators: List<ByteArray>
-    ): List<String> {
+        state: StakingState.Stash,
+        keys: List<String>
+    ): List<Pair<AssetHubExposureKey, ExposurePage>> {
+        val runtime = snapshot.runtime
+        val paged = runtime.metadata.staking().storage("ErasStakersPaged")
+        val pages = snapshot.query(keys)
+        return keys.mapNotNull { key ->
+            val raw = pages[key] ?: error("Exposure disappeared from finalized staking state")
+            val page = requireNotNull(bindExposurePage(raw, runtime)) { "Malformed staking exposure page" }
+            val identity = assetHubExposureKey(key)
+            require(paged.storageKey(runtime, identity.era, identity.validator, identity.page) == key)
+            val ownValidator = identity.validator.contentEquals(state.stashId)
+            if (ownValidator || page.others.any { it.who.contentEquals(state.stashId) }) identity to page else null
+        }
+    }
+
+    /** At most [PARALLEL_READS] items in flight; results keep the items' order and the first failure fails all. */
+    private suspend fun <T, R> inParallel(items: List<T>, block: suspend (T) -> R): List<R> = coroutineScope {
+        val permits = Semaphore(PARALLEL_READS)
+        items.map { item -> async { permits.withPermit { block(item) } } }.awaitAll()
+    }
+
+    /** The era's exposure pages that their validator has not claimed: claimed pages pay nothing more. */
+    private suspend fun unclaimedPageKeys(snapshot: AssetHubStorageSnapshot, era: BigInteger): List<String> {
         val runtime = snapshot.runtime
         val staking = runtime.metadata.staking()
-        val overview = staking.storage("ErasStakersOverview")
-        val paged = staking.storage("ErasStakersPaged")
-        val pairs = eras.flatMap { era -> validators.map { era to it } }
-        val keys = pairs.map { (era, validator) -> overview.storageKey(runtime, era, validator) }
-        val values = snapshot.query(keys)
-        return pairs.zip(keys).flatMap { (pair, key) ->
-            val (era, validator) = pair
-            val pageCount = values[key]?.let { requireNotNull(bindExposure(it, runtime)).pageCount } ?: BigInteger.ZERO
-            generateSequence(BigInteger.ZERO) { it + BigInteger.ONE }.takeWhile { it < pageCount }
-                .map { page -> paged.storageKey(runtime, era, validator, page) }.toList()
+        val pages = snapshot.discoverKeys(staking.storage("ErasStakersPaged").storageKey(runtime, era))
+            .associateWith(::assetHubExposureKey)
+        require(pages.values.all { it.era == era }) { "Exposure page outside its era" }
+        val claimed = staking.storage("ClaimedRewards")
+        val claimers = snapshot.discoverKeys(claimed.storageKey(runtime, era)).map { key ->
+            val bytes = key.fromHex()
+            require(bytes.size == CLAIMED_KEY_BYTES) { "Unsupported claimed rewards key layout" }
+            val validator = bytes.copyOfRange(VALIDATOR_OFFSET, VALIDATOR_END)
+            require(claimed.storageKey(runtime, era, validator) == key)
+            validator.toHexString()
+        }.toSet()
+        val pagesByValidator = pages.values.groupBy { it.validator.toHexString() }
+        // A validator with one page and a claim has claimed that page; only several pages need the claimed list.
+        val partly = pagesByValidator.filter { (validator, own) -> validator in claimers && own.size > 1 }.keys.toList()
+        val claimedKeys = partly.map { claimed.storageKey(runtime, era, it.fromHex()) }
+        val claimedValues = snapshot.query(claimedKeys)
+        val claimedPages = partly.zip(claimedKeys).associate { (validator, key) ->
+            validator to claimedValues[key]?.let {
+                claimed.returnType().fromHexOrNull(runtime, it) as? List<*> ?: error("Malformed claimed reward pages")
+            }.orEmpty()
         }
+        return pages.filter { (_, identity) ->
+            val validator = identity.validator.toHexString()
+            when {
+                validator !in claimers -> true
+                pagesByValidator.getValue(validator).size == 1 -> false
+                else -> identity.page !in claimedPages.getValue(validator)
+            }
+        }.keys.toList()
     }
 
     private fun eraRange(from: BigInteger, until: BigInteger): List<BigInteger> =
@@ -228,13 +245,14 @@ internal class AssetHubPayoutRepository(
     private companion object {
         const val STAKING_READ_TIMEOUT_MILLIS = 180_000L
         const val PAGE_BATCH = 128
-        val ELECTION_LAG: BigInteger = BigInteger.valueOf(2)
+        const val PARALLEL_READS = 8
         const val REWARD_BUDGET_INDEX = 3
         const val REWARD_POINTS_INDEX = 4
     }
 }
 
 private const val EXPOSURE_KEY_BYTES = 96
+private const val CLAIMED_KEY_BYTES = 84
 private const val ERA_OFFSET = 40
 private const val ERA_END = 44
 private const val VALIDATOR_OFFSET = 52

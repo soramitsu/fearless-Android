@@ -35,6 +35,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.util.concurrent.CopyOnWriteArrayList
 
 class AssetHubPayoutContractTest {
     private class Fixture {
@@ -59,8 +60,9 @@ class AssetHubPayoutContractTest {
         var duplicateChange = false
         var silentMethod: String? = null
         val cancellable = mock<SocketService.Cancellable>()
-        val queriedBlocks = mutableListOf<String?>()
-        val queriedPrefixes = mutableListOf<String>()
+        // The scan reads eras concurrently, so requests are recorded from several threads.
+        val queriedBlocks = CopyOnWriteArrayList<String?>()
+        val queriedKeys = CopyOnWriteArrayList<String>()
         val repository = AssetHubPayoutRepository(registry)
 
         @Suppress("UNCHECKED_CAST")
@@ -93,7 +95,6 @@ class AssetHubPayoutContractTest {
                     "state_getKeysPaged" -> {
                         queriedBlocks += request.params[3] as String
                         val prefix = request.params[0] as String
-                        queriedPrefixes += prefix
                         val paged = staking.storage("ErasStakersPaged").storageKey()
                         if (prefix.startsWith(paged)) {
                             // Malformed entries are served to every page query so that the scan must reject them.
@@ -105,6 +106,7 @@ class AssetHubPayoutContractTest {
                     "state_queryStorageAt" -> {
                         queriedBlocks += request.params[1] as String
                         val keys = request.params[0] as List<String>
+                        queriedKeys += keys
                         val changes = if (omitResponse) emptyList() else keys.map { listOf(it, values[it]) }
                         listOf(
                             mapOf(
@@ -144,37 +146,22 @@ class AssetHubPayoutContractTest {
         put("Nominators", Struct.Instance(mapOf("targets" to targets, "submittedIn" to submittedIn.toBigInteger(), "suppressed" to false)), owner)
     }
 
-    private fun Fixture.pagePrefixes() = queriedPrefixes.filter { it.startsWith(staking.storage("ErasStakersPaged").storageKey()) }
-
-    @Test fun `eras elected after the nominations read only the current targets' pages`() = runTest {
+    @Test fun `a validator that kicked the account still shows its unpaid page`() = runTest {
         val f = Fixture()
         f.setup()
-        f.nominate(listOf(f.formerValidator), submittedIn = 10)
+        // `kick` removes the former validator from the targets and keeps submitted_in.
+        f.nominate(listOf(ByteArray(32) { 3 }), submittedIn = 10)
         val payout = f.payouts(f.state).single()
         assertEquals(8100.toBigInteger(), payout.amount)
         assertEquals(99.toBigInteger(), payout.era)
-        assertTrue(f.pagePrefixes().isEmpty())
     }
 
-    @Test fun `eras the nominations may not have reached are scanned page by page`() = runTest {
+    @Test fun `a claimed single page is skipped without reading its exposure`() = runTest {
         val f = Fixture()
         f.setup()
-        val other = ByteArray(32) { 3 }
-        f.nominate(listOf(other), submittedIn = 97)
-        // Era 99 is read through the current target only; eras up to 98 are scanned.
+        f.put("ClaimedRewards", listOf(BigInteger.ZERO), 99.toBigInteger(), f.formerValidator)
         assertTrue(f.payouts(f.state).isEmpty())
-        val scanned = f.pagePrefixes().map { prefix -> (17..98).single { prefix == f.staking.storage("ErasStakersPaged").storageKey(f.runtime, it.toBigInteger()) } }
-        assertEquals((17..98).toList(), scanned)
-        f.nominate(listOf(other), submittedIn = 98)
-        assertEquals(8100.toBigInteger(), f.payouts(f.state).single().amount)
-    }
-
-    @Test fun `a target page the overview counts but storage lacks is an error`() = runTest {
-        val f = Fixture()
-        f.setup()
-        f.nominate(listOf(f.formerValidator), submittedIn = 10)
-        f.put("ErasStakersOverview", Struct.Instance(mapOf("total" to 1000.toBigInteger(), "own" to 100.toBigInteger(), "nominatorCount" to BigInteger.ONE, "pageCount" to 2.toBigInteger())), 99.toBigInteger(), f.formerValidator)
-        assertTrue(runCatching { f.payouts(f.state) }.isFailure)
+        assertTrue(f.pageKeys.none { it in f.queriedKeys })
     }
 
     @Test fun `historical nomination is discovered even after account stops nominating`() = runTest {

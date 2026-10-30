@@ -11,14 +11,14 @@ import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.model.NetworkInfo
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
@@ -32,8 +32,8 @@ import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 /**
  * An Asset Hub unbonding period depends on the account: a nominator whom the runtime does not slash unbonds in
- * NominatorFastUnbondDuration eras, anyone else in BondingDuration. The period shown follows the selected wallet
- * and an unreadable period is an error, never a period of zero hours.
+ * NominatorFastUnbondDuration eras, anyone else in BondingDuration. The period shown follows the selected wallet.
+ * When it cannot be read, the full BondingDuration is shown: never a shorter period, never zero hours, no failure.
  */
 class AssetHubLockupPeriodTest {
     private val fastAccount = ByteArray(32) { 1 }
@@ -92,6 +92,7 @@ class AssetHubLockupPeriodTest {
             whenever(repository.minimumNominatorBond(any())).thenReturn(BigInteger.ONE)
             whenever(repository.assetHubUnbondingEras(chainId, fastAccount)).thenReturn(2.toBigInteger())
             whenever(repository.assetHubUnbondingEras(chainId, fullAccount)).thenReturn(28.toBigInteger())
+            whenever(constants.lockupPeriodInEras(chainId)).thenReturn(28.toBigInteger())
             whenever(constants.maxRewardedNominatorPerValidator(chainId)).thenReturn(null)
             whenever(shared.chain()).thenReturn(chain)
         }
@@ -100,35 +101,49 @@ class AssetHubLockupPeriodTest {
     @Test
     fun `wallet change refreshes the Hub unbonding period`() = runTest {
         val f = Fixture(AssetHubStaking.POLKADOT).apply { setUp() }
-        val periods = mutableListOf<Int>()
+        val periods = Channel<Int>(Channel.UNLIMITED)
         val collection = launch {
-            f.interactor.observeNetworkInfoState().take(2).toList().mapTo(periods) { (it as NetworkInfo.RelayChain).lockupPeriodInHours }
+            f.interactor.observeNetworkInfoState().take(2).collect { periods.send((it as NetworkInfo.RelayChain).lockupPeriodInHours) }
         }
-        yield()
+        // The wallet changes only after the first wallet's period is shown; a state flow would conflate an earlier change.
+        assertEquals(48, periods.receive())
         f.wallets.value = wallet(fullAccount)
+        assertEquals(672, periods.receive())
         collection.join()
-        assertEquals(listOf(48, 672), periods)
     }
 
     @Test
-    fun `unreadable Hub period is an error rather than no period`() = runTest {
+    fun `unreadable Hub period shows the full bonding duration`() = runTest {
         val f = Fixture(AssetHubStaking.KUSAMA).apply { setUp() }
-        whenever(f.repository.assetHubUnbondingEras(AssetHubStaking.KUSAMA, fastAccount)).thenThrow(IllegalStateException("no runtime"))
-        assertTrue(runCatching { f.interactor.observeNetworkInfoState().first() }.isFailure)
-        assertTrue(runCatching { f.interactor.getLockupPeriodInHours() }.isFailure)
+        whenever(f.repository.assetHubUnbondingEras(AssetHubStaking.KUSAMA, fastAccount)).thenThrow(IllegalStateException("node unreachable"))
+        val selected = wallet(fastAccount)
+        whenever(f.accounts.getSelectedMetaAccount()).thenReturn(selected)
+        assertEquals(672, (f.interactor.observeNetworkInfoState().first() as NetworkInfo.RelayChain).lockupPeriodInHours)
+        assertEquals(672, f.interactor.getLockupPeriodInHours())
+        assertEquals(672, f.interactor.unstakingPeriod())
+    }
+
+    @Test
+    fun `cancelled Hub period lookup stays cancelled`() = runTest {
+        val f = Fixture(AssetHubStaking.POLKADOT).apply { setUp() }
+        whenever(f.repository.assetHubUnbondingEras(AssetHubStaking.POLKADOT, fastAccount)).thenAnswer { throw CancellationException("left") }
+        val selected = wallet(fastAccount)
+        whenever(f.accounts.getSelectedMetaAccount()).thenReturn(selected)
+        assertTrue(runCatching { f.interactor.getLockupPeriodInHours() }.exceptionOrNull() is CancellationException)
     }
 
     @Test
     fun `wallet without a Hub account cannot inherit another wallet's period`() = runTest {
         val f = Fixture(AssetHubStaking.POLKADOT).apply { setUp() }
         f.wallets.value = mock { on { chainAccounts } doReturn emptyMap() }
-        assertTrue(runCatching { f.interactor.observeNetworkInfoState().first() }.isFailure)
+        assertEquals(672, (f.interactor.observeNetworkInfoState().first() as NetworkInfo.RelayChain).lockupPeriodInHours)
     }
 
     @Test
     fun `direct lookup uses the selected wallet's account`() = runTest {
         val f = Fixture(AssetHubStaking.POLKADOT).apply { setUp() }
-        whenever(f.accounts.getSelectedMetaAccount()).thenReturn(wallet(fullAccount))
+        val selected = wallet(fullAccount)
+        whenever(f.accounts.getSelectedMetaAccount()).thenReturn(selected)
         assertEquals(672, f.interactor.getLockupPeriodInHours())
     }
 
