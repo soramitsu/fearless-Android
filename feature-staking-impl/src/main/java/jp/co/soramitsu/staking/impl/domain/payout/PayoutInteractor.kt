@@ -23,7 +23,7 @@ class PayoutInteractor(
 
             extrinsicService.estimateFee(chain, accountId) {
                 payouts.forEach {
-                    payoutStakers(it.era, it.validatorAddress.toAccountId())
+                    payoutStakers(it.era, it.validatorAddress.toAccountId(), it.page)
                 }
             }
         }
@@ -32,11 +32,12 @@ class PayoutInteractor(
     suspend fun makePayouts(payload: MakePayoutPayload): Result<String> {
         return withContext(Dispatchers.IO) {
             val chain = stakingSharedState.chain()
+            require(chain.id == payload.token.configuration.chainId) { "Staking chain changed after payout review" }
             val accountId = chain.accountIdOf(payload.originAddress)
 
             extrinsicService.submitExtrinsic(chain, accountId) {
                 payload.payoutStakersCalls.forEach {
-                    payoutStakers(it.era, it.validatorAddress.toAccountId())
+                    payoutStakers(it.era, it.validatorAddress.toAccountId(), it.page)
                 }
             }
         }

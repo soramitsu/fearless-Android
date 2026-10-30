@@ -18,7 +18,9 @@ import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.model.TotalRewardLocal
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.assethub.AssetHubStaking
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
@@ -110,6 +112,7 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -168,30 +171,47 @@ class StakingRelayChainScenarioInteractor(
         return stakingSharedState.assetWithChain.filter { it.asset.staking == StakingType.RELAYCHAIN }
             .distinctUntilChanged()
             .flatMapLatest { (chain, _) ->
-                val lockupPeriod = runCatching { getLockupPeriodInHours(chain.id) }.getOrDefault(0)
-
-                stakingRelayChainScenarioRepository.legacyElectedExposuresInActiveEra(chain.id)
-                    .map { exposuresMap ->
-                        val exposures = exposuresMap.values
-
-                        val minimumNominatorBond = chain.utilityAsset?.let {
-                            stakingRelayChainScenarioRepository.minimumNominatorBond(it)
-                        }.orZero()
-
-                        val minActiveStake = stakingRelayChainScenarioRepository.minimumActiveStake(chain.id)
-                            ?: exposures.minOf { exposure -> exposure.others.minOf { it.value } }
-
-                        val minimalStakeInPlanks =
-                            minActiveStake.coerceAtLeast(minimumNominatorBond)
-
-                        NetworkInfo.RelayChain(
-                            lockupPeriodInHours = lockupPeriod,
-                            minimumStake = minimalStakeInPlanks,
-                            totalStake = totalStake(exposures),
-                            nominatorsCount = activeNominators(chain.id, exposures),
-                            shouldUseMinimumStakeMultiplier = true
-                        )
+                // A Hub's unbonding period depends on the account, so it follows the selected wallet.
+                if (AssetHubStaking.isHub(chain.id)) {
+                    accountRepository.selectedMetaAccountFlow().map { account ->
+                        chain to requireNotNull(account.accountId(chain)) { "Selected wallet has no staking account" }
                     }
+                } else {
+                    flowOf(chain to null)
+                }
+            }
+            .distinctUntilChanged { old, new -> old.first.id == new.first.id && old.second.contentEquals(new.second) }
+            .flatMapLatest { (chain, accountId) -> networkInfoForChain(chain, accountId) }
+    }
+
+    private suspend fun networkInfoForChain(chain: Chain, accountId: AccountId?): Flow<NetworkInfo> {
+        val lockupPeriod = runCatching { getLockupPeriodInHours(chain.id, accountId) }.getOrElse {
+            // A Hub period that cannot be read must not be shown as no period at all.
+            if (it is CancellationException || AssetHubStaking.isHub(chain.id)) throw it
+            0
+        }
+
+        return stakingRelayChainScenarioRepository.legacyElectedExposuresInActiveEra(chain.id)
+            .map { exposuresMap ->
+                val exposures = exposuresMap.values
+
+                val minimumNominatorBond = chain.utilityAsset?.let {
+                    stakingRelayChainScenarioRepository.minimumNominatorBond(it)
+                }.orZero()
+
+                val minActiveStake = stakingRelayChainScenarioRepository.minimumActiveStake(chain.id)
+                    ?: exposures.minOf { exposure -> exposure.others.minOf { it.value } }
+
+                val minimalStakeInPlanks =
+                    minActiveStake.coerceAtLeast(minimumNominatorBond)
+
+                NetworkInfo.RelayChain(
+                    lockupPeriodInHours = lockupPeriod,
+                    minimumStake = minimalStakeInPlanks,
+                    totalStake = totalStake(exposures),
+                    nominatorsCount = activeNominators(chain.id, exposures),
+                    shouldUseMinimumStakeMultiplier = true
+                )
             }
     }
 
@@ -215,9 +235,13 @@ class StakingRelayChainScenarioInteractor(
         }.size
     }
 
-    private suspend fun getLockupPeriodInHours(chainId: ChainId): Int {
-        return stakingConstantsRepository.lockupPeriodInEras(chainId)
-            .toInt() * stakingRelayChainScenarioRepository.hoursInEra(chainId)
+    private suspend fun getLockupPeriodInHours(chainId: ChainId, accountId: AccountId?): Int {
+        val eras = if (AssetHubStaking.isHub(chainId)) {
+            stakingRelayChainScenarioRepository.assetHubUnbondingEras(chainId, requireNotNull(accountId))
+        } else {
+            stakingConstantsRepository.lockupPeriodInEras(chainId)
+        }
+        return eras.toInt() * stakingRelayChainScenarioRepository.hoursInEra(chainId)
     }
 
     override fun stakingStateFlow(): Flow<StakingState> {
@@ -604,7 +628,8 @@ class StakingRelayChainScenarioInteractor(
                             amountInPlanks = amount,
                             timeLeft = leftTime,
                             createdAt = currentTimestamp,
-                            closeToExpire = closeToExpire
+                            closeToExpire = closeToExpire,
+                            page = page
                         )
                     }
                 }.sortedBy { it.era }
@@ -669,7 +694,13 @@ class StakingRelayChainScenarioInteractor(
         }
 
     suspend fun getLockupPeriodInHours() = withContext(Dispatchers.Default) {
-        getLockupPeriodInHours(stakingSharedState.chainId())
+        val chain = stakingSharedState.chain()
+        val accountId = if (AssetHubStaking.isHub(chain.id)) {
+            requireNotNull(accountRepository.getSelectedMetaAccount().accountId(chain)) { "Selected wallet has no staking account" }
+        } else {
+            null
+        }
+        getLockupPeriodInHours(chain.id, accountId)
     }
 
     override suspend fun getRewardDestination(accountStakingState: StakingState): RewardDestination =

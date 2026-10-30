@@ -139,7 +139,11 @@ class StakingRelaychainScenarioViewModel(
     }.stateIn(baseViewModel.stakingStateScope, SharingStarted.WhileSubscribed(5_000), defaultAmountInputState)
 
     private val estimatedEarnings = combine(enteredAmountFlow, currentAssetFlow) { amount, asset ->
-        calculateReturns(asset, amount.orZero())
+        // Reward data that cannot be read (an unreachable Hub, say) leaves the estimate unknown, not the app closed.
+        runCatching { calculateReturns(asset, amount.orZero()) }.getOrElse { error ->
+            if (error is CancellationException) throw error
+            ReturnsModel.default
+        }
     }.stateIn(baseViewModel.stakingStateScope, SharingStarted.WhileSubscribed(5_000), ReturnsModel.default)
 
     private val welcomeStakingValidationSystem = ValidationSystem(
@@ -436,7 +440,7 @@ class StakingRelaychainScenarioViewModel(
     }
 
     override suspend fun networkInfo(): Flow<LoadingState<StakingNetworkInfoModel>> {
-        return combine(
+        val info: Flow<StakingNetworkInfoModel> = combine(
             scenarioInteractor.observeNetworkInfoState().map { it as NetworkInfo.RelayChain },
             stakingInteractor.currentAssetFlow()
         ) { networkInfo, asset ->
@@ -471,7 +475,13 @@ class StakingRelaychainScenarioViewModel(
                 totalStakeFiat,
                 networkInfo.nominatorsCount.toString()
             )
-        }.withLoading()
+        }
+        return info.withLoading().catch { error ->
+            // An Asset Hub period that cannot be read is reported; the screen keeps loading instead of crashing.
+            if (error is CancellationException) throw error
+            emit(LoadingState.Loading())
+            baseViewModel.showError(error)
+        }
     }
 
     override suspend fun alerts(): Flow<LoadingState<List<AlertModel>>> {

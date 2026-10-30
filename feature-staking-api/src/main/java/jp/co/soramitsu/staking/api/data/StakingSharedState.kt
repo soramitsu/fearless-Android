@@ -4,6 +4,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.data.holders.ChainIdHolder
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.runtime.assethub.AssetHubStaking
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -188,11 +189,12 @@ class StakingSharedState(
         return "${item.chainId}$DELIMITER${item.chainAssetId}$DELIMITER${item.type.name}"
     }
 
+    /** A choice saved on Polkadot, Kusama or Westend before the Asset Hub migration names the relay chain. */
     private fun decodeStored(value: String): StakingAssetSelection? {
         val first = value.indexOf(DELIMITER)
         val last = value.lastIndexOf(DELIMITER)
         if (first <= 0 || last <= first + 1 || last == value.lastIndex) return null
-        val chainId = value.substring(0, first)
+        val chainId = AssetHubStaking.destination(value.substring(0, first))
         val assetId = value.substring(first + 1, last)
         return when (value.substring(last + 1)) {
             StakingType.RELAYCHAIN.name -> StakingAssetSelection.RelayChainStaking(chainId, assetId)

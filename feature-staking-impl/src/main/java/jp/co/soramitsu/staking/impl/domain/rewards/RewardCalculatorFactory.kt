@@ -4,6 +4,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.runtime.assethub.AssetHubStaking
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
@@ -34,11 +35,23 @@ class RewardCalculatorFactory(
         chainId: String,
         calculationTargets: List<RewardCalculationTarget>
     ): ManualRewardCalculator = withContext(Dispatchers.Default) {
-        val totalIssuance = stakingRepository.getTotalIssuance(chainId)
+        val annualRewards = if (AssetHubStaking.isHub(chainId)) {
+            val era = relayChainRepository.getActiveEraIndex(chainId)
+            val rewards = relayChainRepository.getErasValidatorRewards(chainId)
+                .filterKeys { it < era }.toSortedMap().values.filterNotNull().takeLast(REWARD_HISTORY_ERAS)
+            require(rewards.isNotEmpty()) { "Completed Asset Hub era rewards are unavailable" }
+            val eraMillis = relayChainRepository.sessionLength(chainId) *
+                relayChainRepository.blockCreationTime(chainId) * relayChainRepository.eraLength(chainId)
+            annualStakingRewards(rewards, eraMillis)
+        } else {
+            null
+        }
+        val totalIssuance = if (annualRewards == null) stakingRepository.getTotalIssuance(chainId) else BigInteger.ONE
 
         ManualRewardCalculator(
             validators = calculationTargets,
-            totalIssuance = totalIssuance
+            totalIssuance = totalIssuance,
+            annualStakerRewards = annualRewards
         )
     }
 
@@ -209,4 +222,15 @@ class RewardCalculatorFactory(
             )
         }
     }
+}
+
+private const val REWARD_HISTORY_ERAS = 14
+
+/** Observed completed-era budget, annualized using the relay clock; not an inflation forecast. */
+internal fun annualStakingRewards(rewards: List<BigInteger>, eraMillis: BigInteger): BigDecimal {
+    require(rewards.isNotEmpty() && rewards.all { it.signum() >= 0 } && eraMillis.signum() > 0)
+    val annualMillis = 31_536_000_000L.toBigDecimal()
+    return rewards.fold(BigInteger.ZERO, BigInteger::add).toBigDecimal()
+        .multiply(annualMillis)
+        .divide(rewards.size.toBigDecimal().multiply(eraMillis.toBigDecimal()), java.math.MathContext.DECIMAL128)
 }

@@ -40,6 +40,8 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageOrNull
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.runtime.assethub.AssetHubStaking
+import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindBondedEraSession
 import jp.co.soramitsu.staking.api.domain.api.AccountIdMap
 import jp.co.soramitsu.staking.api.domain.model.EraIndex
 import jp.co.soramitsu.staking.api.domain.model.Exposure
@@ -72,6 +74,7 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindSlashing
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindStakingLedger
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindValidatorPrefs
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.activeEraStorageKeyOrNull
+import jp.co.soramitsu.staking.impl.data.repository.AssetHubSlashWarnings
 import jp.co.soramitsu.staking.impl.data.repository.HistoricalMapping
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import kotlin.math.floor
@@ -104,7 +107,7 @@ class StakingRelayChainScenarioRepository(
     private val storageCache: StorageCache
 ) {
     suspend fun sessionLength(chainId: ChainId): BigInteger {
-        val runtime = runtimeFor(chainId)
+        val runtime = runtimeFor(AssetHubStaking.relay(chainId) ?: chainId)
 
         return runtime.metadata.babe()
             .numberConstant("EpochDuration", runtime) // How many blocks per session
@@ -114,23 +117,31 @@ class StakingRelayChainScenarioRepository(
         // Current session index
         keyBuilder = { it.metadata.session().storage("CurrentIndex").storageKey() },
         binding = ::bindCurrentIndex,
-        chainId = chainId
+        chainId = AssetHubStaking.relay(chainId) ?: chainId
     )
 
     suspend fun currentSlot(chainId: ChainId) = remoteStorage.query(
         keyBuilder = { it.metadata.babe().storage("CurrentSlot").storageKey() },
         binding = ::bindCurrentSlot,
-        chainId = chainId
+        chainId = AssetHubStaking.relay(chainId) ?: chainId
     )
 
     suspend fun genesisSlot(chainId: ChainId) = remoteStorage.query(
         keyBuilder = { it.metadata.babe().storage("GenesisSlot").storageKey() },
         binding = ::bindCurrentSlot,
-        chainId = chainId
+        chainId = AssetHubStaking.relay(chainId) ?: chainId
     )
 
     suspend fun eraStartSessionIndex(chainId: ChainId, currentEra: BigInteger): EraIndex {
         val runtime = runtimeFor(chainId)
+        if (AssetHubStaking.isHub(chainId)) {
+            require(runtime.metadata.moduleOrNull("StakingRcClient") != null) { "Asset Hub staking runtime unavailable" }
+            return remoteStorage.query(
+                keyBuilder = { it.metadata.staking().storage("BondedEras").storageKey() },
+                binding = { scale, snapshot -> bindBondedEraSession(scale, snapshot, currentEra) },
+                chainId = chainId
+            )
+        }
         return remoteStorage.query( // Index of session from with the era started
             keyBuilder = {
                 it.metadata.staking().storage("ErasStartSessionIndex")
@@ -149,14 +160,18 @@ class StakingRelayChainScenarioRepository(
     }
 
     suspend fun blockCreationTime(chainId: ChainId): BigInteger {
-        val runtime = runtimeFor(chainId)
+        val runtime = runtimeFor(AssetHubStaking.relay(chainId) ?: chainId)
 
         return runtime.metadata.babe().numberConstant("ExpectedBlockTime", runtime)
     }
 
-    suspend fun getActiveEraIndex(chainId: ChainId): EraIndex = localStorage.query(
+    suspend fun getActiveEraIndex(chainId: ChainId): EraIndex =
+        (if (AssetHubStaking.isHub(chainId)) remoteStorage else localStorage).query(
         keyBuilder = { it.metadata.activeEraStorageKeyOrNull() },
-        binding = ::bindActiveEra,
+        binding = { scale, runtime ->
+            if (AssetHubStaking.isHub(chainId)) requireNotNull(scale) { "Asset Hub active era unavailable" }
+            bindActiveEra(scale, runtime)
+        },
         chainId = chainId
     )
 
@@ -342,6 +357,9 @@ class StakingRelayChainScenarioRepository(
         withContext(Dispatchers.Default) {
             val runtime = runtimeFor(chainId)
 
+            if (AssetHubStaking.isHub(chainId) && runtime.metadata.staking().storageOrNull("SlashingSpans") == null) {
+                return@withContext AssetHubSlashWarnings(chainRegistry).get(chainId, accountIdsHex)
+            }
             val storage = runtime.metadata.staking().storage("SlashingSpans")
 
             val activeEraIndex = getActiveEraIndex(chainId)
@@ -371,6 +389,30 @@ class StakingRelayChainScenarioRepository(
             )
         }
 
+    suspend fun assetHubUnbondingEras(chainId: ChainId, stash: AccountId): BigInteger {
+        require(AssetHubStaking.isHub(chainId))
+        val runtime = runtimeFor(chainId)
+        require(runtime.metadata.moduleOrNull("StakingRcClient") != null)
+        val staking = runtime.metadata.staking()
+        val full = staking.numberConstant("BondingDuration", runtime)
+        val fast = staking.numberConstant("NominatorFastUnbondDuration", runtime)
+        val slashable = remoteStorage.query(
+            chainId = chainId,
+            keyBuilder = { staking.storage("AreNominatorsSlashable").storageKey() },
+            binding = { scale, snapshot ->
+                scale?.let { staking.storage("AreNominatorsSlashable").returnType().fromHex(snapshot, it) as Boolean } ?: true
+            }
+        )
+        val lastValidatorEra = remoteStorage.query(
+            chainId = chainId,
+            keyBuilder = { staking.storage("LastValidatorEra").storageKey(it, stash) },
+            binding = { scale, snapshot ->
+                scale?.let { staking.storage("LastValidatorEra").returnType().fromHex(snapshot, it) as BigInteger }
+            }
+        )
+        return assetHubUnbondingDuration(full, fast, slashable, getActiveEraIndex(chainId), lastValidatorEra)
+    }
+
     private fun isSlashed(
         slashingSpans: SlashingSpans?,
         activeEraIndex: BigInteger,
@@ -379,6 +421,9 @@ class StakingRelayChainScenarioRepository(
         slashingSpans != null && activeEraIndex - slashingSpans.lastNonZeroSlash < slashDeferDuration
 
     suspend fun getSlashingSpan(chainId: ChainId, accountId: AccountId): SlashingSpans? {
+        val runtime = runtimeFor(chainId)
+        if (AssetHubStaking.isHub(chainId) && runtime.metadata.moduleOrNull("StakingRcClient") != null &&
+            runtime.metadata.staking().storageOrNull("SlashingSpans") == null) return null
         return remoteStorage.query(
             keyBuilder = {
                 it.metadata.staking().storage("SlashingSpans").storageKey(it, accountId)
@@ -651,4 +696,16 @@ suspend fun StakingRelayChainScenarioRepository.erasPerDay(chainId: ChainId): In
 suspend fun StakingRelayChainScenarioRepository.hoursInEra(chainId: ChainId): Int {
     val erasPerDay = erasPerDay(chainId)
     return floor(HOURS_IN_DAY.toDouble() / erasPerDay.toDouble()).toInt()
+}
+
+internal fun assetHubUnbondingDuration(
+    full: BigInteger,
+    fast: BigInteger,
+    slashable: Boolean,
+    activeEra: BigInteger,
+    lastValidatorEra: BigInteger?
+): BigInteger {
+    require(full.signum() > 0 && fast.signum() > 0 && fast <= full && activeEra.signum() >= 0)
+    val recentValidator = lastValidatorEra?.let { (activeEra - it).max(BigInteger.ZERO) < full } ?: false
+    return if (slashable || recentValidator) full else fast
 }
