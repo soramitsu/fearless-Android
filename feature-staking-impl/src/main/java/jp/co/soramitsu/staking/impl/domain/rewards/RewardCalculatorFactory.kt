@@ -19,6 +19,8 @@ import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenar
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 
 class RewardCalculatorFactory(
@@ -155,8 +157,7 @@ class RewardCalculatorFactory(
         val stakingType = asset.staking
         val chainId = asset.chainId
         val syntheticType = asset.syntheticStakingType()
-        val calculationTargets =
-            getRewardCalculationTargets(asset)
+        val calculationTargets = rewardCalculationTargets(asset)
         return when {
             syntheticType == SyntheticStakingType.SORA -> createSora(asset, calculationTargets)
             syntheticType == SyntheticStakingType.TERNOA -> createTernoa(asset, calculationTargets)
@@ -174,7 +175,7 @@ class RewardCalculatorFactory(
         val chainId = asset.chainId
         val syntheticType = asset.syntheticStakingType()
 
-        val allElectedValidators = getRewardCalculationTargets(asset)
+        val allElectedValidators = rewardCalculationTargets(asset)
 
         return when {
             syntheticType == SyntheticStakingType.SORA -> createSora(
@@ -202,6 +203,17 @@ class RewardCalculatorFactory(
             stakingType == Asset.StakingType.UNSUPPORTED -> error("wrong staking type")
             else -> error("wrong staking type")
         }
+    }
+
+    /**
+     * On an Asset Hub the targets need the Hub's active era, a remote read. Estimates are display only, so a read that
+     * fails gives no targets and a zero estimate, as reward history that cannot be read does; cancellation propagates.
+     */
+    private suspend fun rewardCalculationTargets(asset: Asset): List<RewardCalculationTarget> {
+        if (!AssetHubStaking.isHub(asset.chainId)) return getRewardCalculationTargets(asset)
+        val read = runCatching { getRewardCalculationTargets(asset) }
+        currentCoroutineContext().ensureActive()
+        return read.getOrElse { emptyList() }
     }
 
     private suspend fun getRewardCalculationTargets(

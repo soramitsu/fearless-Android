@@ -165,15 +165,24 @@ class StakingRelayChainScenarioRepository(
         return runtime.metadata.babe().numberConstant("ExpectedBlockTime", runtime)
     }
 
-    suspend fun getActiveEraIndex(chainId: ChainId): EraIndex =
-        (if (AssetHubStaking.isHub(chainId)) remoteStorage else localStorage).query(
-        keyBuilder = { it.metadata.activeEraStorageKeyOrNull() },
-        binding = { scale, runtime ->
-            if (AssetHubStaking.isHub(chainId)) requireNotNull(scale) { "Asset Hub active era unavailable" }
-            bindActiveEra(scale, runtime)
-        },
-        chainId = chainId
-    )
+    /**
+     * On an Asset Hub the active era is read from the Hub with an acknowledged read: a failed request stays a failure
+     * (cancellation included) and is never taken for an absent era, and an absent era is an error too. Code that
+     * already observes the cached era should use that era instead.
+     */
+    suspend fun getActiveEraIndex(chainId: ChainId): EraIndex = if (AssetHubStaking.isHub(chainId)) {
+        remoteStorage.queryResult(
+            chainId = chainId,
+            keyBuilder = { it.metadata.activeEraStorageKeyOrNull() },
+            binding = { scale, runtime -> bindActiveEra(requireNotNull(scale) { "Asset Hub active era unavailable" }, runtime) }
+        ).getOrThrow()
+    } else {
+        localStorage.query(
+            keyBuilder = { it.metadata.activeEraStorageKeyOrNull() },
+            binding = { scale, runtime -> bindActiveEra(scale, runtime) },
+            chainId = chainId
+        )
+    }
 
     suspend fun getCurrentEraIndex(chainId: ChainId): EraIndex = localStorage.queryNonNull(
         keyBuilder = { it.metadata.staking().storage("CurrentEra").storageKey() },
@@ -227,7 +236,8 @@ class StakingRelayChainScenarioRepository(
                 getLegacyElectedValidatorsExposure(chainId, it)
             }
 
-    private suspend fun getLegacyElectedValidatorsExposure(
+    /** The elected exposures of [eraIndex]; callers that observe the cached era pass it here. */
+    suspend fun getLegacyElectedValidatorsExposure(
         chainId: ChainId,
         eraIndex: EraIndex
     ): Map<String, LegacyExposure> {
@@ -673,12 +683,15 @@ class StakingRelayChainScenarioRepository(
     }
 }
 
-suspend fun StakingRelayChainScenarioRepository.historicalEras(chainId: ChainId): List<BigInteger> {
-    val activeEra = getActiveEraIndex(chainId).toInt()
+suspend fun StakingRelayChainScenarioRepository.historicalEras(chainId: ChainId): List<BigInteger> =
+    historicalEras(chainId, getActiveEraIndex(chainId))
+
+/** The eras of the history depth before [activeEra], for callers that already observe the active era. */
+suspend fun StakingRelayChainScenarioRepository.historicalEras(chainId: ChainId, activeEra: EraIndex): List<BigInteger> {
     val currentEra = getCurrentEraIndex(chainId).toInt()
     val historyDepth = getHistoryDepth(chainId).toInt()
 
-    val historicalRange = max((currentEra - historyDepth), 0) until activeEra
+    val historicalRange = max((currentEra - historyDepth), 0) until activeEra.toInt()
 
     return historicalRange.map(Int::toBigInteger)
 }

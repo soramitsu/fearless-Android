@@ -21,7 +21,8 @@ All notable changes to this project will be documented in this file.
   The validator choice screens offer a retry when the validator list cannot be
   loaded instead of closing the app, Redeem waits for a successful ledger
   refresh instead of closing the app when it fails, and the staking balance
-  screen offers a retry when its unbonding list cannot be read.
+  screen offers a retry when its unbonding list cannot be read. A Hub active
+  era that cannot be read no longer closes the staking screens.
 - Accounts: a network-account JSON export reads the wallet once, and an
   Ethereum export never carries the Substrate seed.
 

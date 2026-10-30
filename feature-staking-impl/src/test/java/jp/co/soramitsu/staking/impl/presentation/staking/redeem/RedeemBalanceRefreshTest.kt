@@ -84,6 +84,16 @@ class RedeemBalanceRefreshTest {
         Dispatchers.resetMain()
     }
 
+    // The amount goes out through a shared flow that a background (flowOn Default) collector also receives; the
+    // emission, and the dialog shown after it, wait for that thread, so the test runs Main until they arrive.
+    private fun settle(done: () -> Boolean) {
+        val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10)
+        while (!done() && System.nanoTime() < deadline) {
+            dispatcher.scheduler.runCurrent()
+            Thread.sleep(1)
+        }
+    }
+
     private fun redeem() = RedeemViewModel(
         router = mock(),
         stakingScenarioInteractor = scenario,
@@ -104,7 +114,7 @@ class RedeemBalanceRefreshTest {
         val vm = redeem()
         val amounts = mutableListOf<String>()
         vm.viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) { vm.stakingUnlockAmount.collect { amounts += it } }
-        dispatcher.scheduler.runCurrent()
+        settle { vm.errorDialogStateLiveData.value != null }
 
         assertEquals(listOf(unavailable), amounts)
         val failure = requireNotNull(vm.errorDialogStateLiveData.value?.peekContent())
@@ -112,7 +122,7 @@ class RedeemBalanceRefreshTest {
         assertEquals("fixture-${R.string.common_retry}", failure.positiveButtonText)
 
         vm.confirmClicked()
-        dispatcher.scheduler.runCurrent()
+        settle { amounts.size == 2 }
         verify(fees, never()).requireFee(any(), any())
         assertEquals(2, amounts.size)
         assertNotEquals(unavailable, amounts.last())
@@ -125,7 +135,7 @@ class RedeemBalanceRefreshTest {
         balances.addLast(flow { throw IllegalStateException("node unreachable") })
         balances.addLast(flowOf(refreshed))
         val vm = redeem()
-        dispatcher.scheduler.runCurrent()
+        settle { vm.errorDialogStateLiveData.value != null }
         requireNotNull(vm.errorDialogStateLiveData.value?.peekContent()).positiveClick()
         // The retried refresh has not run yet: Confirm neither redeems nor starts another refresh.
         vm.confirmClicked()
