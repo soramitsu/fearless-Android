@@ -22,6 +22,7 @@ import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.SubscribeSto
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.storage.storageChange
 import jp.co.soramitsu.fearless_utils.wsrpc.subscriptionFlow
 import jp.co.soramitsu.staking.api.data.StakingSharedState
+import jp.co.soramitsu.staking.api.domain.model.EraIndex
 import jp.co.soramitsu.staking.api.domain.model.StakingLedger
 import jp.co.soramitsu.staking.api.domain.model.isRedeemableIn
 import jp.co.soramitsu.staking.api.domain.model.isUnbondingIn
@@ -33,9 +34,11 @@ import jp.co.soramitsu.wallet.api.data.cache.AssetCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -101,36 +104,50 @@ class StakingLedgerUpdater(
                     metadata.currentAccountId,
                     metadata.ledgerWithController
                 )
+            }
+            // Which chunks are redeemable changes with the era as well as with the ledger. ActiveEraUpdater caches the
+            // era in this update system, so the ledger is classified again whenever the cached era changes: after a
+            // stale era read before the cache is current, and at every era boundary. No remote read can end the
+            // updaters here, and the era is never taken as zero while the cache is empty.
+            .flatMapLatest { metadata ->
+                if (metadata.ledgerWithController == null) {
+                    flowOf<Pair<Metadata, EraIndex?>>(metadata to null)
+                } else {
+                    stakingRepository.observeActiveEraIndex(metadata.chain.id)
+                        .distinctUntilChanged()
+                        .map<EraIndex, Pair<Metadata, EraIndex?>> { metadata to it }
+                }
+            }
+            .onEach { (metadata, era) ->
+                val ledgerWithController = metadata.ledgerWithController
+                if (ledgerWithController == null || era == null) {
+                    updateAssetStakingForEmptyLedger(
+                        metadata.metaId,
+                        metadata.currentAccountId,
+                        metadata.chainAsset
+                    )
+                    return@onEach
+                }
+                val stashId = ledgerWithController.ledger.stashId
+                val controllerId = ledgerWithController.controllerId
 
-                metadata.ledgerWithController?.let {
-                    // ActiveEraUpdater runs in this update system; a remote read failing here would end every updater.
-                    val era = stakingRepository.getCachedActiveEraIndex(metadata.chain.id)
+                updateAssetStaking(
+                    metadata.metaId,
+                    stashId,
+                    metadata.chainAsset,
+                    ledgerWithController.ledger,
+                    era
+                )
 
-                    val stashId = it.ledger.stashId
-                    val controllerId = it.controllerId
-
+                if (!stashId.contentEquals(controllerId)) {
                     updateAssetStaking(
                         metadata.metaId,
-                        stashId,
+                        controllerId,
                         metadata.chainAsset,
-                        it.ledger,
+                        ledgerWithController.ledger,
                         era
                     )
-
-                    if (!stashId.contentEquals(controllerId)) {
-                        updateAssetStaking(
-                            metadata.metaId,
-                            controllerId,
-                            metadata.chainAsset,
-                            it.ledger,
-                            era
-                        )
-                    }
-                } ?: updateAssetStakingForEmptyLedger(
-                    metadata.metaId,
-                    metadata.currentAccountId,
-                    metadata.chainAsset
-                )
+                }
             }
             .flowOn(Dispatchers.IO)
             .noSideAffects()

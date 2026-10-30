@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.runtime.assethub.AssetHubStaking
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -62,7 +63,12 @@ class AssetHubSavedSelectionUpgradeTest {
         value, purchaseProviders, type, ethereumType, tonType, priceProvider, coinbaseUrl
     )
 
-    private inner class Fixture(saved: String, catalogue: List<ChainRemote> = production()) : AutoCloseable {
+    /** [chainAccounts] maps a network to the wallet's own account there, as an imported chain account does. */
+    private inner class Fixture(
+        saved: String,
+        catalogue: List<ChainRemote> = production(),
+        chainAccounts: Map<String, ByteArray> = emptyMap()
+    ) : AutoCloseable {
         val chains: List<Chain> = catalogue.mapNotNull { runCatching { it.toChain() }.getOrNull() }
         val preferences = mock(Preferences::class.java)
         val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
@@ -74,13 +80,15 @@ class AssetHubSavedSelectionUpgradeTest {
             val account = mock(MetaAccount::class.java)
             whenever(account.id).thenReturn(META_ID)
             whenever(account.substrateAccountId).thenReturn(ACCOUNT)
-            whenever(account.chainAccounts).thenReturn(emptyMap())
+            whenever(account.chainAccounts).thenReturn(
+                chainAccounts.mapValues { (_, id) -> MetaAccount.ChainAccount(META_ID, null, id, id, CryptoType.SR25519, "chain") }
+            )
             val accounts = mock(AccountRepository::class.java)
             whenever(accounts.selectedMetaAccountFlow()).thenReturn(flowOf(account))
             // The wallet holds every utility asset of these networks, as the portfolio does.
             val held = chains.filter { AssetHubStaking.isHub(it.id) || AssetHubStaking.isMigratedRelay(it.id) }
-                .flatMap { chain -> chain.assets.filter { it.isUtility } }
-                .map { Asset.createEmpty(it, META_ID, ACCOUNT, minSupportedVersion = null) }
+                .flatMap { chain -> chain.assets.filter { it.isUtility }.map { it to (chainAccounts[chain.id] ?: ACCOUNT) } }
+                .map { (asset, id) -> Asset.createEmpty(asset, META_ID, id, minSupportedVersion = null) }
             val wallets = mock(WalletRepository::class.java)
             runBlocking {
                 whenever(repositories.getChains()).thenReturn(chains)
@@ -163,6 +171,27 @@ class AssetHubSavedSelectionUpgradeTest {
     }
 
     @Test
+    fun `a saved relay choice opens the chooser when the wallet's relay account is not its Hub account`() = runBlocking {
+        // The stake moved to the Hub with the relay account; the Hub account here is the default key.
+        Fixture("$polkadotChainId:$dot:RELAYCHAIN", chainAccounts = mapOf(polkadotChainId to OTHER)).use {
+            assertNull(it.settled())
+            assertTrue(StakingAssetSelection.RelayChainStaking(AssetHubStaking.POLKADOT, dot) in it.state.availableToSelect())
+        }
+        Fixture("$kusamaChainId:$ksm:POOL", chainAccounts = mapOf(AssetHubStaking.KUSAMA to OTHER)).use {
+            assertNull(it.settled())
+        }
+    }
+
+    @Test
+    fun `a saved relay choice opens the Hub when the wallet uses one chain account on both`() = runBlocking {
+        val accounts = mapOf(polkadotChainId to OTHER, AssetHubStaking.POLKADOT to OTHER)
+        Fixture("$polkadotChainId:$dot:RELAYCHAIN", chainAccounts = accounts).use {
+            assertEquals(StakingAssetSelection.RelayChainStaking(AssetHubStaking.POLKADOT, dot), it.settled())
+            assertTrue(it.state.currentAssetFlow().first().accountId.contentEquals(OTHER))
+        }
+    }
+
+    @Test
     fun `a saved Westend choice opens the chooser because no Westend Hub is listed`() = runBlocking {
         Fixture("$westendChainId:$wnd:RELAYCHAIN").use {
             assertNull(it.settled())
@@ -172,5 +201,6 @@ class AssetHubSavedSelectionUpgradeTest {
     private companion object {
         const val META_ID = 42L
         val ACCOUNT = ByteArray(32) { 7 }
+        val OTHER = ByteArray(32) { 8 }
     }
 }

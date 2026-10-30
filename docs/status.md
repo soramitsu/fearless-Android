@@ -19,14 +19,17 @@ selected commits, not merged wholesale), versionCode 233, database 84.
   not slash); when it cannot be read, the full `BondingDuration` is shown.
   Rewards are estimated from completed-era budgets, not relay inflation, and an
   unreadable history gives a zero estimate. Validator identities come from the
-  People chains. The validator choice screens offer a retry when the validator
-  list cannot be loaded, and Redeem waits for a successful ledger refresh.
+  People chains. Payouts are offered only from validators that are still
+  bonded. The validator choice screens and the balance screen's unbonding list
+  offer a retry when they cannot be loaded, and Redeem waits for a successful
+  ledger refresh.
 - Activation: the catalogue marks those two assets with `"staking": "assetHub"`.
   4.3.0 maps that value to unsupported (shown with 4.3.0's own compiled mapping),
   so older builds keep staking off; removing it turns 4.3.1's Hub staking off.
   The relays never offer staking, pools or crowdloans again.
-- A DOT or KSM staking choice saved before the upgrade opens the matching Hub;
-  without the switch it opens the chooser.
+- A DOT or KSM staking choice saved before the upgrade opens the matching Hub
+  when the wallet uses the same account on the relay and the Hub; otherwise,
+  or without the switch, it opens the chooser.
 - Signing: each signed extension is checked against the runtime's portable
   metadata (from fearless-utils `fc9719e`/`05d20f2`), and Hub staking calls
   require the complete signing context.

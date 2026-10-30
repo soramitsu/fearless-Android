@@ -11,6 +11,7 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Struct
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.toHex
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.response.RpcResponse
@@ -77,6 +78,27 @@ class AssetHubPayoutContractTest {
             return key
         }
 
+        /** Bonds [stash] as the runtime stores it: `Bonded` names the controller, whose `Ledger` names the stash. */
+        fun bond(stash: ByteArray, ledgerStash: ByteArray = stash) {
+            put("Bonded", stash, stash)
+            put(
+                "Ledger",
+                Struct.Instance(
+                    mapOf(
+                        "stash" to ledgerStash, "total" to 1000.toBigInteger(), "active" to 1000.toBigInteger(),
+                        "unlocking" to emptyList<Any>()
+                    )
+                ),
+                stash
+            )
+        }
+
+        /** What a full `withdraw_unbonded` leaves: no `Bonded` or `Ledger`, while the exposures stay for HistoryDepth. */
+        fun withdraw(stash: ByteArray) {
+            values.remove(staking.storage("Bonded").storageKey(runtime, stash))
+            values.remove(staking.storage("Ledger").storageKey(runtime, stash))
+        }
+
         suspend fun payouts(stash: StakingState.Stash = state) =
             withContext(Dispatchers.Default) { repository.payouts(stash) }
         suspend fun warnings(accounts: List<String>) = withContext(Dispatchers.Default) {
@@ -139,6 +161,7 @@ class AssetHubPayoutContractTest {
             put("ErasValidatorPrefs", Struct.Instance(mapOf("commission" to 100_000_000.toBigInteger(), "blocked" to false)), era, formerValidator)
             put("ErasValidatorReward", 10_000.toBigInteger(), era)
             put("ErasRewardPoints", Struct.Instance(mapOf("total" to 100.toBigInteger(), "individual" to listOf(listOf(formerValidator, 100.toBigInteger())))), era)
+            bond(formerValidator)
         }
     }
 
@@ -154,6 +177,64 @@ class AssetHubPayoutContractTest {
         val payout = f.payouts(f.state).single()
         assertEquals(8100.toBigInteger(), payout.amount)
         assertEquals(99.toBigInteger(), payout.era)
+    }
+
+    @Test fun `a validator that withdrew everything is not offered`() = runTest {
+        val f = Fixture()
+        f.setup()
+        f.withdraw(f.formerValidator)
+        // The runtime would refuse the payout with `NotStash` and still charge the fee.
+        assertTrue(f.payouts(f.state).isEmpty())
+        assertTrue(f.staking.storage("Bonded").storageKey(f.runtime, f.formerValidator) in f.queriedKeys)
+        assertTrue(f.queriedBlocks.all { it == "finalized-block" })
+    }
+
+    @Test fun `a validator whose ledger is missing or names another stash is not offered`() = runTest {
+        val f = Fixture()
+        f.setup()
+        f.values.remove(f.staking.storage("Ledger").storageKey(f.runtime, f.formerValidator))
+        assertTrue(f.payouts(f.state).isEmpty())
+        // `BadState`: the controller's ledger belongs to a different stash.
+        f.bond(f.formerValidator, ledgerStash = ByteArray(32) { 9 })
+        assertTrue(f.payouts(f.state).isEmpty())
+        f.bond(f.formerValidator)
+        assertEquals(8100.toBigInteger(), f.payouts(f.state).single().amount)
+    }
+
+    @Test fun `a withdrawn validator does not hide the payout of a bonded one in the same era`() = runTest {
+        val f = Fixture()
+        f.setup()
+        val era = 99.toBigInteger()
+        val withdrawn = ByteArray(32) { 4 }
+        f.pageKeys += f.put(
+            "ErasStakersPaged",
+            Struct.Instance(
+                mapOf(
+                    "pageTotal" to 900.toBigInteger(),
+                    "others" to listOf(Struct.Instance(mapOf("who" to f.owner, "value" to 900.toBigInteger())))
+                )
+            ),
+            era, withdrawn, BigInteger.ZERO
+        )
+        f.pageKeys.sort()
+        f.put("ErasStakersOverview", Struct.Instance(mapOf("total" to 1000.toBigInteger(), "own" to 100.toBigInteger(), "nominatorCount" to BigInteger.ONE, "pageCount" to BigInteger.ONE)), era, withdrawn)
+        f.put("ErasValidatorPrefs", Struct.Instance(mapOf("commission" to 100_000_000.toBigInteger(), "blocked" to false)), era, withdrawn)
+        f.put(
+            "ErasRewardPoints",
+            Struct.Instance(
+                mapOf(
+                    "total" to 200.toBigInteger(),
+                    "individual" to listOf(listOf(f.formerValidator, 100.toBigInteger()), listOf(withdrawn, 100.toBigInteger()))
+                )
+            ),
+            era
+        )
+        f.bond(withdrawn)
+        assertEquals(2, f.payouts(f.state).size)
+        f.withdraw(withdrawn)
+        val payouts = f.payouts(f.state)
+        assertEquals(listOf(f.formerValidator.toAddress(0)), payouts.map { it.validatorAddress })
+        assertEquals(4050.toBigInteger(), payouts.single().amount)
     }
 
     @Test fun `a claimed single page is skipped without reading its exposure`() = runTest {

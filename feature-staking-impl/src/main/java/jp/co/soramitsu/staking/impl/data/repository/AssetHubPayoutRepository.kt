@@ -19,6 +19,7 @@ import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindCurrentE
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindEraRewardPoints
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindExposure
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindExposurePage
+import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindStakingLedger
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindValidatorPrefs
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -34,7 +35,8 @@ import java.math.BigInteger
  * The current targets are not a history (a validator's `kick` removes a target and keeps `submitted_in`), so every
  * era is searched. Only unclaimed pages can pay, and within days of an era nearly all its pages are claimed, so a
  * page is read only when its validator has not claimed it: on Polkadot Asset Hub (2026-10-30) a full history is
- * about 50 000 pages (70 MB), of which a few hundred are unclaimed.
+ * about 50 000 pages (70 MB), of which a few hundred are unclaimed. A page is offered only while its validator is
+ * still bonded, because the runtime pays nothing for a validator without a ledger.
  */
 internal class AssetHubPayoutRepository(
     private val registry: ChainRegistry
@@ -53,8 +55,36 @@ internal class AssetHubPayoutRepository(
         // a desktop connection (2026-10-30); a few in flight keep it well inside on a phone.
         val keys = inParallel(eraRange(firstEra, activeEra)) { era -> unclaimedPageKeys(snapshot, era) }.flatten()
         // Bound memory and RPC payloads while retaining every historical page.
-        val relevant = inParallel(keys.chunked(PAGE_BATCH)) { chunk -> stashPages(snapshot, state, chunk) }.flatten()
-        calculate(snapshot, state, relevant) + ownStakeOnlyPayouts(snapshot, state, firstEra, activeEra)
+        val relevant = inParallel(keys.chunked(PAGE_BATCH)) { chunk -> stashPages(snapshot, state, chunk) }.flatten() +
+            ownStakeOnlyPages(snapshot, state, firstEra, activeEra)
+        val validators = relevant.mapTo(mutableSetOf()) { (identity, _) -> identity.validator.toHexString() }
+        val payable = bondedValidators(snapshot, validators)
+        calculate(snapshot, state, relevant.filter { (identity, _) -> identity.validator.toHexString() in payable })
+    }
+
+    /**
+     * The validators among [validators] that the runtime still pays for: `payout_stakers_by_page` reads the validator's
+     * ledger through `Bonded` and refuses the call without one (`NotStash`, `NotController`, `BadState`). A validator
+     * that withdrew everything leaves its unclaimed exposures behind; offering them would charge a fee for a call
+     * that fails, and stop a batch before the claims after it.
+     */
+    private suspend fun bondedValidators(snapshot: AssetHubStorageSnapshot, validators: Set<String>): Set<String> {
+        val runtime = snapshot.runtime
+        val staking = runtime.metadata.staking()
+        val bonded = staking.storage("Bonded")
+        val ledger = staking.storage("Ledger")
+        val bondedKeys = validators.associateWith { bonded.storageKey(runtime, it.fromHex()) }
+        val controllers = snapshot.query(bondedKeys.values.toList())
+        val ledgerKeys = bondedKeys.mapNotNull { (validator, key) ->
+            val controller = controllers[key]?.let {
+                bonded.returnType().fromHexOrNull(runtime, it) as? ByteArray ?: error("Malformed bonded controller")
+            } ?: return@mapNotNull null
+            validator to ledger.storageKey(runtime, controller)
+        }
+        val ledgers = snapshot.query(ledgerKeys.map { (_, key) -> key })
+        return ledgerKeys.filter { (validator, key) ->
+            ledgers[key]?.let { bindStakingLedger(it, runtime).stashId.contentEquals(validator.fromHex()) } == true
+        }.mapTo(mutableSetOf()) { (validator, _) -> validator }
     }
 
     /** The exposure pages among [keys] that pay the stash: as the page's validator or as one of its nominators. */
@@ -120,18 +150,19 @@ internal class AssetHubPayoutRepository(
     private fun eraRange(from: BigInteger, until: BigInteger): List<BigInteger> =
         generateSequence(from) { it + BigInteger.ONE }.takeWhile { it < until }.toList()
 
-    private suspend fun ownStakeOnlyPayouts(
+    /** The stash's own validator eras without nominators: no paged exposure, so a virtual page zero pays its stake. */
+    private suspend fun ownStakeOnlyPages(
         snapshot: AssetHubStorageSnapshot,
         state: StakingState.Stash,
         firstEra: BigInteger,
         activeEra: BigInteger
-    ): List<Payout> {
+    ): List<Pair<AssetHubExposureKey, ExposurePage>> {
         val runtime = snapshot.runtime
         val overview = runtime.metadata.staking().storage("ErasStakersOverview")
-        val eras = generateSequence(firstEra) { it + BigInteger.ONE }.takeWhile { it < activeEra }.toList()
+        val eras = eraRange(firstEra, activeEra)
         val keys = eras.map { overview.storageKey(runtime, it, state.stashId) }
         val values = snapshot.query(keys)
-        val pages = eras.zip(keys).mapNotNull { (era, key) ->
+        return eras.zip(keys).mapNotNull { (era, key) ->
             val exposure = values[key]?.let { requireNotNull(bindExposure(it, runtime)) } ?: return@mapNotNull null
             if (exposure.pageCount == BigInteger.ZERO) {
                 AssetHubExposureKey(era, state.stashId, BigInteger.ZERO) to ExposurePage(BigInteger.ZERO, emptyList())
@@ -139,7 +170,6 @@ internal class AssetHubPayoutRepository(
                 null
             }
         }
-        return calculate(snapshot, state, pages)
     }
 
     private suspend fun calculate(

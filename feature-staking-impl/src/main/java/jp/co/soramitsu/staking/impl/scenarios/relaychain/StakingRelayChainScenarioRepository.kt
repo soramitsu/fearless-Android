@@ -175,19 +175,6 @@ class StakingRelayChainScenarioRepository(
         chainId = chainId
     )
 
-    /**
-     * The active era as the staking update system's ActiveEraUpdater caches it. It waits for the first cached value and
-     * makes no remote read, so an updater running beside ActiveEraUpdater cannot fail on one.
-     */
-    suspend fun getCachedActiveEraIndex(chainId: ChainId): EraIndex = localStorage.query(
-        keyBuilder = { it.metadata.activeEraStorageKeyOrNull() },
-        binding = { scale, runtime ->
-            if (AssetHubStaking.isHub(chainId)) requireNotNull(scale) { "Asset Hub active era unavailable" }
-            bindActiveEra(scale, runtime)
-        },
-        chainId = chainId
-    )
-
     suspend fun getCurrentEraIndex(chainId: ChainId): EraIndex = localStorage.queryNonNull(
         keyBuilder = { it.metadata.staking().storage("CurrentEra").storageKey() },
         binding = ::bindCurrentEra,
