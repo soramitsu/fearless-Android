@@ -103,7 +103,8 @@ class StakingLedgerUpdater(
                 )
 
                 metadata.ledgerWithController?.let {
-                    val era = stakingRepository.getActiveEraIndex(metadata.chain.id)
+                    // ActiveEraUpdater runs in this update system; a remote read failing here would end every updater.
+                    val era = stakingRepository.getCachedActiveEraIndex(metadata.chain.id)
 
                     val stashId = it.ledger.stashId
                     val controllerId = it.controllerId

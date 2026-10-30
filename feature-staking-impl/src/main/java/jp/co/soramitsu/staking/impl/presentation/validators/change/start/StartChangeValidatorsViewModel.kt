@@ -15,11 +15,10 @@ import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingProcess
 import jp.co.soramitsu.staking.impl.presentation.common.SetupStakingSharedState
-import jp.co.soramitsu.staking.impl.presentation.validators.awaitValidatorCatalogue
+import jp.co.soramitsu.staking.impl.presentation.validators.ValidatorCatalogue
 import jp.co.soramitsu.staking.impl.presentation.validators.change.retractValidators
 import jp.co.soramitsu.staking.impl.presentation.validators.compose.StartSelectValidatorsViewModel
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
@@ -52,7 +51,12 @@ class StartChangeValidatorsViewModel @Inject constructor(
         stakingRelayChainScenarioInteractor.maxValidatorsPerNominator()
     }.share()
 
-    val validatorsLoading = MutableStateFlow(true)
+    private val catalogueOwner = router.currentStackEntryLifecycle
+    private val catalogue = ValidatorCatalogue(this, resourceManager) {
+        validatorRecommendatorFactory.awaitBlockCreatorsLoading(catalogueOwner)
+    }
+
+    val validatorsLoading = catalogue.loading
 
     val customValidatorsTexts = setupStakingSharedState.setupStakingProcess.transform {
         when {
@@ -79,26 +83,21 @@ class StartChangeValidatorsViewModel @Inject constructor(
 
     init {
         launch {
-            val lifecycle = router.currentStackEntryLifecycle
-            awaitValidatorCatalogue(resourceManager) { validatorRecommendatorFactory.awaitBlockCreatorsLoading(lifecycle) }
-
-            validatorsLoading.value = false
-
             router.listenAlertResultFlowFromStartChangeValidatorsScreen(
                 StartSelectValidatorsViewModel.KEY_ALERT_RESULT
             ).collect {
                 if (it.isSuccess) {
-                    router.openRecommendedValidators()
+                    catalogue.whenLoaded { router.openRecommendedValidators() }
                 }
             }
         }
     }
 
-    fun goToCustomClicked() {
+    fun goToCustomClicked() = catalogue.whenLoaded {
         router.openSelectCustomValidators()
     }
 
-    fun goToRecommendedClicked() {
+    fun goToRecommendedClicked() = catalogue.whenLoaded {
         val payload = AlertViewState(
             title = resourceManager.getString(R.string.staking_suggested_validators_title),
             message = resourceManager.getString(R.string.alert_suggested_validators),

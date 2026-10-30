@@ -12,8 +12,7 @@ import jp.co.soramitsu.staking.impl.domain.recommendations.ValidatorRecommendato
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.presentation.common.SelectValidatorFlowState
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStateProvider
-import jp.co.soramitsu.staking.impl.presentation.validators.awaitValidatorCatalogue
-import kotlinx.coroutines.flow.MutableStateFlow
+import jp.co.soramitsu.staking.impl.presentation.validators.ValidatorCatalogue
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -49,25 +48,24 @@ class StartSelectValidatorsViewModel @Inject constructor(
         buttonText = resourceManager.getString(R.string.staking_select_custom)
     )
 
-    private val loadingState = MutableStateFlow(true)
+    private val catalogueOwner = router.currentStackEntryLifecycle
+    private val catalogue = ValidatorCatalogue(this, resourceManager) {
+        validatorRecommendatorFactory.awaitBlockCreatorsLoading(catalogueOwner)
+    }
 
-    val state = loadingState.map {
+    val state = catalogue.loading.map {
         StartSelectValidatorsViewState(recommendedState, manualState, it)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, StartSelectValidatorsViewState(recommendedState, manualState, loadingState.value))
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, StartSelectValidatorsViewState(recommendedState, manualState, catalogue.loading.value))
 
     init {
         launch {
-            val lifecycle = router.currentStackEntryLifecycle
-            awaitValidatorCatalogue(resourceManager) { validatorRecommendatorFactory.awaitBlockCreatorsLoading(lifecycle) }
-            loadingState.value = false
-
             router.listenAlertResultFlowFromStartSelectValidatorsScreen(KEY_ALERT_RESULT).collect {
                 onAlertResult(it)
             }
         }
     }
 
-    fun onRecommendedClick() = viewModelScope.launch {
+    fun onRecommendedClick() = catalogue.whenLoaded {
         val payload = AlertViewState(
             title = resourceManager.getString(R.string.staking_suggested_validators_title),
             message = resourceManager.getString(R.string.alert_suggested_validators),
@@ -78,7 +76,7 @@ class StartSelectValidatorsViewModel @Inject constructor(
         router.openAlertFromStartSelectValidatorsScreen(payload, KEY_ALERT_RESULT)
     }
 
-    fun onManualClick() {
+    fun onManualClick() = catalogue.whenLoaded {
         setSelectMode(SelectValidatorFlowState.ValidatorSelectMode.CUSTOM)
         router.openSelectValidators()
     }
@@ -95,8 +93,10 @@ class StartSelectValidatorsViewModel @Inject constructor(
 
     private fun onAlertResult(result: Result<Unit>) {
         if (result.isSuccess) {
-            setSelectMode(SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED)
-            router.openSelectValidators()
+            catalogue.whenLoaded {
+                setSelectMode(SelectValidatorFlowState.ValidatorSelectMode.RECOMMENDED)
+                router.openSelectValidators()
+            }
         }
     }
 }

@@ -13,14 +13,16 @@ import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStatePr
 import jp.co.soramitsu.staking.impl.presentation.validators.change.start.StartChangeValidatorsViewModel
 import jp.co.soramitsu.staking.impl.presentation.validators.compose.StartSelectValidatorsViewModel
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
-import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -36,11 +38,14 @@ import org.mockito.kotlin.doSuspendableAnswer
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyBlocking
 
 /**
- * The validator start screens keep both choices disabled until the validator catalogue loads. A failed load is shown
- * with a retry on the screen's own catalogue owner, never a crash; cancellation shows nothing.
+ * The validator start screens keep their choices disabled while the validator catalogue loads. A failed load is shown
+ * with Retry and enables the choices again: choosing one loads the catalogue before acting, so a dismissed dialog or a
+ * recreated screen never strands the screen. A loader that times out has failed; only the screen's own cancellation is
+ * silent. Every load uses the catalogue owner captured when the screen opened.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class ValidatorCatalogueRetryTest {
@@ -49,7 +54,7 @@ class ValidatorCatalogueRetryTest {
     private val owned = mutableListOf<BaseViewModel>()
     private val screen = mock<Lifecycle>()
     private val dialogOnTop = mock<Lifecycle>()
-    private val outcomes = ArrayDeque<Throwable?>()
+    private val loads = ArrayDeque<suspend () -> Unit>()
     private val router = mock<StakingRouter> {
         on { currentStackEntryLifecycle } doReturn screen doReturn dialogOnTop
         on { listenAlertResultFlowFromStartSelectValidatorsScreen(any()) } doReturn emptyFlow()
@@ -60,7 +65,7 @@ class ValidatorCatalogueRetryTest {
     }
     private val factory = mock<ValidatorRecommendatorFactory> {
         onBlocking { awaitBlockCreatorsLoading(any()) } doSuspendableAnswer {
-            outcomes.removeFirstOrNull()?.let { throw it }
+            loads.removeFirstOrNull()?.invoke()
             Unit
         }
     }
@@ -82,43 +87,70 @@ class ValidatorCatalogueRetryTest {
 
     private fun dialog(vm: BaseViewModel) = vm.errorDialogStateLiveData.value?.peekContent()
 
-    @Test fun `start select keeps its choices disabled until a retried load succeeds`() {
-        outcomes += IllegalStateException("node unreachable")
+    private fun fail(message: String?) {
+        loads.addLast { throw IllegalStateException(message) }
+    }
+
+    @Test fun `a failed load enables the choices and choosing one loads again before acting`() {
+        fail("node unreachable")
         val vm = startSelect()
         dispatcher.scheduler.runCurrent()
-        assertTrue(vm.state.value.isLoading)
+        assertFalse(vm.state.value.isLoading)
         val failure = requireNotNull(dialog(vm))
         assertEquals("node unreachable", failure.message)
         assertEquals("fixture-${R.string.common_retry}", failure.positiveButtonText)
+        verify(router, never()).openAlertFromStartSelectValidatorsScreen(any(), any())
 
-        failure.positiveClick()
+        // The dialog was dismissed: the screen is still usable.
+        val reload = CompletableDeferred<Unit>()
+        loads.addLast { reload.await() }
+        vm.onRecommendedClick()
+        dispatcher.scheduler.runCurrent()
+        assertTrue(vm.state.value.isLoading)
+        verify(router, never()).openAlertFromStartSelectValidatorsScreen(any(), any())
+        reload.complete(Unit)
         dispatcher.scheduler.runCurrent()
         assertFalse(vm.state.value.isLoading)
+        verify(router).openAlertFromStartSelectValidatorsScreen(any(), any())
         verifyBlocking(factory, times(2)) { awaitBlockCreatorsLoading(screen) }
         verifyBlocking(factory, never()) { awaitBlockCreatorsLoading(dialogOnTop) }
     }
 
-    @Test fun `start change keeps its choices disabled until a retried load succeeds`() {
-        outcomes += IllegalStateException(null as String?)
+    @Test fun `retry loads again without acting, then the choices act at once`() {
+        fail(null)
         val vm = startChange()
         dispatcher.scheduler.runCurrent()
-        assertTrue(vm.validatorsLoading.value)
+        assertFalse(vm.validatorsLoading.value)
         val failure = requireNotNull(dialog(vm))
         assertEquals("fixture-${R.string.common_error_general_message}", failure.message)
 
         failure.positiveClick()
+        assertTrue(vm.validatorsLoading.value)
         dispatcher.scheduler.runCurrent()
         assertFalse(vm.validatorsLoading.value)
+        verify(router, never()).openSelectCustomValidators()
+
+        vm.goToCustomClicked()
+        verify(router).openSelectCustomValidators()
         verifyBlocking(factory, times(2)) { awaitBlockCreatorsLoading(screen) }
     }
 
-    @Test fun `a cancelled load shows no failure`() {
-        outcomes += CancellationException("left")
-        val select = startSelect()
-        val change = startChange()
+    @Test fun `a loader that times out has failed`() {
+        loads.addLast { withTimeout(10) { awaitCancellation() } }
+        val vm = startSelect()
+        dispatcher.scheduler.advanceUntilIdle()
+        assertFalse(vm.state.value.isLoading)
+        assertEquals("fixture-${R.string.common_error_general_message}", requireNotNull(dialog(vm)).message)
+    }
+
+    @Test fun `the screen's own cancellation shows nothing`() {
+        loads.addLast { awaitCancellation() }
+        val vm = startChange()
         dispatcher.scheduler.runCurrent()
-        assertNull(dialog(select))
-        assertNull(dialog(change))
-        assertTrue(select.state.value.isLoading)
+        assertTrue(vm.validatorsLoading.value)
+        vm.viewModelScope.cancel()
+        dispatcher.scheduler.runCurrent()
+        assertNull(dialog(vm))
+        verify(router, never()).openSelectCustomValidators()
     }
 }
