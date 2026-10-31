@@ -1816,4 +1816,9 @@
   <string name="universal_password_notice_unknown">Не удалось проверить. Повторите позже.</string>
   <string name="universal_password_notice_in_use">Сначала отключите TON-приложения.</string>
   <string name="universal_password_notice_options">Старые адреса</string>
+  <string name="universal_password_notice_arrived_old">На старый адрес поступили средства</string>
+  <string name="universal_password_notice_arrived_new">На новый адрес поступили средства</string>
+  <string name="universal_password_notice_balance">Баланс: %s</string>
+  <string name="universal_password_notice_used_again">Кошелёк снова использует старый адрес, чтобы средства оставались видны.</string>
+  <string name="universal_password_notice_move_old">Чтобы перевести их, импортируйте фразу восстановления без пароля как отдельный кошелёк и отправьте средства на новый адрес.</string>
 </resources>

@@ -21,6 +21,8 @@ import jp.co.soramitsu.account.api.domain.model.hasEthereum
 import jp.co.soramitsu.account.api.domain.model.hasSubstrate
 import jp.co.soramitsu.account.impl.data.mappers.toDomain
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
+import jp.co.soramitsu.account.impl.domain.UniversalWalletFreshRoots
+import jp.co.soramitsu.account.impl.domain.UniversalWalletWatchList
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
@@ -107,7 +109,9 @@ class AccountRepositoryImpl(
     private val accountRepositoryDelegate: AccountRepositoryDelegate,
     private val walletSecretMutationCoordinator: WalletSecretMutationCoordinator,
     private val walletSecretAccessGuard: WalletSecretAccessGuard,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val universalWalletFreshRoots: UniversalWalletFreshRoots? = null,
+    private val universalWalletWatchList: UniversalWalletWatchList? = null
 ) : AccountRepository {
 
     override fun getEncryptionTypes(): List<CryptoType> {
@@ -212,7 +216,17 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun deleteAccount(metaId: Long) {
+        val substratePublicKey = try {
+            getMetaAccount(metaId).substratePublicKey
+        } catch (failure: kotlinx.coroutines.CancellationException) {
+            throw failure
+        } catch (_: Exception) {
+            null
+        }
         walletSecretMutationCoordinator.delete(metaId)
+        // What this device kept about the wallet's universal accounts goes with it.
+        universalWalletFreshRoots?.forget(metaId, substratePublicKey)
+        universalWalletWatchList?.forget(metaId)
     }
 
     override suspend fun importFromSeed(

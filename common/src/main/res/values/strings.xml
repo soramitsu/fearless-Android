@@ -1734,4 +1734,9 @@
   <string name="universal_password_notice_unknown">Couldn\'t check. Try again later.</string>
   <string name="universal_password_notice_in_use">Disconnect its TON apps first.</string>
   <string name="universal_password_notice_options">Old addresses</string>
+  <string name="universal_password_notice_arrived_old">Funds arrived at your old address</string>
+  <string name="universal_password_notice_arrived_new">Funds arrived at your new address</string>
+  <string name="universal_password_notice_balance">Balance: %s</string>
+  <string name="universal_password_notice_used_again">This wallet uses the old address again, so they stay visible.</string>
+  <string name="universal_password_notice_move_old">To move them, import your recovery words without the password as another wallet, then send them to the new address.</string>
 </resources>

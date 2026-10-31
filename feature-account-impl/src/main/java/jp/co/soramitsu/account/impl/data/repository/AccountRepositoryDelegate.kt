@@ -185,22 +185,26 @@ class SubstrateOrEvmAccountRepository(
             ethereumDerivationPath = payload.ethereumDerivationPath.takeIf { ethereumUsesMnemonic }
         )
 
-        // Marked before the row exists, so the account upgrade never sees the wallet unmarked.
-        if (payload.freshlyGenerated) freshRoots?.markCreated(keys.publicKey)
+        // Marked before the row exists, so the account upgrade never sees the wallet unmarked;
+        // an import of these words is never fresh, whatever an earlier create left behind.
+        if (payload.freshlyGenerated) freshRoots?.begin(keys.publicKey) else freshRoots?.abandon(keys.publicKey)
 
-        return try {
+        val metaId = try {
             walletSecretMutationCoordinator.create(
                 prototype = metaAccount,
                 substrateSecretPlaintext = substrateSecrets.toHexString(),
                 ethereumSecretPlaintext = ethereumSecrets.toHexString(),
                 tonSecretPlaintext = null
             )
-        } catch (failure: WalletSecretMutationCoordinatorException) {
-            if (failure.reason == WalletMutationFailureReason.IDENTITY_CONFLICT) {
+        } catch (failure: Exception) {
+            if (payload.freshlyGenerated) freshRoots?.abandon(keys.publicKey)
+            if (failure is WalletSecretMutationCoordinatorException && failure.reason == WalletMutationFailureReason.IDENTITY_CONFLICT) {
                 throw AccountAlreadyExistsException()
             }
             throw failure
         }
+        if (payload.freshlyGenerated) freshRoots?.bind(keys.publicKey, metaId)
+        return metaId
     }
 }
 

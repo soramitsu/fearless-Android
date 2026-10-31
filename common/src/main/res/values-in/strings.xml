@@ -1822,4 +1822,9 @@
   <string name="universal_password_notice_unknown">Tidak dapat memeriksa. Coba lagi nanti.</string>
   <string name="universal_password_notice_in_use">Putuskan dulu aplikasi TON-nya.</string>
   <string name="universal_password_notice_options">Alamat lama</string>
+  <string name="universal_password_notice_arrived_old">Dana masuk ke alamat lama Anda</string>
+  <string name="universal_password_notice_arrived_new">Dana masuk ke alamat baru Anda</string>
+  <string name="universal_password_notice_balance">Saldo: %s</string>
+  <string name="universal_password_notice_used_again">Dompet ini memakai alamat lama lagi agar dana tetap terlihat.</string>
+  <string name="universal_password_notice_move_old">Untuk memindahkannya, impor kata pemulihan tanpa kata sandi sebagai dompet lain, lalu kirim dananya ke alamat baru.</string>
 </resources>

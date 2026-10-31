@@ -137,14 +137,21 @@ fun UniversalWalletRoot.holdsLegacy(slot: UniversalWalletSlot, storedPublicKey: 
     hasPassword && slot.publicKey(mnemonic, "").contentEquals(storedPublicKey)
 
 /**
- * Whether the no-password account of a slot holds anything (native coin or any token the app
- * shows). Timeouts and every failure are [Funds.UNKNOWN], which keeps the old account.
+ * Whether one account of a slot holds anything (native coin or any token the app shows).
+ * Timeouts and every failure are [Funds.UNKNOWN], which never moves a slot.
  */
 fun interface UniversalWalletFundsProbe {
     enum class Funds { FUNDED, EMPTY, UNKNOWN }
 
-    /** [mnemonic] derived without a passphrase gives [publicKey] for [slot]. */
-    suspend fun probe(slot: UniversalWalletSlot, mnemonic: String, publicKey: ByteArray): Funds
+    /** What a probe saw; [balance] is the native amount when the network reported one, such as "0.5 SOL". */
+    class Reading(val funds: Funds, val balance: String? = null)
+
+    /** [mnemonic] with [passphrase] derives [publicKey] for [slot]. */
+    suspend fun probe(slot: UniversalWalletSlot, mnemonic: String, passphrase: String, publicKey: ByteArray): Funds
+
+    /** Like [probe], with the balance when the network reported one. */
+    suspend fun read(slot: UniversalWalletSlot, mnemonic: String, passphrase: String, publicKey: ByteArray): Reading =
+        Reading(probe(slot, mnemonic, passphrase, publicKey))
 }
 
 /** The one notice about slots of a password wallet that still hold their no-password account. */
@@ -156,14 +163,38 @@ interface UniversalWalletPasswordNotice {
         val slot: UniversalWalletSlot,
         val oldAddress: String,
         val newAddress: String,
-        val outcome: Outcome? = null
-    )
+        val outcome: Outcome? = null,
+        /** Funds seen at the address this slot does not use, after it changed address. */
+        val arrival: Arrival? = null
+    ) {
+        /** Whether the slot still uses the old address, so Switch applies to it. */
+        val switchable: Boolean get() = arrival?.kind != Arrival.Kind.OLD_ADDRESS
+    }
 
-    /** Rows for every old account of [metaId]; empty for wallets without a password. */
+    class Arrival(val kind: Kind, val balance: String?) {
+        enum class Kind {
+            /** The old address received funds after the slot left it; the slot keeps the new one. */
+            OLD_ADDRESS,
+
+            /** The old address received funds while the new one was empty, so the slot uses the old one again. */
+            OLD_ADDRESS_USED_AGAIN,
+
+            /** The new address received funds while the slot uses the old one again. */
+            NEW_ADDRESS
+        }
+    }
+
+    /** Rows for every old account of [metaId] and every address that received funds the wallet does not show. */
     suspend fun rows(metaId: Long): List<Row>
 
     /** Replaces each old account that is confirmed empty with its password-protected one. */
     suspend fun switch(metaId: Long): List<Row>
+
+    /**
+     * Probes every address a slot of [metaId] left. When only that address holds funds the slot
+     * moves back to it; when both do, or the other cannot be read, a row reports the arrival.
+     */
+    suspend fun refresh(metaId: Long)
 
     fun isDismissed(metaId: Long): Boolean
 
@@ -174,6 +205,7 @@ interface UniversalWalletPasswordNotice {
         val NONE: UniversalWalletPasswordNotice = object : UniversalWalletPasswordNotice {
             override suspend fun rows(metaId: Long): List<Row> = emptyList()
             override suspend fun switch(metaId: Long): List<Row> = emptyList()
+            override suspend fun refresh(metaId: Long) = Unit
             override fun isDismissed(metaId: Long): Boolean = true
             override fun dismiss(metaId: Long) = Unit
         }

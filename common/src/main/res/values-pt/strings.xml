@@ -1859,4 +1859,9 @@
   <string name="universal_password_notice_unknown">Não foi possível verificar. Tente mais tarde.</string>
   <string name="universal_password_notice_in_use">Desconecte primeiro os apps TON.</string>
   <string name="universal_password_notice_options">Endereços antigos</string>
+  <string name="universal_password_notice_arrived_old">Fundos chegaram ao seu endereço antigo</string>
+  <string name="universal_password_notice_arrived_new">Fundos chegaram ao seu endereço novo</string>
+  <string name="universal_password_notice_balance">Saldo: %s</string>
+  <string name="universal_password_notice_used_again">Esta carteira volta a usar o endereço antigo para que os fundos continuem visíveis.</string>
+  <string name="universal_password_notice_move_old">Para movê-los, importe suas palavras de recuperação sem a senha como outra carteira e envie-os para o endereço novo.</string>
 </resources>

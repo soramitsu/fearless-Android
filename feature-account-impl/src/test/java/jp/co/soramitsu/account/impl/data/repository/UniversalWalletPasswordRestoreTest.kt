@@ -7,6 +7,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import jp.co.soramitsu.account.api.domain.UniversalWalletFundsProbe
 import jp.co.soramitsu.account.api.domain.UniversalWalletFundsProbe.Funds
+import jp.co.soramitsu.account.api.domain.UniversalWalletPasswordNotice.Arrival
 import jp.co.soramitsu.account.api.domain.UniversalWalletPasswordNotice.Outcome
 import jp.co.soramitsu.account.api.domain.UniversalWalletSlot
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
@@ -16,6 +17,7 @@ import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.account.impl.domain.AccountInteractorImpl
 import jp.co.soramitsu.account.impl.domain.LegacyNetworkAccountUpgrade
 import jp.co.soramitsu.account.impl.domain.UniversalWalletPasswordNoticeService
+import jp.co.soramitsu.account.impl.domain.UniversalWalletWatchList
 import jp.co.soramitsu.account.impl.presentation.exporting.mnemonic.ExportMnemonicFragment
 import jp.co.soramitsu.account.impl.presentation.exporting.mnemonic.ExportMnemonicPayload
 import jp.co.soramitsu.account.impl.presentation.exporting.mnemonic.ExportMnemonicViewModel
@@ -79,6 +81,7 @@ import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
@@ -105,7 +108,7 @@ class UniversalWalletPasswordRestoreTest {
     fun olderPasswordWalletKeepsEveryAddressItShowedThroughTheUpgrade() = runTest {
         val wallet = storeOlderPasswordWallet()
         var probed = false
-        LegacyNetworkAccountUpgrade(repository(), dao, coordinator, UniversalWalletFundsProbe { _, _, _ ->
+        LegacyNetworkAccountUpgrade(repository(), dao, coordinator, UniversalWalletFundsProbe { _, _, _, _ ->
             probed = true
             Funds.EMPTY
         }) { CATALOG }.upgrade()
@@ -130,7 +133,7 @@ class UniversalWalletPasswordRestoreTest {
     @Test
     fun noticeListsEachOldAddressBesideTheSharedVectorsPasswordAddress() = runTest {
         storeOlderPasswordWallet()
-        val rows = notice(UniversalWalletFundsProbe { _, _, _ -> Funds.UNKNOWN }).rows(META_ID)
+        val rows = notice(UniversalWalletFundsProbe { _, _, _, _ -> Funds.UNKNOWN }).rows(META_ID)
 
         val legacy = vector("universal-wallet-v2-vectors.json", "import12").getAsJsonObject("expected")
         val protected = vector("universal-wallet-v2-passphrase-vectors.json", "import12-trezor").getAsJsonObject("expected")
@@ -155,7 +158,7 @@ class UniversalWalletPasswordRestoreTest {
             UniversalWalletSlot.TON to Funds.EMPTY
         )
         val probed = linkedMapOf<UniversalWalletSlot, ByteArray>()
-        val rows = notice(UniversalWalletFundsProbe { slot, _, publicKey ->
+        val rows = notice(UniversalWalletFundsProbe { slot, _, _, publicKey ->
             probed[slot] = publicKey
             funds.getValue(slot)
         }).switch(META_ID).associateBy { it.slot }
@@ -197,7 +200,7 @@ class UniversalWalletPasswordRestoreTest {
         assertNotNull(secrets)
         assertEquals(MNEMONIC, secrets!![TonSecrets.Seed].decodeToString())
         assertEquals(RecoveryAssessment.Verified, repository().recoveryAssessment(META_ID, WalletEcosystem.Ton))
-        assertTrue(notice(UniversalWalletFundsProbe { _, _, _ -> Funds.EMPTY }).rows(META_ID).none { it.slot == UniversalWalletSlot.TON })
+        assertTrue(notice(UniversalWalletFundsProbe { _, _, _, _ -> Funds.EMPTY }).rows(META_ID).none { it.slot == UniversalWalletSlot.TON })
     }
 
     @Test
@@ -207,7 +210,7 @@ class UniversalWalletPasswordRestoreTest {
         whenever(coordinator.replaceUniversalTon(any(), any(), any())).thenThrow(
             WalletSecretMutationCoordinatorException(WalletMutationFailureReason.CONNECTED_APPS, "connected")
         )
-        val rows = notice(UniversalWalletFundsProbe { _, _, _ -> Funds.EMPTY }).switch(META_ID).associateBy { it.slot }
+        val rows = notice(UniversalWalletFundsProbe { _, _, _, _ -> Funds.EMPTY }).switch(META_ID).associateBy { it.slot }
         assertEquals(Outcome.IN_USE, rows.getValue(UniversalWalletSlot.TON).outcome)
         assertEquals(Outcome.SWITCHED, rows.getValue(UniversalWalletSlot.SOLANA).outcome)
     }
@@ -215,8 +218,8 @@ class UniversalWalletPasswordRestoreTest {
     @Test
     fun walletWithoutPasswordHasNoNotice() = runTest {
         storeOlderPasswordWallet(substratePath = null)
-        assertTrue(notice(UniversalWalletFundsProbe { _, _, _ -> Funds.EMPTY }).rows(META_ID).isEmpty())
-        assertTrue(notice(UniversalWalletFundsProbe { _, _, _ -> Funds.EMPTY }).switch(META_ID).isEmpty())
+        assertTrue(notice(UniversalWalletFundsProbe { _, _, _, _ -> Funds.EMPTY }).rows(META_ID).isEmpty())
+        assertTrue(notice(UniversalWalletFundsProbe { _, _, _, _ -> Funds.EMPTY }).switch(META_ID).isEmpty())
         verifyNoInteractions(coordinator)
     }
 
@@ -260,8 +263,101 @@ class UniversalWalletPasswordRestoreTest {
         assertEquals(RecoveryAssessment.Verified, repository().recoveryAssessment(META_ID, WalletEcosystem.Ton))
     }
 
+    @Test
+    fun depositReachingAnAlreadyReadOldAddressBeforeTheSwitchCommitsMovesTheSlotBack() = runTest {
+        storeOlderPasswordWallet()
+        val ledger = Ledger()
+        val notice = trackedNotice(ledger)
+        // Each old account reads empty; a deposit lands after that read, before the swap commits.
+        onReplace = { slot ->
+            when (slot) {
+                UniversalWalletSlot.SOLANA -> ledger.fund(slot, legacy = true, balance = "2 SOL")
+                UniversalWalletSlot.TON -> ledger.fund(slot, legacy = true, balance = "1 TON")
+                else -> Unit
+            }
+        }
+        val switched = notice.switch(META_ID).associateBy { it.slot }
+        assertEquals(Outcome.SWITCHED, switched.getValue(UniversalWalletSlot.SOLANA).outcome)
+        assertEquals(Outcome.SWITCHED, switched.getValue(UniversalWalletSlot.TON).outcome)
+        onReplace = {}
+        notice.dismiss(META_ID)
+
+        notice.refresh(META_ID)
+
+        // The new addresses are empty, so the funded old ones are back where the wallet shows them.
+        assertArrayEquals(UniversalWalletSlot.SOLANA.publicKey(MNEMONIC, ""), current.chainAccounts.getValue(chainIdOf(UniversalWalletSlot.SOLANA)).publicKey)
+        assertArrayEquals(legacyTon.publicKey, current.tonPublicKey)
+        val after = argumentCaptor<MetaAccountLocal>()
+        val encoded = argumentCaptor<String>()
+        verify(coordinator, times(2)).replaceUniversalTon(any(), after.capture(), encoded.capture())
+        assertArrayEquals(legacyTon.privateKey, TonSecrets.read(encoded.secondValue)[TonSecrets.PrivateKey])
+        // The notice lists them again, says why, and shows once more.
+        val rows = notice.rows(META_ID).associateBy { it.slot }
+        for ((slot, balance) in listOf(UniversalWalletSlot.SOLANA to "2 SOL", UniversalWalletSlot.TON to "1 TON")) {
+            val arrival = requireNotNull(rows.getValue(slot).arrival)
+            assertEquals(Arrival.Kind.OLD_ADDRESS_USED_AGAIN, arrival.kind)
+            assertEquals(balance, arrival.balance)
+            assertTrue(rows.getValue(slot).switchable)
+        }
+        assertTrue(!notice.isDismissed(META_ID))
+    }
+
+    @Test
+    fun depositReachingAnOldAddressAfterTheSwitchNeverHidesTheNewAddressFunds() = runTest {
+        storeOlderPasswordWallet()
+        val ledger = Ledger()
+        val notice = trackedNotice(ledger)
+        notice.switch(META_ID)
+        val switchedSolana = current.chainAccounts.getValue(chainIdOf(UniversalWalletSlot.SOLANA)).publicKey
+        // Later: the old Solana and Taira addresses receive funds; the new Solana one holds funds,
+        // the new Taira one cannot be read.
+        ledger.fund(UniversalWalletSlot.SOLANA, legacy = true, balance = "0.5 SOL")
+        ledger.fund(UniversalWalletSlot.SOLANA, legacy = false, balance = "3 SOL")
+        ledger.fund(UniversalWalletSlot.TAIRA, legacy = true, balance = null)
+        ledger.unknown(UniversalWalletSlot.TAIRA, legacy = false)
+
+        notice.refresh(META_ID)
+
+        assertArrayEquals(switchedSolana, current.chainAccounts.getValue(chainIdOf(UniversalWalletSlot.SOLANA)).publicKey)
+        assertArrayEquals(
+            UniversalWalletSlot.TAIRA.publicKey(MNEMONIC, PASSWORD),
+            current.chainAccounts.getValue(chainIdOf(UniversalWalletSlot.TAIRA)).publicKey
+        )
+        val rows = notice.rows(META_ID).filter { it.arrival != null }.associateBy { it.slot }
+        assertEquals(setOf(UniversalWalletSlot.SOLANA, UniversalWalletSlot.TAIRA), rows.keys)
+        for (row in rows.values) {
+            assertEquals(Arrival.Kind.OLD_ADDRESS, row.arrival?.kind)
+            assertEquals(row.slot.address(row.slot.publicKey(MNEMONIC, "")), row.oldAddress)
+            assertTrue(!row.switchable)
+        }
+        assertEquals("0.5 SOL", rows.getValue(UniversalWalletSlot.SOLANA).arrival?.balance)
+
+        // Once the old addresses are emptied the rows go.
+        ledger.empty(UniversalWalletSlot.SOLANA, legacy = true)
+        ledger.empty(UniversalWalletSlot.TAIRA, legacy = true)
+        notice.refresh(META_ID)
+        assertTrue(notice.rows(META_ID).none { it.arrival != null })
+    }
+
+    @Test
+    fun deletingTheWalletForgetsItsWatchedOldAddresses() = runTest {
+        storeOlderPasswordWallet()
+        val notice = trackedNotice(Ledger())
+        notice.switch(META_ID)
+        assertTrue(watchList.entries(META_ID).isNotEmpty())
+
+        repository().deleteAccount(META_ID)
+
+        verify(coordinator).delete(META_ID)
+        assertTrue(watchList.entries(META_ID).isEmpty())
+    }
+
     private val legacyTon = TonKeyDerivation.deriveAccount(MNEMONIC)
     private val protectedTon = TonKeyDerivation.deriveAccount(MNEMONIC, PASSWORD)
+    private val noticePreferences = memoryPreferences()
+    private val watchList = UniversalWalletWatchList(noticePreferences)
+    private lateinit var current: MetaAccount
+    private var onReplace: (UniversalWalletSlot) -> Unit = {}
 
     private suspend fun storeOlderPasswordWallet(substratePath: String? = "///$PASSWORD"): MetaAccount =
         storeWallet(substratePath = substratePath)
@@ -306,6 +402,7 @@ class UniversalWalletPasswordRestoreTest {
             name = "Password wallet",
             initialized = true
         )
+        current = wallet
         whenever(accountDataSource.getMetaAccount(metaId)).thenReturn(wallet)
         whenever(accountDataSource.allMetaAccounts()).thenReturn(listOf(wallet))
         whenever(accountDataSource.lightMetaAccountsFlow()).thenReturn(flowOf(listOf(wallet)))
@@ -405,12 +502,66 @@ class UniversalWalletPasswordRestoreTest {
         whenever(accountDataSource.allMetaAccounts()).thenReturn(listOf(restored))
         whenever(dao.getMetaAccount(RESTORED_ID)).thenReturn(restored.toLocal())
         whenever(coordinator.addTon(any(), any(), any())).thenReturn(RESTORED_ID)
-        LegacyNetworkAccountUpgrade(repository(), dao, coordinator, UniversalWalletFundsProbe { _, _, _ -> Funds.EMPTY }) {
+        LegacyNetworkAccountUpgrade(repository(), dao, coordinator, UniversalWalletFundsProbe { _, _, _, _ -> Funds.EMPTY }) {
             emptySet()
         }.upgrade()
         val after = argumentCaptor<MetaAccountLocal>()
         verify(coordinator).addTon(any(), after.capture(), any())
         return checkNotNull(after.firstValue.tonPublicKey)
+    }
+
+    /** Funds per slot account; a read must name the passphrase that derives the account. */
+    private class Ledger : UniversalWalletFundsProbe {
+        private val readings = linkedMapOf<String, UniversalWalletFundsProbe.Reading>()
+
+        fun fund(slot: UniversalWalletSlot, legacy: Boolean, balance: String?) = set(slot, legacy, Funds.FUNDED, balance)
+        fun unknown(slot: UniversalWalletSlot, legacy: Boolean) = set(slot, legacy, Funds.UNKNOWN, null)
+        fun empty(slot: UniversalWalletSlot, legacy: Boolean) = set(slot, legacy, Funds.EMPTY, null)
+
+        private fun set(slot: UniversalWalletSlot, legacy: Boolean, funds: Funds, balance: String?) {
+            readings[key(slot, slot.publicKey(MNEMONIC, if (legacy) "" else PASSWORD))] = UniversalWalletFundsProbe.Reading(funds, balance)
+        }
+
+        override suspend fun probe(slot: UniversalWalletSlot, mnemonic: String, passphrase: String, publicKey: ByteArray): Funds =
+            read(slot, mnemonic, passphrase, publicKey).funds
+
+        override suspend fun read(
+            slot: UniversalWalletSlot,
+            mnemonic: String,
+            passphrase: String,
+            publicKey: ByteArray
+        ): UniversalWalletFundsProbe.Reading {
+            check(slot.publicKey(mnemonic, passphrase).contentEquals(publicKey)) { "${slot.name} read with another passphrase" }
+            return readings[key(slot, publicKey)] ?: UniversalWalletFundsProbe.Reading(Funds.EMPTY)
+        }
+
+        private fun key(slot: UniversalWalletSlot, publicKey: ByteArray) = slot.name + publicKey.joinToString("") { "%02x".format(it) }
+    }
+
+    /** A notice over [current]: chain rows and the TON root change exactly as Room would change them. */
+    private suspend fun trackedNotice(ledger: Ledger): UniversalWalletPasswordNoticeService {
+        whenever(accountDataSource.getMetaAccount(META_ID)).thenAnswer { current }
+        whenever(dao.getMetaAccount(META_ID)).thenAnswer { current.toLocal() }
+        whenever(dao.replaceDerivedChainAccount(any(), any(), any(), any(), any())).thenAnswer { invocation ->
+            val chainId = invocation.getArgument<String>(1)
+            val expected = invocation.getArgument<ByteArray>(2)
+            val publicKey = invocation.getArgument<ByteArray>(3)
+            onReplace(UniversalWalletSlot.chainRowSlots.single { it.matches(chainId) })
+            val row = current.chainAccounts.getValue(chainId)
+            if (!row.publicKey.contentEquals(expected)) return@thenAnswer 0
+            current = current.copy(chainAccounts = current.chainAccounts + (chainId to MetaAccount.ChainAccount(
+                META_ID, null, publicKey, publicKey.clone(), row.cryptoType, row.accountName
+            )))
+            1
+        }
+        whenever(coordinator.replaceUniversalTon(any(), any(), any())).thenAnswer { invocation ->
+            val before = invocation.getArgument<MetaAccountLocal>(0)
+            check(before.tonPublicKey.contentEquals(current.tonPublicKey)) { "A stale TON before-image" }
+            onReplace(UniversalWalletSlot.TON)
+            current = current.copy(tonPublicKey = invocation.getArgument<MetaAccountLocal>(1).tonPublicKey)
+            META_ID
+        }
+        return UniversalWalletPasswordNoticeService(repository(), dao, coordinator, ledger, noticePreferences, watchList)
     }
 
     private fun notice(probe: UniversalWalletFundsProbe) =
@@ -431,7 +582,8 @@ class UniversalWalletPasswordRestoreTest {
         accountRepositoryDelegate = mock<AccountRepositoryDelegate>(),
         walletSecretMutationCoordinator = coordinator,
         walletSecretAccessGuard = WalletSecretAccessGuard(preferences),
-        dispatcher = UnconfinedTestDispatcher()
+        dispatcher = UnconfinedTestDispatcher(),
+        universalWalletWatchList = watchList
     )
 
     private fun memoryPreferences(): Preferences {

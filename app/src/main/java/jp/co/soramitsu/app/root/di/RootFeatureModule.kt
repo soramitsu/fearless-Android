@@ -1,8 +1,10 @@
 package jp.co.soramitsu.app.root.di
 
 import jp.co.soramitsu.account.api.domain.UniversalWalletFundsProbe
+import jp.co.soramitsu.account.api.domain.UniversalWalletPasswordNotice
 import jp.co.soramitsu.account.impl.domain.LegacyNetworkAccountUpgrade
 import jp.co.soramitsu.account.impl.domain.UniversalWalletFreshRoots
+import jp.co.soramitsu.account.impl.domain.UniversalWalletWatchList
 import jp.co.soramitsu.account.impl.data.repository.WalletSecretMutationCoordinator
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 
@@ -65,7 +67,9 @@ class RootFeatureModule {
         metaAccountDao: MetaAccountDao,
         mutationCoordinator: WalletSecretMutationCoordinator,
         universalWalletFundsProbe: UniversalWalletFundsProbe,
-        universalWalletFreshRoots: UniversalWalletFreshRoots
+        universalWalletFreshRoots: UniversalWalletFreshRoots,
+        universalWalletWatchList: UniversalWalletWatchList,
+        universalWalletPasswordNotice: UniversalWalletPasswordNotice
     ): AppInitializer {
         return AppInitializer(
             chainRegistry,
@@ -83,7 +87,8 @@ class RootFeatureModule {
             productionAssetDiscoverySweep,
             chainsRepository,
             legacyNetworkAccountUpgrade = LegacyNetworkAccountUpgrade(
-                accountRepository, metaAccountDao, mutationCoordinator, universalWalletFundsProbe, universalWalletFreshRoots
+                accountRepository, metaAccountDao, mutationCoordinator, universalWalletFundsProbe, universalWalletFreshRoots,
+                universalWalletWatchList, universalWalletPasswordNotice
             ) {
                 chainsRepository.getChains().map { it.id }.toSet()
             }

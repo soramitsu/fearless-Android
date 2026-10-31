@@ -43,6 +43,14 @@ replaces an old account only after a live check confirms it is empty (TON only
 when no TON Connect app is connected). Every signer derives with the passphrase
 that reproduces the stored address, so old addresses keep signing.
 
+A deposit can reach an old address after the check that found it empty, so each
+old account a wallet gives up stays watched until the wallet is deleted: app
+start and pull-to-refresh check it again. When only the old address holds funds,
+the account moves back to it; when the new one holds funds too, or cannot be
+checked, the new one stays and the notice reports the arrival and how to move
+it. A TON export of a password wallet shows the derivation path that holds the
+password, so the exported words restore the same TON address.
+
 ## JSON export of derived ed25519 and ECDSA accounts — 31 October 2026
 
 A JSON export of a Substrate ed25519 or ECDSA account created with a derivation

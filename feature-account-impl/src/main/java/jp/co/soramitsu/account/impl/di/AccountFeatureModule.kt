@@ -24,6 +24,7 @@ import jp.co.soramitsu.account.api.domain.UniversalWalletFundsProbe
 import jp.co.soramitsu.account.api.domain.UniversalWalletPasswordNotice
 import jp.co.soramitsu.account.impl.domain.UniversalWalletFreshRoots
 import jp.co.soramitsu.account.impl.domain.UniversalWalletPasswordNoticeService
+import jp.co.soramitsu.account.impl.domain.UniversalWalletWatchList
 import jp.co.soramitsu.account.impl.data.repository.WalletSecretMutationCoordinator
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSourceImpl
@@ -100,7 +101,9 @@ class AccountFeatureModule {
         tonSecretStore: TonSecretStore,
         accountRepositoryDelegate: AccountRepositoryDelegate,
         walletSecretMutationCoordinator: WalletSecretMutationCoordinator,
-        walletSecretAccessGuard: WalletSecretAccessGuard
+        walletSecretAccessGuard: WalletSecretAccessGuard,
+        universalWalletFreshRoots: UniversalWalletFreshRoots,
+        universalWalletWatchList: UniversalWalletWatchList
     ): AccountRepository {
         return AccountRepositoryImpl(
             accountDataSource,
@@ -116,7 +119,9 @@ class AccountFeatureModule {
             tonSecretStore,
             accountRepositoryDelegate,
             walletSecretMutationCoordinator,
-            walletSecretAccessGuard
+            walletSecretAccessGuard,
+            universalWalletFreshRoots = universalWalletFreshRoots,
+            universalWalletWatchList = universalWalletWatchList
         )
     }
 
@@ -149,18 +154,24 @@ class AccountFeatureModule {
 
     @Provides
     @Singleton
+    fun provideUniversalWalletWatchList(preferences: Preferences) = UniversalWalletWatchList(preferences)
+
+    @Provides
+    @Singleton
     fun provideUniversalWalletPasswordNotice(
         accountRepository: AccountRepository,
         metaAccountDao: MetaAccountDao,
         walletSecretMutationCoordinator: WalletSecretMutationCoordinator,
         fundsProbe: UniversalWalletFundsProbe,
-        preferences: Preferences
+        preferences: Preferences,
+        watchList: UniversalWalletWatchList
     ): UniversalWalletPasswordNotice = UniversalWalletPasswordNoticeService(
         accountRepository,
         metaAccountDao,
         walletSecretMutationCoordinator,
         fundsProbe,
-        preferences
+        preferences,
+        watchList
     )
 
     @Provides

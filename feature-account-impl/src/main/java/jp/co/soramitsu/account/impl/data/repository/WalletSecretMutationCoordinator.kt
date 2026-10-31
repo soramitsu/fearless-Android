@@ -275,10 +275,11 @@ class WalletSecretMutationCoordinator private constructor(
     ): Long = addRoot(existing, after, tonSecretPlaintext, Operation.ADD_TON, TON_SECRET_SUFFIX)
 
     /**
-     * Swaps a password wallet's universal TON root, derived from its words without the BIP39
-     * passphrase, for the one the passphrase derives. The caller has confirmed that the old
-     * account is empty. Both keys come from the words its Substrate or Ethereum secret keeps,
-     * and nothing but the TON identity changes.
+     * Swaps a password wallet's universal TON root for its counterpart: the key its words derive
+     * without the BIP39 passphrase for the one the passphrase derives once the old account is
+     * confirmed empty, or back when funds reached the old address while the new one stayed
+     * empty. Both keys come from the words its Substrate or Ethereum secret keeps, and nothing
+     * but the TON identity changes.
      */
     suspend fun replaceUniversalTon(
         existing: MetaAccountLocal,
@@ -1294,8 +1295,9 @@ class WalletSecretMutationCoordinator private constructor(
     )
 
     /**
-     * Only a universal root of the same words, derived without the passphrase, may be replaced,
-     * and only by the key the passphrase derives: nothing else is lost or newly trusted.
+     * Only a universal root of the same words may be replaced, and only by its counterpart: the
+     * key the passphrase derives for the one the words alone derive, or the reverse. Nothing
+     * else is lost or newly trusted.
      */
     private fun requireReplaceableUniversalTon(existing: MetaAccountLocal, replacementPlaintext: String) {
         val passphrase = storedUniversalPassphrases(existing.id).singleOrNull()
@@ -1308,14 +1310,16 @@ class WalletSecretMutationCoordinator private constructor(
         requireArgument(after[TonSecrets.Seed].contentEquals(before[TonSecrets.Seed])) {
             "A TON replacement must keep the same words"
         }
+        val password = checkNotNull(passphrase)
+        fun derivesWith(secret: jp.co.soramitsu.fearless_utils.scale.EncodableStruct<TonSecrets>, bip39Passphrase: String) =
+            TonKeyDerivation.matchesUniversalMnemonicKeypair(words, secret[TonSecrets.PrivateKey], secret[TonSecrets.PublicKey], bip39Passphrase)
         requireArgument(
-            existing.tonPublicKey?.contentEquals(before[TonSecrets.PublicKey]) == true &&
-                TonKeyDerivation.matchesUniversalMnemonicKeypair(words, before[TonSecrets.PrivateKey], before[TonSecrets.PublicKey]) &&
-                TonKeyDerivation.matchesUniversalMnemonicKeypair(
-                    words, after[TonSecrets.PrivateKey], after[TonSecrets.PublicKey], checkNotNull(passphrase)
+            existing.tonPublicKey?.contentEquals(before[TonSecrets.PublicKey]) == true && (
+                derivesWith(before, "") && derivesWith(after, password) ||
+                    derivesWith(before, password) && derivesWith(after, "")
                 )
         ) {
-            "A TON replacement must swap the no-password key for the password-protected one"
+            "A TON replacement must swap a universal key for its counterpart"
         }
     }
 

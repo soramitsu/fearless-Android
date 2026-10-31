@@ -1,6 +1,7 @@
 package jp.co.soramitsu.account.impl.domain
 
 import jp.co.soramitsu.account.api.domain.UniversalWalletFundsProbe
+import jp.co.soramitsu.account.api.domain.UniversalWalletPasswordNotice
 import jp.co.soramitsu.account.api.domain.UniversalWalletRoot
 import jp.co.soramitsu.account.api.domain.UniversalWalletSlot
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -41,17 +42,21 @@ import kotlinx.coroutines.sync.withLock
  * A password wallet's universal accounts derive with its BIP39 passphrase. A
  * missing slot of an imported password wallet first probes the account the
  * words alone open: funded or unknown keeps that one, so no address that holds
- * funds disappears; confirmed empty takes the password-protected one. Wallets
- * created from freshly generated words take the password without a probe.
+ * funds disappears; confirmed empty takes the password-protected one, and the
+ * old account joins the [watchList] in case a deposit lands after the read.
+ * Wallets created from freshly generated words take the password without a
+ * probe. Each run ends with the [passwordNotice] re-checking watched accounts.
  */
 class LegacyNetworkAccountUpgrade(
     private val accountRepository: AccountRepository,
     private val metaAccountDao: MetaAccountDao,
     private val mutationCoordinator: WalletSecretMutationCoordinator,
-    private val fundsProbe: UniversalWalletFundsProbe = UniversalWalletFundsProbe { _, _, _ ->
+    private val fundsProbe: UniversalWalletFundsProbe = UniversalWalletFundsProbe { _, _, _, _ ->
         UniversalWalletFundsProbe.Funds.UNKNOWN
     },
     private val freshRoots: UniversalWalletFreshRoots? = null,
+    private val watchList: UniversalWalletWatchList? = null,
+    private val passwordNotice: UniversalWalletPasswordNotice? = null,
     private val availableChainIds: suspend () -> Set<String>
 ) {
     /** Retry for a newly imported wallet or newly available network without a restart. */
@@ -80,6 +85,7 @@ class LegacyNetworkAccountUpgrade(
                     }
                     addMissingChainAccounts(walletId, availableIds)
                     forgetFreshRootWhenComplete(walletId)
+                    passwordNotice?.refresh(walletId)
                 } catch (failure: CancellationException) {
                     throw failure
                 } catch (_: Exception) {
@@ -105,7 +111,7 @@ class LegacyNetworkAccountUpgrade(
         // deletion and root-secret replacement. A network probe never holds the lock.
         val toProbe = WalletCrossStoreMutationMutex.instance.withLock {
             val pending = pendingSlots(walletId, availableIds) ?: return
-            if (!pending.root.hasPassword || freshRoots?.isCreated(pending.wallet.substratePublicKey) == true) {
+            if (!pending.root.hasPassword || freshRoots?.isCreated(walletId, pending.wallet.substratePublicKey) == true) {
                 insert(pending) { pending.root.passphrase }
                 return
             }
@@ -124,6 +130,13 @@ class LegacyNetworkAccountUpgrade(
                 } else {
                     ""
                 }
+            }
+            for ((slot, chainId) in pending.targets) {
+                val decision = probed[slot] ?: continue
+                if (decision.second != UniversalWalletFundsProbe.Funds.EMPTY) continue
+                if (!decision.first.contentEquals(slot.publicKey(pending.root.mnemonic, ""))) continue
+                val protectedKey = slot.publicKey(pending.root.mnemonic, pending.root.passphrase)
+                watchList?.put(walletId, UniversalWalletWatchList.Entry(slot, chainId, decision.first, protectedKey))
             }
         }
     }
@@ -176,7 +189,7 @@ class LegacyNetworkAccountUpgrade(
             async {
                 val legacy = slot.publicKey(root.mnemonic, "")
                 val funds = try {
-                    fundsProbe.probe(slot, root.mnemonic, legacy)
+                    fundsProbe.probe(slot, root.mnemonic, "", legacy)
                 } catch (failure: CancellationException) {
                     throw failure
                 } catch (_: Exception) {
@@ -196,19 +209,21 @@ class LegacyNetworkAccountUpgrade(
             ?: accountRepository.getEthereumSecrets(walletId)?.get(EthereumSecrets.Entropy)
             ?: return
         val root = accountRepository.universalWalletRoot(walletId) ?: return
+        var probedEmpty = false
         val passphrase = when {
             !root.hasPassword -> ""
-            freshRoots?.isCreated(wallet.substratePublicKey) == true -> root.passphrase
+            freshRoots?.isCreated(walletId, wallet.substratePublicKey) == true -> root.passphrase
             else -> {
                 val legacy = UniversalWalletSlot.TON.publicKey(root.mnemonic, "")
                 val funds = try {
-                    fundsProbe.probe(UniversalWalletSlot.TON, root.mnemonic, legacy)
+                    fundsProbe.probe(UniversalWalletSlot.TON, root.mnemonic, "", legacy)
                 } catch (failure: CancellationException) {
                     throw failure
                 } catch (_: Exception) {
                     UniversalWalletFundsProbe.Funds.UNKNOWN
                 }
-                if (funds == UniversalWalletFundsProbe.Funds.EMPTY) root.passphrase else ""
+                probedEmpty = funds == UniversalWalletFundsProbe.Funds.EMPTY
+                if (probedEmpty) root.passphrase else ""
             }
         }
         // Read the before-image after any probe; the coordinator rejects a stale one.
@@ -224,6 +239,10 @@ class LegacyNetworkAccountUpgrade(
             ).apply { id = before.id }
             val secrets = TonSecrets(root.mnemonic.encodeToByteArray(), Keypair(derived.publicKey, derived.privateKey))
             mutationCoordinator.addTon(before, after, secrets.toHexString())
+            if (probedEmpty) {
+                val legacy = UniversalWalletSlot.TON.publicKey(root.mnemonic, "")
+                watchList?.put(walletId, UniversalWalletWatchList.Entry(UniversalWalletSlot.TON, null, legacy, derived.publicKey.clone()))
+            }
         } finally {
             derived.privateKey.fill(0)
             derived.chainCode.fill(0)
@@ -234,10 +253,10 @@ class LegacyNetworkAccountUpgrade(
         val freshRoots = freshRoots ?: return
         val wallet = accountRepository.getMetaAccount(walletId)
         val substratePublicKey = wallet.substratePublicKey ?: return
-        if (!freshRoots.isCreated(substratePublicKey)) return
+        if (!freshRoots.isCreated(walletId, substratePublicKey)) return
         val aliases = wallet.chainAccounts.keys.map { it.lowercase() }.toSet()
         val complete = wallet.tonPublicKey != null &&
             UniversalWalletSlot.chainRowSlots.all { slot -> slot.chainIds.any { it in aliases } }
-        if (complete) freshRoots.forget(substratePublicKey)
+        if (complete) freshRoots.forget(walletId, substratePublicKey)
     }
 }

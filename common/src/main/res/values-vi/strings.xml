@@ -1740,4 +1740,9 @@
   <string name="universal_password_notice_unknown">Không kiểm tra được. Hãy thử lại sau.</string>
   <string name="universal_password_notice_in_use">Hãy ngắt kết nối các ứng dụng TON trước.</string>
   <string name="universal_password_notice_options">Địa chỉ cũ</string>
+  <string name="universal_password_notice_arrived_old">Có tiền gửi đến địa chỉ cũ của bạn</string>
+  <string name="universal_password_notice_arrived_new">Có tiền gửi đến địa chỉ mới của bạn</string>
+  <string name="universal_password_notice_balance">Số dư: %s</string>
+  <string name="universal_password_notice_used_again">Ví này dùng lại địa chỉ cũ để số tiền vẫn hiển thị.</string>
+  <string name="universal_password_notice_move_old">Để chuyển, hãy nhập cụm từ khôi phục không kèm mật khẩu thành một ví khác, rồi gửi tiền sang địa chỉ mới.</string>
 </resources>

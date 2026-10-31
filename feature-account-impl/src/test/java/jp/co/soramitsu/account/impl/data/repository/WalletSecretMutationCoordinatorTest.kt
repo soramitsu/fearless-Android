@@ -137,9 +137,25 @@ class WalletSecretMutationCoordinatorTest {
         assertEquals(universalTonSecret(protected), preferences.value("10:TON_SECRETS"))
         assertFalse(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
         assertFalse(legacy.publicKey.contentEquals(protected.publicKey))
-        // Nothing is left to replace: the root is already the password-protected key.
-        expectCoordinatorFailure { coordinator.replaceUniversalTon(stored, before, universalTonSecret(legacy)) }
+        // The password key gives way only to its no-password counterpart, never to another key.
+        val other = jp.co.soramitsu.common.utils.TonKeyDerivation.deriveAccount(PASSWORD_PHRASE, "other")
+        expectCoordinatorFailure {
+            coordinator.replaceUniversalTon(stored, stored.copyForTest(tonPublicKey = other.publicKey), universalTonSecret(other))
+        }
         assertEquals(universalTonSecret(protected), preferences.value("10:TON_SECRETS"))
+    }
+
+    @Test
+    fun replaceUniversalTonMovesBackWhenFundsReachTheOldAddress() = runBlocking {
+        val (before, legacy, protected) = passwordWalletWithLegacyTon()
+        coordinator.replaceUniversalTon(before, before.copyForTest(tonPublicKey = protected.publicKey), universalTonSecret(protected))
+        val switched = requireNotNull(database.account(10))
+
+        coordinator.replaceUniversalTon(switched, before, universalTonSecret(legacy))
+
+        assertArrayEquals(legacy.publicKey, database.account(10)?.tonPublicKey)
+        assertEquals(universalTonSecret(legacy), preferences.value("10:TON_SECRETS"))
+        assertFalse(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
     }
 
     @Test

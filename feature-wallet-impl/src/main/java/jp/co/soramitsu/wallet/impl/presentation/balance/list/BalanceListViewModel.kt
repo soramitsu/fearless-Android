@@ -936,6 +936,16 @@ class BalanceListViewModel @Inject constructor(
         viewModelScope.launch {
             BalanceUpdateTrigger.invoke()
         }
+        refreshUniversalPasswordNotice()
+    }
+
+    // Re-checks the addresses this wallet's slots left; funds that reached one show the notice again.
+    private fun refreshUniversalPasswordNotice() {
+        viewModelScope.launch {
+            val metaId = currentMetaAccountFlow.first().id
+            withContext(coroutineManager.default) { universalPasswordRowsOrEmpty { refresh(metaId); emptyList() } }
+            universalPasswordNoticeCheck.value += 1
+        }
     }
 
     override fun onPortfolioLensChanged(lens: PortfolioLens) {

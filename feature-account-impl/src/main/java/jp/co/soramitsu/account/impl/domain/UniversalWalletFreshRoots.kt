@@ -5,24 +5,44 @@ import jp.co.soramitsu.common.data.storage.Preferences
 /**
  * Remembers wallets created from words this app just generated. Nothing can have been sent to
  * their no-password addresses, so their universal accounts take the password without a probe.
- * Keyed by the Substrate public key, which exists before the wallet row does, so the account
- * upgrade can never see a new wallet without its mark.
+ *
+ * The mark belongs to the one wallet the create flow made: [begin] marks the words before the
+ * row exists, so the account upgrade never sees the new wallet unmarked, and [bind] moves the
+ * mark to the id the create returned. Any import of the same words, a failed create and the
+ * wallet's deletion clear it, so a later wallet with these words is probed like any other.
  */
 class UniversalWalletFreshRoots(private val preferences: Preferences) {
 
-    fun markCreated(substratePublicKey: ByteArray) = preferences.putString(key(substratePublicKey), CREATED)
+    fun begin(substratePublicKey: ByteArray) = preferences.putString(pendingKey(substratePublicKey), PENDING)
 
-    fun isCreated(substratePublicKey: ByteArray?): Boolean =
-        substratePublicKey != null && preferences.getString(key(substratePublicKey)) == CREATED
+    fun bind(substratePublicKey: ByteArray, metaId: Long) {
+        preferences.putString(walletKey(metaId), substratePublicKey.toHex())
+        preferences.putString(pendingKey(substratePublicKey), null)
+    }
 
-    /** Once every slot exists; a later import of the same words is probed like any other. */
-    fun forget(substratePublicKey: ByteArray) = preferences.putString(key(substratePublicKey), null)
+    /** For an import of these words or a create that failed: no wallet with them is fresh. */
+    fun abandon(substratePublicKey: ByteArray) = preferences.putString(pendingKey(substratePublicKey), null)
 
-    private fun key(substratePublicKey: ByteArray): String =
-        KEY_PREFIX + substratePublicKey.joinToString("") { (it.toInt() and 0xff).toString(16).padStart(2, '0') }
+    fun isCreated(metaId: Long, substratePublicKey: ByteArray?): Boolean = substratePublicKey != null && (
+        preferences.getString(walletKey(metaId)) == substratePublicKey.toHex() ||
+            preferences.getString(pendingKey(substratePublicKey)) == PENDING
+        )
+
+    /** Once every slot exists, or when the wallet is deleted. */
+    fun forget(metaId: Long, substratePublicKey: ByteArray?) {
+        preferences.putString(walletKey(metaId), null)
+        substratePublicKey?.let { preferences.putString(pendingKey(it), null) }
+    }
+
+    private fun pendingKey(substratePublicKey: ByteArray): String = PENDING_KEY_PREFIX + substratePublicKey.toHex()
+
+    private fun walletKey(metaId: Long): String = "$WALLET_KEY_PREFIX$metaId"
+
+    private fun ByteArray.toHex(): String = joinToString("") { (it.toInt() and 0xff).toString(16).padStart(2, '0') }
 
     private companion object {
-        const val KEY_PREFIX = "universal_wallet_fresh_root.v1."
-        const val CREATED = "created"
+        const val PENDING_KEY_PREFIX = "universal_wallet_fresh_root.v2.pending."
+        const val WALLET_KEY_PREFIX = "universal_wallet_fresh_root.v2.wallet."
+        const val PENDING = "pending"
     }
 }

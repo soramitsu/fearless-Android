@@ -61,7 +61,7 @@ class NetworkUniversalWalletFundsProbeTest {
         val impatient = NetworkUniversalWalletFundsProbe(chains, bitcoin, solana, ton, iroha, timeoutMillis = 100, bitcoinTimeoutMillis = 100)
         assertEquals(
             Funds.UNKNOWN,
-            impatient.probe(UniversalWalletSlot.BITCOIN_MAINNET, MNEMONIC, UniversalWalletSlot.BITCOIN_MAINNET.publicKey(MNEMONIC, ""))
+            impatient.probe(UniversalWalletSlot.BITCOIN_MAINNET, MNEMONIC, "", UniversalWalletSlot.BITCOIN_MAINNET.publicKey(MNEMONIC, ""))
         )
     }
 
@@ -69,16 +69,16 @@ class NetworkUniversalWalletFundsProbeTest {
     fun `solana counts coin and every listed token and needs the token list to call it empty`() = runBlocking {
         val key = UniversalWalletSlot.SOLANA.publicKey(MNEMONIC, "")
         coEvery { solana.balances(any(), any(), any(), any(), any()) } returns solanaResult("0", emptyList(), tokensAvailable = true)
-        assertEquals(Funds.EMPTY, probe.probe(UniversalWalletSlot.SOLANA, MNEMONIC, key))
+        assertEquals(Funds.EMPTY, probe.probe(UniversalWalletSlot.SOLANA, MNEMONIC, "", key))
 
         coEvery { solana.balances(any(), any(), any(), any(), any()) } returns solanaResult("1", emptyList(), tokensAvailable = true)
-        assertEquals(Funds.FUNDED, probe.probe(UniversalWalletSlot.SOLANA, MNEMONIC, key))
+        assertEquals(Funds.FUNDED, probe.probe(UniversalWalletSlot.SOLANA, MNEMONIC, "", key))
 
         coEvery { solana.balances(any(), any(), any(), any(), any()) } returns solanaResult("0", listOf("250"), tokensAvailable = true)
-        assertEquals(Funds.FUNDED, probe.probe(UniversalWalletSlot.SOLANA, MNEMONIC, key))
+        assertEquals(Funds.FUNDED, probe.probe(UniversalWalletSlot.SOLANA, MNEMONIC, "", key))
 
         coEvery { solana.balances(any(), any(), any(), any(), any()) } returns solanaResult("0", emptyList(), tokensAvailable = false)
-        assertEquals(Funds.UNKNOWN, probe.probe(UniversalWalletSlot.SOLANA, MNEMONIC, key))
+        assertEquals(Funds.UNKNOWN, probe.probe(UniversalWalletSlot.SOLANA, MNEMONIC, "", key))
     }
 
     @Test
@@ -86,30 +86,54 @@ class NetworkUniversalWalletFundsProbeTest {
         val key = UniversalWalletSlot.TON.publicKey(MNEMONIC, "")
         coEvery { ton.loadAccountData(any(), any()) } returns tonAccount(0)
         coEvery { ton.loadJettonBalances(any(), any()) } returns JettonsBalances(emptyList())
-        assertEquals(Funds.EMPTY, probe.probe(UniversalWalletSlot.TON, MNEMONIC, key))
+        assertEquals(Funds.EMPTY, probe.probe(UniversalWalletSlot.TON, MNEMONIC, "", key))
 
         coEvery { ton.loadJettonBalances(any(), any()) } returns JettonsBalances(emptyList(), partial = true)
-        assertEquals(Funds.UNKNOWN, probe.probe(UniversalWalletSlot.TON, MNEMONIC, key))
+        assertEquals(Funds.UNKNOWN, probe.probe(UniversalWalletSlot.TON, MNEMONIC, "", key))
 
         coEvery { ton.loadAccountData(any(), any()) } returns tonAccount(7)
-        assertEquals(Funds.FUNDED, probe.probe(UniversalWalletSlot.TON, MNEMONIC, key))
+        assertEquals(Funds.FUNDED, probe.probe(UniversalWalletSlot.TON, MNEMONIC, "", key))
     }
 
     @Test
     fun `taira is empty only when every asset quantity is zero`() = runBlocking {
         val key = UniversalWalletSlot.TAIRA.publicKey(MNEMONIC, "")
         coEvery { iroha.accountAssets(any(), any(), any(), any(), any()) } returns IrohaAccountAssetListResponse(listOf(asset("0")))
-        assertEquals(Funds.EMPTY, probe.probe(UniversalWalletSlot.TAIRA, MNEMONIC, key))
+        assertEquals(Funds.EMPTY, probe.probe(UniversalWalletSlot.TAIRA, MNEMONIC, "", key))
 
         coEvery { iroha.accountAssets(any(), any(), any(), any(), any()) } returns IrohaAccountAssetListResponse(listOf(asset("0"), asset("1.5")))
-        assertEquals(Funds.FUNDED, probe.probe(UniversalWalletSlot.TAIRA, MNEMONIC, key))
+        assertEquals(Funds.FUNDED, probe.probe(UniversalWalletSlot.TAIRA, MNEMONIC, "", key))
 
         coEvery { iroha.accountAssets(any(), any(), any(), any(), any()) } throws IllegalStateException("404")
-        assertEquals(Funds.UNKNOWN, probe.probe(UniversalWalletSlot.TAIRA, MNEMONIC, key))
+        assertEquals(Funds.UNKNOWN, probe.probe(UniversalWalletSlot.TAIRA, MNEMONIC, "", key))
+    }
+
+    @Test
+    fun `a read reports the native balance and discovers a password account with its passphrase`() = runBlocking {
+        // Only the password account's first receive address holds coins.
+        val protected = UniversalWalletSlot.BITCOIN_MAINNET.publicKey(MNEMONIC, PASSWORD)
+        val funded = UniversalWalletSlot.BITCOIN_MAINNET.address(protected)
+        coEvery { bitcoin.address(any(), any(), any()) } answers { stats(firstArg(), if (firstArg<String>() == funded) 125_000 else 0) }
+        val bitcoinReading = probe.read(UniversalWalletSlot.BITCOIN_MAINNET, MNEMONIC, PASSWORD, protected)
+        assertEquals(Funds.FUNDED, bitcoinReading.funds)
+        assertEquals("0.00125 BTC", bitcoinReading.balance)
+        assertEquals(Funds.EMPTY, bitcoinProbe())
+
+        val solanaKey = UniversalWalletSlot.SOLANA.publicKey(MNEMONIC, "")
+        coEvery { solana.balances(any(), any(), any(), any(), any()) } returns solanaResult("1500000000", emptyList(), tokensAvailable = true)
+        assertEquals("1.5 SOL", probe.read(UniversalWalletSlot.SOLANA, MNEMONIC, "", solanaKey).balance)
+        // Tokens only: funded, but no native amount to show.
+        coEvery { solana.balances(any(), any(), any(), any(), any()) } returns solanaResult("0", listOf("250"), tokensAvailable = true)
+        val tokens = probe.read(UniversalWalletSlot.SOLANA, MNEMONIC, "", solanaKey)
+        assertEquals(Funds.FUNDED, tokens.funds)
+        assertEquals(null, tokens.balance)
+
+        coEvery { ton.loadAccountData(any(), any()) } returns tonAccount(2_500_000_000)
+        assertEquals("2.5 TON", probe.read(UniversalWalletSlot.TON, MNEMONIC, "", UniversalWalletSlot.TON.publicKey(MNEMONIC, "")).balance)
     }
 
     private suspend fun bitcoinProbe() = probe.probe(
-        UniversalWalletSlot.BITCOIN_MAINNET, MNEMONIC, UniversalWalletSlot.BITCOIN_MAINNET.publicKey(MNEMONIC, "")
+        UniversalWalletSlot.BITCOIN_MAINNET, MNEMONIC, "", UniversalWalletSlot.BITCOIN_MAINNET.publicKey(MNEMONIC, "")
     )
 
     private fun stats(address: String, funded: Long) = BitcoinEsploraAddress(
@@ -139,5 +163,6 @@ class NetworkUniversalWalletFundsProbeTest {
 
     private companion object {
         const val MNEMONIC = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+        const val PASSWORD = "TREZOR"
     }
 }
