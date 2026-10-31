@@ -35,6 +35,8 @@ android {
         androidTest.assets.srcDirs += files(
                 "$rootDir/core-db/schemas",
                 "$rootDir/common/src/test/resources",
+                // substrate-password-vectors.json, checked against the shipped SR25519 library.
+                "$rootDir/core-api/src/test/resources",
                 // The frozen database of the released 3.7.4 APK, for upgrade-path tests that start
                 // from what shipped code wrote.
                 "$rootDir/core-db/src/androidTest/assets"
