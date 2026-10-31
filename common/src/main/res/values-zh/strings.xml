@@ -1781,4 +1781,9 @@
   <string name="universal_password_notice_unknown">无法检查，请稍后重试。</string>
   <string name="universal_password_notice_in_use">请先断开其 TON 应用。</string>
   <string name="universal_password_notice_options">旧地址</string>
+  <string name="substrate_password_choice_title">选择您的地址</string>
+  <string name="substrate_password_choice_description">早期版本的 Fearless 浏览器扩展用此密码生成了另一个地址。请选择存有您资金的那个地址。</string>
+  <string name="substrate_password_choice_nfkd">所有 Fearless 应用</string>
+  <string name="substrate_password_choice_nfc">早期浏览器扩展</string>
+  <string name="substrate_password_choice_as_typed">浏览器扩展 3.0（按输入原样）</string>
 </resources>

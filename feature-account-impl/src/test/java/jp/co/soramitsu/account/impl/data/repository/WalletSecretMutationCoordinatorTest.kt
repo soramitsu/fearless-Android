@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageUnavailabl
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.substrateAccountId
+import jp.co.soramitsu.core.crypto.SubstratePasswordRule
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.coredb.model.WalletCustodyLocal
@@ -501,6 +502,52 @@ class WalletSecretMutationCoordinatorTest {
         coordinator.create(substratePrototype(fixture), fixture.encoded, null, null)
 
         assertNotNull(database.account(77))
+    }
+
+    // substrate-password-vectors.json default24-unicode: an import may open the account the browser
+    // extension 4.2 made from this password (SubstratePasswordRule.NFC).
+    @Test
+    fun createBindsAWalletImportedWithAnEarlierExtensionsPasswordRule() = runBlocking {
+        val fixture = earlierRuleFixture(seedRule = SubstratePasswordRule.NFC, entropyPhrase = UNICODE_PHRASE)
+
+        coordinator.create(substratePrototype(fixture), fixture.encoded, null, null)
+
+        assertNotNull(database.account(77))
+        assertEquals(fixture.encoded, preferences.value("77:SUBSTRATE_SECRETS"))
+    }
+
+    @Test
+    fun createRejectsEntropyThatNoPasswordRuleBindsToTheSeed() = runBlocking {
+        val fixture = earlierRuleFixture(seedRule = SubstratePasswordRule.NFC, entropyPhrase = PASSWORD_PHRASE)
+
+        val failure = expectCoordinatorFailure {
+            coordinator.create(substratePrototype(fixture), fixture.encoded, null, null)
+        }
+
+        assertEquals(WalletMutationFailureReason.SECRET_BINDING_FAILED, failure.reason)
+        assertTrue(preferences.keys().isEmpty())
+        assertTrue(database.accounts().isEmpty())
+    }
+
+    private fun earlierRuleFixture(seedRule: SubstratePasswordRule, entropyPhrase: String): SubstrateFixture {
+        val path = "//polkadot///p\u00e4ssw\u00f6rd \uff26\uff37"
+        val decodedPath = SubstrateJunctionDecoder.decode(path)
+        val seed = SubstrateSeedFactory.deriveSeed32(UNICODE_PHRASE, decodedPath.password, seedRule).seed
+        val keypair = SubstrateKeypairFactory.generate(
+            encryptionType = EncryptionType.ECDSA,
+            seed = seed,
+            junctions = decodedPath.junctions
+        )
+        return SubstrateFixture(
+            publicKey = keypair.publicKey,
+            accountId = keypair.publicKey.substrateAccountId(),
+            encoded = SubstrateSecrets(
+                substrateKeyPair = keypair,
+                entropy = MnemonicCreator.fromWords(entropyPhrase).entropy,
+                seed = seed,
+                substrateDerivationPath = path
+            ).toHexString()
+        )
     }
 
     @Test
@@ -2584,6 +2631,8 @@ class WalletSecretMutationCoordinatorTest {
         const val PASSWORD_PHRASE =
             "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
         const val OTHER_PHRASE = "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong"
+        const val UNICODE_PHRASE = "abandon amount liar amount expire adjust cage candy arch gather drum bullet " +
+            "absurd math era live bid rhythm alien crouch range attend journey unaware"
     }
 }
 

@@ -26,6 +26,7 @@ import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.backup.domain.models.DecryptedBackupAccount
 import jp.co.soramitsu.backup.domain.models.FileMeta
 import jp.co.soramitsu.backup.domain.models.Json
+import jp.co.soramitsu.core.crypto.SubstratePasswordRule
 import jp.co.soramitsu.core.models.CryptoType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -235,6 +236,17 @@ class BackupService internal constructor(
         // Key derivation, kept off the caller's (often main) thread.
         return withContext(Dispatchers.Default) {
             secretVerifier.restoringSecretTypes(account)
+        }
+    }
+
+    /**
+     * How a backup's phrase must read its path's password to restore the account the backup is filed
+     * under: a wallet imported with an earlier browser extension's account keeps that rule. Null when
+     * the phrase restores no account or the address cannot be checked.
+     */
+    suspend fun restoringSubstratePasswordRule(account: DecryptedBackupAccount): SubstratePasswordRule? {
+        return withContext(Dispatchers.Default) {
+            secretVerifier.restoringSubstratePasswordRule(account)
         }
     }
 

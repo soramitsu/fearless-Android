@@ -118,7 +118,8 @@ class SubstrateOrEvmAccountRepository(
 
         val derivationResult = SubstrateSeedFactory.deriveSeed32(
             payload.mnemonic,
-            decodedDerivationPath?.password
+            decodedDerivationPath?.password,
+            payload.substratePasswordRule
         )
 
         val keys = SubstrateKeypairFactory.generate(

@@ -12,6 +12,7 @@ import jp.co.soramitsu.common.utils.SolanaKeyDerivation
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.substrateAccountId
+import jp.co.soramitsu.core.crypto.SubstratePasswordRule
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.model.WithDerivationPath
 import jp.co.soramitsu.core.model.WithMnemonic
@@ -350,7 +351,8 @@ internal interface WalletRootCryptography {
     fun recoverSubstrateFromEntropy(
         entropy: ByteArray,
         decodedPath: JunctionDecoder.DecodeResult?,
-        cryptoType: CryptoType
+        cryptoType: CryptoType,
+        passwordRule: SubstratePasswordRule
     ): FearlessKeypair
 
     fun recoverSubstrateFromSeed(
@@ -803,14 +805,20 @@ internal class WalletRootSecretValidationEngine(
         }
 
         entropy?.takeIf { it.size in VALID_ENTROPY_LENGTHS }?.let {
-            val recovered = performCryptography("Substrate entropy recovery") {
-                cryptography.recoverSubstrateFromEntropy(
-                    entropy = it,
-                    decodedPath = decodedPath,
-                    cryptoType = expectedCryptoType
-                )
+            // An import may have opened the account an earlier browser extension made from the
+            // path's password: the entropy re-derives the keypair under one of the rules.
+            val rederived = SubstratePasswordRule.distinctFor(decodedPath?.password).any { rule ->
+                val recovered = performCryptography("Substrate entropy recovery") {
+                    cryptography.recoverSubstrateFromEntropy(
+                        entropy = it,
+                        decodedPath = decodedPath,
+                        cryptoType = expectedCryptoType,
+                        passwordRule = rule
+                    )
+                }
+                recoveredSubstrateMatches(recovered, expectedKeypair, expectedCryptoType)
             }
-            if (!recoveredSubstrateMatches(recovered, expectedKeypair, expectedCryptoType)) {
+            if (!rederived) {
                 issues += RecoveryIssue.ENTROPY_MISMATCH
             }
         }
@@ -1127,12 +1135,14 @@ private object ProductionWalletRootCryptography : WalletRootCryptography {
     override fun recoverSubstrateFromEntropy(
         entropy: ByteArray,
         decodedPath: JunctionDecoder.DecodeResult?,
-        cryptoType: CryptoType
+        cryptoType: CryptoType,
+        passwordRule: SubstratePasswordRule
     ): FearlessKeypair {
         val mnemonic = MnemonicCreator.fromEntropy(entropy)
         val seed = SubstrateSeedFactory.deriveSeed32(
             mnemonicWords = mnemonic.words,
-            password = decodedPath?.password
+            password = decodedPath?.password,
+            rule = passwordRule
         ).seed
         return recoverSubstrateFromSeed(seed, decodedPath, cryptoType)
     }

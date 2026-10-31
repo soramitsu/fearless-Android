@@ -159,6 +159,15 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             binding.advancedBlockView.setSubstrateEncryption(it.name)
         }
 
+        viewModel.substratePasswordChooserEvent.observeEvent {
+            SubstratePasswordChooserBottomSheetDialog(
+                requireActivity(),
+                it,
+                viewModel::substratePasswordAccountChosen
+            )
+                .show()
+        }
+
         viewModel.nextButtonState.observe(binding.nextBtn::setState)
 
         binding.advancedBlockView.substrateDerivationPathEditText.bindTo(viewModel.substrateDerivationPathLiveData, viewLifecycleOwner)

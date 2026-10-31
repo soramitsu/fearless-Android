@@ -1781,4 +1781,9 @@
   <string name="universal_password_notice_unknown">確認できませんでした。後でもう一度お試しください。</string>
   <string name="universal_password_notice_in_use">先に接続中のTONアプリを切断してください。</string>
   <string name="universal_password_notice_options">古いアドレス</string>
+  <string name="substrate_password_choice_title">アドレスを選択</string>
+  <string name="substrate_password_choice_description">以前のFearlessブラウザ拡張機能は、このパスワードから別のアドレスを作成していました。資金があるほうを選んでください。</string>
+  <string name="substrate_password_choice_nfkd">すべてのFearlessアプリ</string>
+  <string name="substrate_password_choice_nfc">以前のブラウザ拡張機能</string>
+  <string name="substrate_password_choice_as_typed">ブラウザ拡張機能 3.0（入力どおり）</string>
 </resources>

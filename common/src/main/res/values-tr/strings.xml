@@ -1793,4 +1793,9 @@
   <string name="universal_password_notice_unknown">Kontrol edilemedi. Daha sonra tekrar deneyin.</string>
   <string name="universal_password_notice_in_use">Önce TON uygulamalarının bağlantısını kesin.</string>
   <string name="universal_password_notice_options">Eski adresler</string>
+  <string name="substrate_password_choice_title">Adresinizi seçin</string>
+  <string name="substrate_password_choice_description">Fearless tarayıcı uzantısının önceki sürümleri bu paroladan farklı bir adres oluşturuyordu. Fonlarınızın bulunduğu adresi seçin.</string>
+  <string name="substrate_password_choice_nfkd">Tüm Fearless uygulamaları</string>
+  <string name="substrate_password_choice_nfc">Önceki tarayıcı uzantısı</string>
+  <string name="substrate_password_choice_as_typed">Tarayıcı uzantısı 3.0, yazıldığı gibi</string>
 </resources>

@@ -27,6 +27,17 @@ Release signing pins the replacement upload certificate
 `docs/releases/4.3.0.md`. Not included: Asset Hub staking, so Polkadot and
 Kusama staking is unavailable in this version.
 
+## Imports can open a Substrate account an earlier browser extension made — 31 October 2026
+
+The Substrate mini secret is salted with "mnemonic" + the path's `///password`. This app has always used
+NFKD(password); the browser extension 4.2 used NFC(password) and 3.0 the password as typed, so a non-ASCII
+password opened a different account there (`feature-account-impl/src/test/resources/substrate-password-vectors.json`,
+shared with web and iOS). The extension now uses NFKD as well. When the typed words and path open more than one
+account, the import asks which one (the current one first); a Google Drive restore picks the account the backup is
+filed under. No rule is stored: the create binding, the recovery and backup verifiers and the root-secret
+validator accept whichever rule (`core-api` `SubstratePasswordRule`) re-derives the stored key, so such a wallet
+keeps its phrase for export and backup.
+
 ## Universal accounts use the wallet password — 31 October 2026
 
 A wallet whose Substrate (or, failing that, Ethereum) derivation path ends in

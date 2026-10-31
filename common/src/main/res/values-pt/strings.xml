@@ -1859,4 +1859,9 @@
   <string name="universal_password_notice_unknown">Não foi possível verificar. Tente mais tarde.</string>
   <string name="universal_password_notice_in_use">Desconecte primeiro os apps TON.</string>
   <string name="universal_password_notice_options">Endereços antigos</string>
+  <string name="substrate_password_choice_title">Escolha seu endereço</string>
+  <string name="substrate_password_choice_description">Versões anteriores da extensão de navegador do Fearless criavam outro endereço a partir desta senha. Escolha aquele que guarda seus fundos.</string>
+  <string name="substrate_password_choice_nfkd">Todos os apps Fearless</string>
+  <string name="substrate_password_choice_nfc">Extensão de navegador anterior</string>
+  <string name="substrate_password_choice_as_typed">Extensão de navegador 3.0, como digitado</string>
 </resources>

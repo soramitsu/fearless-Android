@@ -10,6 +10,7 @@ import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretValidator
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.deriveSeed32
+import jp.co.soramitsu.core.crypto.SubstratePasswordRule
 import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
 import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
@@ -38,25 +39,31 @@ class WalletIdentityVerifier(private val jsonDecoder: JsonSeedDecoder) {
         val ethereum = identity.isEthereum()
         val fallback = if (ethereum) BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH else ""
         for (candidate in listOf(path.ifEmpty { fallback }, fallback).distinct()) {
-            val keys: SigningKeypair
-            val entropy: ByteArray
-            val seed: ByteArray
             if (ethereum) {
                 val decoded = BIP32JunctionDecoder.decode(candidate)
                 val derived = EthereumSeedFactory.deriveSeed32(text, decoded.password)
-                keys = EthereumKeypairFactory.generate(derived.seed, decoded.junctions)
-                entropy = derived.mnemonic.entropy
+                val keys = EthereumKeypairFactory.generate(derived.seed, decoded.junctions)
                 // V3 stores the derived private key; chain V2 stores the BIP39 seed.
-                seed = if (identity is WalletKeyIdentity.Chain) derived.seed else keys.privateKey
-            } else {
-                val decoded = candidate.takeIf { it.isNotEmpty() }?.let(SubstrateJunctionDecoder::decode)
-                val derived = SubstrateSeedFactory.deriveSeed32(text, decoded?.password)
-                keys = SubstrateKeypairFactory.generate(identity.encryptionType(), derived.seed, decoded?.junctions.orEmpty())
-                entropy = derived.mnemonic.entropy
-                seed = derived.seed
+                val seed = if (identity is WalletKeyIdentity.Chain) derived.seed else keys.privateKey
+                if (keys.publicKey.contentEquals(identity.publicKey())) {
+                    return validated(identity, encode(identity, keys, derived.mnemonic.entropy, seed, candidate))
+                }
+                continue
             }
-            if (keys.publicKey.contentEquals(identity.publicKey())) {
-                return validated(identity, encode(identity, keys, entropy, seed, candidate))
+            val decoded = candidate.takeIf { it.isNotEmpty() }?.let(SubstrateJunctionDecoder::decode)
+            // A wallet import may have opened the account an earlier browser extension made from the
+            // path's password; per-network accounts are only ever made with the current rule.
+            val rules = if (identity is WalletKeyIdentity.Substrate) {
+                SubstratePasswordRule.distinctFor(decoded?.password)
+            } else {
+                listOf(SubstratePasswordRule.NFKD)
+            }
+            for (rule in rules) {
+                val derived = SubstrateSeedFactory.deriveSeed32(text, decoded?.password, rule)
+                val keys = SubstrateKeypairFactory.generate(identity.encryptionType(), derived.seed, decoded?.junctions.orEmpty())
+                if (keys.publicKey.contentEquals(identity.publicKey())) {
+                    return validated(identity, encode(identity, keys, derived.mnemonic.entropy, derived.seed, candidate))
+                }
             }
         }
         throw WalletRecoveryIdentityMismatch()
