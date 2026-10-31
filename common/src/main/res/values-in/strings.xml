@@ -1827,4 +1827,9 @@
   <string name="universal_password_notice_balance">Saldo: %s</string>
   <string name="universal_password_notice_used_again">Dompet ini memakai alamat lama lagi agar dana tetap terlihat.</string>
   <string name="universal_password_notice_move_old">Untuk memindahkannya, impor kata pemulihan tanpa kata sandi sebagai dompet lain, lalu kirim dananya ke alamat baru.</string>
+  <string name="substrate_password_choice_title">Pilih alamat Anda</string>
+  <string name="substrate_password_choice_description">Versi lama ekstensi browser Fearless membuat alamat yang berbeda dari kata sandi ini. Pilih alamat yang menyimpan dana Anda.</string>
+  <string name="substrate_password_choice_nfkd">Semua aplikasi Fearless</string>
+  <string name="substrate_password_choice_nfc">Ekstensi browser versi lama</string>
+  <string name="substrate_password_choice_as_typed">Ekstensi browser 3.0, sesuai ketikan</string>
 </resources>

@@ -10,6 +10,7 @@ import io.mockk.verify
 import java.io.IOException
 import jp.co.soramitsu.account.api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.backup.GoogleBackupIssue
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
@@ -36,6 +37,7 @@ import jp.co.soramitsu.common.R as CommonR
 import jp.co.soramitsu.common.base.models.ErrorDialogState
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.core.crypto.SubstratePasswordRule
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecodingException
 import jp.co.soramitsu.feature_account_impl.R
@@ -87,6 +89,7 @@ class ImportRemoteWalletViewModelTest {
         coEvery { backupService.getBackupAccounts() } returns listOf(appBackup)
         coEvery { backupService.getWebBackupAccounts() } returns emptyList()
         coEvery { backupService.restoringSecretTypes(any()) } returns null
+        coEvery { backupService.restoringSubstratePasswordRule(any()) } returns null
         coEvery { backupService.logout() } returns Unit
         coEvery { interactor.createAccount(any()) } returns Result.success(1L)
         coEvery { interactor.importFromSeed(any(), any(), any(), any(), any(), any(), any()) } returns Result.success(Unit)
@@ -292,6 +295,22 @@ class ImportRemoteWalletViewModelTest {
 
         coVerify(exactly = 1) { interactor.importFromSeed(null, "0x01", "App wallet", "", CryptoType.ED25519, null, "5App") }
         coVerify(exactly = 0) { interactor.createAccount(any()) }
+    }
+
+    @Test
+    fun `a phrase backup of an earlier browser extension account restores that account`() = runTest(dispatcher) {
+        coEvery { backupService.importBackupAccount("5App", "pw") } returns phraseBackup
+        coEvery { backupService.restoringSecretTypes(phraseBackup) } returns setOf(BackupAccountType.PASSPHRASE)
+        coEvery { backupService.restoringSubstratePasswordRule(phraseBackup) } returns SubstratePasswordRule.NFC
+        val vm = viewModel()
+
+        importWith(vm, WrappedBackupAccountMeta(appBackup), "pw")
+
+        coVerify(exactly = 1) {
+            interactor.createAccount(
+                match { it is AddAccountPayload.SubstrateOrEvm && it.substratePasswordRule == SubstratePasswordRule.NFC }
+            )
+        }
     }
 
     @Test

@@ -1798,4 +1798,9 @@
   <string name="universal_password_notice_balance">Bakiye: %s</string>
   <string name="universal_password_notice_used_again">Fonlar görünür kalsın diye bu cüzdan yeniden eski adresi kullanıyor.</string>
   <string name="universal_password_notice_move_old">Taşımak için kurtarma kelimelerinizi parola olmadan başka bir cüzdan olarak içe aktarın, ardından fonları yeni adrese gönderin.</string>
+  <string name="substrate_password_choice_title">Adresinizi seçin</string>
+  <string name="substrate_password_choice_description">Fearless tarayıcı uzantısının önceki sürümleri bu paroladan farklı bir adres oluşturuyordu. Fonlarınızın bulunduğu adresi seçin.</string>
+  <string name="substrate_password_choice_nfkd">Tüm Fearless uygulamaları</string>
+  <string name="substrate_password_choice_nfc">Önceki tarayıcı uzantısı</string>
+  <string name="substrate_password_choice_as_typed">Tarayıcı uzantısı 3.0, yazıldığı gibi</string>
 </resources>

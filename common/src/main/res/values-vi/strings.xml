@@ -1745,4 +1745,9 @@
   <string name="universal_password_notice_balance">Số dư: %s</string>
   <string name="universal_password_notice_used_again">Ví này dùng lại địa chỉ cũ để số tiền vẫn hiển thị.</string>
   <string name="universal_password_notice_move_old">Để chuyển, hãy nhập cụm từ khôi phục không kèm mật khẩu thành một ví khác, rồi gửi tiền sang địa chỉ mới.</string>
+  <string name="substrate_password_choice_title">Chọn địa chỉ của bạn</string>
+  <string name="substrate_password_choice_description">Các phiên bản trước của tiện ích mở rộng trình duyệt Fearless đã tạo một địa chỉ khác từ mật khẩu này. Hãy chọn địa chỉ đang giữ tiền của bạn.</string>
+  <string name="substrate_password_choice_nfkd">Tất cả ứng dụng Fearless</string>
+  <string name="substrate_password_choice_nfc">Tiện ích mở rộng trình duyệt trước đây</string>
+  <string name="substrate_password_choice_as_typed">Tiện ích mở rộng trình duyệt 3.0, đúng như đã nhập</string>
 </resources>

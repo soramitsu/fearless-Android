@@ -1821,4 +1821,9 @@
   <string name="universal_password_notice_balance">Баланс: %s</string>
   <string name="universal_password_notice_used_again">Кошелёк снова использует старый адрес, чтобы средства оставались видны.</string>
   <string name="universal_password_notice_move_old">Чтобы перевести их, импортируйте фразу восстановления без пароля как отдельный кошелёк и отправьте средства на новый адрес.</string>
+  <string name="substrate_password_choice_title">Выберите адрес</string>
+  <string name="substrate_password_choice_description">Прежние версии расширения Fearless для браузера получали из этого пароля другой адрес. Выберите тот, на котором хранятся ваши средства.</string>
+  <string name="substrate_password_choice_nfkd">Все приложения Fearless</string>
+  <string name="substrate_password_choice_nfc">Прежнее расширение для браузера</string>
+  <string name="substrate_password_choice_as_typed">Расширение 3.0, как введено</string>
 </resources>

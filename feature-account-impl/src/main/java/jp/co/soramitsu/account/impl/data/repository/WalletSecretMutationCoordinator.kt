@@ -31,6 +31,7 @@ import jp.co.soramitsu.common.utils.UniversalWalletPassphrase
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.substrateAccountId
+import jp.co.soramitsu.core.crypto.SubstratePasswordRule
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
@@ -1342,40 +1343,51 @@ class WalletSecretMutationCoordinator private constructor(
             ?.takeIf(String::isNotEmpty)
             ?.let(SubstrateJunctionDecoder::decode)
 
-        val entropySeed = entropy?.let {
+        // An import may have opened the account an earlier browser extension made from the path's
+        // password (SubstratePasswordRule); the entropy binds the seed one of the rules gives.
+        val entropySeeds = entropy?.let {
             val mnemonic = MnemonicCreator.fromEntropy(it)
-            SubstrateSeedFactory.deriveSeed32(
-                mnemonicWords = mnemonic.words,
-                password = decodedPath?.password
-            ).seed
-        }
-        if (entropySeed != null && storedSeed != null) {
-            requireSecretBinding(entropySeed.contentEquals(storedSeed)) {
-                "Substrate entropy and seed describe different recovery material"
+            SubstratePasswordRule.distinctFor(decodedPath?.password).map { rule ->
+                SubstrateSeedFactory.deriveSeed32(
+                    mnemonicWords = mnemonic.words,
+                    password = decodedPath?.password,
+                    rule = rule
+                ).seed
             }
         }
-
-        val recoverySeed = entropySeed ?: storedSeed ?: return
-        requireSecretBinding(recoverySeed.size == PRIVATE_KEY_BYTES) {
+        val recoverySeeds = when {
+            entropySeeds == null -> listOfNotNull(storedSeed)
+            storedSeed == null -> entropySeeds
+            else -> {
+                requireSecretBinding(entropySeeds.any { it.contentEquals(storedSeed) }) {
+                    "Substrate entropy and seed describe different recovery material"
+                }
+                listOf(storedSeed)
+            }
+        }
+        if (recoverySeeds.isEmpty()) return
+        requireSecretBinding(recoverySeeds.all { it.size == PRIVATE_KEY_BYTES }) {
             "A Substrate recovery seed has an invalid length"
         }
-        val recoveredKeypair = SubstrateKeypairFactory.generate(
-            encryptionType = encryptionType,
-            seed = recoverySeed,
-            junctions = decodedPath?.junctions.orEmpty()
-        )
-        // schnorrkel draws a fresh random nonce for every soft junction
-        // (`/0`, `//polkadot/0`), so an SR25519 nonce cannot be re-derived.
-        // Any 32-byte nonce signs correctly: the stored one is kept verbatim
-        // and only its shape is checked, by bindOptionalSubstrate.
-        val recoveredNonce = (recoveredKeypair as? Sr25519Keypair)?.nonce
         requireSecretBinding(
-            recoveredKeypair.privateKey.contentEquals(expectedPrivateKey) &&
-                recoveredKeypair.publicKey.contentEquals(expectedPublicKey) &&
-                (
-                    encryptionType == EncryptionType.SR25519 ||
-                        recoveredNonce.contentEqualsNullable(expectedNonce)
-                    )
+            recoverySeeds.any { recoverySeed ->
+                val recoveredKeypair = SubstrateKeypairFactory.generate(
+                    encryptionType = encryptionType,
+                    seed = recoverySeed,
+                    junctions = decodedPath?.junctions.orEmpty()
+                )
+                // schnorrkel draws a fresh random nonce for every soft junction
+                // (`/0`, `//polkadot/0`), so an SR25519 nonce cannot be re-derived.
+                // Any 32-byte nonce signs correctly: the stored one is kept verbatim
+                // and only its shape is checked, by bindOptionalSubstrate.
+                val recoveredNonce = (recoveredKeypair as? Sr25519Keypair)?.nonce
+                recoveredKeypair.privateKey.contentEquals(expectedPrivateKey) &&
+                    recoveredKeypair.publicKey.contentEquals(expectedPublicKey) &&
+                    (
+                        encryptionType == EncryptionType.SR25519 ||
+                            recoveredNonce.contentEqualsNullable(expectedNonce)
+                        )
+            }
         ) {
             "Substrate recovery material derives a different keypair"
         }

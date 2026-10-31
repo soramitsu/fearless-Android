@@ -1786,4 +1786,9 @@
   <string name="universal_password_notice_balance">残高: %s</string>
   <string name="universal_password_notice_used_again">資金が見えるよう、このウォレットは古いアドレスを再び使用します。</string>
   <string name="universal_password_notice_move_old">移動するには、リカバリーフレーズをパスワードなしで別のウォレットとしてインポートし、新しいアドレスに送金してください。</string>
+  <string name="substrate_password_choice_title">アドレスを選択</string>
+  <string name="substrate_password_choice_description">以前のFearlessブラウザ拡張機能は、このパスワードから別のアドレスを作成していました。資金があるほうを選んでください。</string>
+  <string name="substrate_password_choice_nfkd">すべてのFearlessアプリ</string>
+  <string name="substrate_password_choice_nfc">以前のブラウザ拡張機能</string>
+  <string name="substrate_password_choice_as_typed">ブラウザ拡張機能 3.0（入力どおり）</string>
 </resources>

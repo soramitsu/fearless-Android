@@ -1739,4 +1739,9 @@
   <string name="universal_password_notice_balance">Balance: %s</string>
   <string name="universal_password_notice_used_again">This wallet uses the old address again, so they stay visible.</string>
   <string name="universal_password_notice_move_old">To move them, import your recovery words without the password as another wallet, then send them to the new address.</string>
+  <string name="substrate_password_choice_title">Choose your address</string>
+  <string name="substrate_password_choice_description">Earlier versions of the Fearless browser extension made a different address from this password. Choose the one that holds your funds.</string>
+  <string name="substrate_password_choice_nfkd">All Fearless apps</string>
+  <string name="substrate_password_choice_nfc">Earlier browser extension</string>
+  <string name="substrate_password_choice_as_typed">Browser extension 3.0, as typed</string>
 </resources>
