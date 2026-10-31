@@ -34,6 +34,7 @@ import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
+import jp.co.soramitsu.common.utils.UniversalWalletPassphrase
 import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretCorruptionException
 import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretValidator
 import jp.co.soramitsu.common.data.storage.encrypt.WalletPublicIdentityIntegrityException
@@ -896,7 +897,46 @@ class AccountRepositoryImpl(
         return tonSecretStore.getWithVerifiedRecovery(
             metaId = metaAccount.id,
             expectedPublicKey = metaAccount.tonPublicKey
-        )
+        ) ?: universalTonPassphrases(metaAccount).takeIf(List<String>::isNotEmpty)?.let { passphrases ->
+            tonSecretStore.getWithVerifiedRecovery(metaAccount.id, metaAccount.tonPublicKey, passphrases)
+        }
+    }
+
+    /**
+     * A password wallet derives its universal TON key with its BIP39 passphrase, which only its
+     * Substrate or Ethereum derivation path holds. Read only after the phrase alone failed.
+     */
+    private fun universalTonPassphrases(metaAccount: MetaAccount): List<String> {
+        if (metaAccount.tonPublicKey == null) return emptyList()
+        if (metaAccount.substratePublicKey == null && metaAccount.ethereumPublicKey == null) return emptyList()
+        return try {
+            val substrate = if (isScopeAccessible(metaAccount, WalletSecretScope.Substrate)) {
+                readValidatedSubstrateSecrets(metaAccount)
+            } else {
+                null
+            }
+            val ethereum = if (isScopeAccessible(metaAccount, WalletSecretScope.Ethereum)) {
+                readValidatedEthereumSecrets(metaAccount)
+            } else {
+                null
+            }
+            val substrateEntropy = substrate?.get(SubstrateSecrets.Entropy)
+            val passphrase = when {
+                substrateEntropy != null -> UniversalWalletPassphrase.resolve(
+                    substrate[SubstrateSecrets.SubstrateDerivationPath],
+                    ethereum?.get(EthereumSecrets.EthereumDerivationPath),
+                    ethereum?.get(EthereumSecrets.Entropy)?.contentEquals(substrateEntropy) == true
+                )
+                ethereum?.get(EthereumSecrets.Entropy) != null ->
+                    UniversalWalletPassphrase.ethereumPassword(ethereum[EthereumSecrets.EthereumDerivationPath])
+                else -> ""
+            }
+            listOfNotNull(passphrase.takeIf(String::isNotEmpty))
+        } catch (failure: kotlinx.coroutines.CancellationException) {
+            throw failure
+        } catch (_: Exception) {
+            emptyList()
+        }
     }
 
     override suspend fun isWalletRecoveryRequired(metaId: Long): Boolean {
@@ -967,10 +1007,17 @@ class AccountRepositoryImpl(
             }
 
             WalletEcosystem.Ton -> readIfAccessible(metaAccount, WalletSecretScope.Ton) {
-                tonSecretStore.getWithAssessment(
+                val assessment = tonSecretStore.getWithAssessment(
                     metaId = metaAccount.id,
                     expectedPublicKey = metaAccount.tonPublicKey
                 )?.second
+                if (assessment is RecoveryAssessment.Unverified) {
+                    universalTonPassphrases(metaAccount).takeIf(List<String>::isNotEmpty)?.let { passphrases ->
+                        tonSecretStore.getWithAssessment(metaAccount.id, metaAccount.tonPublicKey, passphrases)?.second
+                    } ?: assessment
+                } else {
+                    assessment
+                }
             }
 
             // Derived from a root phrase; they have no stored material of their own.

@@ -1728,4 +1728,16 @@
   <string name="portfolio_prices_loading">Đang tải giá…</string>
   <string name="portfolio_balance_partial">Số dư một phần</string>
   <string name="portfolio_balance_unavailable">Không có số dư</string>
+  <string name="universal_password_notice_title">Chuyển tiền khỏi địa chỉ cũ</string>
+  <string name="universal_password_notice_message">Các địa chỉ này không dùng mật khẩu ví, nên chỉ cụm từ khôi phục là mở được. Hãy gửi tiền sang các địa chỉ mới được bảo vệ bằng mật khẩu, rồi nhấn Chuyển đổi.</string>
+  <string name="universal_password_notice_old">Cũ: %s</string>
+  <string name="universal_password_notice_new">Mới: %s</string>
+  <string name="universal_password_notice_switch">Chuyển đổi</string>
+  <string name="universal_password_notice_later">Để sau</string>
+  <string name="universal_password_notice_checking">Đang kiểm tra…</string>
+  <string name="universal_password_notice_switched">Đã chuyển đổi</string>
+  <string name="universal_password_notice_still_funded">Vẫn còn tiền</string>
+  <string name="universal_password_notice_unknown">Không kiểm tra được. Hãy thử lại sau.</string>
+  <string name="universal_password_notice_in_use">Hãy ngắt kết nối các ứng dụng TON trước.</string>
+  <string name="universal_password_notice_options">Địa chỉ cũ</string>
 </resources>

@@ -1722,4 +1722,16 @@
   <string name="portfolio_prices_loading">Loading prices…</string>
   <string name="portfolio_balance_partial">Partial balance</string>
   <string name="portfolio_balance_unavailable">Balance unavailable</string>
+  <string name="universal_password_notice_title">Move funds from old addresses</string>
+  <string name="universal_password_notice_message">These addresses don\'t use your wallet password, so your recovery words alone open them. Send their funds to the new password-protected addresses, then tap Switch.</string>
+  <string name="universal_password_notice_old">Old: %s</string>
+  <string name="universal_password_notice_new">New: %s</string>
+  <string name="universal_password_notice_switch">Switch</string>
+  <string name="universal_password_notice_later">Later</string>
+  <string name="universal_password_notice_checking">Checking…</string>
+  <string name="universal_password_notice_switched">Switched</string>
+  <string name="universal_password_notice_still_funded">Still holds funds</string>
+  <string name="universal_password_notice_unknown">Couldn\'t check. Try again later.</string>
+  <string name="universal_password_notice_in_use">Disconnect its TON apps first.</string>
+  <string name="universal_password_notice_options">Old addresses</string>
 </resources>

@@ -1847,4 +1847,16 @@
   <string name="portfolio_prices_loading">Carregando preços…</string>
   <string name="portfolio_balance_partial">Saldo parcial</string>
   <string name="portfolio_balance_unavailable">Saldo indisponível</string>
+  <string name="universal_password_notice_title">Mova os fundos dos endereços antigos</string>
+  <string name="universal_password_notice_message">Estes endereços não usam a senha da sua carteira, por isso as palavras de recuperação sozinhas os abrem. Envie os fundos para os novos endereços protegidos por senha e toque em Trocar.</string>
+  <string name="universal_password_notice_old">Antigo: %s</string>
+  <string name="universal_password_notice_new">Novo: %s</string>
+  <string name="universal_password_notice_switch">Trocar</string>
+  <string name="universal_password_notice_later">Depois</string>
+  <string name="universal_password_notice_checking">Verificando…</string>
+  <string name="universal_password_notice_switched">Trocado</string>
+  <string name="universal_password_notice_still_funded">Ainda tem fundos</string>
+  <string name="universal_password_notice_unknown">Não foi possível verificar. Tente mais tarde.</string>
+  <string name="universal_password_notice_in_use">Desconecte primeiro os apps TON.</string>
+  <string name="universal_password_notice_options">Endereços antigos</string>
 </resources>

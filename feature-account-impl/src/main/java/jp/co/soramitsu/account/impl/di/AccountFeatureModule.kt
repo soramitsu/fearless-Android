@@ -20,6 +20,10 @@ import jp.co.soramitsu.account.impl.data.repository.AccountRepositoryImpl
 import jp.co.soramitsu.account.impl.data.repository.KeyPairRepository
 import jp.co.soramitsu.account.impl.data.repository.SubstrateOrEvmAccountRepository
 import jp.co.soramitsu.account.impl.data.repository.TonAccountRepository
+import jp.co.soramitsu.account.api.domain.UniversalWalletFundsProbe
+import jp.co.soramitsu.account.api.domain.UniversalWalletPasswordNotice
+import jp.co.soramitsu.account.impl.domain.UniversalWalletFreshRoots
+import jp.co.soramitsu.account.impl.domain.UniversalWalletPasswordNoticeService
 import jp.co.soramitsu.account.impl.data.repository.WalletSecretMutationCoordinator
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSourceImpl
@@ -129,13 +133,35 @@ class AccountFeatureModule {
     @Singleton
     fun provideSubstrateOrEvmAccountRepository(
         metaAccountDao: MetaAccountDao,
-        walletSecretMutationCoordinator: WalletSecretMutationCoordinator
+        walletSecretMutationCoordinator: WalletSecretMutationCoordinator,
+        freshRoots: UniversalWalletFreshRoots
     ): SubstrateOrEvmAccountRepository {
         return SubstrateOrEvmAccountRepository(
             metaAccountDao,
-            walletSecretMutationCoordinator
+            walletSecretMutationCoordinator,
+            freshRoots
         )
     }
+
+    @Provides
+    @Singleton
+    fun provideUniversalWalletFreshRoots(preferences: Preferences) = UniversalWalletFreshRoots(preferences)
+
+    @Provides
+    @Singleton
+    fun provideUniversalWalletPasswordNotice(
+        accountRepository: AccountRepository,
+        metaAccountDao: MetaAccountDao,
+        walletSecretMutationCoordinator: WalletSecretMutationCoordinator,
+        fundsProbe: UniversalWalletFundsProbe,
+        preferences: Preferences
+    ): UniversalWalletPasswordNotice = UniversalWalletPasswordNoticeService(
+        accountRepository,
+        metaAccountDao,
+        walletSecretMutationCoordinator,
+        fundsProbe,
+        preferences
+    )
 
     @Provides
     @Singleton

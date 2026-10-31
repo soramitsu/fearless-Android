@@ -1810,4 +1810,16 @@
   <string name="portfolio_prices_loading">Memuat harga…</string>
   <string name="portfolio_balance_partial">Saldo sebagian</string>
   <string name="portfolio_balance_unavailable">Saldo tidak tersedia</string>
+  <string name="universal_password_notice_title">Pindahkan dana dari alamat lama</string>
+  <string name="universal_password_notice_message">Alamat ini tidak memakai kata sandi dompet Anda, jadi kata pemulihan saja sudah bisa membukanya. Kirim dananya ke alamat baru yang dilindungi kata sandi, lalu ketuk Ganti.</string>
+  <string name="universal_password_notice_old">Lama: %s</string>
+  <string name="universal_password_notice_new">Baru: %s</string>
+  <string name="universal_password_notice_switch">Ganti</string>
+  <string name="universal_password_notice_later">Nanti</string>
+  <string name="universal_password_notice_checking">Memeriksa…</string>
+  <string name="universal_password_notice_switched">Sudah diganti</string>
+  <string name="universal_password_notice_still_funded">Masih ada dana</string>
+  <string name="universal_password_notice_unknown">Tidak dapat memeriksa. Coba lagi nanti.</string>
+  <string name="universal_password_notice_in_use">Putuskan dulu aplikasi TON-nya.</string>
+  <string name="universal_password_notice_options">Alamat lama</string>
 </resources>
