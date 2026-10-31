@@ -8,6 +8,9 @@
 the Asset Hub migration moved it off the relays. It is release 4.3.0 plus the
 Asset Hub staking line (Codex `codex/android-validator-search-repair-20261029`,
 selected commits, not merged wholesale), versionCode 233, database 84.
+On 1 November 2026 the release line also took the two account changes described
+below: universal accounts protected by the wallet password (#1273 with its review
+fixes) and imports that can open an earlier browser extension's Substrate account.
 
 - Staking and nomination pools for the native DOT of Polkadot Asset Hub and KSM
   of Kusama Asset Hub: bond (no controller), nominate, bond more, unbond,
