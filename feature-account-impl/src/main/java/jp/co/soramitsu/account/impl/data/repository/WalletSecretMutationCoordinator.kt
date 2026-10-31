@@ -26,6 +26,7 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletCrossStoreMutationMutex
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
 import jp.co.soramitsu.common.utils.SolanaKeyDerivation
 import jp.co.soramitsu.common.utils.TonKeyDerivation
+import jp.co.soramitsu.common.utils.UniversalWalletPassphrase
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.substrateAccountId
@@ -85,7 +86,10 @@ enum class WalletMutationFailureReason {
     IDENTITY_CONFLICT,
     STATE_CONFLICT,
     RECOVERY_REQUIRED,
-    DURABILITY_UNKNOWN
+    DURABILITY_UNKNOWN,
+
+    /** TON Connect apps are connected to the TON key a replacement would change. */
+    CONNECTED_APPS
 }
 
 /**
@@ -269,6 +273,18 @@ class WalletSecretMutationCoordinator private constructor(
         tonSecretPlaintext: String
     ): Long = addRoot(existing, after, tonSecretPlaintext, Operation.ADD_TON, TON_SECRET_SUFFIX)
 
+    /**
+     * Swaps a password wallet's universal TON root, derived from its words without the BIP39
+     * passphrase, for the one the passphrase derives. The caller has confirmed that the old
+     * account is empty. Both keys come from the words its Substrate or Ethereum secret keeps,
+     * and nothing but the TON identity changes.
+     */
+    suspend fun replaceUniversalTon(
+        existing: MetaAccountLocal,
+        after: MetaAccountLocal,
+        tonSecretPlaintext: String
+    ): Long = addRoot(existing, after, tonSecretPlaintext, Operation.REPLACE_TON, TON_SECRET_SUFFIX)
+
     private suspend fun addRoot(
         existing: MetaAccountLocal,
         after: MetaAccountLocal,
@@ -289,6 +305,7 @@ class WalletSecretMutationCoordinator private constructor(
         requireArgument(operation != Operation.ADD_TON || !encryptedPreferences.hasKey(secretKey(existing.id, TON_SECRET_SUFFIX))) {
             "An existing TON secret must never be replaced by automatic enrollment"
         }
+        if (operation == Operation.REPLACE_TON) requireReplaceableUniversalTon(existing, secretPlaintext)
         val journal = Journal(
             operationId = identifierSource.nextOperationId(),
             operation = operation,
@@ -317,6 +334,13 @@ class WalletSecretMutationCoordinator private constructor(
             )
             requireExpectedSelection(accounts, current)
             requireNoDedicatedTonAccount(journal)
+            // A connected app knows the old TON address; it must be disconnected first.
+            if (operation == Operation.REPLACE_TON && getTonConnectionSecretOwners(existing.id).isNotEmpty()) {
+                throw WalletSecretMutationCoordinatorException(
+                    reason = WalletMutationFailureReason.CONNECTED_APPS,
+                    message = "TON Connect apps use the TON key a replacement would change"
+                )
+            }
         }
         stage(journal, secretPlaintexts)
         reconcileStagedMutation(
@@ -582,7 +606,7 @@ class WalletSecretMutationCoordinator private constructor(
 
         when (staged.journal.operation) {
             Operation.CREATE, Operation.RESTORE_ARCHIVE -> applyCreate(staged.journal)
-            Operation.ADD_EVM, Operation.ADD_TON -> applyAddRoot(staged.journal)
+            Operation.ADD_EVM, Operation.ADD_TON, Operation.REPLACE_TON -> applyAddRoot(staged.journal)
             Operation.DELETE -> applyDelete(staged.journal)
         }
 
@@ -593,7 +617,7 @@ class WalletSecretMutationCoordinator private constructor(
                 }
                 Operation.CREATE,
                 Operation.RESTORE_ARCHIVE,
-                Operation.ADD_EVM, Operation.ADD_TON -> {
+                Operation.ADD_EVM, Operation.ADD_TON, Operation.REPLACE_TON -> {
                     journalStore.clear(staged)
                 }
             }
@@ -671,7 +695,7 @@ class WalletSecretMutationCoordinator private constructor(
     }
 
     private suspend fun WalletMutationDatabase.requireNoDedicatedTonAccount(journal: Journal) {
-        if (journal.operation != Operation.ADD_TON) return
+        if (journal.operation != Operation.ADD_TON && journal.operation != Operation.REPLACE_TON) return
         requireState(getAccountChainIds(journal.metaId).none { it.lowercase() in TON_CHAIN_ALIASES }) {
             "A dedicated TON account must not be shadowed by automatic enrollment"
         }
@@ -947,7 +971,11 @@ class WalletSecretMutationCoordinator private constructor(
                         image = afterImage,
                         plaintext = secretPlaintexts[
                             secretKey(journal.metaId, TON_SECRET_SUFFIX)
-                        ]
+                        ],
+                        universalPassphrases = universalPassphrases(
+                            substratePlaintext = secretPlaintexts[secretKey(journal.metaId, SUBSTRATE_SECRET_SUFFIX)],
+                            ethereumPlaintext = secretPlaintexts[secretKey(journal.metaId, ETHEREUM_SECRET_SUFFIX)]
+                        )
                     )
                 }
                 Operation.ADD_EVM -> {
@@ -960,10 +988,11 @@ class WalletSecretMutationCoordinator private constructor(
                         ]
                     )
                 }
-                Operation.ADD_TON -> {
+                Operation.ADD_TON, Operation.REPLACE_TON -> {
                     bindOptionalTon(
                         image = journal.afterImage ?: recoveryRequired("A TON journal has no after-image"),
-                        plaintext = secretPlaintexts[secretKey(journal.metaId, TON_SECRET_SUFFIX)]
+                        plaintext = secretPlaintexts[secretKey(journal.metaId, TON_SECRET_SUFFIX)],
+                        universalPassphrases = storedUniversalPassphrases(journal.metaId)
                     )
                 }
                 Operation.DELETE -> {
@@ -1145,7 +1174,8 @@ class WalletSecretMutationCoordinator private constructor(
 
     private fun bindOptionalTon(
         image: PublicAfterImage,
-        plaintext: String?
+        plaintext: String?,
+        universalPassphrases: List<String>
     ) {
         val publicKeyHex = image.tonPublicKeyHex
         if (publicKeyHex == null) {
@@ -1208,11 +1238,62 @@ class WalletSecretMutationCoordinator private constructor(
         val derivedPrivateKey = PrivateKeyEd25519(mnemonicSeed)
         val matchesNative = derivedPrivateKey.key.toByteArray().contentEquals(privateKey) &&
             derivedPrivateKey.publicKey().key.toByteArray().contentEquals(publicKey)
+        // A password wallet's universal TON key derives with its BIP39 passphrase.
         requireSecretBinding(
-            matchesNative || validBip39Mnemonic &&
-                TonKeyDerivation.matchesUniversalMnemonicKeypair(mnemonicText, privateKey, publicKey)
+            matchesNative || validBip39Mnemonic && (listOf("") + universalPassphrases).distinct().any { passphrase ->
+                TonKeyDerivation.matchesUniversalMnemonicKeypair(mnemonicText, privateKey, publicKey, passphrase)
+            }
         ) {
             "A TON mnemonic derives a different keypair"
+        }
+    }
+
+    /** The BIP39 passphrase that the wallet's Substrate or Ethereum path assigns its words. */
+    private fun universalPassphrases(substratePlaintext: String?, ethereumPlaintext: String?): List<String> {
+        val substrate = substratePlaintext?.let { runCatching { SubstrateSecrets.read(it) }.getOrNull() }
+        val ethereum = ethereumPlaintext?.let { runCatching { EthereumSecrets.read(it) }.getOrNull() }
+        val substrateEntropy = substrate?.get(SubstrateSecrets.Entropy)
+        val passphrase = when {
+            substrateEntropy != null -> UniversalWalletPassphrase.resolve(
+                substrate[SubstrateSecrets.SubstrateDerivationPath],
+                ethereum?.get(EthereumSecrets.EthereumDerivationPath),
+                ethereum?.get(EthereumSecrets.Entropy)?.contentEquals(substrateEntropy) == true
+            )
+            ethereum?.get(EthereumSecrets.Entropy) != null ->
+                UniversalWalletPassphrase.ethereumPassword(ethereum[EthereumSecrets.EthereumDerivationPath])
+            else -> ""
+        }
+        return listOfNotNull(passphrase.takeIf(String::isNotEmpty))
+    }
+
+    private fun storedUniversalPassphrases(metaId: Long): List<String> = universalPassphrases(
+        substratePlaintext = runCatching { encryptedPreferences.getDecryptedString(secretKey(metaId, SUBSTRATE_SECRET_SUFFIX)) }.getOrNull(),
+        ethereumPlaintext = runCatching { encryptedPreferences.getDecryptedString(secretKey(metaId, ETHEREUM_SECRET_SUFFIX)) }.getOrNull()
+    )
+
+    /**
+     * Only a universal root of the same words, derived without the passphrase, may be replaced,
+     * and only by the key the passphrase derives: nothing else is lost or newly trusted.
+     */
+    private fun requireReplaceableUniversalTon(existing: MetaAccountLocal, replacementPlaintext: String) {
+        val passphrase = storedUniversalPassphrases(existing.id).singleOrNull()
+        requireArgument(passphrase != null) { "Only a password wallet's universal TON root can be replaced" }
+        val current = encryptedPreferences.getDecryptedString(secretKey(existing.id, TON_SECRET_SUFFIX))
+        requireArgument(current != null) { "Only an existing TON root can be replaced" }
+        val before = decodeCanonicalSecret(checkNotNull(current), WalletSecretScalePreflight::requireTonV3, TonSecrets::read) { it.toHexString() }
+        val after = decodeCanonicalSecret(replacementPlaintext, WalletSecretScalePreflight::requireTonV3, TonSecrets::read) { it.toHexString() }
+        val words = before[TonSecrets.Seed].decodeToString(throwOnInvalidSequence = true)
+        requireArgument(after[TonSecrets.Seed].contentEquals(before[TonSecrets.Seed])) {
+            "A TON replacement must keep the same words"
+        }
+        requireArgument(
+            existing.tonPublicKey?.contentEquals(before[TonSecrets.PublicKey]) == true &&
+                TonKeyDerivation.matchesUniversalMnemonicKeypair(words, before[TonSecrets.PrivateKey], before[TonSecrets.PublicKey]) &&
+                TonKeyDerivation.matchesUniversalMnemonicKeypair(
+                    words, after[TonSecrets.PrivateKey], after[TonSecrets.PublicKey], checkNotNull(passphrase)
+                )
+        ) {
+            "A TON replacement must swap the no-password key for the password-protected one"
         }
     }
 

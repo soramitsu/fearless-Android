@@ -29,6 +29,12 @@ class WalletSecretMutationJournalStore(
         RESTORE_ARCHIVE,
         ADD_EVM,
         ADD_TON,
+        /**
+         * Swaps a password wallet's universal TON root for the key its BIP39 passphrase derives.
+         * The only operation that overwrites an existing secret; the old key re-derives from the
+         * wallet's words, which its Substrate or Ethereum secret keeps.
+         */
+        REPLACE_TON,
         DELETE
     }
 
@@ -119,10 +125,15 @@ class WalletSecretMutationJournalStore(
         }
 
         journal.secretKeysToPut.forEach { secretKey ->
-            if (encryptedPreferences.hasKey(secretKey)) {
+            // A replacement targets exactly the key it replaces; every other mutation a new key.
+            if (encryptedPreferences.hasKey(secretKey) != (journal.operation == Operation.REPLACE_TON)) {
                 fail(
                     FailureReason.CONFLICT,
-                    "A target wallet-secret key already exists"
+                    if (journal.operation == Operation.REPLACE_TON) {
+                        "A replaced wallet-secret key does not exist"
+                    } else {
+                        "A target wallet-secret key already exists"
+                    }
                 )
             }
         }
@@ -846,6 +857,22 @@ class WalletSecretMutationJournalStore(
                     afterImage.copy(tonPublicKeyHex = null) != beforeImage
                 ) {
                     fail(failureReason, "A TON addition must only fill a previously absent TON identity")
+                }
+                requireExactSecretKeys(journal.secretKeysToPut, setOf(secretKey(journal.metaId, TON_SECRET_SUFFIX)), failureReason)
+                requireExactSecretKeys(journal.secretKeysToRemove, emptySet(), failureReason)
+            }
+
+            Operation.REPLACE_TON -> {
+                val beforeImage = journal.beforeImage ?: fail(failureReason, "A TON replacement requires a before-image")
+                val afterImage = journal.afterImage ?: fail(failureReason, "A TON replacement requires an after-image")
+                validateAfterImage(beforeImage, failureReason)
+                validateAfterImage(afterImage, failureReason)
+                requireCommonNonDeleteFields(journal, failureReason)
+                if (beforeImage.tonPublicKeyHex == null || afterImage.tonPublicKeyHex == null ||
+                    beforeImage.tonPublicKeyHex == afterImage.tonPublicKeyHex ||
+                    afterImage.copy(tonPublicKeyHex = beforeImage.tonPublicKeyHex) != beforeImage
+                ) {
+                    fail(failureReason, "A TON replacement must only change an existing TON identity")
                 }
                 requireExactSecretKeys(journal.secretKeysToPut, setOf(secretKey(journal.metaId, TON_SECRET_SUFFIX)), failureReason)
                 requireExactSecretKeys(journal.secretKeysToRemove, emptySet(), failureReason)
