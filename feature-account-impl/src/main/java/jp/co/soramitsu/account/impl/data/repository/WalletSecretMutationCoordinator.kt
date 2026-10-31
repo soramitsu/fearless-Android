@@ -23,6 +23,7 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalSt
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore.SubstrateCryptoType
 import jp.co.soramitsu.common.data.storage.encrypt.TonConnectStorageKeys
 import jp.co.soramitsu.common.data.storage.encrypt.WalletCrossStoreMutationMutex
+import jp.co.soramitsu.common.data.storage.encrypt.WalletTonRootReplacementMutex
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
 import jp.co.soramitsu.common.utils.SolanaKeyDerivation
 import jp.co.soramitsu.common.utils.TonKeyDerivation
@@ -305,7 +306,17 @@ class WalletSecretMutationCoordinator private constructor(
         requireArgument(operation != Operation.ADD_TON || !encryptedPreferences.hasKey(secretKey(existing.id, TON_SECRET_SUFFIX))) {
             "An existing TON secret must never be replaced by automatic enrollment"
         }
-        if (operation == Operation.REPLACE_TON) requireReplaceableUniversalTon(existing, secretPlaintext)
+        if (operation == Operation.REPLACE_TON) {
+            requireReplaceableUniversalTon(existing, secretPlaintext)
+            // A TON Connect save staged but cancelled before its row insert still told an app
+            // the current address. The TON Connect repository stages under the same mutex.
+            if (journalCall { journalStore.hasTonConnectMutationJournal() }) {
+                throw WalletSecretMutationCoordinatorException(
+                    reason = WalletMutationFailureReason.CONNECTED_APPS,
+                    message = "A pending TON Connect mutation uses the TON key a replacement would change"
+                )
+            }
+        }
         val journal = Journal(
             operationId = identifierSource.nextOperationId(),
             operation = operation,
@@ -342,16 +353,27 @@ class WalletSecretMutationCoordinator private constructor(
                 )
             }
         }
-        stage(journal, secretPlaintexts)
-        reconcileStagedMutation(
-            StagedMutation(
-                journal = journal,
-                secretPlaintexts = secretPlaintexts
+        whileTonRootChanges(operation) {
+            stage(journal, secretPlaintexts)
+            reconcileStagedMutation(
+                StagedMutation(
+                    journal = journal,
+                    secretPlaintexts = secretPlaintexts
+                )
             )
-        )
+        }
 
         existing.id
     }
+
+    // TON readers re-check a stale identity under this lock (TonSecretStore.readForIdentity),
+    // so it spans the whole swap: staged key, Room row and cleared journal.
+    private suspend inline fun <T> whileTonRootChanges(operation: Operation, block: () -> T): T =
+        if (operation == Operation.REPLACE_TON) {
+            WalletTonRootReplacementMutex.instance.withLock { block() }
+        } else {
+            block()
+        }
 
     /**
      * Removes the wallet from active use and durably retains its exact active
@@ -594,7 +616,7 @@ class WalletSecretMutationCoordinator private constructor(
             journalStore.loadStagedMutation()
         } ?: return
 
-        reconcileStagedMutation(staged)
+        whileTonRootChanges(staged.journal.operation) { reconcileStagedMutation(staged) }
     }
 
     private suspend fun reconcileStagedMutation(staged: StagedMutation) {

@@ -891,16 +891,24 @@ class AccountRepositoryImpl(
         )
     }
 
-    private fun readValidatedTonSecrets(
+    private suspend fun readValidatedTonSecrets(
         metaAccount: MetaAccount
-    ): EncodableStruct<TonSecrets>? {
-        return tonSecretStore.getWithVerifiedRecovery(
-            metaId = metaAccount.id,
-            expectedPublicKey = metaAccount.tonPublicKey
-        ) ?: universalTonPassphrases(metaAccount).takeIf(List<String>::isNotEmpty)?.let { passphrases ->
-            tonSecretStore.getWithVerifiedRecovery(metaAccount.id, metaAccount.tonPublicKey, passphrases)
-        }
+    ): EncodableStruct<TonSecrets>? = readTonForIdentity(metaAccount) { publicKey, quarantine ->
+        getWithVerifiedRecovery(metaAccount.id, publicKey, quarantine = quarantine)
+            ?: universalTonPassphrases(metaAccount).takeIf(List<String>::isNotEmpty)?.let { passphrases ->
+                getWithVerifiedRecovery(metaAccount.id, publicKey, passphrases, quarantine)
+            }
     }
+
+    // [metaAccount] was read before its TON secret; a universal TON swap may have committed since.
+    private suspend fun <T> readTonForIdentity(
+        metaAccount: MetaAccount,
+        read: TonSecretStore.(publicKey: ByteArray?, quarantine: Boolean) -> T
+    ): T = tonSecretStore.readForIdentity(
+        expectedPublicKey = metaAccount.tonPublicKey,
+        currentPublicKey = { accountDataSource.getMetaAccount(metaAccount.id).tonPublicKey },
+        read = read
+    )
 
     /**
      * A password wallet derives its universal TON key with its BIP39 passphrase, which only its
@@ -1007,16 +1015,15 @@ class AccountRepositoryImpl(
             }
 
             WalletEcosystem.Ton -> readIfAccessible(metaAccount, WalletSecretScope.Ton) {
-                val assessment = tonSecretStore.getWithAssessment(
-                    metaId = metaAccount.id,
-                    expectedPublicKey = metaAccount.tonPublicKey
-                )?.second
-                if (assessment is RecoveryAssessment.Unverified) {
-                    universalTonPassphrases(metaAccount).takeIf(List<String>::isNotEmpty)?.let { passphrases ->
-                        tonSecretStore.getWithAssessment(metaAccount.id, metaAccount.tonPublicKey, passphrases)?.second
-                    } ?: assessment
-                } else {
-                    assessment
+                readTonForIdentity(metaAccount) { publicKey, quarantine ->
+                    val assessment = getWithAssessment(metaAccount.id, publicKey, quarantine = quarantine)?.second
+                    if (assessment is RecoveryAssessment.Unverified) {
+                        universalTonPassphrases(metaAccount).takeIf(List<String>::isNotEmpty)?.let { passphrases ->
+                            getWithAssessment(metaAccount.id, publicKey, passphrases, quarantine)?.second
+                        } ?: assessment
+                    } else {
+                        assessment
+                    }
                 }
             }
 

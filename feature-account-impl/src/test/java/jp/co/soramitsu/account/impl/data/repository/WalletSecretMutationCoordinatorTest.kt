@@ -143,6 +143,22 @@ class WalletSecretMutationCoordinatorTest {
     }
 
     @Test
+    fun replaceUniversalTonWaitsForATonConnectSaveCancelledBeforeItsRowInsert() = runBlocking {
+        val (before, legacy, protected) = passwordWalletWithLegacyTon()
+        // A connection save staged its journal and stopped before inserting its row.
+        preferences.putEncryptedString(TonConnectStorageKeys.MUTATION_JOURNAL_KEY, "pending-ton-connect-save")
+
+        val refused = expectCoordinatorFailure {
+            coordinator.replaceUniversalTon(before, before.copyForTest(tonPublicKey = protected.publicKey), universalTonSecret(protected))
+        }
+
+        assertEquals(WalletMutationFailureReason.CONNECTED_APPS, refused.reason)
+        assertArrayEquals(legacy.publicKey, database.account(10)?.tonPublicKey)
+        assertEquals(universalTonSecret(legacy), preferences.value("10:TON_SECRETS"))
+        assertFalse(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
+    }
+
+    @Test
     fun replaceUniversalTonRefusesAnythingButTheSameWordsPasswordKey() = runBlocking {
         val (before, legacy, protected) = passwordWalletWithLegacyTon()
         val other = jp.co.soramitsu.common.utils.TonKeyDerivation.deriveAccount(PASSWORD_PHRASE, "other")

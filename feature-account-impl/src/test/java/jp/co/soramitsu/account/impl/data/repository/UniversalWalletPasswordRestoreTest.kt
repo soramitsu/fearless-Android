@@ -1,16 +1,24 @@
 package jp.co.soramitsu.account.impl.data.repository
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.SavedStateHandle
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import jp.co.soramitsu.account.api.domain.UniversalWalletFundsProbe
 import jp.co.soramitsu.account.api.domain.UniversalWalletFundsProbe.Funds
 import jp.co.soramitsu.account.api.domain.UniversalWalletPasswordNotice.Outcome
 import jp.co.soramitsu.account.api.domain.UniversalWalletSlot
+import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.universalWalletRoot
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
+import jp.co.soramitsu.account.impl.domain.AccountInteractorImpl
 import jp.co.soramitsu.account.impl.domain.LegacyNetworkAccountUpgrade
 import jp.co.soramitsu.account.impl.domain.UniversalWalletPasswordNoticeService
+import jp.co.soramitsu.account.impl.presentation.exporting.mnemonic.ExportMnemonicFragment
+import jp.co.soramitsu.account.impl.presentation.exporting.mnemonic.ExportMnemonicPayload
+import jp.co.soramitsu.account.impl.presentation.exporting.mnemonic.ExportMnemonicViewModel
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
@@ -22,6 +30,7 @@ import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretAccessGuard
+import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
 import jp.co.soramitsu.common.model.UniversalWalletRegistry
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.LanguagesHolder
@@ -31,6 +40,7 @@ import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
@@ -43,18 +53,28 @@ import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypair
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonChainId
 import jp.co.soramitsu.testshared.HashMapEncryptedPreferences
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
@@ -72,6 +92,9 @@ import java.lang.reflect.Proxy
  * probe confirms empty, with the addresses of the shared passphrase vectors.
  */
 class UniversalWalletPasswordRestoreTest {
+
+    @get:Rule
+    val instantTaskRule = InstantTaskExecutorRule()
 
     private val preferences = HashMapEncryptedPreferences()
     private val accountDataSource = mock<AccountDataSource>()
@@ -197,28 +220,78 @@ class UniversalWalletPasswordRestoreTest {
         verifyNoInteractions(coordinator)
     }
 
+    @Test
+    fun tonExportOfAWalletWhosePasswordIsInItsEthereumPathRestoresTheSameTonAddress() = runTest {
+        // An empty Substrate path; the password is in the Ethereum path over the same words.
+        val wallet = storeWallet(substratePath = null, ethereumPath = "$DEFAULT_ETHEREUM_PATH///$PASSWORD", tonPassphrase = PASSWORD)
+        val exported = exportTon()
+        assertEquals("$DEFAULT_ETHEREUM_PATH///$PASSWORD", exported.ethereumPath)
+        assertArrayEquals(wallet.tonPublicKey, restore(exported))
+    }
+
+    @Test
+    fun tonExportOfAWalletWhosePasswordIsInItsSubstratePathRestoresTheSameTonAddress() = runTest {
+        val wallet = storeWallet(substratePath = "///$PASSWORD", tonPassphrase = PASSWORD)
+        val exported = exportTon()
+        assertEquals("///$PASSWORD", exported.substratePath)
+        assertArrayEquals(wallet.tonPublicKey, restore(exported))
+    }
+
+    @Test
+    fun staleTonReaderAfterTheSwapCommittedReadsTheNewKeyWithoutQuarantine() = runTest {
+        val wallet = storeOlderPasswordWallet()
+        var reads = 0
+        whenever(accountDataSource.getMetaAccount(META_ID)).thenAnswer {
+            if (reads++ == 0) {
+                // Switch stages the new key, Room names it and the journal clears right after this read.
+                TonSecretStore(preferences).put(
+                    META_ID, TonSecrets(MNEMONIC.encodeToByteArray(), Keypair(protectedTon.publicKey, protectedTon.privateKey))
+                )
+                wallet
+            } else {
+                wallet.copy(tonPublicKey = protectedTon.publicKey)
+            }
+        }
+
+        val secrets = repository().getTonSecrets(META_ID)
+
+        assertArrayEquals(protectedTon.publicKey, secrets?.get(TonSecrets.PublicKey))
+        assertTrue(!preferences.hasKey(WalletSecretQuarantine.keyFor("$META_ID:TON_SECRETS")))
+        assertEquals(RecoveryAssessment.Verified, repository().recoveryAssessment(META_ID, WalletEcosystem.Ton))
+    }
+
     private val legacyTon = TonKeyDerivation.deriveAccount(MNEMONIC)
     private val protectedTon = TonKeyDerivation.deriveAccount(MNEMONIC, PASSWORD)
 
-    private suspend fun storeOlderPasswordWallet(substratePath: String? = "///$PASSWORD"): MetaAccount {
+    private suspend fun storeOlderPasswordWallet(substratePath: String? = "///$PASSWORD"): MetaAccount =
+        storeWallet(substratePath = substratePath)
+
+    /** A wallet of [MNEMONIC]: legacy chain rows, and a TON root derived with [tonPassphrase]. */
+    private suspend fun storeWallet(
+        metaId: Long = META_ID,
+        substratePath: String?,
+        ethereumPath: String = DEFAULT_ETHEREUM_PATH,
+        tonPassphrase: String = ""
+    ): MetaAccount {
         val mnemonic = MnemonicCreator.fromWords(MNEMONIC)
         val password = substratePath?.let { jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder.decode(it).password }
         val substrateSeed = SubstrateSeedFactory.deriveSeed32(mnemonic.words, password).seed
         val substrate = SubstrateKeypairFactory.generate(EncryptionType.ECDSA, substrateSeed, emptyList())
-        val ethereumPath = BIP32JunctionDecoder.decode(BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH)
+        val decodedEthereumPath = BIP32JunctionDecoder.decode(ethereumPath)
         val ethereum = EthereumKeypairFactory.generate(
-            seed = EthereumSeedFactory.deriveSeed32(mnemonic.words, ethereumPath.password).seed,
-            junctions = ethereumPath.junctions
+            seed = EthereumSeedFactory.deriveSeed32(mnemonic.words, decodedEthereumPath.password).seed,
+            junctions = decodedEthereumPath.junctions
         )
+        val ton = TonKeyDerivation.deriveAccount(MNEMONIC, tonPassphrase)
         val chainAccounts = UniversalWalletSlot.chainRowSlots.associate { slot ->
             val key = slot.publicKey(MNEMONIC, "")
             val bitcoin = slot == UniversalWalletSlot.BITCOIN_MAINNET || slot == UniversalWalletSlot.BITCOIN_TESTNET
             chainIdOf(slot) to MetaAccount.ChainAccount(
-                META_ID, null, key, key.clone(), if (bitcoin) CryptoType.ECDSA else CryptoType.ED25519, "Password wallet"
+                metaId, null, key, key.clone(), if (bitcoin) CryptoType.ECDSA else CryptoType.ED25519, "Password wallet"
             )
         }
         val wallet = MetaAccount(
-            id = META_ID,
+            id = metaId,
             chainAccounts = chainAccounts,
             favoriteChains = emptyMap(),
             substratePublicKey = substrate.publicKey,
@@ -226,22 +299,19 @@ class UniversalWalletPasswordRestoreTest {
             substrateAccountId = substrate.publicKey.substrateAccountId(),
             ethereumAddress = ethereum.publicKey.ethereumAddressFromPublicKey(),
             ethereumPublicKey = ethereum.publicKey,
-            tonPublicKey = legacyTon.publicKey,
+            tonPublicKey = ton.publicKey,
             isSelected = true,
             isBackedUp = true,
             googleBackupAddress = null,
             name = "Password wallet",
             initialized = true
         )
-        whenever(accountDataSource.getMetaAccount(META_ID)).thenReturn(wallet)
+        whenever(accountDataSource.getMetaAccount(metaId)).thenReturn(wallet)
         whenever(accountDataSource.allMetaAccounts()).thenReturn(listOf(wallet))
-        whenever(dao.getMetaAccount(META_ID)).thenReturn(MetaAccountLocal(
-            wallet.substratePublicKey, wallet.substrateCryptoType, wallet.substrateAccountId,
-            wallet.ethereumPublicKey, wallet.ethereumAddress, wallet.tonPublicKey,
-            wallet.name, wallet.isSelected, 0, wallet.isBackedUp, wallet.googleBackupAddress, wallet.initialized
-        ).apply { id = META_ID })
+        whenever(accountDataSource.lightMetaAccountsFlow()).thenReturn(flowOf(listOf(wallet)))
+        whenever(dao.getMetaAccount(metaId)).thenReturn(wallet.toLocal())
         SubstrateSecretStore(preferences).put(
-            META_ID,
+            metaId,
             SubstrateSecrets(
                 substrateKeyPair = substrate,
                 entropy = mnemonic.entropy,
@@ -250,19 +320,97 @@ class UniversalWalletPasswordRestoreTest {
             )
         )
         EthereumSecretStore(preferences).put(
-            META_ID,
+            metaId,
             EthereumSecrets(
                 entropy = mnemonic.entropy,
                 seed = ethereum.privateKey,
                 ethereumKeypair = ethereum,
-                ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+                ethereumDerivationPath = ethereumPath
             )
         )
-        // 4.2.x LegacyNetworkAccountUpgrade.addMissingTonRoot: the words, no passphrase.
+        // 4.2.x LegacyNetworkAccountUpgrade.addMissingTonRoot stored the words without a passphrase.
         TonSecretStore(preferences).put(
-            META_ID, TonSecrets(MNEMONIC.encodeToByteArray(), Keypair(legacyTon.publicKey, legacyTon.privateKey))
+            metaId, TonSecrets(MNEMONIC.encodeToByteArray(), Keypair(ton.publicKey, ton.privateKey))
         )
         return wallet
+    }
+
+    private fun MetaAccount.toLocal() = MetaAccountLocal(
+        substratePublicKey, substrateCryptoType, substrateAccountId,
+        ethereumPublicKey, ethereumAddress, tonPublicKey,
+        name, isSelected, 0, isBackedUp, googleBackupAddress, initialized
+    ).also { it.id = id }
+
+    private class Exported(val words: String, val substratePath: String?, val ethereumPath: String?)
+
+    /** What the TON account's mnemonic export shows: the words and, under Advanced, the paths. */
+    private fun exportTon(): Exported {
+        Dispatchers.setMain(UnconfinedTestDispatcher())
+        try {
+            val chain = mock<Chain>()
+            whenever(chain.ecosystem).thenReturn(Ecosystem.Ton)
+            whenever(chain.isEthereumBased).thenReturn(false)
+            val chainRegistry = mock<ChainRegistry>()
+            runBlocking { whenever(chainRegistry.getChain(tonChainId)).thenReturn(chain) }
+            val interactor = AccountInteractorImpl(repository(), mock(), mock(), mock(), mock(), Dispatchers.Unconfined)
+            val viewModel = ExportMnemonicViewModel(
+                mock(), mock(), interactor, chainRegistry,
+                SavedStateHandle(mapOf(ExportMnemonicFragment.PAYLOAD_KEY to ExportMnemonicPayload(META_ID, tonChainId, false)))
+            )
+            val paths = viewModel.derivationPathLiveData.observed()
+            return Exported(viewModel.mnemonicLiveData.observed().words, paths.component1(), paths.component2())
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
+
+    private fun <T> LiveData<T>.observed(): T {
+        observeForever {}
+        return checkNotNull(value)
+    }
+
+    /**
+     * Types [exported] into a new import (an absent Ethereum path is the default one) and enrols
+     * it as the app does an import whose old TON address is empty; returns its TON public key.
+     */
+    private suspend fun restore(exported: Exported): ByteArray {
+        val creator = mock<WalletSecretMutationCoordinator>()
+        whenever(creator.create(any(), any(), any(), anyOrNull())).thenReturn(RESTORED_ID)
+        SubstrateOrEvmAccountRepository(mock(), creator).create(
+            AddAccountPayload.SubstrateOrEvm(
+                accountName = "Restored",
+                mnemonic = exported.words,
+                encryptionType = CryptoType.ECDSA,
+                substrateDerivationPath = exported.substratePath.orEmpty(),
+                ethereumDerivationPath = exported.ethereumPath ?: DEFAULT_ETHEREUM_PATH,
+                googleBackupAddress = null,
+                isBackedUp = true
+            )
+        )
+        val prototype = argumentCaptor<MetaAccountLocal>()
+        val substrate = argumentCaptor<String>()
+        val ethereum = argumentCaptor<String>()
+        verify(creator).create(prototype.capture(), substrate.capture(), ethereum.capture(), anyOrNull())
+        SubstrateSecretStore(preferences).put(RESTORED_ID, SubstrateSecrets.read(substrate.firstValue))
+        EthereumSecretStore(preferences).put(RESTORED_ID, EthereumSecrets.read(ethereum.firstValue))
+        val local = prototype.firstValue
+        val restored = MetaAccount(
+            id = RESTORED_ID, chainAccounts = emptyMap(), favoriteChains = emptyMap(),
+            substratePublicKey = local.substratePublicKey, substrateCryptoType = local.substrateCryptoType,
+            substrateAccountId = local.substrateAccountId, ethereumAddress = local.ethereumAddress,
+            ethereumPublicKey = local.ethereumPublicKey, tonPublicKey = null, isSelected = false, isBackedUp = true,
+            googleBackupAddress = null, name = "Restored", initialized = false
+        )
+        whenever(accountDataSource.getMetaAccount(RESTORED_ID)).thenReturn(restored)
+        whenever(accountDataSource.allMetaAccounts()).thenReturn(listOf(restored))
+        whenever(dao.getMetaAccount(RESTORED_ID)).thenReturn(restored.toLocal())
+        whenever(coordinator.addTon(any(), any(), any())).thenReturn(RESTORED_ID)
+        LegacyNetworkAccountUpgrade(repository(), dao, coordinator, UniversalWalletFundsProbe { _, _, _ -> Funds.EMPTY }) {
+            emptySet()
+        }.upgrade()
+        val after = argumentCaptor<MetaAccountLocal>()
+        verify(coordinator).addTon(any(), after.capture(), any())
+        return checkNotNull(after.firstValue.tonPublicKey)
     }
 
     private fun notice(probe: UniversalWalletFundsProbe) =
@@ -281,7 +429,7 @@ class UniversalWalletPasswordRestoreTest {
         ethereumSecretStore = EthereumSecretStore(preferences),
         tonSecretStore = TonSecretStore(preferences),
         accountRepositoryDelegate = mock<AccountRepositoryDelegate>(),
-        walletSecretMutationCoordinator = mock<WalletSecretMutationCoordinator>(),
+        walletSecretMutationCoordinator = coordinator,
         walletSecretAccessGuard = WalletSecretAccessGuard(preferences),
         dispatcher = UnconfinedTestDispatcher()
     )
@@ -323,6 +471,8 @@ class UniversalWalletPasswordRestoreTest {
         }
 
         const val META_ID = 9L
+        const val RESTORED_ID = 10L
+        val DEFAULT_ETHEREUM_PATH: String = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
         const val MNEMONIC = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
         const val PASSWORD = "TREZOR"
         val CATALOG = setOf(

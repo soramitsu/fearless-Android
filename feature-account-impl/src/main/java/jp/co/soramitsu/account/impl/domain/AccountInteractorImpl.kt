@@ -6,6 +6,7 @@ import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import java.io.File
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.universalWalletRoot
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.AndroidUniversalWalletMigrationSnapshotBuilder
@@ -35,6 +36,7 @@ import jp.co.soramitsu.common.model.UniversalWalletMigrationSnapshot
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.ComponentHolder
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
+import jp.co.soramitsu.common.utils.UniversalWalletPassphrase
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.core.model.Language
@@ -500,6 +502,25 @@ class AccountInteractorImpl(
             )
         }
         return result
+    }
+
+    override fun getDerivationPathForTonExport(metaId: Long): Flow<ComponentHolder> {
+        return lightMetaAccountsFlow().mapNotNull {
+            it.firstOrNull { it.id == metaId }
+        }.map {
+            val substrateDerivationPath = accountRepository.getSubstrateSecrets(metaId)?.get(SubstrateSecrets.SubstrateDerivationPath)
+            val passphrase = accountRepository.universalWalletRoot(metaId)?.passphrase.orEmpty()
+            // The root takes the Substrate path's password first; any other comes from the Ethereum path.
+            val ethereumHoldsPassword = passphrase.isNotEmpty() &&
+                UniversalWalletPassphrase.substratePassword(substrateDerivationPath) != passphrase
+            ComponentHolder(
+                listOf(
+                    substrateDerivationPath,
+                    accountRepository.getEthereumSecrets(metaId)?.get(EthereumSecrets.EthereumDerivationPath)
+                        .takeIf { ethereumHoldsPassword }
+                )
+            )
+        }
     }
 
     private fun EncodableStruct<SubstrateSecrets>.seedFromMnemonic() =
