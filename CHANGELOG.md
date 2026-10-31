@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## 4.3.1
+
+- Staking: Polkadot and Kusama staking returns on their Asset Hubs, where the
+  stake moved: bond, nominate, bond more, unbond, rebond, withdraw, reward
+  destination, paged payouts, slash warnings and nomination pools. The
+  unbonding period follows the account (fast unbonding for nominators the
+  runtime does not slash), and estimated rewards come from the eras the Hub
+  actually paid. Payouts are offered from the Manage menu on the Hubs, only
+  from validators that are still bonded. A DOT or KSM choice saved before the upgrade opens its Hub when the
+  wallet uses the same account on the relay and the Hub.
+- Staking: enabled by the catalogue value `"staking": "assetHub"` on the Hub
+  native assets, which 4.3.0 ignores; relays never offer staking again.
+- Signing: every signed extension is checked against the runtime's portable
+  metadata; an unknown one is accepted only when it takes no bytes.
+- Validators: the validator search keeps its catalogue and selection bound to
+  the network and account it was opened for, and recovers after a failed load.
+  The validator choice screens offer a retry when the validator list cannot be
+  loaded instead of closing the app, Redeem waits for a successful ledger
+  refresh instead of closing the app when it fails, and the staking balance
+  screen offers a retry when its unbonding list cannot be read. A Hub active
+  era that cannot be read no longer closes the staking screens, and the
+  Current Validators and pool Selected Validators lists offer a retry when
+  they cannot be read. A minimum stake that cannot be read yet is shown as
+  loading or offers a retry instead of closing the app.
+- Accounts: a network-account JSON export reads the wallet once, and an
+  Ethereum export never carries the Substrate seed.
+
 ## 4.3.0
 
 - Networks: remove 40 networks that stopped producing blocks or have no

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.data.repository
 
+import jp.co.soramitsu.runtime.assethub.AssetHubStaking
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.runtime.binding.BinderWithType
@@ -67,6 +68,9 @@ class PayoutRepository(
 ) {
 
     suspend fun calculateUnpaidPayouts(stakingState: StakingState.Stash): List<Payout> {
+        if (AssetHubStaking.isHub(stakingState.chain.id)) {
+            return AssetHubPayoutRepository(chainRegistry).payouts(stakingState)
+        }
         return when (stakingState) {
             is StakingState.Stash.Nominator -> calculateUnpaidPayouts(
                 chain = stakingState.chain,

@@ -36,6 +36,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -99,9 +100,16 @@ class StakingBalanceViewModel @Inject constructor(
         })
     }.onEach { _hideLoadingEvent.postValue(Event(Unit)) }.share()
 
-    private val unbondingsFlow: Flow<List<Unbonding>> = refresh.flatMapLatest {
-        stakingScenarioInteractor.currentUnbondingsFlow(collatorAddress)
-    }
+    // Null while the unbondings cannot be read (a Hub's era clock, for one): the list shows empty with Retry and
+    // rebonding stays off. A read that times out has failed; only this screen's own cancellation ends it silently.
+    private val unbondingsFlow: Flow<List<Unbonding>?> = refresh.flatMapLatest {
+        flow<List<Unbonding>?> { emitAll(stakingScenarioInteractor.currentUnbondingsFlow(collatorAddress)) }
+            .catch { failure ->
+                currentCoroutineContext().ensureActive()
+                emit(null)
+                showUnbondingsUnavailable(failure)
+            }
+    }.share()
 
     val redeemTitle = stakingScenarioInteractor.overrideRedeemActionTitle()
 
@@ -141,7 +149,7 @@ class StakingBalanceViewModel @Inject constructor(
 
     val unbondingModelsLiveData = unbondingsFlow
         .combine(assetFlow) { unbondings, asset ->
-            unbondings.mapIndexed { index, unbonding ->
+            unbondings.orEmpty().mapIndexed { index, unbonding ->
                 UnbondingModel(
                     index = index,
                     timeLeft = unbonding.timeLeft,
@@ -153,8 +161,8 @@ class StakingBalanceViewModel @Inject constructor(
         .inBackground()
         .asLiveData()
 
-    val unbondingEnabledLiveData = combine(unbondingsFlow, refresh) { _, _ ->
-        stakingScenarioInteractor.getRebondingUnbondings(collatorAddress).isNotEmpty()
+    val unbondingEnabledLiveData = combine(unbondingsFlow, refresh) { unbondings, _ ->
+        unbondings != null && rebondingUnbondingsOrNull()?.isNotEmpty() == true
     }.onStart { emit(false) }.share().asLiveData()
 
     private val _showRebondActionsEvent = MutableLiveData<Event<Set<RebondKind>>>()
@@ -215,7 +223,12 @@ class StakingBalanceViewModel @Inject constructor(
 
     private fun openConfirmRebond(amountBuilder: (List<Unbonding>) -> BigInteger) {
         launch {
-            val unbondings = stakingScenarioInteractor.getRebondingUnbondings(collatorAddress)
+            val read = runCatching { stakingScenarioInteractor.getRebondingUnbondings(collatorAddress) }
+            currentCoroutineContext().ensureActive()
+            val unbondings = read.getOrElse { failure ->
+                showUnbondingsUnavailable(failure)
+                return@launch
+            }
 
             val amountInPlanks = amountBuilder(unbondings)
             val asset = assetFlow.first()
@@ -245,6 +258,23 @@ class StakingBalanceViewModel @Inject constructor(
                 block = block
             )
         }
+    }
+
+    /** The rebondable unbondings, or null when they cannot be read; the list already shows that failure. */
+    private suspend fun rebondingUnbondingsOrNull(): List<Unbonding>? {
+        val read = runCatching { stakingScenarioInteractor.getRebondingUnbondings(collatorAddress) }
+        currentCoroutineContext().ensureActive()
+        return read.getOrNull()
+    }
+
+    private fun showUnbondingsUnavailable(failure: Throwable) {
+        showError(
+            title = resourceManager.getString(jp.co.soramitsu.common.R.string.common_error_general_title),
+            message = failure.takeUnless { it is CancellationException }?.message
+                ?: resourceManager.getString(jp.co.soramitsu.common.R.string.common_error_general_message),
+            positiveButtonText = resourceManager.getString(jp.co.soramitsu.common.R.string.common_retry),
+            positiveClick = ::refresh
+        )
     }
 
     fun refresh() {

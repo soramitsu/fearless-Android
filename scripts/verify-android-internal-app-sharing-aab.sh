@@ -1531,10 +1531,10 @@ fi
 
 expected_version_name="$(version_property versionName)-ias"
 expected_version_code="$(version_property versionCode)"
-[[ "$expected_version_name" == "4.3.0-ias" ]] ||
-  fail "IAS versionName must remain exactly 4.3.0-ias for this testing candidate."
-[[ "$expected_version_code" == "232" ]] ||
-  fail "IAS versionCode must remain exactly 232 for this testing candidate."
+[[ "$expected_version_name" == "4.3.1-ias" ]] ||
+  fail "IAS versionName must remain exactly 4.3.1-ias for this testing candidate."
+[[ "$expected_version_code" == "233" ]] ||
+  fail "IAS versionCode must remain exactly 233 for this testing candidate."
 
 public_firebase="$ROOT_DIR/app/src/release/google-services.json"
 require_regular_file "$public_firebase" "public Firebase configuration" 65536

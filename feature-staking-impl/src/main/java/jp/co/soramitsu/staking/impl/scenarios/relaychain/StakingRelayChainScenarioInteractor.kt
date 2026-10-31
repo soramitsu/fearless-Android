@@ -18,7 +18,9 @@ import jp.co.soramitsu.coredb.dao.StakingTotalRewardDao
 import jp.co.soramitsu.coredb.model.TotalRewardLocal
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.runtime.ext.accountIdOf
+import jp.co.soramitsu.runtime.assethub.AssetHubStaking
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
@@ -57,6 +59,8 @@ import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.staking.impl.data.repository.StakingRewardsRepository
 import jp.co.soramitsu.staking.impl.domain.EraTimeCalculator
 import jp.co.soramitsu.staking.impl.domain.EraTimeCalculatorFactory
+import jp.co.soramitsu.staking.impl.domain.MinimumStakeUnavailableException
+import jp.co.soramitsu.staking.impl.domain.lowestActiveStake
 import jp.co.soramitsu.staking.impl.domain.StakingInteractor
 import jp.co.soramitsu.staking.impl.domain.common.isWaiting
 import jp.co.soramitsu.staking.impl.domain.isNominationActive
@@ -110,9 +114,11 @@ import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.validation.EnoughToPayFeesValidation
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -129,6 +135,7 @@ import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -137,6 +144,8 @@ import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 val ERA_OFFSET = 1.toBigInteger()
 const val HOURS_IN_DAY = 24
+private const val MINIMUM_STAKE_RETRY_MILLIS = 5_000L
+private const val MINIMUM_STAKE_RETRY_MAX_MILLIS = 60_000L
 
 class StakingRelayChainScenarioInteractor(
     private val stakingInteractor: StakingInteractor,
@@ -168,30 +177,52 @@ class StakingRelayChainScenarioInteractor(
         return stakingSharedState.assetWithChain.filter { it.asset.staking == StakingType.RELAYCHAIN }
             .distinctUntilChanged()
             .flatMapLatest { (chain, _) ->
-                val lockupPeriod = runCatching { getLockupPeriodInHours(chain.id) }.getOrDefault(0)
+                // A Hub's unbonding period depends on the account, so it follows the selected wallet.
+                if (AssetHubStaking.isHub(chain.id)) {
+                    accountRepository.selectedMetaAccountFlow().map { account -> chain to account.accountId(chain) }
+                } else {
+                    flowOf(chain to null)
+                }
+            }
+            .distinctUntilChanged { old, new -> old.first.id == new.first.id && old.second.contentEquals(new.second) }
+            .flatMapLatest { (chain, accountId) -> networkInfoForChain(chain, accountId) }
+    }
 
-                stakingRelayChainScenarioRepository.legacyElectedExposuresInActiveEra(chain.id)
-                    .map { exposuresMap ->
-                        val exposures = exposuresMap.values
+    private suspend fun networkInfoForChain(chain: Chain, accountId: AccountId?): Flow<NetworkInfo> {
+        val lockupPeriod = runCatching { getLockupPeriodInHours(chain.id, accountId) }.getOrElse {
+            // A Hub's era clock that cannot be read must not be shown as no period at all.
+            if (it is CancellationException || AssetHubStaking.isHub(chain.id)) throw it
+            0
+        }
 
-                        val minimumNominatorBond = chain.utilityAsset?.let {
-                            stakingRelayChainScenarioRepository.minimumNominatorBond(it)
-                        }.orZero()
+        return stakingRelayChainScenarioRepository.legacyElectedExposuresInActiveEra(chain.id)
+            .map { exposuresMap ->
+                val exposures = exposuresMap.values
 
-                        val minActiveStake = stakingRelayChainScenarioRepository.minimumActiveStake(chain.id)
-                            ?: exposures.minOf { exposure -> exposure.others.minOf { it.value } }
+                val minimumNominatorBond = chain.utilityAsset?.let {
+                    stakingRelayChainScenarioRepository.minimumNominatorBond(it)
+                }.orZero()
 
-                        val minimalStakeInPlanks =
-                            minActiveStake.coerceAtLeast(minimumNominatorBond)
+                val minActiveStake = lowestActiveStake(stakingRelayChainScenarioRepository.minimumActiveStake(chain.id), exposures)
+                    ?: throw MinimumStakeUnavailableException()
 
-                        NetworkInfo.RelayChain(
-                            lockupPeriodInHours = lockupPeriod,
-                            minimumStake = minimalStakeInPlanks,
-                            totalStake = totalStake(exposures),
-                            nominatorsCount = activeNominators(chain.id, exposures),
-                            shouldUseMinimumStakeMultiplier = true
-                        )
-                    }
+                val minimalStakeInPlanks =
+                    minActiveStake.coerceAtLeast(minimumNominatorBond)
+
+                NetworkInfo.RelayChain(
+                    lockupPeriodInHours = lockupPeriod,
+                    minimumStake = minimalStakeInPlanks,
+                    totalStake = totalStake(exposures),
+                    nominatorsCount = activeNominators(chain.id, exposures),
+                    shouldUseMinimumStakeMultiplier = true
+                )
+            }
+            // The minimum is unknown while its read fails and no exposures are cached yet (a Hub's first load, an era
+            // change): the information stays loading and is read again, instead of showing a wrong minimum.
+            .retryWhen { cause, attempt ->
+                (cause is MinimumStakeUnavailableException).also { retry ->
+                    if (retry) delay(minOf(MINIMUM_STAKE_RETRY_MILLIS * (attempt + 1), MINIMUM_STAKE_RETRY_MAX_MILLIS))
+                }
             }
     }
 
@@ -215,9 +246,26 @@ class StakingRelayChainScenarioInteractor(
         }.size
     }
 
-    private suspend fun getLockupPeriodInHours(chainId: ChainId): Int {
+    private suspend fun getLockupPeriodInHours(chainId: ChainId, accountId: AccountId?): Int {
+        val eras = if (AssetHubStaking.isHub(chainId)) {
+            assetHubUnbondingEras(chainId, accountId)
+        } else {
+            stakingConstantsRepository.lockupPeriodInEras(chainId)
+        }
+        return eras.toInt() * stakingRelayChainScenarioRepository.hoursInEra(chainId)
+    }
+
+    /**
+     * The account's Hub unbonding period. When it cannot be read the full bonding duration is used, which no account
+     * waits longer than: a shorter or zero period is never shown, and no screen fails over a remote read.
+     */
+    private suspend fun assetHubUnbondingEras(chainId: ChainId, accountId: AccountId?): BigInteger {
+        if (accountId != null) {
+            runCatching { stakingRelayChainScenarioRepository.assetHubUnbondingEras(chainId, accountId) }
+                .onSuccess { return it }
+                .onFailure { if (it is CancellationException) throw it }
+        }
         return stakingConstantsRepository.lockupPeriodInEras(chainId)
-            .toInt() * stakingRelayChainScenarioRepository.hoursInEra(chainId)
     }
 
     override fun stakingStateFlow(): Flow<StakingState> {
@@ -304,8 +352,8 @@ class StakingRelayChainScenarioInteractor(
         exposures: Collection<LegacyExposure>,
         minimumNominatorBond: BigInteger
     ): BigInteger {
-        val minActiveStake = stakingRelayChainScenarioRepository.minimumActiveStake(chainId)
-            ?: kotlin.runCatching { exposures.minOf { exposure -> exposure.others.minOf { it.value } } }.getOrNull() ?: BigInteger.ZERO
+        val minActiveStake = lowestActiveStake(stakingRelayChainScenarioRepository.minimumActiveStake(chainId), exposures)
+            ?: BigInteger.ZERO
         return minActiveStake.coerceAtLeast(minimumNominatorBond)
     }
 
@@ -604,7 +652,8 @@ class StakingRelayChainScenarioInteractor(
                             amountInPlanks = amount,
                             timeLeft = leftTime,
                             createdAt = currentTimestamp,
-                            closeToExpire = closeToExpire
+                            closeToExpire = closeToExpire,
+                            page = page
                         )
                     }
                 }.sortedBy { it.era }
@@ -657,10 +706,10 @@ class StakingRelayChainScenarioInteractor(
             val minimumNominatorBond =
                 stakingRelayChainScenarioRepository.minimumNominatorBond(chainAsset).orZero()
 
-            val minActiveStake =
-                stakingRelayChainScenarioRepository.minimumActiveStake(chainAsset.chainId)
-                    ?: exposuresDeferred.await()
-                        .minOf { exposure -> exposure.others.minOf { it.value } }
+            val minActiveStake = lowestActiveStake(
+                stakingRelayChainScenarioRepository.minimumActiveStake(chainAsset.chainId),
+                exposuresDeferred.await()
+            ) ?: throw MinimumStakeUnavailableException()
 
             val minimalStakeInPlanks =
                 minActiveStake.coerceAtLeast(minimumNominatorBond)
@@ -669,7 +718,9 @@ class StakingRelayChainScenarioInteractor(
         }
 
     suspend fun getLockupPeriodInHours() = withContext(Dispatchers.Default) {
-        getLockupPeriodInHours(stakingSharedState.chainId())
+        val chain = stakingSharedState.chain()
+        val accountId = if (AssetHubStaking.isHub(chain.id)) accountRepository.getSelectedMetaAccount().accountId(chain) else null
+        getLockupPeriodInHours(chain.id, accountId)
     }
 
     override suspend fun getRewardDestination(accountStakingState: StakingState): RewardDestination =
@@ -735,6 +786,8 @@ class StakingRelayChainScenarioInteractor(
     override suspend fun unstakingPeriod(): Int {
         return getLockupPeriodInHours()
     }
+
+    override suspend fun unbondingPeriodInHours(): Int = getLockupPeriodInHours()
 
     override suspend fun stakePeriodInHours(): Int {
         return getEraHoursLength()

@@ -14,6 +14,7 @@ import jp.co.soramitsu.coredb.model.chain.ChainExplorerLocal
 import jp.co.soramitsu.coredb.model.chain.ChainLocal
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
+import jp.co.soramitsu.runtime.assethub.AssetHubStaking
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainAssetRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.model.ChainExternalApiRemote
@@ -265,6 +266,8 @@ fun ChainRemote.toChain(): Chain {
 
     val optionsOrEmpty = this.options.orEmpty()
 
+    val hubStakingEnabled = assets.orEmpty().any { it.staking == Asset.StakingType.RELAYCHAIN }
+
     return Chain(
         id = this.chainId,
         rank = this.rank,
@@ -280,13 +283,13 @@ fun ChainRemote.toChain(): Chain {
         isEthereumBased = ETHEREUM_OPTION in optionsOrEmpty || ETHEREUM_BASED_OPTION in optionsOrEmpty,
         isTestNet = TESTNET_OPTION in optionsOrEmpty,
         hasCrowdloans = CROWDLOAN_OPTION in optionsOrEmpty,
-        supportStakingPool = NOMINATION_POOL_OPTION in optionsOrEmpty,
+        supportStakingPool = AssetHubStaking.poolPolicy(chainId, NOMINATION_POOL_OPTION in optionsOrEmpty, assets.orEmpty()),
         isEthereumChain = ETHEREUM_OPTION in optionsOrEmpty,
         chainlinkProvider = CHAINLINK_PROVIDER_OPTION in optionsOrEmpty,
         supportNft = NFT_OPTION in optionsOrEmpty,
         paraId = this.paraId,
         isUsesAppId = USES_APP_ID_OPTION in optionsOrEmpty,
-        identityChain = identityChain,
+        identityChain = AssetHubStaking.identityChain(chainId, identityChain, hubStakingEnabled),
         remoteAssetsSource = when {
             REMOTE_ASSETS_OPTION in optionsOrEmpty -> Chain.RemoteAssetsSource.OnChain
             else -> null
@@ -301,7 +304,7 @@ private fun ChainRemote.assetConfigs(): List<Asset>? {
     return assets?.mapNotNull { chainAsset ->
         runCatching {
             chainAsset.id?.let {
-                Asset(
+                val asset = Asset(
                     id = chainAsset.id,
                     name = chainAsset.name,
                     symbol = chainAsset.symbol.orEmpty(),
@@ -325,6 +328,7 @@ private fun ChainRemote.assetConfigs(): List<Asset>? {
                     priceProvider = chainAsset.priceProvider?.mapRemoteToModel(),
                     coinbaseUrl = chainAsset.coinbaseUrl
                 )
+                AssetHubStaking.remoteAssetPolicy(asset, chainAsset.staking, parentId)
             }
         }.getOrNull()
     }
@@ -372,7 +376,8 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             priceProvider = mapToPriceProvider(it.priceProvider),
             coinbaseUrl = it.coinbaseUrl
         )
-    }
+    }.map { AssetHubStaking.localAssetPolicy(it, chainLocal.chain.parentId) }
+    val hubStakingEnabled = assets.any { it.staking == Asset.StakingType.RELAYCHAIN }
 
     val externalApi = chainLocal.chain.externalApi?.let { externalApi ->
         Chain.ExternalApi(
@@ -406,13 +411,13 @@ fun mapChainLocalToChain(chainLocal: JoinedChainInfo): Chain {
             isEthereumBased = isEthereumBased,
             isTestNet = isTestNet,
             hasCrowdloans = hasCrowdloans,
-            supportStakingPool = supportStakingPool,
+            supportStakingPool = AssetHubStaking.poolPolicy(id, supportStakingPool, assets),
             isEthereumChain = isEthereumChain,
             paraId = paraId,
             chainlinkProvider = isChainlinkProvider,
             supportNft = supportNft,
             isUsesAppId = isUsesAppId,
-            identityChain = identityChain,
+            identityChain = AssetHubStaking.identityChain(id, identityChain, hubStakingEnabled),
             remoteAssetsSource = remoteAssetsSource?.let { source ->
                 Chain.RemoteAssetsSource.entries.firstOrNull { it.name == source }
             },

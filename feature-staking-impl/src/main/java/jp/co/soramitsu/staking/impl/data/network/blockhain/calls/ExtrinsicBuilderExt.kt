@@ -1,6 +1,7 @@
 package jp.co.soramitsu.staking.impl.data.network.blockhain.calls
 
 import java.math.BigInteger
+import jp.co.soramitsu.common.utils.staking
 import jp.co.soramitsu.core.models.MultiAddress
 import jp.co.soramitsu.core.models.bindMultiAddress
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
@@ -10,11 +11,13 @@ import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.bytes
 import jp.co.soramitsu.fearless_utils.runtime.metadata.call
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module
+import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
+import jp.co.soramitsu.runtime.assethub.AssetHubRuntimeTypes
 import jp.co.soramitsu.staking.api.domain.model.RewardDestination
 import jp.co.soramitsu.staking.impl.data.network.blockhain.bindings.bindRewardDestination
 
 fun ExtrinsicBuilder.setController(controllerAddress: MultiAddress): ExtrinsicBuilder {
-    return call(
+    return stakingCall(
         "Staking",
         "set_controller",
         mapOf(
@@ -24,7 +27,7 @@ fun ExtrinsicBuilder.setController(controllerAddress: MultiAddress): ExtrinsicBu
 }
 
 fun ExtrinsicBuilder.setController(): ExtrinsicBuilder {
-    return call(
+    return stakingCall(
         "Staking",
         "set_controller",
         emptyMap()
@@ -32,7 +35,7 @@ fun ExtrinsicBuilder.setController(): ExtrinsicBuilder {
 }
 
 fun ExtrinsicBuilder.setControllerSora(controllerAccountId: AccountId): ExtrinsicBuilder {
-    return call(
+    return stakingCall(
         "Staking",
         "set_controller",
         mapOf(
@@ -41,24 +44,23 @@ fun ExtrinsicBuilder.setControllerSora(controllerAccountId: AccountId): Extrinsi
     )
 }
 
+/** Current runtimes, Asset Hub staking among them, dropped the controller from `bond`. */
 fun ExtrinsicBuilder.bond(
     controllerAddress: MultiAddress,
     amount: BigInteger,
     payee: RewardDestination
 ): ExtrinsicBuilder {
-    return call(
-        "Staking",
-        "bond",
-        mapOf(
-            "controller" to bindMultiAddress(controllerAddress),
-            "value" to amount,
-            "payee" to bindRewardDestination(payee)
-        )
-    )
+    val arguments = mutableMapOf<String, Any?>("value" to amount, "payee" to bindRewardDestination(payee))
+    val names = runtime.metadata.staking().call("bond").arguments.map { it.name }.toSet()
+    require(names == setOf("value", "payee") || names == setOf("controller", "value", "payee")) {
+        "Unsupported staking bond arguments"
+    }
+    if ("controller" in names) arguments["controller"] = bindMultiAddress(controllerAddress)
+    return stakingCall("Staking", "bond", arguments)
 }
 
 fun ExtrinsicBuilder.nominate(targets: List<MultiAddress>): ExtrinsicBuilder {
-    return call(
+    return stakingCall(
         "Staking",
         "nominate",
         mapOf(
@@ -72,7 +74,7 @@ fun ExtrinsicBuilder.bondSora(
     amount: BigInteger,
     payee: RewardDestination
 ): ExtrinsicBuilder {
-    return call(
+    return stakingCall(
         "Staking",
         "bond",
         mapOf(
@@ -84,7 +86,7 @@ fun ExtrinsicBuilder.bondSora(
 }
 
 fun ExtrinsicBuilder.nominateSora(targets: List<AccountId>): ExtrinsicBuilder {
-    return call(
+    return stakingCall(
         "Staking",
         "nominate",
         mapOf(
@@ -111,8 +113,17 @@ fun ExtrinsicBuilder.delegate(
     )
 }
 
-fun ExtrinsicBuilder.payoutStakers(era: BigInteger, validatorId: AccountId): ExtrinsicBuilder {
-    return call(
+/** Paged exposures pay one page per call; [page] is null for runtimes before paged rewards. */
+fun ExtrinsicBuilder.payoutStakers(era: BigInteger, validatorId: AccountId, page: BigInteger? = null): ExtrinsicBuilder {
+    if (page != null) {
+        require(page.signum() >= 0)
+        return stakingCall(
+            "Staking",
+            "payout_stakers_by_page",
+            mapOf("validator_stash" to validatorId, "era" to era, "page" to page)
+        )
+    }
+    return stakingCall(
         "Staking",
         "payout_stakers",
         mapOf(
@@ -123,7 +134,7 @@ fun ExtrinsicBuilder.payoutStakers(era: BigInteger, validatorId: AccountId): Ext
 }
 
 fun ExtrinsicBuilder.bondMore(amount: BigInteger): ExtrinsicBuilder {
-    return call(
+    return stakingCall(
         "Staking",
         "bond_extra",
         mapOf(
@@ -209,11 +220,11 @@ fun ExtrinsicBuilder.parachainCancelDelegationRequest(candidate: String): Extrin
 }
 
 fun ExtrinsicBuilder.chill(): ExtrinsicBuilder {
-    return call("Staking", "chill", emptyMap())
+    return stakingCall("Staking", "chill", emptyMap())
 }
 
 fun ExtrinsicBuilder.unbond(amount: BigInteger): ExtrinsicBuilder {
-    return call(
+    return stakingCall(
         "Staking",
         "unbond",
         mapOf(
@@ -223,7 +234,7 @@ fun ExtrinsicBuilder.unbond(amount: BigInteger): ExtrinsicBuilder {
 }
 
 fun ExtrinsicBuilder.withdrawUnbonded(numberOfSlashingSpans: BigInteger): ExtrinsicBuilder {
-    return call(
+    return stakingCall(
         "Staking",
         "withdraw_unbonded",
         mapOf(
@@ -233,7 +244,7 @@ fun ExtrinsicBuilder.withdrawUnbonded(numberOfSlashingSpans: BigInteger): Extrin
 }
 
 fun ExtrinsicBuilder.rebond(amount: BigInteger): ExtrinsicBuilder {
-    return call(
+    return stakingCall(
         "Staking",
         "rebond",
         mapOf(
@@ -243,7 +254,7 @@ fun ExtrinsicBuilder.rebond(amount: BigInteger): ExtrinsicBuilder {
 }
 
 fun ExtrinsicBuilder.setPayee(rewardDestination: RewardDestination): ExtrinsicBuilder {
-    return call(
+    return stakingCall(
         "Staking",
         "set_payee",
         mapOf(
@@ -253,7 +264,7 @@ fun ExtrinsicBuilder.setPayee(rewardDestination: RewardDestination): ExtrinsicBu
 }
 
 fun ExtrinsicBuilder.joinPool(amount: BigInteger, poolId: BigInteger): ExtrinsicBuilder {
-    return call(
+    return stakingCall(
         "NominationPools",
         "join",
         mapOf(
@@ -265,7 +276,7 @@ fun ExtrinsicBuilder.joinPool(amount: BigInteger, poolId: BigInteger): Extrinsic
 
 // TODO rename to createPool when polkadot runtime upgrades to 9390
 fun ExtrinsicBuilder.createPoolBouncer(amount: BigInteger, root: MultiAddress, nominator: MultiAddress, stateToggler: MultiAddress): ExtrinsicBuilder {
-    return call(
+    return stakingCall(
         "NominationPools",
         "create",
         mapOf(
@@ -279,7 +290,7 @@ fun ExtrinsicBuilder.createPoolBouncer(amount: BigInteger, root: MultiAddress, n
 
 @Deprecated("Replace with createPoolBouncer when polkadot runtime upgrades to 9390", replaceWith = ReplaceWith("ExtrinsicBuilder.createPoolBouncer"))
 fun ExtrinsicBuilder.createPoolStateToggler(amount: BigInteger, root: MultiAddress, nominator: MultiAddress, stateToggler: MultiAddress): ExtrinsicBuilder {
-    return call(
+    return stakingCall(
         "NominationPools",
         "create",
         mapOf(
@@ -292,7 +303,7 @@ fun ExtrinsicBuilder.createPoolStateToggler(amount: BigInteger, root: MultiAddre
 }
 
 fun ExtrinsicBuilder.setPoolMetadata(poolId: BigInteger, poolName: ByteArray): ExtrinsicBuilder {
-    return call(
+    return stakingCall(
         "NominationPools",
         "set_metadata",
         mapOf(
@@ -303,7 +314,7 @@ fun ExtrinsicBuilder.setPoolMetadata(poolId: BigInteger, poolName: ByteArray): E
 }
 
 fun ExtrinsicBuilder.nominatePool(poolId: BigInteger, validators: List<AccountId>): ExtrinsicBuilder {
-    return call(
+    return stakingCall(
         "NominationPools",
         "nominate",
         mapOf(
@@ -314,7 +325,7 @@ fun ExtrinsicBuilder.nominatePool(poolId: BigInteger, validators: List<AccountId
 }
 
 fun ExtrinsicBuilder.claimPayout(): ExtrinsicBuilder {
-    return call("NominationPools", "claim_payout", emptyMap())
+    return stakingCall("NominationPools", "claim_payout", emptyMap())
 }
 
 /** Choose the member format from this exact builder runtime before the single submission. */
@@ -322,7 +333,7 @@ fun ExtrinsicBuilder.withdrawUnbondedFromPool(
     memberAccountId: AccountId,
     memberAddress: MultiAddress,
     numSlashingSpans: BigInteger = BigInteger.ZERO
-): ExtrinsicBuilder = call(
+): ExtrinsicBuilder = stakingCall(
     "NominationPools",
     "withdraw_unbonded",
     mapOf(
@@ -336,7 +347,7 @@ fun ExtrinsicBuilder.unbondFromPool(
     memberAccountId: AccountId,
     memberAddress: MultiAddress,
     unbondingPoints: BigInteger
-): ExtrinsicBuilder = call(
+): ExtrinsicBuilder = stakingCall(
     "NominationPools",
     "unbond",
     mapOf(
@@ -367,7 +378,7 @@ private fun ExtrinsicBuilder.poolMemberAccount(
 }
 
 fun ExtrinsicBuilder.bondExtra(amount: BigInteger): ExtrinsicBuilder {
-    return call(
+    return stakingCall(
         "NominationPools",
         "bond_extra",
         mapOf(
@@ -382,7 +393,7 @@ fun ExtrinsicBuilder.updateRolesStateToggler(
     nominator: DictEnum.Entry<AccountId?>,
     stateToggler: DictEnum.Entry<AccountId?>
 ): ExtrinsicBuilder {
-    return call(
+    return stakingCall(
         "NominationPools",
         "update_roles",
         mapOf(
@@ -400,7 +411,7 @@ fun ExtrinsicBuilder.updateRolesBouncer(
     nominator: DictEnum.Entry<AccountId?>,
     stateToggler: DictEnum.Entry<AccountId?>
 ): ExtrinsicBuilder {
-    return call(
+    return stakingCall(
         "NominationPools",
         "update_roles",
         mapOf(
@@ -410,4 +421,19 @@ fun ExtrinsicBuilder.updateRolesBouncer(
             "new_bouncer" to stateToggler
         )
     )
+}
+
+/**
+ * Asset Hub staking runtimes carry `StakingRcClient`. Their staking and pool transactions must sign over the
+ * complete context: genesis, spec and transaction versions, mortality, nonce, metadata mode and the native fee.
+ */
+private fun ExtrinsicBuilder.stakingCall(
+    moduleName: String,
+    callName: String,
+    arguments: Map<String, Any?>
+): ExtrinsicBuilder {
+    if (runtime.metadata.moduleOrNull("StakingRcClient") != null) {
+        AssetHubRuntimeTypes.requireSigningExtensions(runtime.metadata.extrinsic.signedExtensions)
+    }
+    return call(moduleName, callName, arguments)
 }

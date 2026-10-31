@@ -3,18 +3,21 @@ package jp.co.soramitsu.staking.impl.domain.validators
 import jp.co.soramitsu.common.utils.orZero
 import jp.co.soramitsu.common.utils.toHexAccountId
 import jp.co.soramitsu.core.utils.utilityAsset
+import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.reefChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId
-import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.staking.api.domain.api.IdentityRepository
+import jp.co.soramitsu.staking.api.domain.model.EraIndex
+import jp.co.soramitsu.staking.api.domain.model.LegacyExposure
 import jp.co.soramitsu.staking.api.domain.model.Validator
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculationTarget
 import jp.co.soramitsu.staking.impl.domain.rewards.RewardCalculatorFactory
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 
@@ -32,9 +35,20 @@ class ValidatorProvider(
     private val stakingConstantsRepository: StakingConstantsRepository
 ) {
 
-    suspend fun getValidators(
+    suspend fun getValidators(chain: Chain, source: ValidatorSource): List<Validator> =
+        validators(chain, source) { stakingRepository.getLegacyActiveElectedValidatorsExposures(chain.id) }
+
+    /**
+     * For a caller that already observes the active era: the exposures of [activeEra], with no era read of the
+     * provider's own (on an Asset Hub that read is remote and could fail where the observed era is at hand).
+     */
+    suspend fun getValidators(chain: Chain, source: ValidatorSource, activeEra: EraIndex): List<Validator> =
+        validators(chain, source) { stakingRepository.getLegacyElectedValidatorsExposure(chain.id, activeEra) }
+
+    private suspend fun validators(
         chain: Chain,
-        source: ValidatorSource
+        source: ValidatorSource,
+        electedExposures: suspend () -> Map<String, LegacyExposure>
     ): List<Validator> = coroutineScope {
         val chainId = chain.id
 
@@ -51,7 +65,7 @@ class ValidatorProvider(
         val identitiesDeferred = async { identityRepository.getIdentitiesFromIds(chain, requestedValidatorIds) }
         val slashesDeferred = async { stakingRepository.getSlashes(chainId, requestedValidatorIds) }
 
-        val electedValidatorExposures = stakingRepository.getLegacyActiveElectedValidatorsExposures(chainId)
+        val electedValidatorExposures = electedExposures()
         val rewardCalculatorDeferred = async {
             val calculationTargets = electedValidatorExposures.keys.mapNotNull { accountIdHex ->
                 val exposure = electedValidatorExposures[accountIdHex] ?: return@mapNotNull null
@@ -104,8 +118,9 @@ class ValidatorProvider(
                     ownStake = it.own,
                     nominatorStakes = it.others,
                     apy = runCatching { rewardCalculator.getApyFor(accountIdHex.fromHex()) }
+                        .onFailure { if (it is CancellationException) throw it }
                         .getOrNull().orZero(),
-                    isOversubscribed = maxNominators?.let { value -> it.others.size > value} ?: false
+                    isOversubscribed = maxNominators?.let { value -> it.others.size > value } ?: false
                 )
             }
 
