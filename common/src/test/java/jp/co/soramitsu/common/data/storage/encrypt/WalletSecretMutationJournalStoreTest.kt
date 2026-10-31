@@ -65,6 +65,40 @@ class WalletSecretMutationJournalStoreTest {
     }
 
     @Test
+    fun replaceTonChangesOnlyAnExistingTonIdentityAndItsExistingKey() {
+        val preferences = RecordingEncryptedPreferences()
+        val store = WalletSecretMutationJournalStore(preferences)
+        val journal = replaceTonJournal()
+
+        // A replacement needs the key it replaces.
+        assertFailure(FailureReason.CONFLICT) { store.stage(journal, mapOf(TON_SECRET_KEY to "new-ton-secret")) }
+        assertNull(store.load())
+
+        preferences.putEncryptedString(TON_SECRET_KEY, "old-ton-secret")
+        store.stage(journal, mapOf(TON_SECRET_KEY to "new-ton-secret"))
+        assertEquals("new-ton-secret", preferences.value(TON_SECRET_KEY))
+        assertEquals(journal, store.load())
+
+        val before = fullAfterImage()
+        for (invalid in listOf(
+            replaceTonJournal(beforeImage = before.copy(tonPublicKeyHex = null)),
+            replaceTonJournal(afterImage = before.copy(tonPublicKeyHex = null)),
+            replaceTonJournal(afterImage = before),
+            replaceTonJournal(afterImage = before.copy(tonPublicKeyHex = "66".repeat(32), name = "Renamed")),
+            replaceTonJournal().copy(secretKeysToPut = setOf(TON_SECRET_KEY, SUBSTRATE_SECRET_KEY)),
+            replaceTonJournal().copy(secretKeysToRemove = setOf(TON_SECRET_KEY))
+        )) {
+            assertFailure(FailureReason.INVALID_ARGUMENT) { store.validate(invalid) }
+        }
+        // Every other operation still refuses to overwrite an existing key.
+        assertFailure(FailureReason.CONFLICT) {
+            WalletSecretMutationJournalStore(RecordingEncryptedPreferences().apply {
+                putEncryptedString(SUBSTRATE_SECRET_KEY, "existing")
+            }).stage(createJournal(), createSecrets())
+        }
+    }
+
+    @Test
     fun stageAddEvmRoundTripsEscapedPublicAfterImage() {
         val preferences = RecordingEncryptedPreferences()
         val store = WalletSecretMutationJournalStore(preferences)
@@ -1417,6 +1451,23 @@ class WalletSecretMutationJournalStoreTest {
             selectedMetaIdAfterDelete = null,
             chainAccountIdsHex = emptySet(),
             secretKeysToPut = setOf(ETHEREUM_SECRET_KEY),
+            secretKeysToRemove = emptySet()
+        )
+    }
+
+    private fun replaceTonJournal(
+        beforeImage: PublicAfterImage = fullAfterImage(),
+        afterImage: PublicAfterImage = beforeImage.copy(tonPublicKeyHex = "66".repeat(32))
+    ): Journal {
+        return Journal(
+            operationId = OPERATION_ID,
+            operation = Operation.REPLACE_TON,
+            metaId = META_ID,
+            beforeImage = beforeImage,
+            afterImage = afterImage,
+            selectedMetaIdAfterDelete = null,
+            chainAccountIdsHex = emptySet(),
+            secretKeysToPut = setOf(TON_SECRET_KEY),
             secretKeysToRemove = emptySet()
         )
     }

@@ -105,6 +105,16 @@ interface WalletRootSecretValidation {
         encoded: String,
         expectedPublicKey: ByteArray
     ): ValidatedRootSecret
+
+    /**
+     * As [validateTon], also recognising a universal TON key that a password wallet derived
+     * with one of [universalPassphrases] (the BIP39 passphrase of its derivation paths).
+     */
+    fun validateTon(
+        encoded: String,
+        expectedPublicKey: ByteArray,
+        universalPassphrases: List<String>
+    ): ValidatedRootSecret = validateTon(encoded, expectedPublicKey)
 }
 
 fun interface LegacySubstrateSecretValidation {
@@ -223,6 +233,18 @@ object WalletRootSecretValidator :
         return engine.validateTon(
             encoded = encoded,
             expectedPublicKey = expectedPublicKey
+        )
+    }
+
+    override fun validateTon(
+        encoded: String,
+        expectedPublicKey: ByteArray,
+        universalPassphrases: List<String>
+    ): ValidatedRootSecret {
+        return engine.validateTon(
+            encoded = encoded,
+            expectedPublicKey = expectedPublicKey,
+            universalPassphrases = universalPassphrases
         )
     }
 
@@ -463,6 +485,12 @@ internal class WalletRootSecretValidationEngine(
     override fun validateTon(
         encoded: String,
         expectedPublicKey: ByteArray
+    ): ValidatedRootSecret = validateTon(encoded, expectedPublicKey, emptyList())
+
+    override fun validateTon(
+        encoded: String,
+        expectedPublicKey: ByteArray,
+        universalPassphrases: List<String>
     ): ValidatedRootSecret {
         val secrets = validateTonSigning(
             encoded = encoded,
@@ -477,7 +505,8 @@ internal class WalletRootSecretValidationEngine(
             canonical = canonical,
             assessment = tonRecoveryAssessment(
                 seed = secrets[TonSecrets.Seed],
-                expectedKeypair = keypair
+                expectedKeypair = keypair,
+                universalPassphrases = universalPassphrases
             )
         )
     }
@@ -907,7 +936,8 @@ internal class WalletRootSecretValidationEngine(
      */
     private fun tonRecoveryAssessment(
         seed: ByteArray,
-        expectedKeypair: FearlessKeypair
+        expectedKeypair: FearlessKeypair,
+        universalPassphrases: List<String>
     ): RecoveryAssessment {
         if (seed.isEmpty() || seed.size > MAX_TON_SEED_BYTES) {
             return RecoveryAssessment.Unverified(setOf(RecoveryIssue.MNEMONIC_WORDCOUNT))
@@ -925,7 +955,7 @@ internal class WalletRootSecretValidationEngine(
         val normalized = mnemonicText.trim().split(MNEMONIC_WHITESPACE)
         val lowercased = normalized.map(String::lowercase)
         val isCanonical = mnemonicText == lowercased.joinToString(" ")
-        if (recoversTon(asTyped, expectedKeypair)) {
+        if (recoversTon(asTyped, expectedKeypair, universalPassphrases)) {
             return if (isCanonical) {
                 RecoveryAssessment.Verified
             } else {
@@ -935,7 +965,7 @@ internal class WalletRootSecretValidationEngine(
         val recognisedOnlyNormalized = sequenceOf(normalized, lowercased)
             .distinct()
             .filter { it != asTyped }
-            .any { recoversTon(it, expectedKeypair) }
+            .any { recoversTon(it, expectedKeypair, universalPassphrases) }
         if (recognisedOnlyNormalized) {
             return RecoveryAssessment.VerifiedAsTyped(TonPhraseVariant.NORMALIZED)
         }
@@ -952,7 +982,8 @@ internal class WalletRootSecretValidationEngine(
 
     private fun recoversTon(
         mnemonicWords: List<String>,
-        expectedKeypair: FearlessKeypair
+        expectedKeypair: FearlessKeypair,
+        universalPassphrases: List<String>
     ): Boolean {
         val recovered = performCryptography("TON mnemonic recovery") {
             cryptography.recoverTonFromMnemonic(mnemonicWords)
@@ -967,10 +998,13 @@ internal class WalletRootSecretValidationEngine(
         } catch (_: Bip39Exception) {
             false
         }
-        return validBip39 && performCryptography("Universal TON mnemonic recovery") {
-            TonKeyDerivation.matchesUniversalMnemonicKeypair(
-                mnemonicText, expectedKeypair.privateKey, expectedKeypair.publicKey
-            )
+        // A password wallet's universal TON key uses its BIP39 passphrase; older ones none.
+        return validBip39 && (listOf("") + universalPassphrases).distinct().any { passphrase ->
+            performCryptography("Universal TON mnemonic recovery") {
+                TonKeyDerivation.matchesUniversalMnemonicKeypair(
+                    mnemonicText, expectedKeypair.privateKey, expectedKeypair.publicKey, passphrase
+                )
+            }
         }
     }
 

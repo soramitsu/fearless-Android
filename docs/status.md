@@ -65,6 +65,30 @@ Release signing pins the replacement upload certificate
 `docs/releases/4.3.0.md`. Not included: Asset Hub staking, so Polkadot and
 Kusama staking is unavailable in this version.
 
+## Universal accounts use the wallet password — 31 October 2026
+
+A wallet whose Substrate (or, failing that, Ethereum) derivation path ends in
+`///password` now derives its Bitcoin, Solana, TON and Taira/Nexus accounts with
+that password as the BIP39 passphrase (NFKD), matching
+`common/src/test/resources/universal-wallet-v2-passphrase-vectors.json`, which web
+and iOS share. Wallets without a password are unchanged. A new wallet from
+generated words gets the protected accounts directly. An imported or restored
+password wallet keeps each account the words alone open while it holds funds or
+cannot be checked, and takes the protected one when a live check finds it empty.
+Accounts that earlier versions created are never replaced automatically: one
+notice per wallet lists each old address beside its protected one, and Switch
+replaces an old account only after a live check confirms it is empty (TON only
+when no TON Connect app is connected). Every signer derives with the passphrase
+that reproduces the stored address, so old addresses keep signing.
+
+A deposit can reach an old address after the check that found it empty, so each
+old account a wallet gives up stays watched until the wallet is deleted: app
+start and pull-to-refresh check it again. When only the old address holds funds,
+the account moves back to it; when the new one holds funds too, or cannot be
+checked, the new one stays and the notice reports the arrival and how to move
+it. A TON export of a password wallet shows the derivation path that holds the
+password, so the exported words restore the same TON address.
+
 ## JSON export of derived ed25519 and ECDSA accounts — 31 October 2026
 
 A JSON export of a Substrate ed25519 or ECDSA account created with a derivation

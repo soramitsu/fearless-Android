@@ -1,13 +1,22 @@
 package jp.co.soramitsu.account.impl.domain
 
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
+import jp.co.soramitsu.account.api.domain.UniversalWalletFundsProbe
+import jp.co.soramitsu.account.api.domain.UniversalWalletPasswordNotice
+import jp.co.soramitsu.account.api.domain.UniversalWalletSlot
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.account.impl.data.repository.SubstrateOrEvmAccountRepository
 import jp.co.soramitsu.account.impl.data.repository.WalletSecretMutationCoordinator
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.model.UniversalWalletRegistry
 import jp.co.soramitsu.common.utils.BitcoinKeyDerivation
+import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.IrohaKeyDerivation
 import jp.co.soramitsu.common.utils.SolanaKeyDerivation
 import jp.co.soramitsu.common.utils.TonKeyDerivation
@@ -15,6 +24,7 @@ import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.ChainAccountLocal
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
+import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,14 +34,18 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.whenever
 import java.lang.reflect.Proxy
 
 class LegacyNetworkAccountUpgradeTest {
@@ -97,7 +111,8 @@ class LegacyNetworkAccountUpgradeTest {
         assertArrayEquals(BitcoinKeyDerivation.deriveAccount(MNEMONIC).publicKey, upgraded.chainAccounts.getValue(BTC).publicKey)
         assertArrayEquals(SolanaKeyDerivation.deriveAccount(MNEMONIC).publicKey, upgraded.chainAccounts.getValue(SOL).publicKey)
         assertArrayEquals(IrohaKeyDerivation.deriveAccount(MNEMONIC).publicKey, upgraded.chainAccounts.getValue(TAIRA).publicKey)
-        assertTrue(fixture.fallbackReads.isEmpty())
+        // Only the Ethereum path is consulted for a password, since the Substrate path has none.
+        assertEquals(listOf("getEthereumSecrets"), fixture.fallbackReads)
         assertEquals(4, fixture.inserts.size)
         fixture.upgrade.upgrade()
         assertEquals(4, fixture.inserts.size)
@@ -133,6 +148,203 @@ class LegacyNetworkAccountUpgradeTest {
         runCurrent()
         assertEquals(runs, fixture.enumerations)
         observer.cancel()
+    }
+
+    @Test
+    fun `password import keeps funded or unreadable old accounts and protects confirmed empty ones`() = runBlocking {
+        val fixture = Fixture()
+        fixture.substratePath = "//polkadot///$PASSWORD"
+        fixture.funds = mapOf(
+            UniversalWalletSlot.BITCOIN_MAINNET to UniversalWalletFundsProbe.Funds.FUNDED,
+            UniversalWalletSlot.BITCOIN_TESTNET to UniversalWalletFundsProbe.Funds.UNKNOWN,
+            UniversalWalletSlot.SOLANA to UniversalWalletFundsProbe.Funds.EMPTY,
+            UniversalWalletSlot.TAIRA to UniversalWalletFundsProbe.Funds.EMPTY
+        )
+        fixture.upgrade.upgrade()
+
+        val accounts = fixture.wallets.getValue(1).chainAccounts
+        assertArrayEquals(UniversalWalletSlot.BITCOIN_MAINNET.publicKey(MNEMONIC, ""), accounts.getValue(BTC).publicKey)
+        assertArrayEquals(UniversalWalletSlot.BITCOIN_TESTNET.publicKey(MNEMONIC, ""), accounts.getValue(BTC_TEST).publicKey)
+        assertArrayEquals(UniversalWalletSlot.SOLANA.publicKey(MNEMONIC, PASSWORD), accounts.getValue(SOL).publicKey)
+        assertArrayEquals(UniversalWalletSlot.TAIRA.publicKey(MNEMONIC, PASSWORD), accounts.getValue(TAIRA).publicKey)
+        // The probe saw the accounts the words alone open, never the password ones.
+        for (slot in UniversalWalletSlot.chainRowSlots) {
+            assertArrayEquals(slot.publicKey(MNEMONIC, ""), fixture.probed.getValue(slot))
+        }
+        // Each slot is decided once: later runs never replace an existing account.
+        fixture.funds = UniversalWalletSlot.entries.associateWith { UniversalWalletFundsProbe.Funds.EMPTY }
+        fixture.upgrade.upgrade()
+        assertEquals(4, fixture.inserts.size)
+        assertArrayEquals(UniversalWalletSlot.BITCOIN_MAINNET.publicKey(MNEMONIC, ""), fixture.wallets.getValue(1).chainAccounts.getValue(BTC).publicKey)
+    }
+
+    @Test
+    fun `password from the shared vectors derives their addresses for confirmed empty slots`() = runBlocking {
+        val fixture = Fixture()
+        fixture.substratePath = "///$PASSWORD"
+        fixture.funds = UniversalWalletSlot.entries.associateWith { UniversalWalletFundsProbe.Funds.EMPTY }
+        fixture.upgrade.upgrade()
+
+        val accounts = fixture.wallets.getValue(1).chainAccounts
+        val expected = passphraseVector().getAsJsonObject("expected")
+        assertEquals(
+            expected.getAsJsonObject("bitcoin").getAsJsonObject("mainnet")["firstReceiveAddress"].asString,
+            UniversalWalletSlot.BITCOIN_MAINNET.address(accounts.getValue(BTC).publicKey)
+        )
+        assertEquals(
+            expected.getAsJsonObject("bitcoin").getAsJsonObject("testnet")["firstReceiveAddress"].asString,
+            UniversalWalletSlot.BITCOIN_TESTNET.address(accounts.getValue(BTC_TEST).publicKey)
+        )
+        assertEquals(expected.getAsJsonObject("solana")["address"].asString, UniversalWalletSlot.SOLANA.address(accounts.getValue(SOL).publicKey))
+        assertEquals(
+            expected.getAsJsonObject("iroha").getAsJsonObject("taira")["i105"].asString,
+            UniversalWalletSlot.TAIRA.address(accounts.getValue(TAIRA).publicKey)
+        )
+    }
+
+    @Test
+    fun `wallet created from fresh words takes the password without probing`() = runBlocking {
+        val fixture = Fixture()
+        fixture.substratePath = "//polkadot///$PASSWORD"
+        fixture.probeFails = true
+        val substratePublicKey = requireNotNull(fixture.wallets.getValue(1).substratePublicKey)
+        fixture.freshRoots.begin(substratePublicKey)
+        fixture.freshRoots.bind(substratePublicKey, 1)
+        fixture.upgrade.upgrade()
+
+        val accounts = fixture.wallets.getValue(1).chainAccounts
+        for ((slot, chainId) in listOf(
+            UniversalWalletSlot.BITCOIN_MAINNET to BTC, UniversalWalletSlot.BITCOIN_TESTNET to BTC_TEST,
+            UniversalWalletSlot.SOLANA to SOL, UniversalWalletSlot.TAIRA to TAIRA
+        )) {
+            assertArrayEquals(slot.publicKey(MNEMONIC, PASSWORD), accounts.getValue(chainId).publicKey)
+        }
+        assertTrue(fixture.probed.isEmpty())
+        // Every slot exists now, so a later import of the same words is probed again.
+        assertFalse(fixture.freshRoots.isCreated(1, substratePublicKey))
+    }
+
+    @Test
+    fun `words created fresh but deleted mid-enrolment are probed when imported again`() = runBlocking {
+        val fixture = Fixture()
+        fixture.substratePath = "//polkadot///$PASSWORD"
+        fixture.funds = UniversalWalletSlot.entries.associateWith { UniversalWalletFundsProbe.Funds.EMPTY }
+        val created = mock<WalletSecretMutationCoordinator>()
+        whenever(created.create(any(), any(), any(), anyOrNull())).thenReturn(1L, 2L)
+        val creation = SubstrateOrEvmAccountRepository(mock(), created, fixture.freshRoots)
+        fun payload(fresh: Boolean) = AddAccountPayload.SubstrateOrEvm(
+            "Wallet", MNEMONIC, CryptoType.ECDSA, "//polkadot///$PASSWORD", BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH,
+            googleBackupAddress = null, isBackedUp = true, freshlyGenerated = fresh
+        )
+
+        // Created from fresh words; enrolment stops after one network when the app is closed.
+        assertEquals(1L, creation.create(payload(fresh = true)))
+        val prototype = argumentCaptor<MetaAccountLocal>()
+        verify(created).create(prototype.capture(), any(), any(), anyOrNull())
+        val template = fixture.wallets.getValue(1).copy(substratePublicKey = prototype.firstValue.substratePublicKey, chainAccounts = emptyMap())
+        fixture.wallets[1] = template
+        fixture.catalogIds = setOf(BTC)
+        fixture.upgrade.upgrade()
+        assertTrue(fixture.probed.isEmpty())
+
+        // Deleted, then the same words imported again: they may have been used anywhere since.
+        fixture.wallets.remove(1)
+        assertEquals(2L, creation.create(payload(fresh = false)))
+        fixture.wallets[2] = template.copy(id = 2)
+        fixture.catalogIds = setOf(BTC, BTC_TEST, SOL, TAIRA)
+        fixture.upgrade.upgrade()
+
+        assertEquals(UniversalWalletSlot.chainRowSlots.toSet(), fixture.probed.keys)
+    }
+
+    @Test
+    fun `password import watches each old account it gave up and the notice re-checks it`() = runBlocking {
+        val fixture = Fixture()
+        fixture.substratePath = "//polkadot///$PASSWORD"
+        fixture.funds = mapOf(
+            UniversalWalletSlot.BITCOIN_MAINNET to UniversalWalletFundsProbe.Funds.FUNDED,
+            UniversalWalletSlot.SOLANA to UniversalWalletFundsProbe.Funds.EMPTY,
+            UniversalWalletSlot.TAIRA to UniversalWalletFundsProbe.Funds.EMPTY
+        )
+        val watchList = UniversalWalletWatchList(fixture.preferences)
+        val refreshed = mutableListOf<Long>()
+        val notice = mock<UniversalWalletPasswordNotice>()
+        whenever(notice.refresh(any())).thenAnswer { refreshed += it.getArgument<Long>(0) }
+        LegacyNetworkAccountUpgrade(
+            fixture.repository, fixture.dao, fixture.coordinator, fixture.probe, fixture.freshRoots, watchList, notice
+        ) { fixture.catalogIds }.upgrade()
+
+        val watched = watchList.entries(1).associateBy { it.slot }
+        assertEquals(setOf(UniversalWalletSlot.SOLANA, UniversalWalletSlot.TAIRA), watched.keys)
+        for ((slot, chainId) in listOf(UniversalWalletSlot.SOLANA to SOL, UniversalWalletSlot.TAIRA to TAIRA)) {
+            val entry = watched.getValue(slot)
+            assertEquals(chainId, entry.chainId)
+            assertArrayEquals(slot.publicKey(MNEMONIC, ""), entry.oldKey)
+            assertArrayEquals(slot.publicKey(MNEMONIC, PASSWORD), entry.newKey)
+            assertArrayEquals(entry.newKey, fixture.wallets.getValue(1).chainAccounts.getValue(chainId).publicKey)
+        }
+        assertEquals(listOf(1L), refreshed)
+    }
+
+    @Test
+    fun `older password wallet keeps every address it showed and nothing is probed`() = runBlocking {
+        val fixture = Fixture()
+        fixture.substratePath = "//polkadot///$PASSWORD"
+        fixture.probeFails = true
+        val legacyTon = TonKeyDerivation.deriveAccount(MNEMONIC).publicKey
+        // What 4.2.x and 4.3.0 stored for a password wallet: every slot without the password.
+        val older = fixture.wallets.getValue(1).let { wallet ->
+            wallet.copy(tonPublicKey = legacyTon, chainAccounts = wallet.chainAccounts + listOf(
+                BTC to UniversalWalletSlot.BITCOIN_MAINNET, BTC_TEST to UniversalWalletSlot.BITCOIN_TESTNET,
+                SOL to UniversalWalletSlot.SOLANA, TAIRA to UniversalWalletSlot.TAIRA
+            ).associate { (chainId, slot) ->
+                val key = slot.publicKey(MNEMONIC, "")
+                chainId to MetaAccount.ChainAccount(1, null, key, key.clone(), CryptoType.ED25519, "Legacy wallet")
+            })
+        }
+        fixture.wallets[1] = older
+        fixture.upgrade.upgrade()
+
+        assertSame(older, fixture.wallets.getValue(1))
+        assertTrue(fixture.inserts.isEmpty())
+        assertTrue(fixture.probed.isEmpty())
+        verifyNoInteractions(fixture.coordinator)
+    }
+
+    @Test
+    fun `missing TON root of a password wallet follows the probe of its old address`() = runBlocking {
+        for ((funds, passphrase) in listOf(
+            UniversalWalletFundsProbe.Funds.EMPTY to PASSWORD,
+            UniversalWalletFundsProbe.Funds.FUNDED to "",
+            UniversalWalletFundsProbe.Funds.UNKNOWN to ""
+        )) {
+            val fixture = Fixture()
+            fixture.substratePath = "//polkadot///$PASSWORD"
+            fixture.wallets[1] = fixture.wallets.getValue(1).copy(tonPublicKey = null)
+            fixture.funds = UniversalWalletSlot.entries.associateWith { funds }
+            whenever(fixture.coordinator.addTon(org.mockito.kotlin.any(), org.mockito.kotlin.any(), org.mockito.kotlin.any())).thenReturn(1L)
+            fixture.upgrade.upgrade()
+
+            val encoded = argumentCaptor<String>()
+            val after = argumentCaptor<MetaAccountLocal>()
+            verify(fixture.coordinator).addTon(org.mockito.kotlin.any(), after.capture(), encoded.capture())
+            val expected = TonKeyDerivation.deriveAccount(MNEMONIC, passphrase)
+            assertArrayEquals(expected.publicKey, after.firstValue.tonPublicKey)
+            assertArrayEquals(expected.privateKey, TonSecrets.read(encoded.firstValue)[TonSecrets.PrivateKey])
+            assertEquals(MNEMONIC, TonSecrets.read(encoded.firstValue)[TonSecrets.Seed].decodeToString())
+            assertArrayEquals(TonKeyDerivation.deriveAccount(MNEMONIC).publicKey, fixture.probed.getValue(UniversalWalletSlot.TON))
+        }
+    }
+
+    @Test
+    fun `wallet without a password is never probed`() = runBlocking {
+        val fixture = Fixture()
+        fixture.probeFails = true
+        fixture.wallets[1] = fixture.wallets.getValue(1).copy(tonPublicKey = null)
+        fixture.upgrade.upgrade()
+        assertEquals(4, fixture.inserts.size)
+        assertTrue(fixture.probed.isEmpty())
+        assertArrayEquals(SolanaKeyDerivation.deriveAccount(MNEMONIC).publicKey, fixture.wallets.getValue(1).chainAccounts.getValue(SOL).publicKey)
     }
 
     @Test
@@ -282,6 +494,29 @@ class LegacyNetworkAccountUpgradeTest {
         var cancel = false
         var enumerations = 0
         var catalogIds = setOf(BTC, BTC_TEST, SOL, TAIRA, UniversalWalletRegistry.nexus.id)
+        var substratePath: String? = null
+        var funds: Map<UniversalWalletSlot, UniversalWalletFundsProbe.Funds> = emptyMap()
+        var probeFails = false
+        val probed = linkedMapOf<UniversalWalletSlot, ByteArray>()
+        val preferenceValues = linkedMapOf<String, String>()
+        val preferences = proxy<Preferences> { method, args ->
+            when (method) {
+                "getString" -> preferenceValues[args[0] as String] ?: args.getOrNull(1)
+                "putString" -> {
+                    val value = args[1] as String?
+                    if (value == null) preferenceValues.remove(args[0] as String) else preferenceValues[args[0] as String] = value
+                    Unit
+                }
+                else -> error("Unexpected preference call: $method")
+            }
+        }
+        val freshRoots = UniversalWalletFreshRoots(preferences)
+        val probe = UniversalWalletFundsProbe { slot, mnemonic, _, publicKey ->
+            check(!probeFails) { "This wallet must not be probed" }
+            check(mnemonic == MNEMONIC)
+            probed[slot] = publicKey
+            funds[slot] ?: UniversalWalletFundsProbe.Funds.UNKNOWN
+        }
         val repository = proxy<AccountRepository> { method, args ->
             when (method) {
                 "allMetaAccountsFlow" -> walletFlow
@@ -295,7 +530,8 @@ class LegacyNetworkAccountUpgradeTest {
                     if (args[0] == unreadableWallet) error("synthetic unavailable wallet")
                     if (withEntropy) SubstrateSecrets(
                         substrateKeyPair = Keypair(ByteArray(32) { 1 }, ByteArray(32) { 2 }),
-                        entropy = MnemonicCreator.fromWords(MNEMONIC).entropy
+                        entropy = MnemonicCreator.fromWords(MNEMONIC).entropy,
+                        substrateDerivationPath = substratePath
                     ) else null
                 }
                 "getEthereumSecrets", "getTonSecrets" -> { fallbackReads += method; null }
@@ -327,7 +563,7 @@ class LegacyNetworkAccountUpgradeTest {
             Unit
         }
         val coordinator = mock<WalletSecretMutationCoordinator>()
-        val upgrade = LegacyNetworkAccountUpgrade(repository, dao, coordinator) {
+        val upgrade = LegacyNetworkAccountUpgrade(repository, dao, coordinator, probe, freshRoots) {
             if (catalogUnavailable) error("synthetic catalog failure")
             catalogIds
         }
@@ -335,10 +571,21 @@ class LegacyNetworkAccountUpgradeTest {
 
     companion object {
         private const val MNEMONIC = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+        private const val PASSWORD = "TREZOR"
         private val BTC = UniversalWalletRegistry.bitcoinMainnet.id
         private val BTC_TEST = UniversalWalletRegistry.bitcoinTestnet.id
         private val SOL = UniversalWalletRegistry.solanaMainnet.id
         private val TAIRA = UniversalWalletRegistry.taira.id
+
+        /** The shared import12-trezor vector: the same words and password as [MNEMONIC] and [PASSWORD]. */
+        private fun passphraseVector(): JsonObject {
+            val stream = requireNotNull(LegacyNetworkAccountUpgradeTest::class.java.classLoader)
+                .getResourceAsStream("universal-wallet-v2-passphrase-vectors.json")
+            val fixture = stream.use { JsonParser.parseReader(java.io.InputStreamReader(it, Charsets.UTF_8)).asJsonObject }
+            return fixture.getAsJsonArray("vectors").map { it.asJsonObject }.single { it["id"].asString == "import12-trezor" }.also {
+                check(it["mnemonic"].asString == MNEMONIC && it["passphrase"].asString == PASSWORD)
+            }
+        }
 
         @Suppress("UNCHECKED_CAST")
         private inline fun <reified T> proxy(crossinline handler: (String, Array<out Any?>) -> Any?): T =

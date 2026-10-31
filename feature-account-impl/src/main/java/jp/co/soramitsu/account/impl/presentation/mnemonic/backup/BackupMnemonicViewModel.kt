@@ -322,7 +322,8 @@ class BackupMnemonicViewModel @Inject constructor(
                     substrateDerivationPath,
                     ethereumDerivationPath.ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH },
                     null,
-                    false
+                    false,
+                    freshlyGenerated = true
                 )
             }
 
@@ -355,7 +356,8 @@ class BackupMnemonicViewModel @Inject constructor(
                     substrateDerivationPath,
                     ethereumDerivationPath,
                     null,
-                    false
+                    false,
+                    freshlyGenerated = true
                 )
             }
 

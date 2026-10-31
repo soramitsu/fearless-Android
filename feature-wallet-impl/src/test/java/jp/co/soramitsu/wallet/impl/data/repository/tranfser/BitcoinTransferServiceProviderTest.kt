@@ -59,6 +59,7 @@ import jp.co.soramitsu.common.utils.BitcoinKeyDerivation
 import jp.co.soramitsu.common.utils.IrohaAddressCodec
 import jp.co.soramitsu.common.utils.IrohaKeyDerivation
 import jp.co.soramitsu.common.utils.SolanaKeyDerivation
+import jp.co.soramitsu.common.utils.SolanaSigner
 import jp.co.soramitsu.common.utils.TonKeyDerivation
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.extrinsic.keypair_provider.SingleKeypairProvider
@@ -69,6 +70,7 @@ import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.BaseKeypair
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
 import jp.co.soramitsu.testshared.any
@@ -80,6 +82,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.async
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -607,6 +610,111 @@ class BitcoinTransferServiceProviderTest {
     }
 
     @Test
+    fun `password wallet's old bitcoin address keeps signing without the password`() = runBlocking {
+        val chain = bitcoinChain(); val client = FakeBitcoinIndexerClient()
+        // Every address an earlier version showed was derived without the wallet password.
+        val service = provider(accountRepository(bitcoinMetaAccount(chain), MNEMONIC, "///$WALLET_PASSWORD"), bitcoinIndexerClient = client)
+            .provide(chain)
+        val intent = Transfer(MAINNET_ADDRESS, MAINNET_RECIPIENT, BigDecimal("0.0005"), chain.assets.single(), quoteId = UUID.randomUUID().toString())
+        val fee = service.getTransferFee(intent)
+        assertEquals(64, service.transfer(intent.copy(estimateFee = fee)).length)
+        assertEquals(1, client.broadcastCalls)
+    }
+
+    @Test
+    fun `password wallet's bitcoin account signs from its password-protected first receive address`() = runBlocking {
+        val protected = BitcoinKeyDerivation.deriveAccount(MNEMONIC, WALLET_PASSWORD)
+        val chain = bitcoinChain(); val client = FakeBitcoinIndexerClient(funded = mapOf(protected.firstReceiveAddress to 100_000))
+        val service = provider(
+            accountRepository(bitcoinMetaAccount(chain, WALLET_PASSWORD), MNEMONIC, "///$WALLET_PASSWORD"), bitcoinIndexerClient = client
+        ).provide(chain)
+        val intent = Transfer(protected.firstReceiveAddress, MAINNET_RECIPIENT, BigDecimal("0.0005"), chain.assets.single(),
+            quoteId = UUID.randomUUID().toString())
+
+        val fee = service.getTransferFee(intent)
+        assertEquals(64, service.transfer(intent.copy(estimateFee = fee)).length)
+
+        // The witness carries the password key; the no-password key never signs.
+        val payload = requireNotNull(client.lastBroadcastTxHex)
+        assertTrue(payload.contains(protected.publicKey.toHexString()))
+        assertFalse(payload.contains(BitcoinKeyDerivation.deriveAccount(MNEMONIC).publicKey.toHexString()))
+    }
+
+    @Test
+    fun `password wallet's bitcoin account spends discovered receive and change addresses with the password keys`() = runBlocking {
+        val protected = BitcoinKeyDerivation.deriveAccount(MNEMONIC, WALLET_PASSWORD)
+        val receive = BitcoinKeyDerivation.deriveKey(MNEMONIC, WALLET_PASSWORD, BitcoinKeyDerivation.getReceivePath(index = 1))
+        val change = BitcoinKeyDerivation.deriveKey(MNEMONIC, WALLET_PASSWORD, BitcoinKeyDerivation.getReceivePath(index = 0, change = 1))
+        val chain = bitcoinChain()
+        val client = FakeBitcoinIndexerClient(funded = mapOf(receive.address to 60_000, change.address to 60_000))
+        val service = provider(
+            accountRepository(bitcoinMetaAccount(chain, WALLET_PASSWORD), MNEMONIC, "///$WALLET_PASSWORD"), bitcoinIndexerClient = client
+        ).provide(chain)
+        // More than either address holds, so both are spent.
+        val intent = Transfer(protected.firstReceiveAddress, MAINNET_RECIPIENT, BigDecimal("0.001"), chain.assets.single(),
+            quoteId = UUID.randomUUID().toString())
+
+        val fee = service.getTransferFee(intent)
+        assertEquals(64, service.transfer(intent.copy(estimateFee = fee)).length)
+
+        val payload = requireNotNull(client.lastBroadcastTxHex)
+        assertTrue(payload.contains(receive.publicKey.toHexString()))
+        assertTrue(payload.contains(change.publicKey.toHexString()))
+    }
+
+    @Test
+    fun `password wallet's solana account signs native and SPL sends with the password key`() = runBlocking {
+        val protected = SolanaKeyDerivation.deriveAccount(MNEMONIC, WALLET_PASSWORD)
+        val asset = solanaTokenAsset(UniversalWalletRegistry.solanaMainnet.id)
+        val chain = solanaChain(assets = listOf(solanaAsset(asset.chainId), asset))
+        for ((sent, amount) in listOf(chain.assets.first() to BigDecimal("0.001"), asset to BigDecimal("1.25"))) {
+            val rpc = FakeSolanaRpcClient(owner = protected.address)
+            val service = provider(
+                accountRepository(solanaMetaAccount(chain, WALLET_PASSWORD), MNEMONIC, "///$WALLET_PASSWORD"), solanaRpcClient = rpc
+            ).provide(chain)
+            val intent = Transfer(protected.address, SOLANA_RECIPIENT, amount, sent, quoteId = UUID.randomUUID().toString())
+
+            val fee = service.getTransferFee(intent)
+            val signature = service.transfer(intent.copy(estimateFee = fee))
+            assertEquals(rpc.lastExpectedSignature, signature)
+
+            // One signature, by the password key, over the broadcast message.
+            val transaction = Base64.getDecoder().decode(requireNotNull(rpc.broadcasted))
+            assertEquals(1, transaction[0].toInt())
+            assertTrue(SolanaSigner.verifyMessage(
+                protected.publicKey, transaction.copyOfRange(65, transaction.size), transaction.copyOfRange(1, 65)
+            ))
+        }
+    }
+
+    @Test
+    fun `password wallet's iroha accounts sign with the passphrase that derives them`() {
+        val chain = irohaChain()
+        val recipientAddress = IrohaAddressCodec.encode("11".repeat(32), UniversalWalletRegistry.taira.chainDiscriminant)
+        for (passphrase in listOf("", WALLET_PASSWORD)) {
+            val signer = FakeIrohaTransferSigner()
+            val key = IrohaKeyDerivation.deriveAccount(MNEMONIC, passphrase).publicKey
+            val wallet = irohaMetaAccount(chain).let { wallet ->
+                wallet.copy(chainAccounts = mapOf(chain.id to MetaAccount.ChainAccount(
+                    metaId = wallet.id, chain = chain, publicKey = key, accountId = key, cryptoType = CryptoType.ED25519, accountName = "Iroha"
+                )))
+            }
+            val sourceAddress = IrohaKeyDerivation.deriveAddress(MNEMONIC, passphrase, chainDiscriminant = UniversalWalletRegistry.taira.chainDiscriminant).i105
+            val service = provider(
+                accountRepository = accountRepository(wallet, MNEMONIC, "//polkadot///$WALLET_PASSWORD"),
+                irohaToriiClient = FakeIrohaToriiClient(),
+                irohaTransferSigner = signer
+            ).provide(chain)
+
+            runBlocking { service.transfer(Transfer(sourceAddress, recipientAddress, BigDecimal("1.25"), chain.assets.single())) }
+
+            assertEquals(passphrase, signer.lastRequest?.passphrase)
+            assertEquals(MNEMONIC, signer.lastRequest?.mnemonicOrSeed)
+            assertEquals(sourceAddress, signer.lastRequest?.authority)
+        }
+    }
+
+    @Test
     fun `provider routes ton chains to ton transfer service`() {
         val service = provider().provide(tonChain())
 
@@ -1034,7 +1142,8 @@ class BitcoinTransferServiceProviderTest {
 
     private fun accountRepository(
         metaAccount: MetaAccount,
-        mnemonic: String?
+        mnemonic: String?,
+        substrateDerivationPath: String? = null
     ): AccountRepository {
         val accountRepository = mock(AccountRepository::class.java)
 
@@ -1044,7 +1153,8 @@ class BitcoinTransferServiceProviderTest {
                 mnemonic?.let {
                     SubstrateSecrets(
                         substrateKeyPair = BaseKeypair(ByteArray(32), ByteArray(32)),
-                        entropy = MnemonicCreator.fromWords(it).entropy
+                        entropy = MnemonicCreator.fromWords(it).entropy,
+                        substrateDerivationPath = substrateDerivationPath
                     )
                 }
             )
@@ -1056,7 +1166,9 @@ class BitcoinTransferServiceProviderTest {
     }
 
     private class FakeBitcoinIndexerClient(
-        private val broadcastResponse: String = EXPECTED_TXID
+        private val broadcastResponse: String = EXPECTED_TXID,
+        /** Confirmed sats per address; each funded address holds one output of [TXID]. */
+        private val funded: Map<String, Long> = mapOf(MAINNET_ADDRESS to 100_000)
     ) : BitcoinIndexerClient {
         var lastBroadcastTxHex: String? = null
             private set
@@ -1078,7 +1190,7 @@ class BitcoinTransferServiceProviderTest {
         ): BitcoinEsploraAddress {
             return BitcoinEsploraAddress(
                 address = address,
-                chainStats = if (address == MAINNET_ADDRESS) BitcoinEsploraStats(1, 100_000, 0, 0, 1) else BitcoinEsploraStats(0, 0, 0, 0, 0),
+                chainStats = funded[address]?.let { BitcoinEsploraStats(1, it, 0, 0, 1) } ?: BitcoinEsploraStats(0, 0, 0, 0, 0),
                 mempoolStats = BitcoinEsploraStats(0, 0, 0, 0, 0)
             )
         }
@@ -1089,12 +1201,13 @@ class BitcoinTransferServiceProviderTest {
             baseUrl: String?
         ): List<BitcoinEsploraUtxo> {
             utxoCalls += 1
-            if (spent || address != MAINNET_ADDRESS) return emptyList()
+            val value = funded[address]
+            if (spent || value == null) return emptyList()
             return listOf(
                 BitcoinEsploraUtxo(
                     txid = TXID,
-                    vout = 1,
-                    value = 100_000,
+                    vout = 1L + funded.keys.indexOf(address),
+                    value = value,
                     status = BitcoinEsploraTxStatus(confirmed = true)
                 )
             )
@@ -1133,7 +1246,9 @@ class BitcoinTransferServiceProviderTest {
     private class FakeSolanaRpcClient(
         private val fee: Long? = 5_000L,
         private val simulationError: String? = null,
-        private val existingAccounts: Set<String> = emptySet()
+        private val existingAccounts: Set<String> = emptySet(),
+        /** The sender: it holds the SOL and owns the token account. */
+        private val owner: String = SOLANA_ADDRESS
     ) : SolanaRpcClient {
         val urls = mutableListOf<String?>()
         var endpoints = emptyList<String>()
@@ -1170,15 +1285,15 @@ class BitcoinTransferServiceProviderTest {
             if (address == SPL_TOKEN_SOURCE_ACCOUNT) {
                 val bytes = ByteArray(165)
                 SolanaPublicKeyCodec.decode(SPL_TOKEN_MINT).copyInto(bytes, 0)
-                SolanaPublicKeyCodec.decode(SOLANA_ADDRESS).copyInto(bytes, 32)
+                SolanaPublicKeyCodec.decode(owner).copyInto(bytes, 32)
                 java.nio.ByteBuffer.wrap(bytes, 64, 8).order(java.nio.ByteOrder.LITTLE_ENDIAN).putLong(5_000_000L)
                 bytes[108] = 1
                 return SolanaRpcAccountInfo(tokenProgram, 2_039_280, false, Base64.getEncoder().encodeToString(bytes))
             }
-            return if (address == SOLANA_ADDRESS || address == SOLANA_RECIPIENT) SolanaRpcAccountInfo("11111111111111111111111111111111", 10_000_000_000, false, "") else null
+            return if (address == owner || address == SOLANA_RECIPIENT) SolanaRpcAccountInfo("11111111111111111111111111111111", 10_000_000_000, false, "") else null
         }
         override suspend fun tokenAccounts(address: String, programAddress: String, commitment: SolanaRpcCommitment, rpcUrl: String?) =
-            listOf(SolanaRpcTokenAccount(SPL_TOKEN_SOURCE_ACCOUNT, SOLANA_ADDRESS, SPL_TOKEN_MINT, tokenProgram, BigInteger.valueOf(5_000_000), 6, false))
+            listOf(SolanaRpcTokenAccount(SPL_TOKEN_SOURCE_ACCOUNT, owner, SPL_TOKEN_MINT, tokenProgram, BigInteger.valueOf(5_000_000), 6, false))
         val accountExistenceChecks = mutableListOf<String>()
         var lastExpectedSignature: String? = null
             private set
@@ -1428,6 +1543,7 @@ class BitcoinTransferServiceProviderTest {
         const val MNEMONIC = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
         const val OTHER_MNEMONIC = "legal winner thank year wave sausage worth useful legal winner thank yellow"
         const val MAINNET_ADDRESS = "bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu"
+        const val WALLET_PASSWORD = "TREZOR"
         const val MAINNET_RECIPIENT = "bc1qslk39wvggqa0vl8nd6jckaz54dw3vk45c5w60m"
         const val SOLANA_ADDRESS = "HAgk14JpMQLgt6rVgv7cBQFJWFto5Dqxi472uT3DKpqk"
         val SOLANA_RECIPIENT = SolanaKeyDerivation.deriveAccount(OTHER_MNEMONIC).address
@@ -1452,8 +1568,8 @@ class BitcoinTransferServiceProviderTest {
         const val EXPECTED_TX_HEX = "0200000000010111111111111111111111111111111111111111111111111111111111111111110100000000fdffffff0250c300000000000016001487ed12b988403af67cf36ea58b7454ab5d165ab436c2000000000000160014c0cebcd6c3d3ca8c75dc5ec62ebe55330ef910e2024830450221008dc992770d2b510992af76230c1328f13aa750a2c846d580c87f7bdbbb8d979b0220379a44c472c8c85ea32e9345db0251a03d08fb5e1d34bc868faa78c836956ff001210330d54fd0dd420a6e5f8d3624f5f3482cae350f79d5f0753bf5beef9c2d91af3c00000000"
         private val BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray()
 
-        fun bitcoinMetaAccount(chain: Chain): MetaAccount {
-            val bitcoin = BitcoinKeyDerivation.deriveAccount(MNEMONIC)
+        fun bitcoinMetaAccount(chain: Chain, passphrase: String = ""): MetaAccount {
+            val bitcoin = BitcoinKeyDerivation.deriveAccount(MNEMONIC, passphrase)
 
             return MetaAccount(
                 id = 1L,
@@ -1482,8 +1598,8 @@ class BitcoinTransferServiceProviderTest {
             )
         }
 
-        fun solanaMetaAccount(chain: Chain): MetaAccount {
-            val solana = SolanaKeyDerivation.deriveAccount(MNEMONIC)
+        fun solanaMetaAccount(chain: Chain, passphrase: String = ""): MetaAccount {
+            val solana = SolanaKeyDerivation.deriveAccount(MNEMONIC, passphrase)
 
             return MetaAccount(
                 id = 1L,

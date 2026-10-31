@@ -1769,4 +1769,21 @@
   <string name="portfolio_prices_loading">正在加载价格…</string>
   <string name="portfolio_balance_partial">部分余额</string>
   <string name="portfolio_balance_unavailable">余额不可用</string>
+  <string name="universal_password_notice_title">从旧地址转出资金</string>
+  <string name="universal_password_notice_message">这些地址未使用您的钱包密码，仅凭助记词即可打开。请将资金转到受密码保护的新地址，然后点按“切换”。</string>
+  <string name="universal_password_notice_old">旧：%s</string>
+  <string name="universal_password_notice_new">新：%s</string>
+  <string name="universal_password_notice_switch">切换</string>
+  <string name="universal_password_notice_later">稍后</string>
+  <string name="universal_password_notice_checking">正在检查…</string>
+  <string name="universal_password_notice_switched">已切换</string>
+  <string name="universal_password_notice_still_funded">仍有资金</string>
+  <string name="universal_password_notice_unknown">无法检查，请稍后重试。</string>
+  <string name="universal_password_notice_in_use">请先断开其 TON 应用。</string>
+  <string name="universal_password_notice_options">旧地址</string>
+  <string name="universal_password_notice_arrived_old">旧地址收到了资金</string>
+  <string name="universal_password_notice_arrived_new">新地址收到了资金</string>
+  <string name="universal_password_notice_balance">余额：%s</string>
+  <string name="universal_password_notice_used_again">本钱包重新使用旧地址，以便这些资金保持可见。</string>
+  <string name="universal_password_notice_move_old">如需转移，请不带密码将助记词导入为另一个钱包，然后将资金发送到新地址。</string>
 </resources>

@@ -9,6 +9,8 @@ import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
+import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
+import jp.co.soramitsu.common.utils.TonKeyDerivation
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferenceSnapshot
 import jp.co.soramitsu.common.data.storage.encrypt.WalletPublicIdentityRecovery
@@ -287,6 +289,36 @@ class KeyPairRepositoryTest {
             assertEquals(before, encryptedPreferences.snapshot())
         }
     }
+
+    @Test
+    fun `a signer that read the TON key before a universal swap committed never quarantines the new key`() = runBlocking {
+        installRealStores()
+        val legacy = TonKeyDerivation.deriveAccount(TON_WORDS)
+        val protected = TonKeyDerivation.deriveAccount(TON_WORDS, "TREZOR")
+        val reviewed = META_ACCOUNT.copy(tonPublicKey = legacy.publicKey)
+        tonSecretStore.put(META_ID, tonSecrets(legacy))
+        var reads = 0
+        whenever(accountRepository.getMetaAccount(META_ID)).doSuspendableAnswer {
+            if (reads++ == 0) {
+                // The swap stages, commits and clears its journal right after this read.
+                tonSecretStore.put(META_ID, tonSecrets(protected))
+                reviewed
+            } else {
+                reviewed.copy(tonPublicKey = protected.publicKey)
+            }
+        }
+
+        val stale = runCatching { reviewedWalletProvider().getKeypairFor(TON_CHAIN, legacy.publicKey) }.exceptionOrNull()
+
+        assertEquals("The reviewed wallet no longer owns this signing account", stale?.message)
+        assertTrue(WalletSecretQuarantine.keyFor("$META_ID:TON_SECRETS") !in encryptedPreferences.snapshot())
+        assertArrayEquals(protected.publicKey, reviewedWalletProvider().getKeypairFor(TON_CHAIN, protected.publicKey).publicKey)
+    }
+
+    private fun tonSecrets(account: TonKeyDerivation.TonAccount) = TonSecrets(
+        TON_WORDS.encodeToByteArray(),
+        jp.co.soramitsu.common.data.Keypair(account.publicKey, account.privateKey)
+    )
 
     private fun installRealStores() {
         secretStoreV2 = SecretStoreV2(encryptedPreferences)
@@ -765,6 +797,17 @@ class KeyPairRepositoryTest {
         }
 
         const val META_ID = 42L
+        const val TON_WORDS = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+        val TON_CHAIN = object : IChain {
+            override val id = "test-ton"
+            override val paraId: String? = null
+            override val assets: List<Asset> = emptyList()
+            override val nodes: List<ChainNode> = emptyList()
+            override val addressPrefix = 0
+            override val isEthereumBased = false
+            override val parentId: String? = null
+            override val ecosystem = Ecosystem.Ton
+        }
         const val QUARANTINED_CIPHERTEXT = "ciphertext-preserved-for-recovery"
 
         val ROOT_ECDSA_KEYPAIR = EthereumKeypairFactory.createWithPrivateKey(

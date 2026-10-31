@@ -20,6 +20,11 @@ import jp.co.soramitsu.account.impl.data.repository.AccountRepositoryImpl
 import jp.co.soramitsu.account.impl.data.repository.KeyPairRepository
 import jp.co.soramitsu.account.impl.data.repository.SubstrateOrEvmAccountRepository
 import jp.co.soramitsu.account.impl.data.repository.TonAccountRepository
+import jp.co.soramitsu.account.api.domain.UniversalWalletFundsProbe
+import jp.co.soramitsu.account.api.domain.UniversalWalletPasswordNotice
+import jp.co.soramitsu.account.impl.domain.UniversalWalletFreshRoots
+import jp.co.soramitsu.account.impl.domain.UniversalWalletPasswordNoticeService
+import jp.co.soramitsu.account.impl.domain.UniversalWalletWatchList
 import jp.co.soramitsu.account.impl.data.repository.WalletSecretMutationCoordinator
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSourceImpl
@@ -96,7 +101,9 @@ class AccountFeatureModule {
         tonSecretStore: TonSecretStore,
         accountRepositoryDelegate: AccountRepositoryDelegate,
         walletSecretMutationCoordinator: WalletSecretMutationCoordinator,
-        walletSecretAccessGuard: WalletSecretAccessGuard
+        walletSecretAccessGuard: WalletSecretAccessGuard,
+        universalWalletFreshRoots: UniversalWalletFreshRoots,
+        universalWalletWatchList: UniversalWalletWatchList
     ): AccountRepository {
         return AccountRepositoryImpl(
             accountDataSource,
@@ -112,7 +119,9 @@ class AccountFeatureModule {
             tonSecretStore,
             accountRepositoryDelegate,
             walletSecretMutationCoordinator,
-            walletSecretAccessGuard
+            walletSecretAccessGuard,
+            universalWalletFreshRoots = universalWalletFreshRoots,
+            universalWalletWatchList = universalWalletWatchList
         )
     }
 
@@ -129,13 +138,41 @@ class AccountFeatureModule {
     @Singleton
     fun provideSubstrateOrEvmAccountRepository(
         metaAccountDao: MetaAccountDao,
-        walletSecretMutationCoordinator: WalletSecretMutationCoordinator
+        walletSecretMutationCoordinator: WalletSecretMutationCoordinator,
+        freshRoots: UniversalWalletFreshRoots
     ): SubstrateOrEvmAccountRepository {
         return SubstrateOrEvmAccountRepository(
             metaAccountDao,
-            walletSecretMutationCoordinator
+            walletSecretMutationCoordinator,
+            freshRoots
         )
     }
+
+    @Provides
+    @Singleton
+    fun provideUniversalWalletFreshRoots(preferences: Preferences) = UniversalWalletFreshRoots(preferences)
+
+    @Provides
+    @Singleton
+    fun provideUniversalWalletWatchList(preferences: Preferences) = UniversalWalletWatchList(preferences)
+
+    @Provides
+    @Singleton
+    fun provideUniversalWalletPasswordNotice(
+        accountRepository: AccountRepository,
+        metaAccountDao: MetaAccountDao,
+        walletSecretMutationCoordinator: WalletSecretMutationCoordinator,
+        fundsProbe: UniversalWalletFundsProbe,
+        preferences: Preferences,
+        watchList: UniversalWalletWatchList
+    ): UniversalWalletPasswordNotice = UniversalWalletPasswordNoticeService(
+        accountRepository,
+        metaAccountDao,
+        walletSecretMutationCoordinator,
+        fundsProbe,
+        preferences,
+        watchList
+    )
 
     @Provides
     @Singleton

@@ -21,6 +21,8 @@ import jp.co.soramitsu.account.api.domain.model.hasEthereum
 import jp.co.soramitsu.account.api.domain.model.hasSubstrate
 import jp.co.soramitsu.account.impl.data.mappers.toDomain
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
+import jp.co.soramitsu.account.impl.domain.UniversalWalletFreshRoots
+import jp.co.soramitsu.account.impl.domain.UniversalWalletWatchList
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
@@ -34,6 +36,7 @@ import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
+import jp.co.soramitsu.common.utils.UniversalWalletPassphrase
 import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretCorruptionException
 import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretValidator
 import jp.co.soramitsu.common.data.storage.encrypt.WalletPublicIdentityIntegrityException
@@ -106,7 +109,9 @@ class AccountRepositoryImpl(
     private val accountRepositoryDelegate: AccountRepositoryDelegate,
     private val walletSecretMutationCoordinator: WalletSecretMutationCoordinator,
     private val walletSecretAccessGuard: WalletSecretAccessGuard,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val universalWalletFreshRoots: UniversalWalletFreshRoots? = null,
+    private val universalWalletWatchList: UniversalWalletWatchList? = null
 ) : AccountRepository {
 
     override fun getEncryptionTypes(): List<CryptoType> {
@@ -211,7 +216,17 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun deleteAccount(metaId: Long) {
+        val substratePublicKey = try {
+            getMetaAccount(metaId).substratePublicKey
+        } catch (failure: kotlinx.coroutines.CancellationException) {
+            throw failure
+        } catch (_: Exception) {
+            null
+        }
         walletSecretMutationCoordinator.delete(metaId)
+        // What this device kept about the wallet's universal accounts goes with it.
+        universalWalletFreshRoots?.forget(metaId, substratePublicKey)
+        universalWalletWatchList?.forget(metaId)
     }
 
     override suspend fun importFromSeed(
@@ -890,13 +905,60 @@ class AccountRepositoryImpl(
         )
     }
 
-    private fun readValidatedTonSecrets(
+    private suspend fun readValidatedTonSecrets(
         metaAccount: MetaAccount
-    ): EncodableStruct<TonSecrets>? {
-        return tonSecretStore.getWithVerifiedRecovery(
-            metaId = metaAccount.id,
-            expectedPublicKey = metaAccount.tonPublicKey
-        )
+    ): EncodableStruct<TonSecrets>? = readTonForIdentity(metaAccount) { publicKey, quarantine ->
+        getWithVerifiedRecovery(metaAccount.id, publicKey, quarantine = quarantine)
+            ?: universalTonPassphrases(metaAccount).takeIf(List<String>::isNotEmpty)?.let { passphrases ->
+                getWithVerifiedRecovery(metaAccount.id, publicKey, passphrases, quarantine)
+            }
+    }
+
+    // [metaAccount] was read before its TON secret; a universal TON swap may have committed since.
+    private suspend fun <T> readTonForIdentity(
+        metaAccount: MetaAccount,
+        read: TonSecretStore.(publicKey: ByteArray?, quarantine: Boolean) -> T
+    ): T = tonSecretStore.readForIdentity(
+        expectedPublicKey = metaAccount.tonPublicKey,
+        currentPublicKey = { accountDataSource.getMetaAccount(metaAccount.id).tonPublicKey },
+        read = read
+    )
+
+    /**
+     * A password wallet derives its universal TON key with its BIP39 passphrase, which only its
+     * Substrate or Ethereum derivation path holds. Read only after the phrase alone failed.
+     */
+    private fun universalTonPassphrases(metaAccount: MetaAccount): List<String> {
+        if (metaAccount.tonPublicKey == null) return emptyList()
+        if (metaAccount.substratePublicKey == null && metaAccount.ethereumPublicKey == null) return emptyList()
+        return try {
+            val substrate = if (isScopeAccessible(metaAccount, WalletSecretScope.Substrate)) {
+                readValidatedSubstrateSecrets(metaAccount)
+            } else {
+                null
+            }
+            val ethereum = if (isScopeAccessible(metaAccount, WalletSecretScope.Ethereum)) {
+                readValidatedEthereumSecrets(metaAccount)
+            } else {
+                null
+            }
+            val substrateEntropy = substrate?.get(SubstrateSecrets.Entropy)
+            val passphrase = when {
+                substrateEntropy != null -> UniversalWalletPassphrase.resolve(
+                    substrate[SubstrateSecrets.SubstrateDerivationPath],
+                    ethereum?.get(EthereumSecrets.EthereumDerivationPath),
+                    ethereum?.get(EthereumSecrets.Entropy)?.contentEquals(substrateEntropy) == true
+                )
+                ethereum?.get(EthereumSecrets.Entropy) != null ->
+                    UniversalWalletPassphrase.ethereumPassword(ethereum[EthereumSecrets.EthereumDerivationPath])
+                else -> ""
+            }
+            listOfNotNull(passphrase.takeIf(String::isNotEmpty))
+        } catch (failure: kotlinx.coroutines.CancellationException) {
+            throw failure
+        } catch (_: Exception) {
+            emptyList()
+        }
     }
 
     override suspend fun isWalletRecoveryRequired(metaId: Long): Boolean {
@@ -967,10 +1029,16 @@ class AccountRepositoryImpl(
             }
 
             WalletEcosystem.Ton -> readIfAccessible(metaAccount, WalletSecretScope.Ton) {
-                tonSecretStore.getWithAssessment(
-                    metaId = metaAccount.id,
-                    expectedPublicKey = metaAccount.tonPublicKey
-                )?.second
+                readTonForIdentity(metaAccount) { publicKey, quarantine ->
+                    val assessment = getWithAssessment(metaAccount.id, publicKey, quarantine = quarantine)?.second
+                    if (assessment is RecoveryAssessment.Unverified) {
+                        universalTonPassphrases(metaAccount).takeIf(List<String>::isNotEmpty)?.let { passphrases ->
+                            getWithAssessment(metaAccount.id, publicKey, passphrases, quarantine)?.second
+                        } ?: assessment
+                    } else {
+                        assessment
+                    }
+                }
             }
 
             // Derived from a root phrase; they have no stored material of their own.

@@ -174,7 +174,8 @@ class ConfirmMnemonicViewModel @Inject constructor(
                         payloadExtras.substrateDerivationPath,
                         payloadExtras.ethereumDerivationPath,
                         null,
-                        isBackedUp
+                        isBackedUp,
+                        freshlyGenerated = true
                     )
                 }
 
