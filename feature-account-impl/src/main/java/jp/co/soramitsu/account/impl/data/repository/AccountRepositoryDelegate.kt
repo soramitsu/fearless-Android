@@ -2,6 +2,7 @@ package jp.co.soramitsu.account.impl.data.repository
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
+import jp.co.soramitsu.account.impl.domain.UniversalWalletFreshRoots
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
@@ -44,7 +45,8 @@ class AccountRepositoryDelegate(
 
 class SubstrateOrEvmAccountRepository(
     private val metaAccountDao: MetaAccountDao,
-    private val walletSecretMutationCoordinator: WalletSecretMutationCoordinator
+    private val walletSecretMutationCoordinator: WalletSecretMutationCoordinator,
+    private val freshRoots: UniversalWalletFreshRoots? = null
 ) {
     suspend fun createAdditional(payload: AddAccountPayload.AdditionalEvm): Long {
         val decodedEthereumDerivationPath =
@@ -182,6 +184,9 @@ class SubstrateOrEvmAccountRepository(
             ethereumKeypair = ethereumKeypair,
             ethereumDerivationPath = payload.ethereumDerivationPath.takeIf { ethereumUsesMnemonic }
         )
+
+        // Marked before the row exists, so the account upgrade never sees the wallet unmarked.
+        if (payload.freshlyGenerated) freshRoots?.markCreated(keys.publicKey)
 
         return try {
             walletSecretMutationCoordinator.create(

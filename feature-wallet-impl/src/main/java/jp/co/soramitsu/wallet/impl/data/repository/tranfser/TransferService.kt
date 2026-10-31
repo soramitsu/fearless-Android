@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.data.repository.tranfser
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.universalWalletRoot
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerClient
@@ -21,9 +22,6 @@ import jp.co.soramitsu.common.data.network.solana.SolanaTransferTransactionBuild
 import jp.co.soramitsu.common.model.UniversalWalletIndexedAssetBalance
 import jp.co.soramitsu.common.model.UniversalWalletDerivationPaths
 import jp.co.soramitsu.common.model.UniversalWalletRegistry
-import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
-import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
-import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.utils.BitcoinKeyDerivation
 import jp.co.soramitsu.common.utils.IrohaAddressCodec
 import jp.co.soramitsu.common.utils.IrohaKeyDerivation
@@ -35,7 +33,6 @@ import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.utils.toLongExact
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.AssetDao
-import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
@@ -176,7 +173,9 @@ data class IrohaTransferSigningRequest(
     val signingPublicKeyHex: String,
     val sourceAccountId: String,
     val sourceAssetId: String,
-    val transactionMetadata: IrohaTransferMetadata = IrohaTransferMetadata.empty()
+    val transactionMetadata: IrohaTransferMetadata = IrohaTransferMetadata.empty(),
+    /** The BIP39 passphrase under which [mnemonicOrSeed] derives [signingPublicKeyHex]. */
+    val passphrase: String = ""
 )
 
 class IrohaSignedTransfer(
@@ -290,19 +289,23 @@ class IrohaTransferService(
             ?: throw unsupported("Iroha recipient address is invalid for ${chain.name}")
         val amount = transfer.amount.toPlainString().normalizeIrohaTransferAmount()
         val assetDefinitionId = transfer.chainAsset.id.normalizeIrohaAssetDefinitionId()
-        val mnemonic = resolveRootMnemonic(metaAccount.id)
-        val derivedAddress = runCatching {
-            IrohaKeyDerivation.deriveAddress(
-                mnemonic = mnemonic,
-                chainDiscriminant = network.chainDiscriminant
-            ).i105
-        }.getOrElse {
+        val root = accountRepository.universalWalletRoot(metaAccount.id)
+            ?: throw unsupported("Iroha transfers require mnemonic root material for ${chain.name}")
+        // A password wallet's account derives with its passphrase, or without it for an old address.
+        val derivedAddresses = root.passphraseCandidates.map { passphrase ->
+            passphrase to runCatching {
+                IrohaKeyDerivation.deriveAddress(
+                    mnemonic = root.mnemonic,
+                    passphrase = passphrase,
+                    chainDiscriminant = network.chainDiscriminant
+                ).i105
+            }.getOrNull()
+        }
+        if (derivedAddresses.all { it.second == null }) {
             throw unsupported("Iroha mnemonic root material is invalid for ${chain.name}")
         }
-
-        if (derivedAddress != sourceAddress) {
-            throw unsupported("Iroha mnemonic does not match selected wallet for ${chain.name}")
-        }
+        val passphrase = derivedAddresses.firstOrNull { it.second == sourceAddress }?.first
+            ?: throw unsupported("Iroha mnemonic does not match selected wallet for ${chain.name}")
 
         return IrohaTransferContext(
             toriiBaseUrl = toriiBaseUrl,
@@ -313,36 +316,14 @@ class IrohaTransferService(
                 chainId = network.chainId,
                 derivationPath = UniversalWalletDerivationPaths.IROHA_DEFAULT,
                 destinationAccountId = destinationAddress,
-                mnemonicOrSeed = mnemonic,
+                mnemonicOrSeed = root.mnemonic,
                 network = network.irohaTransferNetworkKey(),
                 signingPublicKeyHex = sourceDetails.publicKeyHex,
                 sourceAccountId = sourceAddress,
-                sourceAssetId = "$assetDefinitionId#$sourceAddress"
+                sourceAssetId = "$assetDefinitionId#$sourceAddress",
+                passphrase = passphrase
             )
         )
-    }
-
-    private suspend fun resolveRootMnemonic(metaId: Long): String {
-        accountRepository.getSubstrateSecrets(metaId)
-            ?.get(SubstrateSecrets.Entropy)
-            ?.let { return MnemonicCreator.fromEntropy(it.clone()).words }
-
-        accountRepository.getEthereumSecrets(metaId)
-            ?.get(EthereumSecrets.Entropy)
-            ?.let { return MnemonicCreator.fromEntropy(it.clone()).words }
-
-        accountRepository.getTonSecrets(metaId)
-            ?.get(TonSecrets.Seed)
-            ?.decodeToString()
-            ?.normalizeMnemonic()
-            ?.let { return it }
-
-        throw unsupported("Iroha transfers require mnemonic root material for ${chain.name}")
-    }
-
-    private fun String.normalizeMnemonic(): String? {
-        val words = trim().split(Regex("\\s+")).filter(String::isNotBlank)
-        return words.takeIf { it.isNotEmpty() }?.joinToString(" ")
     }
 
     private fun String.normalizeIrohaTransferAmount(): String {

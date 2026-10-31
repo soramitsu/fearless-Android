@@ -1,0 +1,117 @@
+package jp.co.soramitsu.wallet.impl.data.network.blockchain.balance
+
+import jp.co.soramitsu.account.api.domain.UniversalWalletFundsProbe
+import jp.co.soramitsu.account.api.domain.UniversalWalletFundsProbe.Funds
+import jp.co.soramitsu.account.api.domain.UniversalWalletSlot
+import jp.co.soramitsu.common.data.network.bitcoin.BitcoinBalanceSync
+import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerClient
+import jp.co.soramitsu.common.data.network.bitcoin.BitcoinReceiveDiscovery
+import jp.co.soramitsu.common.data.network.iroha.IrohaToriiClient
+import jp.co.soramitsu.common.data.network.iroha.IrohaToriiRoutes
+import jp.co.soramitsu.common.data.network.solana.SolanaBalanceSource
+import jp.co.soramitsu.common.model.UniversalWalletRegistry
+import jp.co.soramitsu.common.utils.tonAccountId
+import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
+import jp.co.soramitsu.wallet.impl.data.repository.tranfser.NativeSendRpcEndpoints
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.withTimeoutOrNull
+import java.math.BigDecimal
+import java.math.BigInteger
+
+/**
+ * Whether a password wallet's no-password account holds anything, read live (never from a
+ * cache) with the clients the portfolio uses: the native coin plus every token the app shows.
+ * A timeout, an error or a partial token list is [Funds.UNKNOWN], which keeps the old account.
+ */
+class NetworkUniversalWalletFundsProbe(
+    private val chainsRepository: ChainsRepository,
+    private val bitcoinIndexerClient: BitcoinIndexerClient,
+    private val solanaBalanceSource: SolanaBalanceSource,
+    private val tonRemoteSource: TonRemoteSource,
+    private val irohaToriiClient: IrohaToriiClient,
+    private val timeoutMillis: Long = DEFAULT_TIMEOUT_MILLIS,
+    private val bitcoinTimeoutMillis: Long = BITCOIN_TIMEOUT_MILLIS
+) : UniversalWalletFundsProbe {
+
+    override suspend fun probe(slot: UniversalWalletSlot, mnemonic: String, publicKey: ByteArray): Funds {
+        val bitcoin = slot == UniversalWalletSlot.BITCOIN_MAINNET || slot == UniversalWalletSlot.BITCOIN_TESTNET
+        return try {
+            withTimeoutOrNull(if (bitcoin) bitcoinTimeoutMillis else timeoutMillis) {
+                when (slot) {
+                    UniversalWalletSlot.BITCOIN_MAINNET, UniversalWalletSlot.BITCOIN_TESTNET -> bitcoin(slot, mnemonic)
+                    UniversalWalletSlot.SOLANA -> solana(slot, publicKey)
+                    UniversalWalletSlot.TON -> ton(slot, publicKey)
+                    UniversalWalletSlot.TAIRA -> taira(slot, publicKey)
+                }
+            } ?: Funds.UNKNOWN
+        } catch (failure: CancellationException) {
+            throw failure
+        } catch (_: Exception) {
+            Funds.UNKNOWN
+        }
+    }
+
+    // Every address the account discovery reaches, receive and change branches, as sends spend them.
+    private suspend fun bitcoin(slot: UniversalWalletSlot, mnemonic: String): Funds {
+        val baseUrl = chain(slot)?.externalApi?.history?.takeIf { it.type == Chain.ExternalApi.Section.Type.BITCOIN }?.url
+        val balance = BitcoinBalanceSync(BitcoinReceiveDiscovery(bitcoinIndexerClient))
+            .accountBalance(mnemonic, "", slot.bitcoinNetwork(), baseUrl)
+        return if (balance.totalSats > 0 || balance.mempoolSats != 0L) Funds.FUNDED else Funds.EMPTY
+    }
+
+    private suspend fun solana(slot: UniversalWalletSlot, publicKey: ByteArray): Funds {
+        val endpoints = chain(slot)?.let { runCatching { NativeSendRpcEndpoints.resolve(it) }.getOrNull() }.orEmpty()
+        val result = solanaBalanceSource.balances(
+            wallet = slot.address(publicKey),
+            network = UniversalWalletRegistry.solanaMainnet,
+            baseUrl = endpoints.firstOrNull(),
+            includeTokenMetadata = false,
+            fallbackUrls = endpoints.drop(1)
+        )
+        return when {
+            result.balances.any { it.amount.isPositiveAmount() } -> Funds.FUNDED
+            !result.tokensAvailable -> Funds.UNKNOWN
+            else -> Funds.EMPTY
+        }
+    }
+
+    private suspend fun ton(slot: UniversalWalletSlot, publicKey: ByteArray): Funds {
+        val chain = chain(slot) ?: return Funds.UNKNOWN
+        val accountId = publicKey.tonAccountId(chain.isTestNet)
+        if (tonRemoteSource.loadAccountData(chain, accountId).balance > 0) return Funds.FUNDED
+        val jettons = tonRemoteSource.loadJettonBalances(chain, accountId)
+        return when {
+            jettons.balances.any { it.balance.isPositiveAmount() } -> Funds.FUNDED
+            jettons.partial -> Funds.UNKNOWN
+            else -> Funds.EMPTY
+        }
+    }
+
+    private suspend fun taira(slot: UniversalWalletSlot, publicKey: ByteArray): Funds {
+        val baseUrl = chain(slot)?.externalApi?.history?.takeIf { it.type == Chain.ExternalApi.Section.Type.IROHA }?.url
+        val address = slot.address(publicKey)
+        var cursor: String? = null
+        repeat(MAX_IROHA_PAGES) {
+            val page = irohaToriiClient.accountAssets(address, baseUrl, IrohaToriiRoutes.MAX_LIMIT, cursor, UniversalWalletRegistry.taira)
+            if (page.items.any { it.quantity.isPositiveAmount() }) return Funds.FUNDED
+            cursor = page.nextCursor ?: return Funds.EMPTY
+        }
+        return Funds.UNKNOWN
+    }
+
+    private suspend fun chain(slot: UniversalWalletSlot): Chain? =
+        chainsRepository.getChains().firstOrNull { slot.matches(it.id) }
+
+    private fun String.isPositiveAmount(): Boolean =
+        toBigDecimalOrNull()?.let { it > BigDecimal.ZERO } ?: (toBigIntegerOrNull()?.let { it > BigInteger.ZERO } ?: true)
+
+    companion object {
+        const val DEFAULT_TIMEOUT_MILLIS = 6_000L
+
+        // A full receive and change discovery reads one address per request.
+        const val BITCOIN_TIMEOUT_MILLIS = 20_000L
+        private const val MAX_IROHA_PAGES = 20
+    }
+}

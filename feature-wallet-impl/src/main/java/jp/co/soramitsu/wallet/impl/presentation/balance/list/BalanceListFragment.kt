@@ -110,6 +110,8 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)
         viewModel.showUnsupportedChainAlert.observeEvent { showUnsupportedChainAlert() }
         viewModel.showUpdateSecurityNotice.observeEvent { showUpdateSecurityNotice() }
+        viewModel.showUniversalPasswordNotice.observeEvent(::showUniversalPasswordNotice)
+        viewModel.universalPasswordSwitchResult.observeEvent { universalPasswordNotice?.showResult(it.rows) }
         viewModel.openPlayMarket.observeEvent { openPlayMarket() }
     }
 
@@ -142,6 +144,21 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
             .callback { viewModel.onUpdateSecurityNoticeClosed() }
             .build()
             .show()
+    }
+
+    private var universalPasswordNotice: UniversalPasswordNoticeSheet? = null
+
+    private fun showUniversalPasswordNotice(state: UniversalPasswordNoticeState) {
+        if (universalPasswordNotice?.isShowing == true) return
+        universalPasswordNotice = UniversalPasswordNoticeSheet(
+            requireContext(),
+            state.rows,
+            onSwitch = { viewModel.onUniversalPasswordSwitch(state.metaId) },
+            onClosed = {
+                viewModel.onUniversalPasswordNoticeClosed(state.metaId)
+                universalPasswordNotice = null
+            }
+        ).also { it.show() }
     }
 
     private fun openPlayMarket() {

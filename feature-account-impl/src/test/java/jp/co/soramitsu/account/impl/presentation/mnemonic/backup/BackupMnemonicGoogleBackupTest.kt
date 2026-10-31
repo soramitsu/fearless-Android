@@ -185,7 +185,7 @@ class BackupMnemonicGoogleBackupTest {
         runCurrent()
 
         assertEquals(
-            AddAccountPayload.SubstrateOrEvm("New wallet", "synthetic words", CryptoType.SR25519, "//backup", "//44//60//0/0/1", null, false),
+            AddAccountPayload.SubstrateOrEvm("New wallet", "synthetic words", CryptoType.SR25519, "//backup", "//44//60//0/0/1", null, false, freshlyGenerated = true),
             requests.single().addAccountPayload
         )
     }
@@ -261,7 +261,7 @@ class BackupMnemonicGoogleBackupTest {
 
         coVerify(exactly = 0) { backupService.logout() }
         assertEquals(
-            AddAccountPayload.SubstrateOrEvm("New wallet", "synthetic words", CryptoType.SR25519, "", BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH, null, false),
+            AddAccountPayload.SubstrateOrEvm("New wallet", "synthetic words", CryptoType.SR25519, "", BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH, null, false, freshlyGenerated = true),
             requests.single().addAccountPayload
         )
     }

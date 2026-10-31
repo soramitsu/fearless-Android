@@ -607,6 +607,45 @@ class BitcoinTransferServiceProviderTest {
     }
 
     @Test
+    fun `password wallet's old bitcoin address keeps signing without the password`() = runBlocking {
+        val chain = bitcoinChain(); val client = FakeBitcoinIndexerClient()
+        // Every address an earlier version showed was derived without the wallet password.
+        val service = provider(accountRepository(bitcoinMetaAccount(chain), MNEMONIC, "///$WALLET_PASSWORD"), bitcoinIndexerClient = client)
+            .provide(chain)
+        val intent = Transfer(MAINNET_ADDRESS, MAINNET_RECIPIENT, BigDecimal("0.0005"), chain.assets.single(), quoteId = UUID.randomUUID().toString())
+        val fee = service.getTransferFee(intent)
+        assertEquals(64, service.transfer(intent.copy(estimateFee = fee)).length)
+        assertEquals(1, client.broadcastCalls)
+    }
+
+    @Test
+    fun `password wallet's iroha accounts sign with the passphrase that derives them`() {
+        val chain = irohaChain()
+        val recipientAddress = IrohaAddressCodec.encode("11".repeat(32), UniversalWalletRegistry.taira.chainDiscriminant)
+        for (passphrase in listOf("", WALLET_PASSWORD)) {
+            val signer = FakeIrohaTransferSigner()
+            val key = IrohaKeyDerivation.deriveAccount(MNEMONIC, passphrase).publicKey
+            val wallet = irohaMetaAccount(chain).let { wallet ->
+                wallet.copy(chainAccounts = mapOf(chain.id to MetaAccount.ChainAccount(
+                    metaId = wallet.id, chain = chain, publicKey = key, accountId = key, cryptoType = CryptoType.ED25519, accountName = "Iroha"
+                )))
+            }
+            val sourceAddress = IrohaKeyDerivation.deriveAddress(MNEMONIC, passphrase, chainDiscriminant = UniversalWalletRegistry.taira.chainDiscriminant).i105
+            val service = provider(
+                accountRepository = accountRepository(wallet, MNEMONIC, "//polkadot///$WALLET_PASSWORD"),
+                irohaToriiClient = FakeIrohaToriiClient(),
+                irohaTransferSigner = signer
+            ).provide(chain)
+
+            runBlocking { service.transfer(Transfer(sourceAddress, recipientAddress, BigDecimal("1.25"), chain.assets.single())) }
+
+            assertEquals(passphrase, signer.lastRequest?.passphrase)
+            assertEquals(MNEMONIC, signer.lastRequest?.mnemonicOrSeed)
+            assertEquals(sourceAddress, signer.lastRequest?.authority)
+        }
+    }
+
+    @Test
     fun `provider routes ton chains to ton transfer service`() {
         val service = provider().provide(tonChain())
 
@@ -1034,7 +1073,8 @@ class BitcoinTransferServiceProviderTest {
 
     private fun accountRepository(
         metaAccount: MetaAccount,
-        mnemonic: String?
+        mnemonic: String?,
+        substrateDerivationPath: String? = null
     ): AccountRepository {
         val accountRepository = mock(AccountRepository::class.java)
 
@@ -1044,7 +1084,8 @@ class BitcoinTransferServiceProviderTest {
                 mnemonic?.let {
                     SubstrateSecrets(
                         substrateKeyPair = BaseKeypair(ByteArray(32), ByteArray(32)),
-                        entropy = MnemonicCreator.fromWords(it).entropy
+                        entropy = MnemonicCreator.fromWords(it).entropy,
+                        substrateDerivationPath = substrateDerivationPath
                     )
                 }
             )
@@ -1428,6 +1469,7 @@ class BitcoinTransferServiceProviderTest {
         const val MNEMONIC = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
         const val OTHER_MNEMONIC = "legal winner thank year wave sausage worth useful legal winner thank yellow"
         const val MAINNET_ADDRESS = "bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu"
+        const val WALLET_PASSWORD = "TREZOR"
         const val MAINNET_RECIPIENT = "bc1qslk39wvggqa0vl8nd6jckaz54dw3vk45c5w60m"
         const val SOLANA_ADDRESS = "HAgk14JpMQLgt6rVgv7cBQFJWFto5Dqxi472uT3DKpqk"
         val SOLANA_RECIPIENT = SolanaKeyDerivation.deriveAccount(OTHER_MNEMONIC).address

@@ -1804,4 +1804,16 @@
   <string name="portfolio_prices_loading">Загрузка цен…</string>
   <string name="portfolio_balance_partial">Частичный баланс</string>
   <string name="portfolio_balance_unavailable">Баланс недоступен</string>
+  <string name="universal_password_notice_title">Переведите средства со старых адресов</string>
+  <string name="universal_password_notice_message">Эти адреса не используют пароль кошелька, поэтому их открывает одна лишь фраза восстановления. Отправьте средства на новые адреса, защищённые паролем, затем нажмите «Переключить».</string>
+  <string name="universal_password_notice_old">Старый: %s</string>
+  <string name="universal_password_notice_new">Новый: %s</string>
+  <string name="universal_password_notice_switch">Переключить</string>
+  <string name="universal_password_notice_later">Позже</string>
+  <string name="universal_password_notice_checking">Проверка…</string>
+  <string name="universal_password_notice_switched">Переключено</string>
+  <string name="universal_password_notice_still_funded">Средства ещё на адресе</string>
+  <string name="universal_password_notice_unknown">Не удалось проверить. Повторите позже.</string>
+  <string name="universal_password_notice_in_use">Сначала отключите TON-приложения.</string>
+  <string name="universal_password_notice_options">Старые адреса</string>
 </resources>

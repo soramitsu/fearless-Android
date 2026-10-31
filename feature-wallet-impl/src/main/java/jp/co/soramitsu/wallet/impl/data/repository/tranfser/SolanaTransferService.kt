@@ -92,8 +92,9 @@ class SolanaTransferService(
             client = rpcClient.withGenesisHash(network.genesisHash).withEndpoints(quoted.rpcUrls)
             val planner = SolanaPaymentPlanner(client)
             planner.revalidate(quoted.plan)
-            val signed = SolanaTransactionSigner.signSerializedTransaction(guard.mnemonic(binding), quoted.plan.message.transactionBase64,
-                expectedSigner = binding.sender)
+            val root = guard.root(binding)
+            val signed = SolanaTransactionSigner.signSerializedTransaction(root.mnemonic, quoted.plan.message.transactionBase64,
+                expectedSigner = binding.sender, passphrase = root.passphrase)
             val simulation = client.simulateTransaction(signed.signedTransactionBase64,
                 SolanaSimulationOptions(replaceRecentBlockhash = false, sigVerify = true))
             if (simulation.value.errorJson != null) throw NativeSendException(NativeSendException.Code.SIMULATION_FAILED)

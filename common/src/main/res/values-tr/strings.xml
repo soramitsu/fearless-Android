@@ -1781,4 +1781,16 @@
   <string name="portfolio_prices_loading">Fiyatlar yükleniyor…</string>
   <string name="portfolio_balance_partial">Kısmi bakiye</string>
   <string name="portfolio_balance_unavailable">Bakiye kullanılamıyor</string>
+  <string name="universal_password_notice_title">Eski adreslerdeki fonları taşıyın</string>
+  <string name="universal_password_notice_message">Bu adresler cüzdan parolanızı kullanmaz, bu yüzden yalnızca kurtarma kelimeleriniz onları açar. Fonları parolayla korunan yeni adreslere gönderin, ardından Değiştir\'e dokunun.</string>
+  <string name="universal_password_notice_old">Eski: %s</string>
+  <string name="universal_password_notice_new">Yeni: %s</string>
+  <string name="universal_password_notice_switch">Değiştir</string>
+  <string name="universal_password_notice_later">Sonra</string>
+  <string name="universal_password_notice_checking">Kontrol ediliyor…</string>
+  <string name="universal_password_notice_switched">Değiştirildi</string>
+  <string name="universal_password_notice_still_funded">Hâlâ fon var</string>
+  <string name="universal_password_notice_unknown">Kontrol edilemedi. Daha sonra tekrar deneyin.</string>
+  <string name="universal_password_notice_in_use">Önce TON uygulamalarının bağlantısını kesin.</string>
+  <string name="universal_password_notice_options">Eski adresler</string>
 </resources>

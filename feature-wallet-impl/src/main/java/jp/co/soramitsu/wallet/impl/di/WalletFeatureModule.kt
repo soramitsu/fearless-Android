@@ -1,5 +1,7 @@
 package jp.co.soramitsu.wallet.impl.di
 
+import jp.co.soramitsu.account.api.domain.UniversalWalletFundsProbe
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.balance.NetworkUniversalWalletFundsProbe
 import jp.co.soramitsu.common.data.network.config.MutationAuthorizationStore
 import jp.co.soramitsu.common.data.network.config.MutationCapability
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
@@ -776,6 +778,22 @@ class WalletFeatureModule {
             metadataDescriptorStore
         )
     }
+
+    @Provides
+    @Singleton
+    fun provideUniversalWalletFundsProbe(
+        chainsRepository: ChainsRepository,
+        bitcoinIndexerClient: BitcoinIndexerClient,
+        solanaBalanceSource: SolanaBalanceSource,
+        tonRemoteSource: TonRemoteSource,
+        irohaToriiClient: IrohaToriiClient
+    ): UniversalWalletFundsProbe = NetworkUniversalWalletFundsProbe(
+        chainsRepository,
+        bitcoinIndexerClient,
+        solanaBalanceSource,
+        tonRemoteSource,
+        irohaToriiClient
+    )
 
     @Provides
     fun provideWalletConstants(
