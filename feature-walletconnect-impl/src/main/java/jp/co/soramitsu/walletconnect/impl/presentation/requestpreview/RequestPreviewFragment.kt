@@ -33,6 +33,10 @@ class RequestPreviewFragment : BaseComposeBottomSheetDialogFragment<RequestPrevi
 
     companion object {
         const val PAYLOAD_TOPIC_KEY = "payload_topic_key"
-        fun getBundle(topic: String) = bundleOf(PAYLOAD_TOPIC_KEY to topic)
+        const val PAYLOAD_REQUEST_ID_KEY = "payload_request_id_key"
+        fun getBundle(topic: String, requestId: Long) = bundleOf(
+            PAYLOAD_TOPIC_KEY to topic,
+            PAYLOAD_REQUEST_ID_KEY to requestId
+        )
     }
 }

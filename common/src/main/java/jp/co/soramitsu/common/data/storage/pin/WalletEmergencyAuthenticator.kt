@@ -16,18 +16,19 @@ import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
 class WalletEmergencyAuthenticator internal constructor(
     private val preferences: Preferences,
     private val encryptedPreferences: EncryptedPreferences,
-    private val nowProvider: () -> Long
+    private val clock: PinAttemptClock
 ) {
 
     @Inject
     constructor(
         preferences: Preferences,
         encryptedPreferences: EncryptedPreferences
-    ) : this(preferences, encryptedPreferences, { System.currentTimeMillis() })
+    ) : this(preferences, encryptedPreferences, PinAttemptClock.system)
 
     fun authenticate(code: String): WalletEmergencyAuthentication {
-        val limiter = PinAttemptLimiter(preferences, nowProvider)
-        limiter.lockedUntil()?.let { return WalletEmergencyAuthentication.LockedUntil(it) }
+        val limiter = PinAttemptLimiter(preferences, clock)
+        val remaining = limiter.remainingDelayMillis()
+        if (remaining > 0L) return WalletEmergencyAuthentication.Locked(remaining)
 
         val stored = try {
             encryptedPreferences.getDecryptedString(WalletMasterKeyAttestation.PIN_CODE_KEY)
@@ -47,10 +48,8 @@ class WalletEmergencyAuthenticator internal constructor(
             limiter.reset()
             WalletEmergencyAuthentication.Authenticated
         } else {
-            limiter.registerFailure()
-            limiter.lockedUntil()
-                ?.let { WalletEmergencyAuthentication.LockedUntil(it) }
-                ?: WalletEmergencyAuthentication.WrongPin
+            val delay = limiter.registerFailure()
+            if (delay > 0L) WalletEmergencyAuthentication.Locked(delay) else WalletEmergencyAuthentication.WrongPin
         }
     }
 }
@@ -58,7 +57,9 @@ class WalletEmergencyAuthenticator internal constructor(
 sealed interface WalletEmergencyAuthentication {
     data object Authenticated : WalletEmergencyAuthentication
     data object WrongPin : WalletEmergencyAuthentication
-    data class LockedUntil(val epochMillis: Long) : WalletEmergencyAuthentication
+
+    /** Too many wrong PINs: no PIN is checked for [remainingMillis]. */
+    data class Locked(val remainingMillis: Long) : WalletEmergencyAuthentication
 
     /** No PIN can be read on this device, so nothing can be revealed. */
     data object Unavailable : WalletEmergencyAuthentication

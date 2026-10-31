@@ -3,7 +3,7 @@ set -euo pipefail
 umask 077
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PRODUCTION_UPLOAD_CERTIFICATE_SHA256="40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A"
+PRODUCTION_UPLOAD_CERTIFICATE_SHA256="AD6C1D07BE5DFA8C539E8C9B8BD43DC1C6CF79A839828B10B6F953AD57C1BDE8"
 PINNED_PUBLIC_FIREBASE_SHA256="3085af682c8c8a166142f7ef867e0c3fa06a6f87436f3a15497f8ae7dac93d2f"
 PINNED_BUNDLETOOL_SHA256="a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29"
 temporary_dir=""
@@ -1531,10 +1531,10 @@ fi
 
 expected_version_name="$(version_property versionName)-ias"
 expected_version_code="$(version_property versionCode)"
-[[ "$expected_version_name" == "4.2.0-ias" ]] ||
-  fail "IAS versionName must remain exactly 4.2.0-ias for this testing candidate."
-[[ "$expected_version_code" == "231" ]] ||
-  fail "IAS versionCode must remain exactly 231 for this testing candidate."
+[[ "$expected_version_name" == "4.3.0-ias" ]] ||
+  fail "IAS versionName must remain exactly 4.3.0-ias for this testing candidate."
+[[ "$expected_version_code" == "232" ]] ||
+  fail "IAS versionCode must remain exactly 232 for this testing candidate."
 
 public_firebase="$ROOT_DIR/app/src/release/google-services.json"
 require_regular_file "$public_firebase" "public Firebase configuration" 65536

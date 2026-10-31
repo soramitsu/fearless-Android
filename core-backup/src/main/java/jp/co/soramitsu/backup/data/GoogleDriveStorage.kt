@@ -12,6 +12,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.Scope
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+import com.google.api.client.http.HttpTransport
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.drive.Drive
@@ -29,7 +30,8 @@ import kotlin.coroutines.resumeWithException
 /** Google sign-in for the Drive app data scope, as in shared_features; the requests live in [GoogleDriveFiles]. */
 internal class GoogleDriveStorage(
     context: Context,
-    tokenId: String
+    tokenId: String,
+    private val transport: HttpTransport = NetHttpTransport.Builder().build()
 ) : Storage {
 
     private val context = context.applicationContext
@@ -138,7 +140,7 @@ internal class GoogleDriveStorage(
             )
         credential.selectedAccount = GoogleSignIn.getLastSignedInAccount(context)?.account
         return Drive.Builder(
-            NetHttpTransport.Builder().build(),
+            transport,
             GsonFactory(),
             credential
         ).build()

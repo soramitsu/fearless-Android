@@ -14,7 +14,7 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
+import jp.co.soramitsu.account.impl.presentation.common.SecureScreenGuard
 import jp.co.soramitsu.account.impl.presentation.recovery.excludeRecoveryInputFromPersistence
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -84,7 +84,9 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
         )
     }
 
-    private var hadSecureFlag = false
+    // The PIN pad and recovery prompts stay out of screen captures; the guard hands the flag to
+    // the next secure screen instead of clearing it underneath that screen.
+    private val secureScreen = SecureScreenGuard(this)
     private lateinit var binding: FragmentPincodeBinding
 
     override val viewModel: PinCodeViewModel by viewModels()
@@ -97,8 +99,6 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentPincodeBinding.inflate(inflater, container, false)
-        hadSecureFlag = requireActivity().window.attributes.flags and WindowManager.LayoutParams.FLAG_SECURE != 0
-        requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         binding.root.excludeRecoveryInputFromPersistence()
         binding.pinRecoveryContent.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         binding.pinRecoveryContent.setContent {
@@ -154,6 +154,10 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
 
         viewModel.matchingPincodeErrorEvent.observeEvent {
             binding.pinCodeView.pinCodeMatchingError()
+        }
+
+        viewModel.pinRetryDelayEvent.observeEvent {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
         }
 
         viewModel.resetInputEvent.observeEvent {
@@ -221,16 +225,27 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
         }
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        secureScreen.onViewCreated()
+        super.onViewCreated(view, savedInstanceState)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        secureScreen.onStart()
+    }
+
     override fun onDestroyView() {
         promptGate.cancel()
         biometricPrompt.cancelAuthentication()
-        if (!hadSecureFlag) requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        secureScreen.onDestroyView()
         super.onDestroyView()
     }
 
     override fun onStop() {
         viewModel.screenStopped()
         binding.pinCodeView.resetInput()
+        secureScreen.onStop()
         super.onStop()
     }
 

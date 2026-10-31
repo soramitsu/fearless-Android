@@ -12,11 +12,13 @@ class WalletProviderPool(private val nowMillis: () -> Long = { System.nanoTime()
 
     /**
      * Tries each eligible endpoint once. Cancellation and deterministic request failures never retry.
-     * Broadcast callers must pass exactly the same signed bytes to every attempt.
+     * Broadcast callers must pass exactly the same signed bytes to every attempt. An endpoint for which [sticky]
+     * is false can serve a call but never becomes the preferred one, for example a rate-limited last resort.
      */
     suspend fun <T> execute(
         endpoints: List<String>,
         isTransient: (Throwable) -> Boolean = { false },
+        sticky: (String) -> Boolean = { true },
         operation: suspend (String) -> T
     ): T {
         require(endpoints.isNotEmpty() && endpoints.size <= MAX_ENDPOINTS)
@@ -31,7 +33,7 @@ class WalletProviderPool(private val nowMillis: () -> Long = { System.nanoTime()
             try {
                 val result = operation(endpoint)
                 synchronized(lock) {
-                    preferred = endpoint
+                    if (sticky(endpoint)) preferred = endpoint
                     blockedUntil.remove(endpoint)
                 }
                 return result

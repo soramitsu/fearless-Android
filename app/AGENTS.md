@@ -66,7 +66,7 @@ Release Safety
   manually upload those exact bytes to Play Console Internal App Sharing;
   Gradle and CI must never upload to Google/Play or mutate any track. Never
   uninstall a funded wallet for IAS, and never treat IAS as production
-  migration or signing evidence. Update all reviewed IAS `4.2.0-ias` / `231`
+  migration or signing evidence. Update all reviewed IAS `4.3.0-ias` / `232`
   hardcodes in the same commit as any source-controlled version change.
 
 Common Tasks

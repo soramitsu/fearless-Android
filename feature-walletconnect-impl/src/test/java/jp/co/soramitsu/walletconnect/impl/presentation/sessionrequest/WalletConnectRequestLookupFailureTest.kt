@@ -13,6 +13,10 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.walletconnect.impl.presentation.featureToggleStore
+import jp.co.soramitsu.walletconnect.impl.presentation.summary.WalletConnectRequestDecoder
+import jp.co.soramitsu.walletconnect.impl.presentation.summary.WalletConnectRequestSummaries
+import jp.co.soramitsu.walletconnect.impl.presentation.summary.WalletConnectSummaryPresenter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -115,6 +119,11 @@ class WalletConnectRequestLookupFailureTest {
     }
     private fun create() = WalletConnectSignMessageViewModel(
         SavedStateHandle(mapOf(WalletConnectSignMessageFragment.SESSION_REQUEST_TOPIC_KEY to "topic")),
-        total, interactor, router, resources, repository, icons
+        total, interactor, router, resources, repository, icons,
+        WalletConnectRequestSummaries(
+            WalletConnectRequestDecoder { null },
+            WalletConnectSummaryPresenter(resources),
+            featureToggleStore()
+        )
     ).also(viewModels::add)
 }

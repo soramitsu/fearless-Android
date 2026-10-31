@@ -172,7 +172,9 @@ class EthereumTransactionBuilder(ethereumWebSocketConnection: EthereumChainConne
             ?: throw GasServiceException("Failed to get ethGasPrice on chain ${chainAsset.chainName}. Response is null")
 
         return if (baseFeePerGas != null && maxPriorityFeePerGas != null) {
-            // eip1559
+            // eip1559: tip the node's priority fee and cap the price at the base fee plus that tip,
+            // the per-gas price the fee was shown with. The sender then pays the base fee of the
+            // including block plus the tip; eth_gasPrice as the tip would pay the whole cap.
             val maxFeePerGas = baseFeePerGas + maxPriorityFeePerGas
 
             eip1559RawTransactionCallBuildersByAssetType[chainAsset.type]?.invoke(
@@ -180,8 +182,8 @@ class EthereumTransactionBuilder(ethereumWebSocketConnection: EthereumChainConne
                     transfer = transfer,
                     nonce = nonce,
                     gasLimit = gasLimit,
-                    maxPriorityFeePerGas = gasPrice,
-                    maxFeePerGas = gasPrice,
+                    maxPriorityFeePerGas = maxPriorityFeePerGas,
+                    maxFeePerGas = maxFeePerGas,
                     gasPrice = gasPrice
                 )
             )
@@ -199,7 +201,18 @@ class EthereumTransactionBuilder(ethereumWebSocketConnection: EthereumChainConne
         }?.let { Result.success(it) } ?: Result.failure("Cannot find ")
     }
 
-    fun buildFeeEstimationCall(transfer: Transfer): Transaction? {
+    /**
+     * The gas estimate call for [transfer] as reviewed: its sender, recipient and amount. A token
+     * transfer that moves a real amount costs more gas than one of zero.
+     */
+    fun buildFeeEstimationCall(transfer: Transfer): Transaction? =
+        buildFeeEstimationCall(EvmTransfer.createFromTransfer(transfer))
+
+    /**
+     * The same call without the amount. A node refuses to estimate an amount above the sender's
+     * balance, so this keeps a fee on screen while the entered amount is still too large.
+     */
+    fun buildAmountFreeFeeEstimationCall(transfer: Transfer): Transaction? {
         val evmTransfer = EvmTransfer(
             transfer.sender,
             recipient = transfer.recipient,

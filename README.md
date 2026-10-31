@@ -194,8 +194,8 @@ AAB in Play Console's Internal App Sharing page. The workflow has no Gradle
 Play Publisher integration, uploads nothing to Google or Play, changes no Play
 track, and consumes no Play service-account credential.
 
-The handoff filename and verifier currently pin `4.2.0-ias` / version code
-`231`. Any change to either value in `versioning/version.properties` must update
+The handoff filename and verifier currently pin `4.3.0-ias` / version code
+`232`. Any change to either value in `versioning/version.properties` must update
 and review every IAS hardcode in the same commit before a new handoff is
 eligible; never relabel old bytes with a new filename.
 

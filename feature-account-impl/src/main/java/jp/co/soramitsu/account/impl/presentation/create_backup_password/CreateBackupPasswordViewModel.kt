@@ -96,12 +96,14 @@ class CreateBackupPasswordViewModel @Inject constructor(
         originPasswordViewState = createTextInputViewState(
             hint = resourceManager.getString(R.string.export_json_password_new),
             password = originPassword.value,
-            isPasswordVisible = false
+            isPasswordVisible = false,
+            isEditable = true
         ),
         confirmPasswordViewState = createTextInputViewState(
             hint = resourceManager.getString(R.string.export_json_password_confirm),
             password = confirmPassword.value,
-            isPasswordVisible = false
+            isPasswordVisible = false,
+            isEditable = true
         ),
         isUserAgreedWithStatements = isUserAgreedWithStatements.value,
         agreementsState = TextSelectableItemState(
@@ -130,12 +132,14 @@ class CreateBackupPasswordViewModel @Inject constructor(
             originPasswordViewState = createTextInputViewState(
                 hint = resourceManager.getString(R.string.export_json_password_new),
                 password = originPassword,
-                isPasswordVisible = isOriginPasswordVisible
+                isPasswordVisible = isOriginPasswordVisible,
+                isEditable = !isLoading && !isBackupUploaded
             ),
             confirmPasswordViewState = createTextInputViewState(
                 hint = resourceManager.getString(R.string.export_json_password_confirm),
                 password = confirmPassword,
-                isPasswordVisible = isConfirmPasswordVisible
+                isPasswordVisible = isConfirmPasswordVisible,
+                isEditable = !isLoading && !isBackupUploaded
             ),
             isUserAgreedWithStatements = isUserAgreedWithStatements,
             agreementsState = TextSelectableItemState(
@@ -152,23 +156,31 @@ class CreateBackupPasswordViewModel @Inject constructor(
     private fun createTextInputViewState(
         hint: String,
         password: String,
-        isPasswordVisible: Boolean
+        isPasswordVisible: Boolean,
+        isEditable: Boolean
     ): TextInputViewState {
         return TextInputViewState(
             hint = hint,
             text = password,
             mode = if (isPasswordVisible) TextInputViewState.Mode.Text else TextInputViewState.Mode.Password,
-            endIcon = if (isPasswordVisible) R.drawable.ic_eye_enabled else R.drawable.ic_eye_disabled
+            endIcon = if (isPasswordVisible) R.drawable.ic_eye_enabled else R.drawable.ic_eye_disabled,
+            // Locked while a backup is saved and once it is saved, so the fields show its password.
+            isActive = isEditable
         )
     }
 
     override fun onOriginPasswordChange(password: String) {
+        if (isPasswordFixed()) return
         originPassword.value = password
     }
 
     override fun onConfirmPasswordChange(password: String) {
+        if (isPasswordFixed()) return
         confirmPassword.value = password
     }
+
+    // While a backup is being saved, and once one is saved, the fields keep showing its password.
+    private fun isPasswordFixed() = isLoading.value || isBackupUploaded
 
     override fun onIsUserAgreedWithStatementsChange(isChecked: Boolean) {
         isUserAgreedWithStatements.value = isChecked
@@ -180,13 +192,17 @@ class CreateBackupPasswordViewModel @Inject constructor(
 
     override fun onApplyPasswordClick() {
         if (isLoading.value) return
+        // Read before anything suspends, so the backup is encrypted with the password the user
+        // confirmed. "Try again" and the Google callbacks get here without the enabled button.
+        val password = originPassword.value
+        if (!isBackupUploaded && (password.isEmpty() || password != confirmPassword.value)) return
         isLoading.value = true
 
         viewModelScope.launch {
             try {
                 val walletId = createdWalletId ?: payload?.walletId ?: createWallet()
                 if (!isBackupUploaded) {
-                    leftOutBackupTypes = interactor.saveGoogleBackupAccount(walletId, originPassword.value)
+                    leftOutBackupTypes = interactor.saveGoogleBackupAccount(walletId, password)
                     isBackupUploaded = true
                 }
                 // Only a backup that reached Drive marks the wallet as backed up.

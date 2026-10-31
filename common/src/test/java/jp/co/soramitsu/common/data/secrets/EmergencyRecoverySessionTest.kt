@@ -75,7 +75,7 @@ class EmergencyRecoverySessionTest {
     @Test
     fun wrongLockedAndUnavailablePinNeverAuthorizeSecretRead() = runBlocking {
         for (refusal in listOf(WalletEmergencyAuthentication.WrongPin,
-            WalletEmergencyAuthentication.LockedUntil(12345), WalletEmergencyAuthentication.Unavailable)) {
+            WalletEmergencyAuthentication.Locked(12345), WalletEmergencyAuthentication.Unavailable)) {
             val fixture = Fixture()
             fixture.authentication = refusal
             assertEquals(EmergencyRecoveryAccessResult.Refused(refusal), fixture.session.unlock(PIN))

@@ -6,7 +6,6 @@ Purpose
 
 Key Entry Points
 - Send: `presentation/send/setup/SendSetupFragment|ViewModel`, `presentation/send/confirm/ConfirmSendFragment|ViewModel`.
-- CBDC send (if enabled): `presentation/send/setupcbdc/*`.
 - Receive: `presentation/receive/ReceiveFragment|ViewModel`, `ReceiveScreen.kt`.
 - Manage assets: `presentation/manageassets/ManageAssetsFragment|ViewModel` and related Compose UI (e.g., `AssetsList.kt`).
 - History: `presentation/history/AddressHistoryFragment|ViewModel`.

@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import jp.co.soramitsu.walletconnect.impl.presentation.WalletConnectMethod
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
+import jp.co.soramitsu.walletconnect.impl.presentation.isFlaggedAsScam
 import jp.co.soramitsu.walletconnect.impl.presentation.walletConnectValueOrBack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,10 +44,14 @@ class SessionProposalViewModel @Inject constructor(
 ) : SessionProposalScreenInterface, BaseViewModel() {
 
 //    private val pairingTopic: String? = savedStateHandle[SessionProposalFragment.PAIRING_TOPIC_KEY]
+    private val proposalEvent = WCDelegate.sessionProposalEvent
     private val proposal: Wallet.Model.SessionProposal? = walletConnectValueOrBack(
-        value = WCDelegate.sessionProposalEvent?.first,
+        value = proposalEvent?.first,
         onUnavailable = walletConnectRouter::back
     )
+
+    // Reown Verify reports the dApp's origin as a scam: the proposal is rejected and can never be approved.
+    private val isScamProposal = proposalEvent?.second.isFlaggedAsScam
 
     private val selectedOptionalNetworkIds = MutableStateFlow(
         proposal?.optionalNamespaces.orEmpty().flatMap {
@@ -173,6 +178,10 @@ class SessionProposalViewModel @Inject constructor(
     init {
         launch {
             val activeProposal = proposal ?: return@launch
+            if (isScamProposal) {
+                rejectScamProposal(activeProposal)
+                return@launch
+            }
             walletConnectInteractor.checkChainsSupported(activeProposal).getOrNull()?.let { isSupported ->
                 if (isSupported.not()) {
                     showError(
@@ -223,6 +232,10 @@ class SessionProposalViewModel @Inject constructor(
             walletConnectRouter.back()
             return
         }
+        if (isScamProposal) {
+            rejectScamProposal(activeProposal)
+            return
+        }
         isApproving.value = true
 
         launch {
@@ -264,6 +277,18 @@ class SessionProposalViewModel @Inject constructor(
                 onBackClick = ::callSilentRejectSession
             )
         }
+    }
+
+    private fun rejectScamProposal(activeProposal: Wallet.Model.SessionProposal) {
+        walletConnectInteractor.rejectSession(proposal = activeProposal, onError = {})
+        val origin = proposalEvent?.second?.origin?.takeIf { it.isNotBlank() }
+        showError(
+            title = resourceManager.getString(R.string.common_error_general_title),
+            message = listOfNotNull(resourceManager.getString(R.string.scam_alert_title), origin).joinToString("\n"),
+            positiveButtonText = resourceManager.getString(R.string.common_close),
+            positiveClick = ::onClose,
+            onBackClick = ::onClose
+        )
     }
 
     override fun onRejectClicked() {

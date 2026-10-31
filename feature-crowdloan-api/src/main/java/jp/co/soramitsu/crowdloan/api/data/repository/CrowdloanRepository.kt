@@ -4,62 +4,15 @@ import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.Contribution
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.FundIndex
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.FundInfo
 import jp.co.soramitsu.crowdloan.api.data.network.blockhain.binding.ParaId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
-import kotlinx.coroutines.flow.Flow
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.Locale
 
+/** Read-only relay crowdloan state, kept for legacy crowdloan recovery. Contributing is no longer offered. */
 interface CrowdloanRepository {
 
     suspend fun isCrowdloansAvailable(chainId: ChainId): Boolean
 
     suspend fun allFundInfos(chainId: ChainId): Map<ParaId, FundInfo>
 
-    suspend fun getWinnerInfo(chainId: ChainId, funds: Map<ParaId, FundInfo>): Map<ParaId, Boolean>
-
-    suspend fun getParachainMetadata(chain: Chain): Map<ParaId, ParachainMetadata>
-
     suspend fun getContribution(chainId: ChainId, accountId: AccountId, paraId: ParaId, fundIndex: FundIndex): Contribution?
-
-    suspend fun blocksPerLeasePeriod(chainId: ChainId): BigInteger
-
-    suspend fun leaseOffset(chainId: ChainId): BigInteger
-
-    fun fundInfoFlow(chainId: ChainId, parachainId: ParaId): Flow<FundInfo>
-
-    suspend fun minContribution(chainId: ChainId): BigInteger
-
-    suspend fun checkRemark(apiUrl: String, apiKey: String, address: String): Boolean
-
-    suspend fun saveEthAddress(paraId: ParaId, address: String, ethAddress: String)
-
-    fun getEthAddress(paraId: ParaId, address: String): String?
 }
-
-class ParachainMetadata(
-    val iconLink: String,
-    val name: String,
-    val description: String,
-    val rewardRate: BigDecimal?,
-    val website: String,
-    val token: String,
-    val disabled: Boolean = false,
-    val flow: ParachainMetadataFlow?
-) {
-    val isMoonbeam: Boolean
-        get() = name.lowercase(Locale.getDefault()) == "moonbeam"
-    val isAstar: Boolean
-        get() = name.lowercase(Locale.getDefault()) == "astar"
-    val isAcala: Boolean
-        get() = name.lowercase(Locale.getDefault()) == "acala"
-    val isInterlay: Boolean
-        get() = flow?.name?.lowercase(Locale.getDefault()) == "interlay"
-}
-
-class ParachainMetadataFlow(
-    val name: String?,
-    val data: Map<String, Any?>?
-)

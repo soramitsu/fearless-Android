@@ -4,6 +4,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 data class BridgeEvent(
+    /** The bridge's SSE event id: transport bookkeeping, never a response id. */
     val eventId: Long,
     val message: Message,
     val connection: TonDappConnection,
@@ -11,6 +12,10 @@ data class BridgeEvent(
 
     val method: BridgeMethod
         get() = message.method
+
+    /** The dApp's request id, which every response to this request must carry. */
+    val requestId: Long
+        get() = message.id
 
     data class Message(
         val method: BridgeMethod,

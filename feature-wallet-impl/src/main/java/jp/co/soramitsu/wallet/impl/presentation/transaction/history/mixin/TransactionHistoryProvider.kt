@@ -10,6 +10,7 @@ import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToOperationModel
 import jp.co.soramitsu.wallet.impl.data.mappers.mapOperationToTransactionDetailsState
+import jp.co.soramitsu.wallet.impl.data.network.subquery.ExplorerOnlyHistoryException
 import jp.co.soramitsu.wallet.impl.data.network.subquery.HistoryNotSupportedException
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -53,6 +54,9 @@ class TransactionHistoryProvider(
 
     private var nextCursor: String? = null
 
+    // Set while the network's history service cannot serve this account; the explorer link stands in for the list.
+    @Volatile private var explorerOnlyMessage: String? = null
+
     private val currentData = ConcurrentSet<Operation>()
 
     private val _state =
@@ -90,6 +94,7 @@ class TransactionHistoryProvider(
     private suspend fun reloadHistory() {
         nextPageLoading = false
         nextCursor = null
+        explorerOnlyMessage = null
         currentData.clear()
         _state.emit(TransactionHistoryUi.State.EmptyProgress)
         val asset = assetPayloadStateFlow.value
@@ -110,7 +115,8 @@ class TransactionHistoryProvider(
             }
 
             if (filteredPageItems.isEmpty()) {
-                _state.emit(TransactionHistoryUi.State.Empty())
+                _state.emit(explorerOnlyMessage?.let { TransactionHistoryUi.State.Empty(it, explorerOnly = true) }
+                    ?: TransactionHistoryUi.State.Empty())
             } else {
                 currentData.addAll(page.items)
                 _state.emit(TransactionHistoryUi.State.Data(transformData(filteredPageItems, ecosystem)))
@@ -143,6 +149,13 @@ class TransactionHistoryProvider(
                     pageSize = PAGE_SIZE,
                     filters = historyFiltersProvider.currentFilters()
                 ).onFailure { throwable ->
+                    if (throwable is ExplorerOnlyHistoryException) {
+                        // Not an error to report: the explorer has this account's history.
+                        val message = resourceManager.getString(R.string.wallet_transaction_history_unsupported_message)
+                        explorerOnlyMessage = message
+                        if (currentData.isEmpty()) _state.emit(TransactionHistoryUi.State.Empty(message, explorerOnly = true))
+                        return@onFailure
+                    }
                     val message = when (throwable) {
                         is HistoryNotSupportedException -> resourceManager.getString(R.string.wallet_transaction_history_unsupported_message)
                         else -> resourceManager.getString(R.string.wallet_transaction_history_error_message)
@@ -156,6 +169,7 @@ class TransactionHistoryProvider(
                         _state.emit(TransactionHistoryUi.State.Empty(message))
                     }
                 }.onSuccess {
+                    explorerOnlyMessage = null
                     nextCursor = it.nextCursor
                 }
 
@@ -199,6 +213,11 @@ class TransactionHistoryProvider(
         )
             .onFailure {
                 nextPageLoading = false
+                if (it is ExplorerOnlyHistoryException) {
+                    // Later pages became unavailable: stop paging quietly; the explorer link remains.
+                    nextCursor = null
+                    return@onFailure
+                }
                 _sideEffects.emit(
                     TransactionHistoryUi.SideEffect.Error(
                         it.localizedMessage ?: it.message

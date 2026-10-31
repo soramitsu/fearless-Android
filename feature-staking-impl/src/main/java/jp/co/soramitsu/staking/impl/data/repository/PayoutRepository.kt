@@ -20,6 +20,7 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.storage
 import jp.co.soramitsu.fearless_utils.runtime.metadata.storageKey
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
+import jp.co.soramitsu.staking.api.domain.model.Commission
 import jp.co.soramitsu.staking.api.domain.model.LegacyExposure
 import jp.co.soramitsu.staking.api.domain.model.StakingLedger
 import jp.co.soramitsu.staking.api.domain.model.StakingState
@@ -142,10 +143,7 @@ class PayoutRepository(
 
         val nominatorStakeInEra = validatorEraStats.exposure.others.firstOrNull {
             it.who.toHexString() == nominatorIdHex
-        }?.value?.toDouble() ?: return null
-
-        val validatorTotalStake = validatorEraStats.exposure.total.toDouble()
-        val validatorCommission = validatorEraStats.prefs.commission.toDouble()
+        }?.value ?: return null
 
         val validatorTotalReward = calculateValidatorTotalReward(
             totalEraReward,
@@ -153,49 +151,48 @@ class PayoutRepository(
             validatorAccountId
         ) ?: return null
 
-        val nominatorReward =
-            validatorTotalReward * (1 - validatorCommission) * (nominatorStakeInEra / validatorTotalStake)
+        val validatorCommission = validatorEraStats.prefs.commission.toPerbillParts()
+        val validatorLeftoverReward = validatorTotalReward - perbillMultiply(validatorCommission, validatorTotalReward)
+        val nominatorShare = perbillFromRational(nominatorStakeInEra, validatorEraStats.exposure.total)
 
-        return nominatorReward.toBigDecimal().toBigInteger()
+        return perbillMultiply(nominatorShare, validatorLeftoverReward)
     }
 
     private fun calculateValidatorReward(
         rewardCalculationContext: RewardCalculationContext
     ): BigInteger? = with(rewardCalculationContext) {
-        val validatorTotalStake = validatorEraStats.exposure.total.toDouble()
-        val validatorOwnStake = validatorEraStats.exposure.own.toDouble()
-        val validatorCommission = validatorEraStats.prefs.commission.toDouble()
-
         val validatorTotalReward = calculateValidatorTotalReward(
             totalEraReward,
             eraValidatorPointsDistribution,
             validatorAccountId
         ) ?: return null
 
-        val validatorRewardFromCommission = validatorTotalReward * validatorCommission
-        val validatorRewardFromStake =
-            validatorTotalReward * (1 - validatorCommission) * (validatorOwnStake / validatorTotalStake)
+        val validatorCommission = validatorEraStats.prefs.commission.toPerbillParts()
+        val validatorRewardFromCommission = perbillMultiply(validatorCommission, validatorTotalReward)
+        val validatorLeftoverReward = validatorTotalReward - validatorRewardFromCommission
+        val validatorOwnShare = perbillFromRational(validatorEraStats.exposure.own, validatorEraStats.exposure.total)
+        val validatorRewardFromStake = perbillMultiply(validatorOwnShare, validatorLeftoverReward)
 
-        val validatorOwnReward = validatorRewardFromStake + validatorRewardFromCommission
-
-        validatorOwnReward.toBigDecimal().toBigInteger()
+        validatorRewardFromStake + validatorRewardFromCommission
     }
 
     private fun calculateValidatorTotalReward(
         totalEraReward: BigInteger,
         eraValidatorPointsDistribution: EraRewardPoints,
         validatorAccountId: AccountId
-    ): Double? {
+    ): BigInteger? {
         val validatorIdHex = validatorAccountId.toHexString()
 
-        val totalMinted = totalEraReward.toDouble()
-
-        val totalPoints = eraValidatorPointsDistribution.totalPoints.toDouble()
         val validatorPoints = eraValidatorPointsDistribution.individual.firstOrNull {
             it.accountId.toHexString() == validatorIdHex
-        }?.rewardPoints?.toDouble() ?: return null
+        }?.rewardPoints ?: return null
 
-        return totalMinted * validatorPoints / totalPoints
+        // The runtime pays nothing for an era in which the validator earned no points.
+        if (validatorPoints.signum() == 0) return BigInteger.ZERO
+
+        val validatorShare = perbillFromRational(validatorPoints, eraValidatorPointsDistribution.totalPoints)
+
+        return perbillMultiply(validatorShare, totalEraReward)
     }
 
     private suspend fun getValidatorHistoricalStats(
@@ -331,3 +328,27 @@ class PayoutRepository(
             }
     }
 }
+
+private const val PERBILL_DECIMALS = 9
+private val PERBILL_ACCURACY: BigInteger = BigInteger.TEN.pow(PERBILL_DECIMALS)
+
+/**
+ * `Perbill::from_rational`, which the staking pallet uses for every reward share: parts per billion,
+ * rounded down. Like the runtime (`unwrap_or(Perbill::one())`), a zero denominator or a share above one is 100%.
+ */
+private fun perbillFromRational(numerator: BigInteger, denominator: BigInteger): BigInteger =
+    if (denominator.signum() <= 0 || numerator > denominator) {
+        PERBILL_ACCURACY
+    } else {
+        numerator * PERBILL_ACCURACY / denominator
+    }
+
+/** `Perbill * Balance`: [amount] times [parts] per billion, to the nearest plank with an exact half rounded down. */
+private fun perbillMultiply(parts: BigInteger, amount: BigInteger): BigInteger {
+    val (whole, remainder) = (amount * parts).divideAndRemainder(PERBILL_ACCURACY)
+    return if (remainder.shiftLeft(1) > PERBILL_ACCURACY) whole + BigInteger.ONE else whole
+}
+
+/** The on-chain commission is a Perbill, which cannot exceed 100% (`Perbill::from_parts` saturates). */
+private fun Commission.toPerbillParts(): BigInteger =
+    movePointRight(PERBILL_DECIMALS).toBigInteger().coerceIn(BigInteger.ZERO, PERBILL_ACCURACY)

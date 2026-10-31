@@ -24,8 +24,8 @@ procedure.
   absent from Android artifacts.
 - Confirm `versioning/version.properties` contains an unused Play version code
   greater than every active, draft, and historical testing-track artifact.
-  Build 231 is reserved because production is already 229 and internal
-  builds used 230.
+  Production is 229, internal builds used 230 and Open testing holds 231, so
+  4.3.0 uses 232.
 - Run `bash scripts/test-android-release-signed-tag-policy.sh`,
   `bash scripts/test-android-release-governance.sh`,
   `bash scripts/test-android-play-release-guards.sh`,
@@ -244,6 +244,14 @@ procedure.
   farming and Bitcoin/Solana sends stay on for every upgrader. Never publish a
   veto preemptively. On the release build, smoke-test a small funded SORA swap,
   adding and removing liquidity, and a Demeter deposit and withdrawal.
+- Solana uses public JSON-RPC nodes unless the optional repository secret
+  `FL_ANDROID_SOLANA_RPC_URL` names an `https` mainnet provider for the build
+  (asked first; the key goes in the URL path or query, and a malformed value
+  fails the build). Without one, token balances come from
+  api.mainnet-beta.solana.com or, when it is busy, public.rpc.solanavibestation.com
+  (publicnode refuses token-account reads).
+  Run a small funded SOL and SPL canary on the release build; see
+  `docs/solana-send.md`.
 - From the workspace root, run
   `bash scripts/audit-passkey-backup-prerequisites.sh` and confirm
   `config/passkey-backup-production.json` still matches Android passkey code,
@@ -583,7 +591,7 @@ manual workflow run.
   one-line OpenSSH Ed25519 public key is base64 encoded in the
   `ANDROID_RELEASE_TAG_SIGNER_PUBLIC_KEY_B64` repository variable, the exact
   master push CI is green, and the workflow-reported AAB signer SHA-256 matches
-  `40:39:10:92:F5:B9:7E:78:2C:65:28:CC:57:1A:DF:5D:BE:DF:E2:D0:50:23:BA:BC:7C:4E:33:9E:58:4A:4A:9A`.
+  `AD:6C:1D:07:BE:5D:FA:8C:53:9E:8C:9B:8B:D4:3D:C1:C6:CF:79:A8:39:82:8B:10:B6:F9:53:AD:57:C1:BD:E8`.
 - Confirm `android-release-build` and `android-release-signing` both deny admin
   bypass, prevent self-review, require protected branches, and use the exact
   sorted User IDs in `ANDROID_RELEASE_BUILD_REVIEWER_IDS` and

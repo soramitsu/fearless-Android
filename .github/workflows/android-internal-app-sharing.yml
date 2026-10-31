@@ -817,7 +817,7 @@ jobs:
           )"
           [[ "$fingerprint" =~ ^[0-9A-F]{64}$ ]]
           [[ "$fingerprint" != \
-            "40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A" ]]
+            "AD6C1D07BE5DFA8C539E8C9B8BD43DC1C6CF79A839828B10B6F953AD57C1BDE8" ]]
           rm -f -- "$signer"
           signer=""
           if find "$signing_dir" -maxdepth 1 \
@@ -984,7 +984,7 @@ jobs:
           [[ "$aab_sha" == "$(sha256sum "$IAS_SIGNED_CANDIDATE" | awk '{print $1}')" ]]
           handoff_dir="$RUNNER_TEMP/fearless-ias-qualified-handoff"
           mkdir -m 0700 "$handoff_dir"
-          verified_aab="$handoff_dir/fearless-wallet-4.2.0-ias-231.aab"
+          verified_aab="$handoff_dir/fearless-wallet-4.3.0-ias-232.aab"
           sudo install -o "$(id -u)" -g "$(id -g)" -m 0400 \
             "$isolated" "$verified_aab"
           sudo rm -rf -- "$IAS_POSTSIGN_BOUNDARY"
@@ -1205,7 +1205,7 @@ jobs:
           import zipfile
 
           archive_path, output_dir, expected_aab, expected_evidence = sys.argv[1:]
-          expected_names = ["evidence.txt", "fearless-wallet-4.2.0-ias-231.aab"]
+          expected_names = ["evidence.txt", "fearless-wallet-4.3.0-ias-232.aab"]
           with zipfile.ZipFile(archive_path) as archive:
               entries = archive.infolist()
               names = sorted(entry.filename for entry in entries)
@@ -1235,7 +1235,7 @@ jobs:
               /usr/bin/timeout --signal=KILL 30m \
                 /bin/bash "$1/scripts/verify-android-internal-app-sharing-aab.sh" \
                   --signed-from "$2/input/verified-unsigned.aab" \
-                  "$2/output/fearless-wallet-4.2.0-ias-231.aab" "$5"
+                  "$2/output/fearless-wallet-4.3.0-ias-232.aab" "$5"
             ' audit-wrapper "$GITHUB_WORKSPACE" "$boundary" \
             "$IAS_HANDOFF_AAB_SHA256" \
             "$(sha256sum "$IAS_HANDOFF_DIR/evidence.txt" | awk '{print $1}')" \

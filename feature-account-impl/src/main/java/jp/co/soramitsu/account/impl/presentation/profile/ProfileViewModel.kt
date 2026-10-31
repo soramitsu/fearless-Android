@@ -175,10 +175,6 @@ class ProfileViewModel @Inject constructor(
         router.openChangePinCode()
     }
 
-    fun beaconQrScanned(qrContent: String) {
-        router.openBeacon(qrContent)
-    }
-
     override fun currencyClicked() {
         viewModelScope.launch {
             val currencies = getAvailableFiatCurrencies()
@@ -194,10 +190,6 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             selectedFiat.set(item.id)
         }
-    }
-
-    fun onExperimentalClicked() {
-        router.openExperimentalFeatures()
     }
 
     override fun polkaswapDisclaimerClicked() {

@@ -30,6 +30,7 @@ import jp.co.soramitsu.common.data.secrets.EmergencyRecoveryPage
 import jp.co.soramitsu.common.data.secrets.EmergencyRecoveryPageChangedException
 import jp.co.soramitsu.common.data.secrets.WalletEmergencyRecoveryReader
 import jp.co.soramitsu.common.data.secrets.WalletEmergencyRecoverySession
+import jp.co.soramitsu.common.data.storage.pin.PinAttemptLimiter
 import jp.co.soramitsu.common.data.storage.pin.WalletEmergencyAuthentication
 import jp.co.soramitsu.common.data.storage.pin.WalletEmergencyAuthenticator
 import jp.co.soramitsu.common.resources.ContextManager
@@ -163,11 +164,8 @@ class WalletEmergencyExportActivity : AppCompatActivity() {
             WalletEmergencyAuthentication.WrongPin ->
                 showPinStep(getString(R.string.wallet_emergency_wrong_pin))
 
-            is WalletEmergencyAuthentication.LockedUntil -> {
-                val remainingMillis = result.epochMillis - System.currentTimeMillis()
-                val seconds = ((remainingMillis + MILLIS_IN_SECOND - 1) / MILLIS_IN_SECOND).coerceAtLeast(1)
-                showPinStep(getString(R.string.wallet_emergency_locked, seconds.toInt()))
-            }
+            is WalletEmergencyAuthentication.Locked ->
+                showPinStep(getString(R.string.wallet_emergency_locked, PinAttemptLimiter.secondsLeft(result.remainingMillis)))
 
             WalletEmergencyAuthentication.Unavailable -> {
                 binding.emergencyPinGroup.isVisible = false
@@ -322,7 +320,6 @@ class WalletEmergencyExportActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val MILLIS_IN_SECOND = 1_000L
         private const val SECTION_MARGIN_DP = 24
         private const val ITEM_MARGIN_DP = 12
         private const val FIELD_MARGIN_DP = 8

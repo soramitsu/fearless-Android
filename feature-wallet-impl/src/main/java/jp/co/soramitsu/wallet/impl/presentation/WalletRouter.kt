@@ -1,7 +1,5 @@
 package jp.co.soramitsu.wallet.impl.presentation
 
-import android.graphics.drawable.Drawable
-import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import java.math.BigDecimal
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.model.WalletEcosystem
@@ -15,13 +13,10 @@ import jp.co.soramitsu.tonconnect.api.model.AppEntity
 import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.api.presentation.AssetSelectPurpose
-import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
-import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
 import jp.co.soramitsu.wallet.impl.presentation.balance.detail.frozen.FrozenAssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
-import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationParcelizeModel
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
@@ -50,7 +45,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null, currencyId: String? = null, amount: BigDecimal? = null)
     fun openLockedAmountSend(assetPayload: AssetPayload?, initialSendToAddress: String? = null, currencyId: String? = null, amount: BigDecimal?)
-    fun openCBDCSend(cbdcQrInfo: QrContentCBDC)
 
     fun openCrossChainSend(assetPayload: AssetPayload?)
 
@@ -122,12 +116,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openReceive(assetPayload: AssetPayload)
 
-    fun openSignBeaconTransaction(payload: SubstrateSignerPayload, dAppMetadata: DAppMetadataModel)
-
-    val beaconSignStatus: Flow<SignStatus>
-
-    fun setBeaconSignStatus(status: SignStatus)
-
     fun openNodes(chainId: ChainId)
     fun openClaimRewards(chainId: ChainId)
 
@@ -141,10 +129,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
     fun openExportJsonPassword(metaId: Long, chainId: ChainId): DelayedNavigation
 
     fun openOnboardingNavGraph(chainId: ChainId, metaId: Long, isImport: Boolean)
-
-    fun openSuccessFragment(avatar: Drawable)
-
-    fun openTransactionRawData(rawData: String)
 
     fun openSelectWallet()
 

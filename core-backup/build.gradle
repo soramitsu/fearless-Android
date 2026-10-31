@@ -39,6 +39,7 @@ android {
 // Android, and guava-jdk5 duplicates Guava.
 def withoutUnusedGoogleHttpTransports = {
     exclude group: 'org.apache.httpcomponents'
+    exclude group: 'com.google.http-client', module: 'google-http-client-apache-v2'
     exclude group: 'com.google.guava', module: 'guava-jdk5'
 }
 
@@ -53,8 +54,10 @@ dependencies {
     implementation libs.play.services.auth
     implementation libs.play.integrity
     implementation libs.google.api.services.drive, withoutUnusedGoogleHttpTransports
+    implementation libs.google.api.client, withoutUnusedGoogleHttpTransports
     implementation libs.google.api.client.android, withoutUnusedGoogleHttpTransports
     implementation libs.google.http.client.gson, withoutUnusedGoogleHttpTransports
+    implementation libs.google.oauth.client, withoutUnusedGoogleHttpTransports
     api project(':core-api')
 
     testImplementation libs.junit

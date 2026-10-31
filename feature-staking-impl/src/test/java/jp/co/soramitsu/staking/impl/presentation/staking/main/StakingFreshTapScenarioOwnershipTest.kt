@@ -64,6 +64,7 @@ class StakingFreshTapScenarioOwnershipTest {
         on { selectionRevision } doReturn revision
         // Root presentation initialization is intentionally unrelated to this action seam.
         on { selectionItem } doReturn emptyFlow()
+        on { settledSelection } doReturn emptyFlow()
         on { currentAssetFlow() } doReturn assets
         on { assetWithChain } doReturn chainMetadata
         onBlocking { chainId() } doAnswer { observedChain }

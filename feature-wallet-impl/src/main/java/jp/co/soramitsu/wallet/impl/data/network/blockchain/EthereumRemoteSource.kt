@@ -1,9 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain
 
 import java.math.BigInteger
-import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.account.api.domain.model.address
-import jp.co.soramitsu.common.data.network.runtime.binding.SimpleBalanceData
 import jp.co.soramitsu.common.utils.failure
 import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset
@@ -11,12 +8,12 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
+import jp.co.soramitsu.fearless_utils.extensions.requireHexPrefix
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.wallet.impl.data.network.model.response.NewHeadsNotificationExtended
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -48,10 +45,6 @@ import org.web3j.protocol.websocket.WebSocketService
 import org.web3j.utils.Numeric
 
 class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectionPool) {
-    companion object {
-        private const val ETHEREUM_BALANCES_UPDATE_DELAY = 30_000L
-    }
-
     suspend fun getTotalBalance(
         chainAsset: Asset,
         chain: Chain,
@@ -84,7 +77,8 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
                 builder.build(transfer).onFailure { return@withContext Result.failure(it) }
                     .requireValue()
 
-            val signed = TransactionEncoder.signMessage(rawTransaction, cred)
+            val evmChainId = transfer.chainAsset.chainId.requireHexPrefix().drop(2).toLong()
+            val signed = signEvmTransfer(rawTransaction, evmChainId, cred)
 
             val transactionHash = kotlin.runCatching {
                 web3.ethSendRawTransaction(signed.toHexString(true)).send().resultOrThrow()
@@ -93,44 +87,6 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
 
             return@withContext Result.success(transactionHash)
         }
-
-
-    private val ethereumBalancesSubscriptionJob: MutableMap<ChainId, Job?> = mutableMapOf()
-
-    suspend fun subscribeEthereumBalance(
-        chain: Chain,
-        account: MetaAccount
-    ): Result<Flow<Result<Pair<Asset, SimpleBalanceData>>>> {
-        val connection = ethereumConnectionPool.await(chain.id)
-        val web3 = connection?.web3j
-            ?: return Result.failure("There is no connection created for chain ${chain.name}, ${chain.id}")
-
-        ethereumBalancesSubscriptionJob[chain.id]?.cancel()
-        ethereumBalancesSubscriptionJob[chain.id] = Job()
-        val flow = withContext(Dispatchers.Default + ethereumBalancesSubscriptionJob[chain.id]!!) {
-            flow {
-
-                while (ethereumBalancesSubscriptionJob[chain.id]?.isActive == true) {
-                    val address = account.address(chain)
-                    if (address == null) {
-                        emit(Result.failure("Can't find address for chain ${chain.name} : ${chain.id}, metaAccount: ${account.name}"))
-                        continue
-                    }
-
-                    chain.assets.forEach { asset ->
-                        val balance =
-                            kotlin.runCatching { web3.fetchEthBalance(asset, address) }.getOrElse {
-                                emit(Result.failure("Can't fetchEthBalance for ${asset.name}, ${chain.name}, address: $address"))
-                                return@forEach
-                            }
-                        emit(Result.success(asset to SimpleBalanceData(balance)))
-                    }
-                    delay(ETHEREUM_BALANCES_UPDATE_DELAY)
-                }
-            }
-        }
-        return Result.success(flow)
-    }
 
     suspend fun fetchEthBalance(
         asset: Asset,
@@ -231,15 +187,16 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
 
         return connection.subscribeBaseFeePerGas()
             .map { baseFeePerGas ->
-                val call = transactionBuilder.buildFeeEstimationCall(transfer)
-
-                val gasLimit = kotlin.runCatching {
-                    val response = web3j.ethEstimateGas(call).send()
-                    if (response.hasError()) {
-                        throw GasServiceException("Failed to ethEstimateGas on chain ${chain.name}: ${response.error}")
-                    }
-                    response.amountUsed
-                }.getOrNull()
+                // The gas of the transfer as reviewed. While the entered amount is above the balance
+                // the node refuses that estimate; show the amount-free one then, as before: the amount
+                // check reports the shortfall, and the send is estimated again with its amount. A request
+                // that fails is not a refusal: the fee fails and is retried instead of showing less.
+                val gasLimit = try {
+                    web3j.estimateGasOrRefusal(transactionBuilder.buildFeeEstimationCall(transfer))
+                } catch (failure: Exception) {
+                    throw GasServiceException("Failed to ethEstimateGas on chain ${chain.name}: ${failure.message}")
+                }
+                    ?: web3j.estimateGasOrNull(transactionBuilder.buildAmountFreeFeeEstimationCall(transfer))
                     ?: throw GasServiceException("Failed to ethEstimateGas on chain ${chain.name}. Response is null")
 
                 val priorityFee = withContext(Dispatchers.IO) {
@@ -264,6 +221,17 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
                 }
             }
             .flowOn(Dispatchers.IO)
+    }
+
+    /** The gas the node estimates for [call], or null when it refuses or cannot be reached. */
+    private fun Ethereum.estimateGasOrNull(call: Transaction?): BigInteger? = runCatching {
+        estimateGasOrRefusal(call)
+    }.getOrNull()
+
+    /** The gas the node estimates for [call], or null when the node answers with an error. A failed request throws. */
+    private fun Ethereum.estimateGasOrRefusal(call: Transaction?): BigInteger? {
+        val response = ethEstimateGas(requireNotNull(call) { "There is no fee estimation call for this transfer" }).send()
+        return if (response.hasError()) null else response.amountUsed
     }
 
     suspend fun sendRawTransaction(
@@ -359,6 +327,14 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         return@withContext Result.success(signed.toHexString(true))
     }
 }
+
+/**
+ * Signs a wallet transfer so that it is valid only on [chainId]. EIP-1559 transactions carry the
+ * id in their payload; legacy ones, built when a node does not report EIP-1559 fees, get EIP-155
+ * replay protection instead of a chain-less signature another EVM network would also accept.
+ */
+internal fun signEvmTransfer(rawTransaction: RawTransaction, chainId: Long, credentials: Credentials): ByteArray =
+    TransactionEncoder.signMessage(rawTransaction, chainId, credentials)
 
 class GasServiceException(message: String) : RuntimeException(message)
 

@@ -38,7 +38,8 @@ import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
 import jp.co.soramitsu.runtime.ext.isUniversalWalletIroha
 import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
@@ -78,13 +79,26 @@ class TransferServiceProvider(
     private val sendPausePolicy: SendPausePolicy = SendPausePolicy.Unrestricted,
     private val quoteStore: NativeSendQuoteStore = NativeSendQuoteStore(),
     private val sendJournal: jp.co.soramitsu.common.data.network.send.WalletSendJournal? = null,
-    private val currentChain: (suspend (String) -> Chain)? = null
+    private val currentChain: (suspend (String) -> Chain)? = null,
+    /**
+     * Told before a retained payment is released because it can never land, so its history row can close;
+     * `verified` is false when the payment was too old for its expiry to show that nothing left the wallet.
+     */
+    private val onPaymentReleased: suspend (jp.co.soramitsu.common.data.network.send.PendingWalletSend, Boolean) -> Unit = { _, _ -> }
 ) {
-    fun provide(chain: Chain): TransferService {
+    /**
+     * [additional] calls and [batchAll] are part of the reviewed extrinsic. Only a Substrate send can carry them;
+     * every other service refuses them rather than signing a transfer without them.
+     */
+    fun provide(
+        chain: Chain,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)? = null,
+        batchAll: Boolean = false
+    ): TransferService {
         if (sendPausePolicy.isPaused(chain)) {
             return PausedTransferService { sendPausePolicy.pausedError(chain) }
         }
-        return if (chain.isUniversalWalletBitcoin()) {
+        val service = if (chain.isUniversalWalletBitcoin()) {
             BitcoinTransferService(
                 chain = chain,
                 accountRepository = accountRepository,
@@ -99,7 +113,7 @@ class TransferServiceProvider(
                 accountRepository = accountRepository,
                 rpcClient = solanaRpcClient,
                 quotes = quoteStore,
-                executor = NativeSendExecutor(requireNotNull(sendJournal)),
+                executor = NativeSendExecutor(requireNotNull(sendJournal), onPaymentReleased),
                 pausePolicy = sendPausePolicy,
                 currentChain = { currentChain?.invoke(chain.id) ?: chain }
             )
@@ -113,7 +127,9 @@ class TransferServiceProvider(
         } else when (chain.ecosystem) {
             Ecosystem.EthereumBased, Ecosystem.Substrate -> SubstrateTransferService(
                 chain,
-                substrateSource
+                substrateSource,
+                additional,
+                batchAll
             )
             Ecosystem.Ethereum -> EthereumTransferService(
                 chain,
@@ -123,6 +139,10 @@ class TransferServiceProvider(
             Ecosystem.Ton -> TonTransferService(chain, keyPairRepository, accountRepository, tonRemoteSource, assetDao)
             else -> throw IllegalStateException("Unsupported chain for transfers: ${chain.name}, ecosystem: ${chain.ecosystem.name}")
         }
+        require(service is SubstrateTransferService || (additional == null && !batchAll)) {
+            "Additional calls and batching need a Substrate transfer, not ${chain.name}"
+        }
+        return service
     }
 }
 
@@ -373,10 +393,13 @@ class IrohaTransferService(
 
 class SubstrateTransferService(
     private val chain: Chain,
-    private val substrateSource: SubstrateRemoteSource
+    private val substrateSource: SubstrateRemoteSource,
+    /** Reviewed calls signed in the same extrinsic as the transfer, in fee and send alike. */
+    private val additional: (suspend ExtrinsicBuilder.() -> Unit)? = null,
+    private val batchAll: Boolean = false
 ) : TransferService {
     override suspend fun getTransferFee(transfer: Transfer): BigDecimal {
-        val transferFee = substrateSource.getTransferFee(chain, transfer, null, false)
+        val transferFee = substrateSource.getTransferFee(chain, transfer, additional, batchAll)
         return chain.utilityAsset?.amountFromPlanks(transferFee)
             ?: throw IllegalStateException("cannot calculate substrate fee ${chain.name}, fee: $transferFee")
     }
@@ -388,13 +411,14 @@ class SubstrateTransferService(
     override suspend fun transfer(transfer: Transfer): String {
         require(transfer.additionalParams is SubstrateTransferParams) { "Wrong additional params type for substrate transfer" }
 
-        val accountId = transfer.sender.toAccountId()
+        // EthereumBased chains such as Moonbeam use 20-byte hex accounts, which an SS58 decode rejects.
+        val accountId = chain.accountIdOf(transfer.sender)
         return substrateSource.performTransfer(
             accountId,
             chain,
             transfer,
-            null,
-            false
+            additional,
+            batchAll
         )
     }
 }

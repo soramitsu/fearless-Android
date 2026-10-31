@@ -25,6 +25,7 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.feature_account_impl.R
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -274,5 +275,78 @@ class CreateBackupPasswordViewModelTest {
 
         vm.onGoogleSignInFailed(GoogleSignInResult.Network)
         assertEquals("text-${GoogleBackupIssue.NO_CONNECTION.titleRes}", vm.dialog().title)
+    }
+
+    @Test
+    fun `typing while the new wallet is created cannot change the backup password`() = runTest(dispatcher) {
+        val created = CompletableDeferred<Result<Long>>()
+        coEvery { interactor.createAccount(newWallet) } coAnswers { created.await() }
+        val vm = viewModel()
+
+        assertTrue(vm.state.value.originPasswordViewState.isActive)
+        vm.onApplyPasswordClick()
+        runCurrent()
+        // Both fields are locked while the backup is saved, so nothing typed can show another password.
+        assertFalse(vm.state.value.originPasswordViewState.isActive)
+        assertFalse(vm.state.value.confirmPasswordViewState.isActive)
+        // A stray keystroke in the masked field while the wallet is being created.
+        vm.onOriginPasswordChange("backup password!")
+        created.complete(Result.success(42L))
+        runCurrent()
+
+        coVerify(exactly = 1) { interactor.saveGoogleBackupAccount(42L, "backup password") }
+        coVerify(exactly = 0) { interactor.saveGoogleBackupAccount(any(), "backup password!") }
+        coVerify(exactly = 1) { interactor.updateWalletBackedUp(42L) }
+        assertEquals("backup password", vm.state.value.originPasswordViewState.text)
+        // Once the backup is saved, the fields keep showing its password.
+        assertFalse(vm.state.value.originPasswordViewState.isActive)
+        assertFalse(vm.state.value.confirmPasswordViewState.isActive)
+    }
+
+    @Test
+    fun `a google callback cannot save a password the user has not confirmed`() = runTest(dispatcher) {
+        coEvery { interactor.saveGoogleBackupAccount(7L, any()) } throws AuthConsentException(mockk()) andThen emptySet()
+        val vm = viewModel(payload = SaveBackupPayload(walletId = 7L, addAccountPayload = null))
+        vm.onApplyPasswordClick()
+        runCurrent()
+
+        vm.onOriginPasswordChange("another password")
+        vm.onGoogleAuthorized()
+        runCurrent()
+
+        coVerify(exactly = 0) { interactor.saveGoogleBackupAccount(any(), "another password") }
+        coVerify(exactly = 0) { interactor.updateWalletBackedUp(any()) }
+        verify(exactly = 0) { router.backWithResult(*anyVararg()) }
+
+        vm.onOriginPasswordChange("backup password")
+        vm.onApplyPasswordClick()
+        runCurrent()
+
+        coVerify(exactly = 2) { interactor.saveGoogleBackupAccount(7L, "backup password") }
+        coVerify(exactly = 1) { interactor.updateWalletBackedUp(7L) }
+    }
+
+    @Test
+    fun `a saved backup keeps showing the password it was saved with`() = runTest(dispatcher) {
+        var marks = 0
+        coEvery { interactor.updateWalletBackedUp(7L) } coAnswers {
+            if (marks++ == 0) throw IllegalStateException("Backup status unavailable")
+        }
+        val vm = viewModel(payload = SaveBackupPayload(walletId = 7L, addAccountPayload = null))
+        vm.onApplyPasswordClick()
+        runCurrent()
+
+        vm.onOriginPasswordChange("new password")
+        vm.onConfirmPasswordChange("new password")
+        runCurrent()
+
+        // Drive holds the first password, so the screen must not suggest the new one protects it.
+        assertEquals("backup password", vm.state.value.originPasswordViewState.text)
+        vm.dialog().positiveClick()
+        runCurrent()
+
+        coVerify(exactly = 1) { interactor.saveGoogleBackupAccount(7L, "backup password") }
+        coVerify(exactly = 0) { interactor.saveGoogleBackupAccount(any(), "new password") }
+        verify(exactly = 1) { router.backWithResult(CreateBackupPasswordDialog.RESULT_BACKUP_KEY to Activity.RESULT_OK) }
     }
 }

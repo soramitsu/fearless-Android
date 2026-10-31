@@ -78,7 +78,7 @@ if (unsignedReleaseBuild && !injectedSigningProperties.isEmpty()) {
 }
 
 def expectedUploadCertificateSha256 =
-    "40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A"
+    "AD6C1D07BE5DFA8C539E8C9B8BD43DC1C6CF79A839828B10B6F953AD57C1BDE8"
 def expectedPublicFirebaseSha256 =
     "3085af682c8c8a166142f7ef867e0c3fa06a6f87436f3a15497f8ae7dac93d2f"
 def requestedReleaseCommit = System.getenv("RELEASE_COMMIT")?.trim()
@@ -1067,8 +1067,6 @@ dependencies {
 
     // JNA is added as direct dependency to prevent class duplication from 3rd party libraries
     implementation libs.jna
-    // Exclude JNA from beacon SDK to prevent class duplication - using direct JNA dependency above
-    implementation libs.beacon.android.sdk, withoutJna
 
     kspAndroidTest libs.hilt.compiler
     implementation libs.storiesProgressView

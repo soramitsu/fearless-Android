@@ -1107,6 +1107,16 @@ root_component = add_component(
 wallet_root_component = add_component(
     "activity", wallet_root_activity, **{attribute_exported: "false"}
 )
+add_component(
+    "activity",
+    "jp.co.soramitsu.app.root.presentation.emergency.WalletEmergencyExportActivity",
+    **{attribute_exported: "false"},
+)
+add_component(
+    "activity",
+    "jp.co.soramitsu.app.root.presentation.keyloss.WalletKeyLossRecoveryActivity",
+    **{attribute_exported: "false"},
+)
 scanner = add_component(
     "activity",
     "jp.co.soramitsu.common.scan.ScannerActivity",
@@ -1130,6 +1140,11 @@ add_component(
 add_component(
     "activity",
     "com.google.android.gms.common.api.GoogleApiActivity",
+    **{attribute_exported: "false"},
+)
+add_component(
+    "activity",
+    "com.google.android.play.core.common.PlayCoreDialogWrapperActivity",
     **{attribute_exported: "false"},
 )
 add_component(
@@ -1228,14 +1243,6 @@ file_provider = add_component(
         attribute_authorities: f"{package_name}.provider",
         attribute_exported: "false",
         attribute_grant_uri_permissions: "true",
-    },
-)
-beacon_provider = add_component(
-    "provider",
-    "it.airgap.beaconsdk.core.provider.BeaconInitProvider",
-    **{
-        attribute_authorities: f"{package_name}.beaconinitprovider",
-        attribute_exported: "false",
     },
 )
 firebase_provider = add_component(
@@ -1380,7 +1387,7 @@ elif mode == "receiver-intent-mutated":
         attribute_name, "com.google.android.c2dm.intent.ATTACK"
     )
 elif mode == "missing-provider":
-    remove_component(beacon_provider)
+    remove_component(startup_provider)
 elif mode == "unexpected-provider":
     add_component(
         "provider",
@@ -1395,7 +1402,7 @@ elif mode == "file-provider-exported-true":
 elif mode == "authority-mutated":
     file_provider.set(attribute_authorities, f"{package_name}.mutated")
 elif mode == "authority-duplicated":
-    beacon_provider.set(
+    startup_provider.set(
         attribute_authorities, firebase_provider.get(attribute_authorities)
     )
 elif mode == "authority-repeated":

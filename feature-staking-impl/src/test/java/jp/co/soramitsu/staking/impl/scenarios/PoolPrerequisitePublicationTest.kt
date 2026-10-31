@@ -155,6 +155,7 @@ class PoolPrerequisitePublicationTest {
             val revision = StakingSelectionRevision().apply { if (selectionReady) changed(selectedItem) }
             val shared = mock<StakingSharedState> {
                 on { selectionRevision } doReturn revision; on { selectionItem } doReturn selections
+                on { settledSelection } doReturn selections
                 on { currentAssetFlow() } doReturn assets
                 on { assetWithChain } doReturn flowOf(SingleAssetSharedState.AssetWithChain(a, config))
             }

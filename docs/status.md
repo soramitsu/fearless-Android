@@ -2,6 +2,178 @@
 
 # Status Summary
 
+## Production release 4.3.0 (232) — 29 October 2026
+
+Master plus #1265–#1269 becomes the 4.3.0 production candidate (versionCode 232,
+database 84). Networks and features that no longer work are removed:
+
+- 40 enabled production networks that stopped producing blocks or have no
+  reachable node, and every disabled entry; production keeps 50 of 116. Wallet
+  rows for a removed network stay on the device.
+- Relay staking, nomination pools and crowdloans on Polkadot, Kusama and
+  Westend: their relays hold no staking state since the Asset Hub migration.
+- The unreachable crowdloan contribution flow and its partner integrations;
+  legacy crowdloan recovery remains.
+- History indexers, staking indexers and nodes that cannot answer.
+
+The release review also fixed: sends bound to the reviewed account and never
+reported failed after the network accepted them; EIP-1559 tips and amount-aware
+fee estimates; Google backups with the confirmed password and reviewed paths; an
+added account no longer marking the wallet backed up; dApp-signing pause
+rechecks; the stuck staking screen; exact payouts; and Guava 33.7.2.
+
+Release signing pins the replacement upload certificate
+`AD:6C:1D:07:…:57:C1:BD:E8`. Evidence and the release record:
+`docs/releases/4.3.0.md`. Not included: Asset Hub staking, so Polkadot and
+Kusama staking is unavailable in this version.
+
+## JSON export of derived ed25519 and ECDSA accounts — 31 October 2026
+
+A JSON export of a Substrate ed25519 or ECDSA account created with a derivation
+path held the wallet's root seed beside the derived account's public key.
+Importing the file opened the root account instead, and the root seed opens
+every account derived from that phrase. The export now writes the secret that
+reopens the exported account and refuses to export when no stored secret does.
+Accounts without a derivation path export exactly as before, and files exported
+by earlier versions import as they did.
+
+## Taira balance paging and build verification — 29 October 2026
+
+Torii account, account-asset and definition lists now send `limit` and opaque
+`cursor` tokens. The balance loader follows `next_cursor`, including empty
+continuation pages, and rejects cursor cycles, missing items and scans exceeding
+1,000 pages before publishing any balance updates. Saved balances remain intact
+when any page fails. Unsupported offset/count-mode and asset/scope query options
+were removed from the client contract; history continues using Torii REST.
+
+JUnit BOM 5.11.0-M2 and 5.11.2 Gradle module metadata now have strict SHA-256 pins.
+Their bytes match Maven Central's published hashes and its second endpoint;
+strict local dependency verification accepts both. No verification rule was relaxed.
+
+Local cursor and malformed-response regressions and the existing Iroha/Bitcoin
+wallet tests are the validation gates for this follow-up. Live read-only Taira
+replay accepted the new list requests and rejected the old query parameters.
+Nexus remains covered by unit tests; no device or release artifact is qualified here.
+The stale unbond confirmation regression also awaits its background fee projection
+before asserting the rejected state; its no-sign/no-submit assertions are unchanged.
+
+## Build 231 security port — 29 October 2026
+
+The security and fund-safety fixes of the 4.2.0 build 231 Play testing line that
+master did not have are ported; the WalletConnect part came with the entry below.
+
+- Signing: the wallet's own EVM transfers are always signed with the chain id
+  (EIP-155 also for legacy transactions). TON Connect `sendTransaction` requests are
+  checked before they are shown and again when signed (mainnet only, `from` is the
+  connection's wallet, unexpired, one to four well-formed messages), the signed
+  message expires within five minutes, every message is signed exactly as sent,
+  bridge requests reach the wallet at most once, a new connection is bound to the
+  wallet whose key the reply gave, and the in-app bridge answers only the dApp's own
+  main-frame page. The sign screen shows a decoded summary of what the request does
+  and stays disabled until it exists.
+- Startup and secrets: the exported launcher passes only the allowlisted VIEW data
+  into the wallet; phrase, seed, keystore, import, PIN and recovery screens hold
+  FLAG_SECURE through SecureScreenGuard; Android 12+ device transfer and cloud backup
+  exclude all app data; keystore exports are shared from internal storage only;
+  wrong-PIN delays escalate to five minutes on the since-boot clock and the PIN
+  screen shows the wait; pre-installed wallet import is compiled off in release;
+  Nomis credentials come from build secrets.
+- Data APIs: the history client does not follow redirects, OKLink accepts only its
+  HTTPS endpoint, GraphQL cursors and Reef reward pagination are bounded, and Nomis
+  calls follow the scoring preference.
+- Dependencies: Beacon (integration and SDK) is removed; Java-WebSocket 1.6.0
+  (TLS hostname verification), bcprov 1.85, lz4-java 1.11.4 (maintained fork),
+  commons-beanutils 1.11.0, Jackson 2.18.11, Guava 33.x, commons-lang3 3.18.0 and the
+  Drive/Google API/OAuth 2.x clients, with locks and strict checksums.
+- Solana and Bitcoin sends: the send screen accepts their recipients; Solana reads
+  fail over between ordered endpoints and pace the rate-limited public node by host;
+  Token-2022 sends are refused; broadcasts are classified before any release, a
+  pending payment is released only on a proven expiry, and the history row closes as
+  failed only when two distinct hosts proved it (see `docs/solana-send.md`).
+- Iroha: transfer history comes from Torii REST (`/v1/accounts/{id}/history`, cursor
+  paging, transfer filter); the app no longer calls the MCP endpoint, and the
+  send-readiness audit fails on `/v1/mcp` or `tools/call` in main sources. Torii scans
+  about 500 blocks per request, so after ten empty pages the screen shows what was
+  found and keeps the cursor instead of an error, as the web wallet does.
+
+Unit tests (debug, before -> after): app 189 -> 206, common 768 -> 846,
+account 915 -> 953 and its API 106, TON Connect 96 -> 168 and its API 13 -> 23,
+wallet 718 -> 752 and its API 130, WalletConnect 161, runtime 396 -> 407, staking
+1,315 -> 1,318, core-backup 372 -> 378, core-db 521, core-api 133, runtime-utils
+432, runtime-websocket 114; no failures, skips unchanged. Detekt is clean, but its
+configuration excludes common, core modules, account, staking, wallet, runtime and app,
+so of the changed modules it checks only TON Connect and core-backup.
+
+Open: the replaced Play upload certificate is not pinned on master (owner decision);
+the Nomis key that was in the source should be rotated; no device or emulator run
+covers this port. The Taira balance paging defect is fixed in the follow-up above.
+
+## dApp signing and cross-chain hardening — 29 October 2026
+
+WalletConnect signs only with the account the session approved on the request's
+network, refuses malformed params and dApps Reown Verify flags, binds the preview
+and the signature to the request shown, and signs `polkadot_signMessage` wrapped in
+`<Bytes>`. `polkadot_signTransaction` reads every field strictly, decodes the call
+with the network's runtime and lays out the signed bytes itself, signed extensions
+included (CheckMetadataHash mode and hash, ChargeAssetTxPayment), bound to the
+metadata's runtime version. Ordinary polkadot.js requests now produce valid
+signatures: the Polkadot, Kusama, Statemint and Westend parity payloads are rebuilt
+byte for byte. Immortal eras, other genesis hashes or runtimes, unknown signed
+extensions and calls that do not decode exactly are refused before any key is read;
+a regression test reproduces crafted fields that spelled an XCM teleport payload.
+Previews decode Polkadot calls (also inside batches, proxies and multisig), EVM
+token calls and EIP-712 permits, show every cross-chain call with destination,
+beneficiary and amount, mark XCM programs high risk, and refuse destinations that
+no longer deliver: SORA bridge burns toward its halted parachains and Liberland,
+relay reserve transfers of the relay token, and XCM to Moonbeam, Parallel,
+Moonriver and the SORA parachains.
+
+The production chain catalog and app configs are owned by the security team, and a
+snapshot test pins the production XCM route membership. Type registry overrides are
+debug-only, release builds drop plaintext nodes from the remote catalog, and a
+release bridge flag other than false fails Gradle configuration. The retired CBDC
+QR payment flow is removed. A cross-chain transfer proven included stays on record
+until Done, so a confirm screen restored after another process death never resends
+it; sending it again takes an explicit choice.
+
+Unit tests: walletconnect 161, common 768, runtime 396 (10 unchanged skips), wallet
+API 130, wallet 718 debug and 726 release, app 189, no failures; Detekt clean. Open:
+there is no remote veto for dApp signing; the wallet does not compute RFC-78
+metadata hashes itself. (The TON Connect and Beacon items are done; see the entry above.)
+
+## dApp signing kill switches — 29 October 2026
+
+Closes the open "no remote veto for dApp signing" item of the entry above. The
+`feature_toggle` file has one veto per dApp family: `polkadot_dapp_signing_enabled`
+(WalletConnect `polkadot_*`), `evm_dapp_signing_enabled` (WalletConnect `eth_*` and
+`personal_sign`) and `ton_dapp_signing_enabled` (TON Connect `sendTransaction` and
+`ton_proof`). They follow the send switches' rules: on by default, an explicit
+`false` is remembered across restarts, offline launches and fetches without the key,
+and only an explicit `true` lifts it. A paused request is shown with the reason and
+Sign disabled; the wallet refuses it right before signing and the dApp gets an
+error, also for an `eth_sendTransaction` signed before the pause. The owned-config
+verifier refuses switch values that are not JSON booleans. See
+`docs/remote-feature-switches.md`.
+
+## Substrate node failover — 29 October 2026
+
+Substrate networks again leave a catalog node that keeps failing while Auto
+select is on, the default. Each network connected only to its selected node,
+and only the node list screen could change it, so the dead first nodes left by
+the Blast and Dwellir shutdowns kept Polkadot, Kusama and the Asset Hubs offline.
+`ChainConnection` counts failed connection attempts per logical binding from
+socket transitions. After three in a row, `ConnectionPool` admits
+`ChainDao.selectNextCatalogNode` with `admitObserved` from the settled read
+behind the failing binding. The DAO moves the selection by rowid to the next
+catalog node, wrapping to the first. Custom nodes are never replaced or chosen,
+Auto select is rechecked inside the writer, and the switch never retires a
+pending explicit selection or catalog replacement; one admitted later wins.
+
+Host tests for core-api, core-db and runtime pass: 1,063 with 14 inherited skips
+(baseline 1,041), including 22 new failure-count, writer and pool cases. A
+schema-84 SQLite replay of the new queries passes. No device run.
+
+
 ## Local app instrumentation profiles — 26 October 2026
 
 The full local runner now distinguishes ordinary portable tests, mandatory
@@ -2049,3 +2221,11 @@ Candidate-v2 SHA `0667a85ceb7c48f840cfb75d8a0ad0ad8406ded290f170a36b50898554c65f
 Selection ownership follows actual selectionItem emissions, not every wallet/registry/preference intent; prior relay publication admission remains separate. Non-cooperative work can delay progress until it returns. New actual-root recovery tests cover relay and pool, not a fresh parachain round trip. Retained root-alert callbacks, equal-text alert adapter rebinding and action-to-info holder reuse are next source-based candidates requiring controlled baselines. The optional payout listener is unchanged; current-selection reads alone do not establish wrong-identity writes. Automatic root-alert/registry freshness, full native/design, migration, physical-device, signing/store and release gates remain open.
 
 Integration verified at `d9a40d065fb091f2a42c91aa410a755d08f51a29`: whole4,347-file executable tree,376utils/84transport and944evidence pins exact; verification `18147baf25141426aa423e777dcf2ae504e18291322e039729c8b5021bab738b`. No additional build or native run is claimed.
+
+## Unbond confirmation regression scheduling — 29 October 2026
+
+The stale-source confirmation test now waits for the background fee projection
+as well as the immediate error dialog. The retained failing result observed a
+null fee before that projection completed. The no-builder, no-submission and
+error-fee assertions remain in place; production signing code is unchanged.
+Local focused verification is recorded in the impact-assessment takeover receipt.
