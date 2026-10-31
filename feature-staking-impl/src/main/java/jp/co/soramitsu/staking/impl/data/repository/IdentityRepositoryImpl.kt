@@ -5,6 +5,8 @@ import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.common.utils.toHexAccountId
 import jp.co.soramitsu.runtime.ext.accountFromMapKey
 import jp.co.soramitsu.runtime.ext.hexAccountIdOf
+import jp.co.soramitsu.runtime.assethub.AssetHubStaking
+import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -41,6 +43,9 @@ class IdentityRepositoryImpl(
             chainRegistry.getRuntime(chain.id)
         }
 
+        if (AssetHubStaking.isHub(chain.id) && chain.identityChain == null && runtime.metadata.moduleOrNull("Identity") == null) {
+            return@withContext accountIdsHex.associateWith { null }
+        }
         val identityModule = runtime.metadata.module("Identity")
 
         val identityOfStorage = identityModule.storage("IdentityOf")

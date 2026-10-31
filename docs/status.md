@@ -2,6 +2,44 @@
 
 # Status Summary
 
+## Production release 4.3.1 (233): Asset Hub staking — 30 October 2026
+
+4.3.1 brings back Polkadot and Kusama staking, which 4.3.0 could not offer because
+the Asset Hub migration moved it off the relays. It is release 4.3.0 plus the
+Asset Hub staking line (Codex `codex/android-validator-search-repair-20261029`,
+selected commits, not merged wholesale), versionCode 233, database 84.
+
+- Staking and nomination pools for the native DOT of Polkadot Asset Hub and KSM
+  of Kusama Asset Hub: bond (no controller), nominate, bond more, unbond,
+  rebond, withdraw, reward destination, paged payouts (`payout_stakers_by_page`,
+  discovered on chain from `ErasStakersPaged` and `ClaimedRewards`), slash
+  warnings from `ValidatorSlashInEra` and `UnappliedSlashes`, and the era clock
+  from the relay (`Babe`, `Session`) with `BondedEras`. The unbonding period is
+  read per account (`NominatorFastUnbondDuration` for nominators the runtime does
+  not slash); when it cannot be read, the full `BondingDuration` is shown.
+  Rewards are estimated from completed-era budgets, not relay inflation, and an
+  unreadable history gives a zero estimate. Validator identities come from the
+  People chains. Payouts are offered from the Manage menu on the Hubs, only
+  from validators that are still bonded. The validator choice screens and the balance screen's unbonding list
+  offer a retry when they cannot be loaded, and Redeem waits for a successful
+  ledger refresh.
+- Activation: the catalogue marks those two assets with `"staking": "assetHub"`.
+  4.3.0 maps that value to unsupported (shown with 4.3.0's own compiled mapping),
+  so older builds keep staking off; removing it turns 4.3.1's Hub staking off.
+  The relays never offer staking, pools or crowdloans again.
+- A DOT or KSM staking choice saved before the upgrade opens the matching Hub
+  when the wallet uses the same account on the relay and the Hub; otherwise,
+  or without the switch, it opens the chooser.
+- Signing: each signed extension is checked against the runtime's portable
+  metadata (from fearless-utils `fc9719e`/`05d20f2`), and Hub staking calls
+  require the complete signing context.
+- Also ported: the validator search catalogue and cache ownership repair, and
+  the JSON export reading the wallet once.
+
+Not included: reward history on the Hubs (no indexer answers with Hub rewards)
+and a Westend Asset Hub (not in the catalogue). Release record:
+`docs/releases/4.3.1.md`.
+
 ## Production release 4.3.0 (232) — 29 October 2026
 
 Master plus #1265–#1269 becomes the 4.3.0 production candidate (versionCode 232,

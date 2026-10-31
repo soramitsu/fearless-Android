@@ -47,3 +47,6 @@
 # Production release after Open testing: networks, indexers and features that
 # no longer work are removed; the database schema is unchanged.
 4.3.0+232=84
+
+# Asset Hub staking returns; the database schema is unchanged.
+4.3.1+233=84

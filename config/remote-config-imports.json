@@ -56,7 +56,7 @@
       "commit": "ca1c2655ff541ae5942d820423962d34fd29d7f9",
       "sourcePath": "chains/v13/chains.json",
       "upstreamSha256": "79a583f08f71139a31e00c825c746891cef50c04aa81318aaa492807757b9cec",
-      "ownedSha256": "20307dcc92b6867bbfb12fce4699c1b67a304c8ee161dd31fa1990adf8ac1236"
+      "ownedSha256": "042fe5fdf3e53a0a011d830ddfe6262670af784126bb7da69f0f189863bb2f51"
     },
     {
       "path": "production/fiat/fiats.json",
@@ -4336,7 +4336,7 @@
       "commit": "f2ed4ccf1d3a6376b60ebd69d823a3f7748ddc4b",
       "sourcePath": "chains/v13/chains_dev.json",
       "upstreamSha256": "5726b01a5364d955e250939c71082c03f97da0dc9512ac9d120c6a2085173d05",
-      "ownedSha256": "ded2854200f78e7741854013da6b20da6e5a8f0c5bc4fe20716d62c015bc0375"
+      "ownedSha256": "1f0ba540ff88c365e3603aae1c83d5c213e6169a3bd25f73e6121a69d2c47788"
     },
     {
       "path": "development/chains/v13/chains_dev_prod.json",
@@ -4344,7 +4344,7 @@
       "commit": "f2ed4ccf1d3a6376b60ebd69d823a3f7748ddc4b",
       "sourcePath": "chains/v13/chains_dev_prod.json",
       "upstreamSha256": "8c7f01cd1ee0866df13ac3faa1315007361c96ce067cc062aea2d6e48ccc3235",
-      "ownedSha256": "ff46c8dc3162b4efe5d82a49e645786997cf90ecbef559928145fdbfc7e6f020"
+      "ownedSha256": "d1f7e4b17e4f00676090359baa648f57d7d98423459e2a2ec664f68d8b76da8b"
     },
     {
       "path": "development/fiat/fiats.json",
@@ -5173,6 +5173,7 @@
     "Remove networks that no longer run or cannot be reached from the v13 lists, measured 2026-10-29 (relay inclusion age, node genesis and block time, DNS): 40 enabled production networks including Moonbeam, Moonriver, Polygon zkEVM, Polkadex, KILT, Phala, Centrifuge, Interlay, Kintsugi, Manta Parachain and both SORA parachains, plus every disabled entry. Wallet rows for a removed network stay on the device.",
     "Remove relay-chain staking, nomination pools and crowdloans from Polkadot, Kusama and Westend: since the Asset Hub migration their relays hold no staking ledger or pools, and no crowdloan can open.",
     "Remove history and staking indexers that cannot answer: *.squid.tachi.soramitsu.co.jp (lame delegation), SubQuery hosted projects (HTTP 404), Subsquid gs-main squids (HTTP 404), Klaytnscope Baobab (NXDOMAIN); affected networks show history as unsupported.",
-    "Remove nodes without DNS or with a certificate for another host, discontinued BlockPI public endpoints, Blast API, a personal QuickNode endpoint at its daily limit and Avail endpoints that now require auth; Kaia Kairos uses public-en-kairos.node.kaia.io, Atleta Olympia uses the standard TLS port of its host, and the development lists' Sepolia, BNB Smart Chain Testnet and Polygon use PublicNode (each checked with eth_chainId)."
+    "Remove nodes without DNS or with a certificate for another host, discontinued BlockPI public endpoints, Blast API, a personal QuickNode endpoint at its daily limit and Avail endpoints that now require auth; Kaia Kairos uses public-en-kairos.node.kaia.io, Atleta Olympia uses the standard TLS port of its host, and the development lists' Sepolia, BNB Smart Chain Testnet and Polygon use PublicNode (each checked with eth_chainId).",
+    "remote-config/production/chains/v13/chains.json, remote-config/development/chains/v13/chains_dev_prod.json and remote-config/development/chains/v13/chains_dev.json: mark the native DOT of Polkadot AssetHub and the native KSM of Kusama AssetHub with \"staking\": \"assetHub\", which turns on 4.3.1's Asset Hub staking and nomination pools. Builds before 4.3.1 map that unknown value to unsupported and read no pool option on these networks, so they keep staking off there; deleting the value turns 4.3.1's Hub staking off again. No staking indexer is added: on 2026-10-30 the Polkadot (squid.subsquid.io fearless-polkadot v3) and Kusama (fearless-kusama-2 v4) squids followed the relays only, with no reward newer than 2025-11-04 (era 8671) and 2025-10-07 (era 8560), so 4.3.1 reads pending Hub payouts on chain and shows no reward history there."
   ]
 }

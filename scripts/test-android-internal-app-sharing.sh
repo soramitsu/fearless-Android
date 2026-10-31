@@ -905,7 +905,7 @@ def trust_contract_errors(text, count_assertion=None):
         "upload-audit boundary must be a fresh root-owned traversable enclave",
     )
     for archive_contract in (
-        'expected_names = ["evidence.txt", "fearless-wallet-4.3.0-ias-232.aab"]',
+        'expected_names = ["evidence.txt", "fearless-wallet-4.3.1-ias-233.aab"]',
         "len(names) != len(set(names))",
         "not stat.S_ISREG(mode)",
         "entry.file_size > maximum",
@@ -2070,7 +2070,7 @@ else:
         ("upload-audit non-reused numeric UID", "          reserved_uid=61003\n", "          reserved_uid=61001\n", "third public-cert-only no-sudo UID"),
         ("upload-audit empty environment", '/usr/bin/env -i \\\n', '/usr/bin/env \\\n', "third public-cert-only no-sudo UID"),
         ("upload-audit no-sudo proof", "              if /usr/bin/sudo -n -u root /usr/bin/true 2>/dev/null; then exit 1; fi\n", "              if false; then true; fi\n", "third public-cert-only no-sudo UID"),
-        ("upload-audit exact entries", 'expected_names = ["evidence.txt", "fearless-wallet-4.3.0-ias-232.aab"]', 'expected_names = ["fearless-wallet-4.3.0-ias-232.aab"]', "downloaded archive contract missing expected_names"),
+        ("upload-audit exact entries", 'expected_names = ["evidence.txt", "fearless-wallet-4.3.1-ias-233.aab"]', 'expected_names = ["fearless-wallet-4.3.1-ias-233.aab"]', "downloaded archive contract missing expected_names"),
         ("upload-audit duplicate names", "len(names) != len(set(names))", "False", "downloaded archive contract missing len(names)"),
         ("upload-audit regular entries", "not stat.S_ISREG(mode)", "False", "downloaded archive contract missing not stat.S_ISREG"),
         ("upload-audit entry size bound", "entry.file_size > maximum", "False", "downloaded archive contract missing entry.file_size"),

@@ -237,6 +237,7 @@
         "priceId": "kusama",
         "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/KSM.svg",
         "color": "FFFFFF",
+        "staking": "assetHub",
         "purchaseProviders": [
           "ramp"
         ],
@@ -344,6 +345,7 @@
         "priceId": "polkadot",
         "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/tokens/coloured/DOT.svg",
         "color": "FF0066",
+        "staking": "assetHub",
         "purchaseProviders": [
           "moonpay",
           "ramp"

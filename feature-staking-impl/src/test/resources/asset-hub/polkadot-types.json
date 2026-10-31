@@ -1,0 +1,24 @@
+{
+  "chainId": "68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f",
+  "runtime_id": 700,
+  "types": {},
+  "versioning": [
+    {
+      "runtime_range": [
+        0,
+        null
+      ],
+      "types": {
+        "Balance": "u128",
+        "Index": "u32",
+        "Phase": "frame_system::Phase",
+        "Address": "sp_runtime::multiaddress::MultiAddress",
+        "ExtrinsicSignature": "sp_runtime::MultiSignature",
+        "ParaId": "polkadot_parachain::primitives::Id",
+        "statemint_runtime::Event": "GenericEvent",
+        "statemint_runtime::Call": "GenericCall",
+        "sp_core::crypto::AccountId32": "GenericAccountId"
+      }
+    }
+  ]
+}

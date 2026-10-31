@@ -162,7 +162,8 @@ class PayoutsListViewModel @Inject constructor(
                 amountInPlanks = amountInPlanks,
                 createdAt = createdAt,
                 timeLeft = timeLeft,
-                closeToExpire = closeToExpire
+                closeToExpire = closeToExpire,
+                        page = page
             )
         }
     }
