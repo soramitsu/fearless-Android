@@ -81,8 +81,8 @@ internal object SelectionCoreTestBridge {
         current: () -> Boolean
     ): EndpointRuntimeStatus = EndpointRuntimeStatus::class.java.getDeclaredConstructor(
             EndpointRuntimeStatus.Phase::class.java,
-            Boolean::class.javaPrimitiveType, ChainNode::class.java, Function0::class.java
-        ).newInstance(phase, applied, logical, current)
+            Boolean::class.javaPrimitiveType, ChainNode::class.java, Function0::class.java, Int::class.javaPrimitiveType
+        ).newInstance(phase, applied, logical, current, 0)
 
     fun capture(
         request: EndpointSelectionRequest,

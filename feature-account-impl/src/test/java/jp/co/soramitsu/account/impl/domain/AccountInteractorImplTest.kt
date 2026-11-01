@@ -10,6 +10,8 @@ import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.common.data.storage.InitialValueProducer
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.data.storage.pin.PinAttemptClock
+import jp.co.soramitsu.common.data.storage.pin.PinAttemptLimiter
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.model.UniversalWalletEcosystem
 import jp.co.soramitsu.common.model.UniversalWalletMigrationRequiredAction
@@ -35,6 +37,10 @@ class AccountInteractorImplTest {
     private lateinit var preferences: Preferences
 
     private var pinCode: String? = null
+    private var pinReads = 0
+    private var sinceBoot = 50_000_000L
+    private var wallClock = 1_800_000_000_000L
+    private val clock = PinAttemptClock(wallClock = { wallClock }, sinceBoot = { sinceBoot })
 
     @Before
     fun setup() {
@@ -42,7 +48,10 @@ class AccountInteractorImplTest {
 
         accountRepository = interfaceProxy { method, args ->
             when (method.name) {
-                "getPinCode" -> pinCode
+                "getPinCode" -> {
+                    pinReads++
+                    pinCode
+                }
                 "savePinCode" -> {
                     pinCode = args?.firstOrNull() as? String
                     Unit
@@ -53,9 +62,11 @@ class AccountInteractorImplTest {
         }
 
         fileProvider = object : FileProvider {
-            override suspend fun getFileInExternalCacheStorage(fileName: String): File = File(fileName)
+            override suspend fun getFileInExternalCacheStorage(fileName: String): File = File(EXTERNAL_CACHE, fileName)
 
-            override suspend fun getFileInInternalCacheStorage(fileName: String): File = File(fileName)
+            override suspend fun getFileInInternalCacheStorage(fileName: String): File = File(INTERNAL_CACHE, fileName)
+
+            override suspend fun getFileInInternalShareStorage(fileName: String): File = File(INTERNAL_SHARE, fileName)
         }
 
         backupService = allocateWithoutConstructor(BackupService::class.java)
@@ -65,15 +76,7 @@ class AccountInteractorImplTest {
     @Test
     fun `isPinCorrect should lock after max failed attempts and unlock after timeout`() {
         runBlocking {
-            var now = 1_000L
-            val interactor = AccountInteractorImpl(
-                accountRepository = accountRepository,
-                fileProvider = fileProvider,
-                preferences = preferences,
-                backupService = backupService,
-                walletInteractor = walletInteractor,
-                nowProvider = { now }
-            )
+            val interactor = pinInteractor()
 
             accountRepository.savePinCode("123456")
 
@@ -83,8 +86,33 @@ class AccountInteractorImplTest {
 
             assertFalse(interactor.isPinCorrect("123456"))
 
-            now += 31_000
+            passTime(31_000)
 
+            assertTrue(interactor.isPinCorrect("123456"))
+        }
+    }
+
+    @Test
+    fun `isPinCorrect escalates the lock after it expires and ignores wall clock changes`() {
+        runBlocking {
+            val interactor = pinInteractor()
+
+            accountRepository.savePinCode("123456")
+            repeat(5) {
+                assertFalse(interactor.isPinCorrect("000000"))
+            }
+
+            // Setting the clock a day ahead does not end the 30-second lock.
+            wallClock += DAY_MILLIS
+            assertFalse(interactor.isPinCorrect("123456"))
+
+            // Once it expires, a single wrong PIN locks again, for a minute.
+            passTime(30_000)
+            assertFalse(interactor.isPinCorrect("000000"))
+            passTime(59_999)
+            assertFalse(interactor.isPinCorrect("123456"))
+
+            passTime(1)
             assertTrue(interactor.isPinCorrect("123456"))
         }
     }
@@ -92,15 +120,7 @@ class AccountInteractorImplTest {
     @Test
     fun `savePin should reset lockout state`() {
         runBlocking {
-            var now = 5_000L
-            val interactor = AccountInteractorImpl(
-                accountRepository = accountRepository,
-                fileProvider = fileProvider,
-                preferences = preferences,
-                backupService = backupService,
-                walletInteractor = walletInteractor,
-                nowProvider = { now }
-            )
+            val interactor = pinInteractor()
 
             accountRepository.savePinCode("000000")
 
@@ -113,6 +133,95 @@ class AccountInteractorImplTest {
 
             assertTrue(interactor.isPinCorrect("000000"))
         }
+    }
+
+    @Test
+    fun `wrong PINs after a delay ends keep doubling the delay up to five minutes`() = runBlocking {
+        val interactor = pinInteractor()
+        pinCode = "123456"
+        repeat(4) { assertFalse(interactor.isPinCorrect("000000")) }
+        assertEquals(0L, interactor.getPinRetryDelayMillis())
+        listOf(30_000L, 60_000L, 120_000L, 240_000L, 300_000L, 300_000L).forEach { delay ->
+            assertFalse(interactor.isPinCorrect("000000"))
+            assertEquals(delay, interactor.getPinRetryDelayMillis())
+            assertFalse("The right PIN waits too", interactor.isPinCorrect("123456"))
+            passTime(delay)
+            assertEquals(0L, interactor.getPinRetryDelayMillis())
+        }
+        assertTrue(interactor.isPinCorrect("123456"))
+        repeat(4) { assertFalse(interactor.isPinCorrect("000000")) }
+        assertEquals("The right PIN cleared the count", 0L, interactor.getPinRetryDelayMillis())
+    }
+
+    @Test
+    fun `no stored PIN is read while a delay runs`() = runBlocking {
+        val interactor = pinInteractor()
+        pinCode = "123456"
+        repeat(5) { assertFalse(interactor.isPinCorrect("000000")) }
+        assertEquals(5, pinReads)
+        passTime(29_000)
+        repeat(3) { assertFalse(interactor.isPinCorrect("123456")) }
+        assertEquals(5, pinReads)
+        passTime(1_000)
+        assertTrue(interactor.isPinCorrect("123456"))
+        assertEquals(6, pinReads)
+    }
+
+    @Test
+    fun `changing the clock neither ends nor extends a delay`() = runBlocking {
+        val interactor = pinInteractor()
+        pinCode = "123456"
+        repeat(5) { interactor.isPinCorrect("000000") }
+        wallClock += 365L * 24 * 60 * 60 * 1_000
+        assertFalse(interactor.isPinCorrect("123456"))
+        wallClock -= 10L * 365 * 24 * 60 * 60 * 1_000
+        assertEquals(30_000L, interactor.getPinRetryDelayMillis())
+        sinceBoot += 30_000
+        assertTrue(interactor.isPinCorrect("123456"))
+    }
+
+    @Test
+    fun `a biometric unlock clears the count during a delay`() = runBlocking {
+        val interactor = pinInteractor()
+        pinCode = "123456"
+        repeat(5) { interactor.isPinCorrect("000000") }
+        passTime(30_000)
+        interactor.isPinCorrect("000000")
+        assertEquals(60_000L, interactor.getPinRetryDelayMillis())
+        interactor.registerBiometricUnlock()
+        assertEquals(0L, interactor.getPinRetryDelayMillis())
+        repeat(4) { assertFalse(interactor.isPinCorrect("000000")) }
+        assertEquals("After a biometric unlock the next typos are not delayed", 0L, interactor.getPinRetryDelayMillis())
+        assertTrue(interactor.isPinCorrect("123456"))
+    }
+
+    @Test
+    fun `an unreadable stored PIN is no wrong guess`() = runBlocking {
+        val interactor = pinInteractor()
+        pinCode = ""
+        repeat(10) { assertFalse(interactor.isPinCorrect("000000")) }
+        assertEquals(0L, interactor.getPinRetryDelayMillis())
+        pinCode = "123456"
+        repeat(4) { assertFalse(interactor.isPinCorrect("000000")) }
+        assertEquals(0L, interactor.getPinRetryDelayMillis())
+    }
+
+    @Test
+    fun `the PIN screen shares its count with every other PIN check`() = runBlocking {
+        val interactor = pinInteractor()
+        // Emergency export and PIN recovery each build their own limiter over the same preferences.
+        val elsewhere = PinAttemptLimiter(preferences, clock)
+        pinCode = "123456"
+        repeat(4) { assertFalse(interactor.isPinCorrect("000000")) }
+        assertEquals(30_000L, elsewhere.registerFailure())
+        assertFalse(interactor.isPinCorrect("123456"))
+        assertEquals(30_000L, interactor.getPinRetryDelayMillis())
+        passTime(30_000)
+        assertFalse(interactor.isPinCorrect("000000"))
+        assertEquals(60_000L, elsewhere.remainingDelayMillis())
+        passTime(60_000)
+        assertTrue(interactor.isPinCorrect("123456"))
+        assertEquals(0L, elsewhere.registerFailure())
     }
 
     @Test
@@ -164,6 +273,23 @@ class AccountInteractorImplTest {
     }
 
     @Test
+    fun `keystore export file is created in the internal share storage`() = runBlocking {
+        val interactor = AccountInteractorImpl(
+            accountRepository = accountRepository,
+            fileProvider = fileProvider,
+            preferences = preferences,
+            backupService = backupService,
+            walletInteractor = walletInteractor
+        )
+
+        val file = interactor.createFileInTempStorageAndRetrieveAsset("5Grwva.json").getOrThrow()
+
+        // Never shared external storage: the password-encrypted keystore JSON
+        // is served only from the FileProvider's internal export directory.
+        assertEquals(File(INTERNAL_SHARE, "5Grwva.json"), file)
+    }
+
+    @Test
     fun `universalWalletMigrationSnapshotFlow maps public light accounts without secret access`() {
         runBlocking {
             val interactor = interactorWithLightAccounts(
@@ -193,6 +319,20 @@ class AccountInteractorImplTest {
             assertTrue(snapshot.legacyVaults.isEmpty())
             assertTrue(snapshot.validationErrors().isEmpty())
         }
+    }
+
+    private fun pinInteractor() = AccountInteractorImpl(
+        accountRepository = accountRepository,
+        fileProvider = fileProvider,
+        preferences = preferences,
+        backupService = backupService,
+        walletInteractor = walletInteractor,
+        pinAttemptClock = clock
+    )
+
+    private fun passTime(millis: Long) {
+        sinceBoot += millis
+        wallClock += millis
     }
 
     private fun interactorWithLightAccounts(accounts: List<LightMetaAccount>): AccountInteractorImpl {
@@ -272,6 +412,10 @@ class AccountInteractorImplTest {
     private companion object {
         const val CUTOFF_AT = 1_710_000_000_000L
         const val EVALUATED_AT = 1_710_000_000_100L
+        const val DAY_MILLIS = 24 * 60 * 60_000L
+        const val EXTERNAL_CACHE = "external-cache"
+        const val INTERNAL_CACHE = "internal-cache"
+        const val INTERNAL_SHARE = "internal-cache/shared_exports"
     }
 
     private class InMemoryPreferences : Preferences {

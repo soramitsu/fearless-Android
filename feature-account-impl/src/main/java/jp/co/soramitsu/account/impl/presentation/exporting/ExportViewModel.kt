@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.map
 import jp.co.soramitsu.common.utils.sendEvent
 import jp.co.soramitsu.common.utils.switchMap
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
@@ -44,14 +45,16 @@ abstract class ExportViewModel(
 
     val chainLiveData = liveData { emit(loadChain()) }
     val isEthereum = chainLiveData.map { it.isEthereumBased }
+    private val isTon = chainLiveData.map { it.ecosystem == Ecosystem.Ton }
 
     val cryptoTypeLiveData = chainLiveData.switchMap { chain ->
         accountLiveData.map { it.cryptoType(chain) }
     }
 
-    val derivationPathLiveData: LiveData<ComponentHolder> = combine(isChainAccountLiveData, isEthereum) { it }.switchMap { holder ->
+    val derivationPathLiveData: LiveData<ComponentHolder> = combine(isChainAccountLiveData, isEthereum, isTon) { it }.switchMap { holder ->
         val isChain = holder.component1<Boolean>()
         val isEthereum = holder.component2<Boolean>()
+        val isTon = holder.component3<Boolean>()
         when {
             isChain && !isEthereum -> chainSecretLiveData.map {
                 ComponentHolder(
@@ -69,6 +72,8 @@ abstract class ExportViewModel(
                     )
                 )
             }
+            // A password wallet's universal TON key needs the path that holds the password.
+            isTon && !isExportFromWallet -> accountInteractor.getDerivationPathForTonExport(metaId).asLiveData()
             else -> accountInteractor.getDerivationPathForExport(metaId).map {
                 if (isExportFromWallet) {
                     it

@@ -40,4 +40,13 @@
 # 81 -> 82; explicit offline endpoint decisions add 82 -> 83; currency-bound
 # quote identity adds 83 -> 84.
 # Recorded before shipping so 4.2.0 (231) cannot be built below database 84.
+# The 231 build that reached Google Play Open testing came from the 231 release
+# line and carries database 83; schemas 75 through 83 are identical to this tree.
 4.2.0+231=84
+
+# Production release after Open testing: networks, indexers and features that
+# no longer work are removed; the database schema is unchanged.
+4.3.0+232=84
+
+# Asset Hub staking returns; the database schema is unchanged.
+4.3.1+233=84

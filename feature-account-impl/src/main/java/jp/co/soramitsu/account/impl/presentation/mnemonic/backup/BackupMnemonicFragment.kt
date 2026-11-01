@@ -3,11 +3,13 @@ package jp.co.soramitsu.account.impl.presentation.mnemonic.backup
 import android.app.Activity
 import android.os.Bundle
 import android.text.method.DigitsKeyListener
+import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.account.impl.presentation.common.SecureScreenGuard
 import jp.co.soramitsu.account.impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.CryptoTypeModel
@@ -45,6 +47,10 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
 
     private val binding by viewBinding(FragmentBackupMnemonicBinding::bind)
 
+    // The recovery phrase must never reach a screenshot, a recording, a cast
+    // or the recents thumbnail.
+    private val secureScreen = SecureScreenGuard(this)
+
     override val viewModel: BackupMnemonicViewModel by viewModels()
 
     private val launcher = registerForActivityResult(
@@ -55,6 +61,26 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
         } else {
             viewModel.onGoogleSignInFailed(GoogleSignInResult.parse(result.resultCode, result.data))
         }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        secureScreen.onViewCreated()
+        super.onViewCreated(view, savedInstanceState)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        secureScreen.onStart()
+    }
+
+    override fun onStop() {
+        secureScreen.onStop()
+        super.onStop()
+    }
+
+    override fun onDestroyView() {
+        secureScreen.onDestroyView()
+        super.onDestroyView()
     }
 
     override fun initViews() {
@@ -104,6 +130,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
             googleBackupButton.setOnClickListener {
                 viewModel.onGoogleBackupClick(
                     advancedBlockView.getSubstrateDerivationPath(),
+                    advancedBlockView.getEthereumDerivationPath(),
                     launcher
                 )
             }

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.data.network.rpc
 
+import com.google.gson.JsonNull
 import jp.co.soramitsu.common.data.network.runtime.binding.BlockHash
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.executeAsync
@@ -10,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 
+/** Parameters are positional: without a start key, a block hash must not take the start key's place. */
 class GetKeysPagedRequest(
     keyPrefix: String,
     pageSize: Int,
@@ -17,12 +19,11 @@ class GetKeysPagedRequest(
     at: BlockHash?
 ) : RuntimeRequest(
     method = "state_getKeysPaged",
-    params = listOfNotNull(
-        keyPrefix,
-        pageSize,
-        fullKeyOffset,
-        at
-    )
+    params = if (at != null) {
+        listOf(keyPrefix, pageSize, fullKeyOffset ?: JsonNull.INSTANCE, at)
+    } else {
+        listOfNotNull(keyPrefix, pageSize, fullKeyOffset)
+    }
 )
 
 class QueryStorageAtRequest(

@@ -19,7 +19,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.ControllerDeprecationWarning
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
-import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
 import jp.co.soramitsu.wallet.impl.domain.model.QrContentSora
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
@@ -92,7 +91,6 @@ interface WalletInteractor {
 
     fun tryReadSoraFormat(content: String): QrContentSora?
 
-    suspend fun tryReadCBDCAddressFormat(content: String): QrContentCBDC?
 
     suspend fun getChain(chainId: ChainId): Chain
 

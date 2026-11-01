@@ -224,8 +224,6 @@ if (dependencyProvenanceRequired) {
                     }
                 }
                 filter {
-                    includeGroup 'com.github.airgap-it'
-                    includeGroupByRegex 'com[.]github[.]airgap-it([.].*)?'
                     includeGroup 'com.github.ildixhaferri'
                     includeGroupByRegex 'com[.]github[.]komputing([.].*)?'
                     includeGroup 'com.github.multiformats'

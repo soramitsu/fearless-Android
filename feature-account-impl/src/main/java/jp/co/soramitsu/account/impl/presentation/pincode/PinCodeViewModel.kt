@@ -15,6 +15,7 @@ import jp.co.soramitsu.account.impl.domain.recovery.WalletPinRecovery
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.recovery.RecoveryTarget
 import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
+import jp.co.soramitsu.common.data.storage.pin.PinAttemptLimiter
 import jp.co.soramitsu.common.data.storage.pin.WalletViewOnlyAccess
 import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.coroutines.CancellationException
@@ -58,6 +59,8 @@ class PinCodeViewModel @Inject constructor(
     val resetInputEvent: LiveData<Event<String>> = _resetInputEvent
     private val _matchingPincodeErrorEvent = MutableLiveData<Event<Unit>>()
     val matchingPincodeErrorEvent: LiveData<Event<Unit>> = _matchingPincodeErrorEvent
+    private val _pinRetryDelayEvent = MutableLiveData<Event<String>>()
+    val pinRetryDelayEvent: LiveData<Event<String>> = _pinRetryDelayEvent
     private val _showFingerPrintEvent = MutableLiveData<Event<Unit>>()
     val showFingerPrintEvent: LiveData<Event<Unit>> = _showFingerPrintEvent
     private val _startFingerprintScannerEventLiveData = MutableLiveData<Event<Unit>>()
@@ -196,8 +199,18 @@ class PinCodeViewModel @Inject constructor(
         busy = true
         viewModelScope.launch {
             try {
+                val remainingDelay = interactor.getPinRetryDelayMillis()
+                if (remainingDelay > 0L) {
+                    // Checking PIN health decrypts it too, so reject delayed entries before that read.
+                    mismatch()
+                    showRetryDelay(remainingDelay)
+                    return@launch
+                }
                 if (interactor.getPinHealth() == PinHealth.UNREADABLE) startRecovery()
-                else if (interactor.isPinCorrect(code)) authSuccess() else mismatch()
+                else if (interactor.isPinCorrect(code)) authSuccess() else {
+                    mismatch()
+                    showRetryDelay(interactor.getPinRetryDelayMillis())
+                }
             } catch (failure: CancellationException) { throw failure }
             catch (_: Exception) { recoveryFailed() }
             finally { busy = false }
@@ -207,6 +220,14 @@ class PinCodeViewModel @Inject constructor(
     private fun mismatch() {
         deviceVibrator.makeShortVibration()
         _matchingPincodeErrorEvent.value = Event(Unit)
+    }
+
+    /** Says how long PIN entry is paused after repeated wrong PINs. Biometrics stay available meanwhile. */
+    private fun showRetryDelay(delay: Long) {
+        if (delay > 0L) {
+            val seconds = PinAttemptLimiter.secondsLeft(delay)
+            _pinRetryDelayEvent.value = Event(resourceManager.getString(R.string.wallet_emergency_locked, seconds))
+        }
     }
 
     private fun showPinCreation() {
@@ -261,8 +282,10 @@ class PinCodeViewModel @Inject constructor(
         busy = true
         viewModelScope.launch {
             try {
-                if (interactor.getPinHealth() == PinHealth.HEALTHY && interactor.isBiometricEnabled()) authSuccess()
-                else if (interactor.getPinHealth() == PinHealth.UNREADABLE) startRecovery()
+                if (interactor.getPinHealth() == PinHealth.HEALTHY && interactor.isBiometricEnabled()) {
+                    interactor.registerBiometricUnlock()
+                    authSuccess()
+                } else if (interactor.getPinHealth() == PinHealth.UNREADABLE) startRecovery()
             } catch (failure: CancellationException) { throw failure }
             catch (_: Exception) { recoveryFailed() }
             finally { busy = false }

@@ -21,6 +21,7 @@ import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.DoubleGradientIcon
 import jp.co.soramitsu.common.compose.component.FullScreenLoading
+import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.compose.component.H1
 import jp.co.soramitsu.common.compose.component.H2
@@ -46,7 +47,9 @@ data class CrossChainConfirmViewState(
     val isLoading: Boolean = false,
     /** Present while an earlier transfer of this account is unsettled or was just settled. */
     val pendingMessage: String? = null,
-    val pendingTransactionHash: String? = null
+    val pendingTransactionHash: String? = null,
+    /** Shown when this very transfer was already sent: sending it once more takes this explicit choice. */
+    val sendAgainVisible: Boolean = false
 ) {
     companion object {
         const val CODE_WARNING_CLICK = 3
@@ -72,6 +75,7 @@ data class CrossChainConfirmViewState(
 interface CrossChainConfirmScreenInterface {
     fun copyRecipientAddressClicked()
     fun onNextClick()
+    fun onSendAgainClick()
     fun onNavigationClick()
     fun onItemClick(code: Int)
 }
@@ -157,6 +161,19 @@ fun CrossChainConfirmContent(
                             .padding(horizontal = 16.dp)
                             .height(48.dp)
                     )
+
+                    if (state.sendAgainVisible) {
+                        MarginVertical(margin = 8.dp)
+                        GrayButton(
+                            text = stringResource(id = R.string.cross_chain_send_again),
+                            enabled = state.buttonState.enabled,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .height(48.dp),
+                            onClick = callback::onSendAgainClick
+                        )
+                    }
 
                     MarginVertical(margin = 12.dp)
                 }

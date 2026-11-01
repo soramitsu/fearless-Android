@@ -4,18 +4,30 @@ import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.utils.utilityAsset
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.data.network.subquery.HistoryNotSupportedException
 import jp.co.soramitsu.wallet.impl.data.network.subquery.OperationsHistoryApi
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
+import java.net.URI
+
+private const val OKLINK_HTTPS_PORT = 443
 
 class OkLinkHistorySource(
     private val walletOperationsApi: OperationsHistoryApi,
     private val historyUrl: String
 ) : HistorySource {
+    init {
+        val endpoint = URI(historyUrl)
+        require(
+            endpoint.scheme == "https" && endpoint.host == "www.oklink.com" &&
+                endpoint.port in listOf(-1, OKLINK_HTTPS_PORT) && endpoint.userInfo == null && endpoint.fragment == null &&
+                endpoint.rawPath == "/api/v5/explorer/address/transaction-list"
+        ) { "Invalid OKLink history endpoint" }
+    }
+
     override suspend fun getOperations(
         pageSize: Int,
         cursor: String?,

@@ -30,7 +30,12 @@ import jp.co.soramitsu.staking.impl.presentation.validators.current.model.Nomina
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioInteractor
 import jp.co.soramitsu.wallet.api.presentation.formatters.formatCryptoFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.Token
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
@@ -52,10 +57,26 @@ class CurrentValidatorsViewModel @Inject constructor(
     private val setupStakingSharedState: SetupStakingSharedState
 ) : BaseViewModel() {
 
-    private val groupedCurrentValidatorsFlow = stakingRelayChainScenarioInteractor.selectedAccountStakingStateFlow()
-        .filterIsInstance<StakingState.Stash>()
-        .flatMapLatest(currentValidatorsInteractor::nominatedValidatorsFlow)
-        .inBackground()
+    private val reload = MutableStateFlow(0)
+
+    // A list that cannot be read (a Hub's exposures or slash warnings, for one) shows Retry instead of closing the
+    // app. A read that times out has failed; only this screen's own cancellation ends it silently.
+    private val groupedCurrentValidatorsFlow = reload.flatMapLatest {
+        stakingRelayChainScenarioInteractor.selectedAccountStakingStateFlow()
+            .filterIsInstance<StakingState.Stash>()
+            .flatMapLatest(currentValidatorsInteractor::nominatedValidatorsFlow)
+            .inBackground()
+            .catch { failure ->
+                currentCoroutineContext().ensureActive()
+                showError(
+                    title = resourceManager.getString(jp.co.soramitsu.common.R.string.common_error_general_title),
+                    message = failure.takeUnless { it is CancellationException }?.message
+                        ?: resourceManager.getString(jp.co.soramitsu.common.R.string.common_error_general_message),
+                    positiveButtonText = resourceManager.getString(jp.co.soramitsu.common.R.string.common_retry),
+                    positiveClick = { reload.update { it + 1 } }
+                )
+            }
+    }
         .share()
 
     private val flattenCurrentValidators = groupedCurrentValidatorsFlow

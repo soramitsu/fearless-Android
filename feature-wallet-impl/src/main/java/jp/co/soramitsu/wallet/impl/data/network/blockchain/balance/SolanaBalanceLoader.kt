@@ -7,7 +7,6 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
-import jp.co.soramitsu.common.data.network.solana.SolanaRpcRoutes
 import jp.co.soramitsu.common.data.network.solana.SolanaBalanceSource
 import jp.co.soramitsu.common.data.network.solana.SolanaBalanceSyncResult
 import jp.co.soramitsu.common.model.AssetDiscoveryCoverage
@@ -20,6 +19,7 @@ import jp.co.soramitsu.runtime.ext.universalWalletSolanaIndexerNetwork
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.api.data.BalanceLoader
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
+import jp.co.soramitsu.wallet.impl.data.repository.tranfser.NativeSendRpcEndpoints
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -84,13 +84,14 @@ class SolanaBalanceLoader(
         currentCoroutineContext().ensureActive()
         scanStateStore?.scanStarted(metaAccount.id, chain.id, AssetDiscoveryCoverage.Complete)
         val result = try {
-            val selected = requireNotNull(chain.nodes.singleOrNull { it.isActive }) { "Selected endpoint unavailable" }
-            val baseUrl = SolanaRpcRoutes.normalizeRpcUrl(selected.url)
+            // The selected node first, then the same ordered failover the send path uses.
+            val endpoints = NativeSendRpcEndpoints.resolve(chain)
             solanaBalanceSync.balances(
                 wallet = address,
                 network = network,
-                baseUrl = baseUrl,
-                includeTokenMetadata = true
+                baseUrl = endpoints.first(),
+                includeTokenMetadata = true,
+                fallbackUrls = endpoints.drop(1)
             )
         } catch (error: CancellationException) {
             throw error
@@ -117,7 +118,13 @@ class SolanaBalanceLoader(
                 .groupBy(UniversalWalletIndexedAssetBalance::assetId)
                 .values
                 .map { balances -> balances.first().toUnverifiedSolanaAsset() }
-            val availableAssets = (chain.assets + discoveredAssets).distinctBy(Asset::id)
+            // Without a token inventory only SOL is current. Token rows get no update, so they keep their
+            // last-known amounts instead of being zeroed, and the network is marked outdated below.
+            val availableAssets = if (result.tokensAvailable) {
+                (chain.assets + discoveredAssets).distinctBy(Asset::id)
+            } else {
+                chain.assets.filter { matchesNativeSolanaIdentity(it, network) }
+            }
             val updates = availableAssets.map { asset ->
                 val indexedBalance = indexedBalanceForAsset(asset, network, result)
                 val freeInPlanks = when {
@@ -149,7 +156,11 @@ class SolanaBalanceLoader(
             currentCoroutineContext().ensureActive()
             persistDiscoveredAssets(discoveredAssets)
             currentCoroutineContext().ensureActive()
-            scanStateStore?.scanSucceeded(metaAccount.id, chain.id, AssetDiscoveryCoverage.Complete)
+            if (result.tokensAvailable) {
+                scanStateStore?.scanSucceeded(metaAccount.id, chain.id, AssetDiscoveryCoverage.Complete)
+            } else {
+                scanStateStore?.scanFailed(metaAccount.id, chain.id, AssetDiscoveryCoverage.Limited, errorMessage = null)
+            }
             updates
         } catch (error: CancellationException) {
             throw error

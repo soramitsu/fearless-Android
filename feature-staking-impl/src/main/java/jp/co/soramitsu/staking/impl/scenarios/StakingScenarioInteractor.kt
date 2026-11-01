@@ -24,6 +24,7 @@ import jp.co.soramitsu.staking.impl.presentation.staking.balance.model.StakingBa
 import jp.co.soramitsu.staking.impl.presentation.staking.balance.rebond.RebondKind
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.Optional
@@ -32,6 +33,9 @@ import jp.co.soramitsu.core.models.Asset as CoreAsset
 interface StakingScenarioInteractor {
 
     suspend fun observeNetworkInfoState(): Flow<NetworkInfo>
+
+    /** The unbonding period shown before an unbond, in hours; it never waits on the network's minimum stake. */
+    suspend fun unbondingPeriodInHours(): Int = observeNetworkInfoState().first().lockupPeriodInHours
 
     fun stakingStateFlow(): Flow<StakingState>
     suspend fun getMinimumStake(chainAsset: CoreAsset): BigInteger

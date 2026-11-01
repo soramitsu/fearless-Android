@@ -6,10 +6,12 @@ import jp.co.soramitsu.fearless_utils.common.TestAddressBytes
 import jp.co.soramitsu.fearless_utils.common.TestGeneses
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
+import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,6 +40,16 @@ class JsonSeedEncoderTest {
     @Test
     fun `should encode ethereum`() {
         performTest(MultiChainEncryption.Ethereum)
+    }
+
+    @Test
+    fun `should encode a derived ed25519 account with its own secret`() {
+        performDerivedTest(EncryptionType.ED25519)
+    }
+
+    @Test
+    fun `should encode a derived ecdsa account with its own secret`() {
+        performDerivedTest(EncryptionType.ECDSA)
     }
 
     @Test
@@ -72,5 +84,29 @@ class JsonSeedEncoderTest {
                 assertArrayEquals(seedExpected, it)
             }
         }
+    }
+
+    // The app passes the root seed with a derived keypair. The file must still open the derived
+    // account, and must not carry the root seed, which opens every account derived from it.
+    private fun performDerivedTest(encryptionType: EncryptionType) {
+        val rootSeed = TestData.SEED_BYTES
+        val junctions = SubstrateJunctionDecoder.decode("//1").junctions
+        val keypairExpected = SubstrateKeypairFactory.generate(encryptionType, rootSeed, junctions)
+
+        val json = encoder.generate(
+            keypair = keypairExpected,
+            seed = rootSeed,
+            password = PASSWORD,
+            name = NAME,
+            multiChainEncryption = MultiChainEncryption.Substrate(encryptionType),
+            address = keypairExpected.publicKey.toAddress(TestAddressBytes.WESTEND),
+            genesisHash = TestGeneses.WESTEND
+        )
+
+        val decoded = decoder.decode(json, PASSWORD)
+
+        assertArrayEquals(keypairExpected.publicKey, decoded.keypair.publicKey)
+        assertArrayEquals(keypairExpected.privateKey, decoded.keypair.privateKey)
+        assertFalse(rootSeed.contentEquals(decoded.seed))
     }
 }

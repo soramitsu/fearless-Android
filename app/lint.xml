@@ -2,12 +2,13 @@
 <lint>
     <!--
         TrustAllX509TrustManager stays fatal (app/build.gradle) for app code and every other
-        dependency. google-http-client, the transport of the 4.2.0 Google Drive backup engine,
-        ships SslUtils.trustAllTrustManager() for NetHttpTransport.Builder.doNotValidateCertificate();
+        dependency. Reviewed google-http-client 2.2.0 still ships SslUtils.trustAllSSLContext()
+        for NetHttpTransport.Builder.doNotValidateCertificate();
         the backup module builds its transport with the validating NetHttpTransport.Builder().build()
-        and never calls it. 4.2.0 shipped the same jar. A version bump must be reviewed here again.
+        and never calls it. Default HTTPS certificate and hostname validation remain enabled.
+        A version bump must be reviewed here again.
     -->
     <issue id="TrustAllX509TrustManager">
-        <ignore path="**/google-http-client-1.43.3.jar" />
+        <ignore path="**/google-http-client-2.2.0.jar" />
     </issue>
 </lint>

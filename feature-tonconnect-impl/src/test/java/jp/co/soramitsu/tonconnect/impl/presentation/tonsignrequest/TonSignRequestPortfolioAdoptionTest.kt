@@ -7,6 +7,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
@@ -14,16 +15,20 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.PortfolioBalance
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.common.address.AddressIconGenerator
+import jp.co.soramitsu.common.compose.component.SigningSummaryViewState
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.model.ConnectionSource
+import jp.co.soramitsu.feature_tonconnect_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
 import jp.co.soramitsu.tonconnect.api.model.DappConfig
 import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
+import jp.co.soramitsu.tonconnect.impl.presentation.featureToggleStore
+import jp.co.soramitsu.tonconnect.impl.presentation.pauseTonSigning
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -71,6 +76,7 @@ class TonSignRequestPortfolioAdoptionTest {
         every { this@mockk.icon } returns "ton-icon"
     }
     private val viewModels = mutableListOf<TonSignRequestViewModel>()
+    private val featureToggles = featureToggleStore()
 
     @Before
     fun setup() {
@@ -227,6 +233,44 @@ class TonSignRequestPortfolioAdoptionTest {
     }
 
     @Test
+    fun signingWaitsForTheDecodedRequestSummary() = runTest(dispatcher) {
+        val decoded = CompletableDeferred<SigningSummaryViewState>()
+        val summaries = mockk<TonSignRequestSummaries>()
+        coEvery { summaries.summary(chain, any(), any()) } coAnswers { decoded.await() }
+        balances.value = ready("Request wallet")
+        val vm = create(dapp(7), summaries)
+        runCurrent()
+        vm.onPreviewClick()
+        runCurrent()
+        assertNull((vm.state.value as TonSignPreviewViewState).summary)
+        vm.onSignClick()
+        runCurrent()
+        coVerify(exactly = 0) { interactor.signMessage(any(), any(), any(), any()) }
+
+        decoded.complete(SigningSummaryViewState("Transfer · 1 TON", emptyList(), emptyList(), showsRawData = false))
+        runCurrent()
+        val preview = vm.state.value as TonSignPreviewViewState
+        assertEquals("Transfer · 1 TON", preview.summary?.headline)
+        assertTrue(preview.tableItems.none { it.clickState != null })
+        vm.onSignClick()
+        runCurrent()
+        coVerify(exactly = 1) { interactor.signMessage(chain, "sendTransaction", any(), 7) }
+    }
+
+    @Test
+    fun undecodedRequestOffersRawDataBeforeSigning() = runTest(dispatcher) {
+        balances.value = ready("Request wallet")
+        val vm = create(dapp(7))
+        runCurrent()
+        assertEquals("text-${R.string.common_unknown}", (vm.state.value as TonSignRequestViewState).message.subtitle)
+        vm.onPreviewClick()
+        runCurrent()
+        val preview = vm.state.value as TonSignPreviewViewState
+        assertTrue(preview.summary?.showsRawData == true)
+        assertEquals(1, preview.tableItems.count { it.clickState != null })
+    }
+
+    @Test
     fun failedSigningDisplaysErrorAndReleasesLoadingForRetry() = runTest(dispatcher) {
         balances.value = ready("Request wallet")
         val vm = create(dapp(7))
@@ -259,6 +303,45 @@ class TonSignRequestPortfolioAdoptionTest {
         assertFalse((vm.state.value as TonSignPreviewViewState).loading)
         assertNull(vm.errorLiveData.value)
         verify(exactly = 0) { router.backWithResult(any()) }
+    }
+
+    @Test
+    fun pausedTonSigningSaysWhyAndNeverSigns() = runTest(dispatcher) {
+        featureToggles.pauseTonSigning()
+        balances.value = ready("Request wallet")
+        val vm = create(dapp(7))
+        runCurrent()
+        val dialog = requireNotNull(vm.errorDialogStateLiveData.value).peekContent()
+        assertEquals("text-${R.string.signing_refused_paused}", dialog.message)
+        vm.onPreviewClick()
+        runCurrent()
+        vm.onSignClick()
+        runCurrent()
+        coVerify(exactly = 0) { interactor.signMessage(any(), any(), any(), any()) }
+
+        dialog.positiveClick()
+        val result = slot<Pair<String, Any?>>()
+        verify { router.backWithResult(capture(result)) }
+        assertEquals(TonSignRequestFragment.TON_SIGN_RESULT_KEY, result.captured.first)
+        assertTrue((result.captured.second as Result<*>).isFailure)
+    }
+
+    @Test
+    fun tonSigningPausedWhileTheRequestIsShownIsNotSigned() = runTest(dispatcher) {
+        balances.value = ready("Request wallet")
+        val vm = create(dapp(7))
+        runCurrent()
+        vm.onPreviewClick()
+        runCurrent()
+        assertNull(vm.errorDialogStateLiveData.value)
+
+        featureToggles.pauseTonSigning()
+        vm.onSignClick()
+        runCurrent()
+
+        coVerify(exactly = 0) { interactor.signMessage(any(), any(), any(), any()) }
+        assertEquals("text-${R.string.signing_refused_paused}", vm.errorDialogStateLiveData.value?.peekContent()?.message)
+        assertFalse((vm.state.value as TonSignPreviewViewState).loading)
     }
 
     @Test
@@ -318,7 +401,10 @@ class TonSignRequestPortfolioAdoptionTest {
         coVerify(exactly = 0) { interactor.signMessage(any(), any(), any(), any()) }
     }
 
-    private fun create(dapp: DappModel): TonSignRequestViewModel = TonSignRequestViewModel(
+    private fun create(
+        dapp: DappModel,
+        summaries: TonSignRequestSummaries = TonSignRequestSummaries(resources) { _, _ -> emptyMap() }
+    ): TonSignRequestViewModel = TonSignRequestViewModel(
         SavedStateHandle(
             mapOf(
                 TonSignRequestFragment.TON_SIGN_REQUEST_KEY to mockk<TonConnectSignRequest>(),
@@ -326,11 +412,13 @@ class TonSignRequestPortfolioAdoptionTest {
                 TonSignRequestFragment.METHOD_KEY to "sendTransaction"
             )
         ),
+        featureToggles,
         total,
         router,
         resources,
         icons,
-        interactor
+        interactor,
+        summaries
     ).also(viewModels::add)
 
     private fun ready(

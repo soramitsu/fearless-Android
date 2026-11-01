@@ -1,9 +1,13 @@
 package jp.co.soramitsu.app.root.presentation
 
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
+import androidx.core.os.bundleOf
 import androidx.lifecycle.Lifecycle
+import androidx.navigation.NavController
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
@@ -809,6 +813,11 @@ class WalletGateActivityLifecycleTest {
             // the content URI and MIME type that the handoff must preserve.
             setDataAndType(sourceUri, "application/json")
             putExtra("entry", "hostile-flags")
+            addCategory(Intent.CATEGORY_BROWSABLE)
+            clipData = ClipData.newRawUri(
+                "hostile",
+                Uri.parse("content://jp.co.soramitsu.test/other-wallet.json")
+            )
             selector = Intent(
                 Intent.ACTION_VIEW,
                 Uri.parse("https://attacker.invalid/selector")
@@ -842,13 +851,138 @@ class WalletGateActivityLifecycleTest {
         assertEquals(Intent.ACTION_VIEW, handoff.action)
         assertEquals(sourceUri, handoff.data)
         assertEquals("application/json", handoff.type)
-        assertEquals("hostile-flags", handoff.getStringExtra("entry"))
+        // This used to assert that the caller's extras survived. The wallet
+        // graph handles its host Intent as a deep link, so no caller extra,
+        // clip data entry or category may cross the handoff.
+        assertNull(handoff.extras)
+        assertNull(handoff.clipData)
+        assertNull(handoff.categories)
         assertEquals(
             WalletGateActivityTestHost::class.java.name,
             handoff.component?.className
         )
         assertNull(handoff.`package`)
         assertNull(handoff.selector)
+    }
+
+    @Test
+    fun internalHandoffDropsNavigationDeepLinkExtras() {
+        val source = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_LAUNCHER)
+            // Exactly what NavController.handleDeepLink() reads from the
+            // NavHost Activity's Intent when the wallet graph is created.
+            putExtra(
+                NavController.KEY_DEEP_LINK_IDS,
+                intArrayOf(R.id.main_nav_graph, R.id.mainFragment)
+            )
+            putParcelableArrayListExtra(
+                NavController.KEY_DEEP_LINK_ARGS,
+                arrayListOf(Bundle(), bundleOf("marketId" to "hostile"))
+            )
+            putExtra(
+                NavController.KEY_DEEP_LINK_EXTRAS,
+                bundleOf("entry" to "hostile-deep-link")
+            )
+            putExtra(
+                NavController.KEY_DEEP_LINK_INTENT,
+                Intent(Intent.ACTION_VIEW, Uri.parse("fearless-wallet-wc://request"))
+            )
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+
+        listOf(
+            source,
+            Intent(source)
+                .setAction(Intent.ACTION_VIEW)
+                .setData(Uri.parse("fearless://buy-success"))
+        ).forEach { hostile ->
+            val handoff = hostile.toWalletInternalHandoff(
+                context = appContext(),
+                target = WalletRootActivity::class.java
+            )
+
+            assertNull(handoff.extras)
+            assertFalse(handoff.hasExtra(NavController.KEY_DEEP_LINK_IDS))
+            assertNull(handoff.categories)
+            assertEquals(WALLET_HANDOFF_TASK_FLAGS, handoff.flags)
+            assertEquals(
+                WalletRootActivity::class.java.name,
+                handoff.component?.className
+            )
+        }
+    }
+
+    @Test
+    fun internalHandoffDropsNonAllowlistedUris() {
+        val grantFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+            Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+        listOf(
+            "fearless-wallet-wc://request" to null,
+            "fearless://onboarding/importAccountFragment/0" to null,
+            "fearless://onboarding/createAccountFragment/Substrate" to null,
+            "fearless://staking/setControllerAccountFragment/polkadot" to null,
+            "fearless://defi/polkamarkt/1" to null,
+            "fearless://buy-success@defi/polkamarkt/1" to null,
+            "FEARLESS://buy-success" to null,
+            "https://attacker.invalid/ton-connect/x" to null,
+            "https://fearlesswallet.io/web-viewer?url=https://attacker.invalid" to null,
+            "javascript://fearlesswallet.io/ton-connect/%0Aalert(1)" to null,
+            "file:///sdcard/Download/wallet.json" to "application/json",
+            "content://jp.co.soramitsu.test/wallet.json" to "text/plain",
+            "content://jp.co.soramitsu.test/wallet.json" to null
+        ).forEach { (link, type) ->
+            val source = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(Uri.parse(link), type)
+                addFlags(grantFlags)
+            }
+
+            val handoff = source.toWalletInternalHandoff(
+                context = appContext(),
+                target = WalletRootActivity::class.java
+            )
+
+            assertEquals(link, Intent.ACTION_MAIN, handoff.action)
+            assertNull(link, handoff.data)
+            assertNull(link, handoff.type)
+            assertNull(link, handoff.extras)
+            assertEquals(link, WALLET_HANDOFF_TASK_FLAGS, handoff.flags)
+        }
+    }
+
+    @Test
+    fun internalHandoffKeepsOnlyAllowlistedEntryData() {
+        listOf(
+            "fearless://buy-success?transactionStatus=completed",
+            "https://fearlesswallet.io/ton-connect/v2?id=1"
+        ).forEach { link ->
+            val source = Intent(Intent.ACTION_VIEW, Uri.parse(link)).apply {
+                addCategory(Intent.CATEGORY_BROWSABLE)
+                putExtra("entry", "hostile-extra")
+                // A grant flag means nothing for these schemes; it must not
+                // ride along with the handoff either.
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+
+            val handoff = source.toWalletInternalHandoff(
+                context = appContext(),
+                target = WalletRootActivity::class.java
+            )
+            // WalletRootActivity reduces its own Intent again in onCreate and
+            // onNewIntent; the reduction must be stable.
+            val rootIntent = handoff.toWalletInternalHandoff(
+                context = appContext(),
+                target = WalletRootActivity::class.java
+            )
+
+            listOf(handoff, rootIntent).forEach { reduced ->
+                assertEquals(link, Intent.ACTION_VIEW, reduced.action)
+                assertEquals(link, Uri.parse(link), reduced.data)
+                assertNull(link, reduced.type)
+                assertNull(link, reduced.extras)
+                assertNull(link, reduced.categories)
+                assertEquals(link, WALLET_HANDOFF_TASK_FLAGS, reduced.flags)
+            }
+        }
     }
 
     private fun launcherIntent(entry: String): Intent {
@@ -870,5 +1004,10 @@ class WalletGateActivityLifecycleTest {
 
     private fun waitForIdle() {
         InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+    }
+
+    private companion object {
+        const val WALLET_HANDOFF_TASK_FLAGS =
+            Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
     }
 }

@@ -1469,7 +1469,7 @@ expect_failure \
 if [[ "$signer_mode" == "keystore" ]]; then
 rewrite_unsigned \
   "$fixture" "$temporary_dir/wrong-version.aab" \
-  base/manifest/AndroidManifest.xml 4.2.0-ias 9.9.9-ias
+  base/manifest/AndroidManifest.xml 4.3.1-ias 9.9.9-ias
 resign_with_debug_key "$temporary_dir/wrong-version.aab"
 expect_failure \
   "mutated embedded version" \

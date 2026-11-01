@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.data.storage.pin
 
+import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.WalletMasterKeyAttestation
 import jp.co.soramitsu.testshared.HashMapEncryptedPreferences
 import org.junit.Assert.assertEquals
@@ -9,8 +10,10 @@ class WalletEmergencyAuthenticatorTest {
 
     private val preferences = InMemoryPreferences()
     private val encryptedPreferences = HashMapEncryptedPreferences()
-    private var now = 1_000_000L
-    private val authenticator = WalletEmergencyAuthenticator(preferences, encryptedPreferences) { now }
+    private var sinceBoot = 1_000_000L
+    private val wallClock = 1_800_000_000_000L
+    private val clock = PinAttemptClock(wallClock = { wallClock }, sinceBoot = { sinceBoot })
+    private val authenticator = WalletEmergencyAuthenticator(preferences, encryptedPreferences, clock)
 
     @Test
     fun `the wallet PIN unlocks without the wallet database`() {
@@ -23,35 +26,71 @@ class WalletEmergencyAuthenticatorTest {
     @Test
     fun `failed guesses share the PIN screen lockout`() {
         encryptedPreferences.putEncryptedString(WalletMasterKeyAttestation.PIN_CODE_KEY, PIN)
-        // Four failures on the PIN screen, one here: the fifth locks both.
-        val screenLimiter = PinAttemptLimiter(preferences) { now }
+        // Four failures on the PIN screen, one here: the fifth delays both.
+        val screenLimiter = PinAttemptLimiter(preferences, clock)
         repeat(4) { screenLimiter.registerFailure() }
 
-        assertEquals(
-            WalletEmergencyAuthentication.LockedUntil(now + 30_000),
-            authenticator.authenticate("000000")
-        )
-        // Even the right PIN waits for the lock.
-        assertEquals(
-            WalletEmergencyAuthentication.LockedUntil(now + 30_000),
-            authenticator.authenticate(PIN)
-        )
-        assertEquals(now + 30_000, screenLimiter.lockedUntil())
+        assertEquals(WalletEmergencyAuthentication.Locked(30_000), authenticator.authenticate("000000"))
+        // Even the right PIN waits for the delay.
+        sinceBoot += 10_000
+        assertEquals(WalletEmergencyAuthentication.Locked(20_000), authenticator.authenticate(PIN))
+        assertEquals(20_000L, screenLimiter.remainingDelayMillis())
 
-        now += 30_000
+        sinceBoot += 20_000
         assertEquals(WalletEmergencyAuthentication.Authenticated, authenticator.authenticate(PIN))
-        assertEquals(null, screenLimiter.lockedUntil())
+        assertEquals("The emergency success clears the PIN screen's count", 0L, screenLimiter.registerFailure())
     }
 
     @Test
-    fun `lock doubles and is capped at fifteen minutes`() {
-        val limiter = PinAttemptLimiter(preferences) { now }
-        repeat(5) { limiter.registerFailure() }
-        assertEquals(now + 30_000, limiter.lockedUntil())
-        limiter.registerFailure()
-        assertEquals(now + 60_000, limiter.lockedUntil())
-        repeat(20) { limiter.registerFailure() }
-        assertEquals(now + 15 * 60_000, limiter.lockedUntil())
+    fun `emergency guesses delay the PIN screen and keep counting`() {
+        encryptedPreferences.putEncryptedString(WalletMasterKeyAttestation.PIN_CODE_KEY, PIN)
+        repeat(4) { assertEquals(WalletEmergencyAuthentication.WrongPin, authenticator.authenticate("000000")) }
+        assertEquals(WalletEmergencyAuthentication.Locked(30_000), authenticator.authenticate("000000"))
+        val screenLimiter = PinAttemptLimiter(preferences, clock)
+        assertEquals(30_000L, screenLimiter.remainingDelayMillis())
+
+        sinceBoot += 30_000
+        assertEquals(WalletEmergencyAuthentication.Locked(60_000), authenticator.authenticate("000000"))
+        sinceBoot += 60_000
+        assertEquals("The PIN screen continues the count", 120_000L, screenLimiter.registerFailure())
+        assertEquals(WalletEmergencyAuthentication.Locked(120_000), authenticator.authenticate(PIN))
+    }
+
+    @Test
+    fun `lock doubles and is capped at five minutes`() {
+        encryptedPreferences.putEncryptedString(WalletMasterKeyAttestation.PIN_CODE_KEY, PIN)
+        val expected = listOf(30_000L, 60_000, 120_000, 240_000, 300_000, 300_000, 300_000)
+        repeat(4) { authenticator.authenticate("000000") }
+        expected.forEach { delay ->
+            assertEquals(WalletEmergencyAuthentication.Locked(delay), authenticator.authenticate("000000"))
+            sinceBoot += delay
+        }
+    }
+
+    @Test
+    fun `no PIN is read while a delay runs`() {
+        encryptedPreferences.putEncryptedString(WalletMasterKeyAttestation.PIN_CODE_KEY, PIN)
+        val reads = mutableListOf<String>()
+        val observed = object : EncryptedPreferences by encryptedPreferences {
+            override fun getDecryptedString(field: String): String? {
+                reads += field
+                return encryptedPreferences.getDecryptedString(field)
+            }
+        }
+        val observedAuthenticator = WalletEmergencyAuthenticator(preferences, observed, clock)
+        repeat(5) { observedAuthenticator.authenticate("000000") }
+        assertEquals(5, reads.size)
+
+        repeat(3) { assertEquals(WalletEmergencyAuthentication.Locked(30_000), observedAuthenticator.authenticate(PIN)) }
+        assertEquals(5, reads.size)
+    }
+
+    @Test
+    fun `an unreadable PIN is no wrong guess`() {
+        encryptedPreferences.putEncryptedString(WalletMasterKeyAttestation.PIN_CODE_KEY, "")
+        repeat(10) { assertEquals(WalletEmergencyAuthentication.Unavailable, authenticator.authenticate("000000")) }
+        assertEquals(0L, PinAttemptLimiter(preferences, clock).remainingDelayMillis())
+        assertEquals(0L, PinAttemptLimiter(preferences, clock).registerFailure())
     }
 
     @Test
@@ -76,12 +115,12 @@ class WalletEmergencyAuthenticatorTest {
             override fun getDecryptedString(field: String): String? = throw ClassCastException("test wrong type")
         }
         assertEquals(WalletEmergencyAuthentication.Unavailable,
-            WalletEmergencyAuthenticator(preferences, wrongType) { now }.authenticate(PIN))
+            WalletEmergencyAuthenticator(preferences, wrongType, clock).authenticate(PIN))
         val providerFailure = object : jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences by encryptedPreferences {
             override fun getDecryptedString(field: String): String? = throw jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageUnavailableException("test provider failure")
         }
         org.junit.Assert.assertThrows(jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageUnavailableException::class.java) {
-            WalletEmergencyAuthenticator(preferences, providerFailure) { now }.authenticate(PIN)
+            WalletEmergencyAuthenticator(preferences, providerFailure, clock).authenticate(PIN)
         }
     }
 

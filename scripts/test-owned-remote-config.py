@@ -115,6 +115,90 @@ class OwnedConfigTest(unittest.TestCase):
         path.write_text(json.dumps({'registry': {'source': old}, 'icon': old}))
         self.rejected()
 
+    def put_feature_toggle(self, document):
+        (self.root / 'remote-config/production/appConfigs').mkdir(parents=True, exist_ok=True)
+        self.put('production/appConfigs/feature_toggle', json.dumps(document).encode())
+        self.save()
+
+    def test_boolean_feature_switches(self):
+        self.put_feature_toggle({'dapp_enabled': False, 'ton_dapp_signing_enabled': True, 'mutation_authorization': 'token'})
+        self.assertEqual(3, VERIFY.verify(self.root))
+
+    def test_string_feature_switch(self):
+        self.put_feature_toggle({'evm_dapp_signing_enabled': 'false'})
+        self.rejected()
+
+    def test_number_feature_switch(self):
+        self.put_feature_toggle({'polkadot_dapp_signing_enabled': 0})
+        self.rejected()
+
+    def test_feature_toggle_not_an_object(self):
+        self.put_feature_toggle([{'solana_send_enabled': False}])
+        self.rejected()
+
+    def put_catalogue(self, chains):
+        (self.root / 'remote-config/production/chains/v13').mkdir(parents=True, exist_ok=True)
+        self.put('production/chains/v13/chains.json', json.dumps(chains).encode())
+        self.save()
+
+    def hub(self, staking=VERIFY.HUB_STAKING, **changes):
+        chain_id = '68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f'
+        relay, native = VERIFY.STAKING_HUBS[chain_id]
+        asset = {'id': native, 'isUtility': True, 'staking': staking}
+        asset.update(changes.pop('asset', {}))
+        chain = {'chainId': chain_id, 'parentId': relay, 'options': ['utilityFeePayment'], 'assets': [asset]}
+        chain.update(changes)
+        return chain
+
+    def test_hub_native_staking_switch(self):
+        self.put_catalogue([self.hub(), self.hub(staking=None)])
+        self.assertEqual(3, VERIFY.verify(self.root))
+
+    def test_hub_switch_on_foreign_asset(self):
+        self.put_catalogue([self.hub(asset={'id': 'foreign', 'isUtility': False})])
+        self.rejected()
+
+    def test_hub_switch_with_currency(self):
+        self.put_catalogue([self.hub(asset={'currencyId': '1984'})])
+        self.rejected()
+
+    def test_hub_switch_under_another_relay(self):
+        self.put_catalogue([self.hub(parentId='b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe')])
+        self.rejected()
+
+    def test_hub_switch_on_unrelated_chain(self):
+        self.put_catalogue([self.hub(chainId='unrelated')])
+        self.rejected()
+
+    def test_relay_era_staking_values_on_migrated_networks(self):
+        for staking in ('relaychain', 'parachain', 'AssetHub'):
+            self.put_catalogue([self.hub(staking=staking)])
+            self.rejected()
+        relay = {'chainId': '91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3', 'assets': [{'id': 'dot', 'staking': 'relaychain'}]}
+        self.put_catalogue([relay])
+        self.rejected()
+
+    def test_pool_and_crowdloan_options_on_migrated_networks(self):
+        for option in ('poolStaking', 'crowdloans'):
+            self.put_catalogue([self.hub(options=[option])])
+            self.rejected()
+            self.put_catalogue([{'chainId': 'b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe', 'options': [option], 'assets': []}])
+            self.rejected()
+
+    def test_other_networks_keep_their_staking(self):
+        self.put_catalogue([{'chainId': 'ternoa', 'options': ['poolStaking'], 'assets': [{'id': 'caps', 'staking': 'relaychain'}]}])
+        self.assertEqual(3, VERIFY.verify(self.root))
+
+    def test_catalogue_not_an_array(self):
+        self.put_catalogue({'chains': []})
+        self.rejected()
+
+    def test_repository_catalogues_switch_only_polkadot_and_kusama_hub_natives(self):
+        for path in ('production/chains/v13/chains.json', 'development/chains/v13/chains_dev_prod.json', 'development/chains/v13/chains_dev.json'):
+            chains = json.loads((ROOT / 'remote-config' / path).read_text())
+            switched = sorted((chain['name'], asset['symbol']) for chain in chains for asset in chain.get('assets') or [] if asset.get('staking') == VERIFY.HUB_STAKING)
+            self.assertEqual([('Kusama AssetHub', 'ksm'), ('Polkadot AssetHub', 'dot')], switched, path)
+
     def test_imported_repository(self):
         self.assertGreater(VERIFY.verify(ROOT), 600)
 

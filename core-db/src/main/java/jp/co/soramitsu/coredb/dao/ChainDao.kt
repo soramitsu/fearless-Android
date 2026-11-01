@@ -501,6 +501,40 @@ abstract class ChainDao {
     @Query("UPDATE chain_nodes SET isActive = 1 WHERE chainId = :chainId AND url = :nodeUrl")
     protected abstract suspend fun makeNodeSelected(chainId: String, nodeUrl: String)
 
+    /**
+     * Automatic failover for an unreachable catalog node. Admit it with [EndpointMutationLane.admitObserved]
+     * from the settled runtime read that configured the failing transport, so it retires no pending intent
+     * and any explicit or catalog intent since then wins. It moves only a selected catalog row whose URL is
+     * [unreachableUrl], to the next catalog row by rowid (wrapping to the first), and only while [isAllowed]
+     * still holds inside the writer. A custom selection is the user's own and is never replaced. Returns
+     * whether the selection moved.
+     */
+    suspend fun selectNextCatalogNode(operation: EndpointMutationLane.Operation, chainId: String,
+        unreachableUrl: String, isAllowed: () -> Boolean): Boolean =
+        endpointMutationLane.withOperation(operation) {
+            selectNextCatalogNodeTransaction(operation, chainId, unreachableUrl, isAllowed)
+        }
+
+    @Transaction
+    protected open suspend fun selectNextCatalogNodeTransaction(operation: EndpointMutationLane.Operation, chainId: String,
+        unreachableUrl: String, isAllowed: () -> Boolean): Boolean {
+        endpointMutationLane.requireOwnedTargets(operation, listOf(chainId))
+        // Only scalar row IDs cross the cursor; the failing URL is compared in place.
+        val selected = selectedNodeRowId(chainId)
+        val next = selected?.takeIf { it == nodeRowId(chainId, unreachableUrl) && isCatalogNodeRowId(chainId, it) }
+            ?.let { nextCatalogNodeRowId(chainId, it) ?: firstDefaultNodeRowId(chainId) }
+            ?.takeIf { it != selected && isAllowed() }
+        if (next != null) setSelectedNodeRowId(chainId, next)
+        endpointMutationLane.grantFinal(operation) {}
+        return next != null
+    }
+
+    @Query("SELECT EXISTS (SELECT 1 FROM chain_nodes WHERE chainId = :chainId AND rowid = :id AND isDefault = 1)")
+    protected abstract suspend fun isCatalogNodeRowId(chainId: String, id: Long): Boolean
+
+    @Query("SELECT rowid FROM chain_nodes WHERE chainId = :chainId AND isDefault = 1 AND rowid > :afterRowId ORDER BY rowid LIMIT 1")
+    protected abstract suspend fun nextCatalogNodeRowId(chainId: String, afterRowId: Long): Long?
+
     /** Explicit deletion preserves a revisioned tombstone, including when the parent is absent. */
     open suspend fun deleteNode(chainId: String, nodeUrl: String) {
         val targets = listOf(chainId)

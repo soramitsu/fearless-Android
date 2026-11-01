@@ -1,10 +1,13 @@
 package jp.co.soramitsu.backup.domain
 
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import jp.co.soramitsu.backup.LegacyBackupFixtures
 import jp.co.soramitsu.backup.domain.exceptions.BackupSecretNotVerifiedException
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.backup.domain.models.DecryptedBackupAccount
 import jp.co.soramitsu.backup.domain.models.Json
+import jp.co.soramitsu.core.crypto.SubstratePasswordRule
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
@@ -38,6 +41,43 @@ class BackupSecretVerifierTest {
     @Test
     fun `passes material that restores the wallet unchanged`() {
         assertEquals(mixed, verifier.verifiedForUpload(mixed))
+    }
+
+    // substrate-password-vectors.json default24-unicode: an import may open the account the browser
+    // extension 4.2 made from the path's password (SubstratePasswordRule.NFC).
+    @Test
+    fun `uploads and restores the phrase of a wallet imported under an earlier extension's password rule`() {
+        val vector = substratePasswordVector("default24-unicode")
+        val earlier = DecryptedBackupAccount(
+            name = "Earlier extension wallet",
+            address = vectorAddress(vector, "nfc"),
+            mnemonicPhrase = vector["mnemonic"].asString,
+            substrateDerivationPath = vector["derivationPath"].asString,
+            ethDerivationPath = null,
+            cryptoType = CryptoType.ED25519,
+            backupAccountType = listOf(BackupAccountType.PASSPHRASE)
+        )
+
+        assertEquals(earlier, verifier.verifiedForUpload(earlier))
+        assertEquals(setOf(BackupAccountType.PASSPHRASE), verifier.restoringSecretTypes(earlier))
+        assertEquals(SubstratePasswordRule.NFC, verifier.restoringSubstratePasswordRule(earlier))
+
+        val current = earlier.copy(address = vectorAddress(vector, "nfkd"))
+        assertEquals(SubstratePasswordRule.NFKD, verifier.restoringSubstratePasswordRule(current))
+
+        val other = earlier.copy(address = OTHER_ADDRESS)
+        assertRefused(BackupAccountType.PASSPHRASE, other)
+        assertEquals(emptySet<BackupAccountType>(), verifier.restoringSecretTypes(other))
+        assertNull(verifier.restoringSubstratePasswordRule(other))
+    }
+
+    private fun vectorAddress(vector: JsonObject, rule: String): String =
+        vector["accounts"].asJsonObject[rule].asJsonObject["ed25519"].asJsonObject["ss58Generic"].asString
+
+    private fun substratePasswordVector(id: String): JsonObject {
+        val stream = requireNotNull(javaClass.classLoader?.getResourceAsStream("substrate-password-vectors.json"))
+        val document = stream.bufferedReader(Charsets.UTF_8).use { JsonParser.parseReader(it).asJsonObject }
+        return document["vectors"].asJsonArray.map { it.asJsonObject }.single { it["id"].asString == id }
     }
 
     @Test
@@ -242,7 +282,8 @@ class BackupSecretVerifierTest {
         override fun substrateAccountIdFromMnemonic(
             mnemonic: String,
             derivationPath: String?,
-            cryptoType: CryptoType
+            cryptoType: CryptoType,
+            passwordRule: SubstratePasswordRule
         ): ByteArray {
             mnemonicCalls += Triple(mnemonic, derivationPath, cryptoType)
             return accountId

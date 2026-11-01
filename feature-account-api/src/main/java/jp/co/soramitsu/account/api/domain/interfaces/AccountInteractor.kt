@@ -68,6 +68,12 @@ interface AccountInteractor {
 
     suspend fun isPinCorrect(code: String): Boolean
 
+    /** Milliseconds until a PIN can be checked again after repeated wrong PINs; zero when it can be checked now. */
+    suspend fun getPinRetryDelayMillis(): Long
+
+    /** A biometric unlock clears the wrong-PIN count, as the right PIN does. */
+    suspend fun registerBiometricUnlock()
+
     suspend fun isBiometricEnabled(): Boolean
 
     suspend fun setBiometricOn()
@@ -157,5 +163,12 @@ interface AccountInteractor {
     fun getMnemonic(metaId: Long): Flow<Mnemonic>
     fun getSeedForSeedExport(metaId: Long): Flow<ComponentHolder>
     fun getDerivationPathForExport(metaId: Long): Flow<ComponentHolder>
+
+    /**
+     * The derivation paths a TON export shows: the Substrate one, plus the Ethereum one when it
+     * holds the password the wallet's universal TON key derives with. Without that password the
+     * exported words restore a different TON address.
+     */
+    fun getDerivationPathForTonExport(metaId: Long): Flow<ComponentHolder>
     suspend fun saveChainSelectFilter(metaId: Long, filterValue: String)
 }

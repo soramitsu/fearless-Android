@@ -59,20 +59,12 @@
 -keep class jp.co.soramitsu.backup.** { *; }
 -keep class com.google.api.** { *; }
 -keep class io.opencensus.trace.** { *; }
-#for beacon sdk
 
--keep class it.airgap.beaconsdk.** { *; }
+# JNA (used by the Reown SDK) and kotlinx.serialization
 -keep class com.sun.jna.** { *; }
 -keepclassmembers class * extends com.sun.jna.* { public *; }
 -keepattributes *Annotation*, InnerClasses
 -dontnote kotlinx.serialization.SerializationKt
--keep,includedescriptorclasses class it.airgap.beaconsdk.**$$serializer { *; }
--keepclassmembers class it.airgap.beaconsdk.** {
-    *** Companion;
-}
--keepclasseswithmembers class it.airgap.beaconsdk.** {
-    kotlinx.serialization.KSerializer serializer(...);
-}
 
 # Keep `Companion` object fields of serializable classes.
 # This avoids serializer lookup through `getDeclaredClasses` as done for named companion objects.

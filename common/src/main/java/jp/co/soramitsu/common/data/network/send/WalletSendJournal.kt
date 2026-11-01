@@ -62,6 +62,23 @@ class WalletSendJournal(private val preferences: Preferences) {
         return updated
     }
 
+    /**
+     * Removes a pending payment proven never to land: no node received it, a node refused it before relaying it,
+     * or its blockhash expired with no trace on a node final past that point. Nothing else may remove one.
+     */
+    fun discard(scope: String, expected: PendingWalletSend) = synchronized(storageLock) {
+        require(expected.state == PendingWalletSend.State.Pending)
+        if (read(scope) != expected) fail(WalletSendJournalException.Code.CHANGED_RECORD)
+        val key = PREFIX + scopeHash(scope)
+        val durable = try {
+            preferences.replaceStringsDurably(emptyMap(), setOf(key)) && preferences.getString(key) == null
+        } catch (_: Exception) { false }
+        if (!durable) {
+            durabilityFailed = true
+            fail(WalletSendJournalException.Code.STORAGE_UNAVAILABLE)
+        }
+    }
+
     private fun persist(scope: String, expected: PendingWalletSend?, encoded: String) {
         if (read(scope) != expected) fail(WalletSendJournalException.Code.CHANGED_RECORD)
         val key = PREFIX + scopeHash(scope)

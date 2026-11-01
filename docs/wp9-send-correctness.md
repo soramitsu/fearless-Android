@@ -82,3 +82,37 @@ The UI tests drive production components with fixed public states and callbacks.
 
 1. Independent final integration review and integrated historical/device acceptance.
 2. Broader locale/physical-device and governed release qualification. This lane has performed no funded public-network canary, full imported-wallet navigation acceptance or signed release.
+
+## Shared Solana contract alignment
+
+The Solana send behaviour now matches the contract shared with iOS and the browser extension;
+`docs/solana-send.md` lists each rule with its tests. Changes to the statements above:
+
+- Endpoints are ordered as an optional `https` build provider (`FL_ANDROID_SOLANA_RPC_URL`,
+  mainnet only), the selected node, `api.mainnet-beta.solana.com`, `solana-rpc.publicnode.com`,
+  `public.rpc.solanavibestation.com` (requests spaced 700 ms for its rate limit),
+  then other configured nodes. A user-selected mainnet node is followed by the public nodes;
+  devnet and private clusters stay isolated. Balance loads use the same list.
+- Any HTTP 4xx except 408/429 moves a read or a broadcast to the next endpoint. A broadcast's
+  JSON-RPC error is final only when a node gives it before relaying (-32002, -32003, -32600,
+  -32602, -32700), hands over for -32601, -32004, -32005, -32014 and -32016, and otherwise
+  means the bytes may have been relayed: later endpoints only relay them.
+- A failed token-account read keeps SOL current and leaves token rows at their last amounts.
+- Token-2022 sends are refused with a dedicated message before the quote is built.
+- An existing plain System account at an off-curve address may receive SOL.
+- Broadcast failures are classified as not sent, refused or ambiguous. A first submission that
+  is not sent or refused is released immediately. Endpoints are asked for the outcome at once,
+  15 seconds each. A pending payment is released only when every endpoint that answers proves
+  expiry on its own: finalized progress from one `getEpochInfo` past the blockhash's last valid
+  height, then a signature lookup from a slot at least that recent with no trace. Any confirmed
+  status settles it; any unconfirmed trace, lagging lookup or endpoint not yet past the height
+  keeps it pending, except that with three or more answers an endpoint more than 1,000 finalized
+  slots behind the lower median abstains (its trace still counts).
+- A release ends the call that found it, so the user confirms again before a new payment is
+  signed. The history row closes before the record is removed: as failed only when at least two
+  distinct hosts each proved the expiry within six hours of signing (spellings of one host count
+  once), otherwise as Unknown with a message to check the balance and explorer (the recovery
+  dialog keeps its explorer button).
+- The send screen validates Solana and Bitcoin recipients in their own formats and leaves
+  balance, fee and rent rules to the quote.
+- Without history-service data, the history list says so under the explorer link (Solscan).

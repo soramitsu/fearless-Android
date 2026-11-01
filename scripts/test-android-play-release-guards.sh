@@ -8,7 +8,7 @@ VERIFY="$ROOT_DIR/scripts/verify-android-play-release.sh"
 RESTORE="$ROOT_DIR/scripts/restore-release-overlays.sh"
 CLEANUP="$ROOT_DIR/scripts/cleanup-release-overlays.sh"
 SNAPSHOT="$ROOT_DIR/scripts/emit-verified-release-snapshot.sh"
-EXPECTED_UPLOAD_CERT_SHA256="40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A"
+EXPECTED_UPLOAD_CERT_SHA256="AD6C1D07BE5DFA8C539E8C9B8BD43DC1C6CF79A839828B10B6F953AD57C1BDE8"
 EXPECTED_POSITIVE_COUNT=4
 EXPECTED_NEGATIVE_COUNT=128
 
@@ -270,8 +270,8 @@ verify_static_contract() {
     awk -F= '$1 == "versionCode" { print $2 }' "$version_properties"
   )"
   if [[ ! "$version_code" =~ ^[1-9][0-9]*$ ]] ||
-    (( version_code < 231 )); then
-    static_fail "source-controlled versionCode must be an unused value at least 231"
+    (( version_code < 233 )); then
+    static_fail "source-controlled versionCode must be an unused value at least 233"
   fi
   forbid_text \
     "$root/build.gradle" \
@@ -429,6 +429,7 @@ verify_static_contract() {
     FL_BLAST_API_ETHEREUM_KEY \
     FL_WALLET_CONNECT_PROJECT_ID \
     FL_ANDROID_TON_API_KEY \
+    FL_ANDROID_SOLANA_RPC_URL \
     PLAY_SERVICE_ACCOUNT_JSON_B64 \
     CI_PLAY_KEY \
     "RELEASE_OVERLAY_MODE=firebase"; do
@@ -1946,10 +1947,10 @@ expect_static_failure() {
 positive_count=$((positive_count + 1))
 
 fixture="$(make_fixture version-code-downgrade)"
-replace_once "$fixture/versioning/version.properties" "versionCode=231" "versionCode=230"
+replace_once "$fixture/versioning/version.properties" "versionCode=233" "versionCode=232"
 expect_static_failure \
   "downgraded Play version code" \
-  "versionCode must be an unused value at least 231" \
+  "versionCode must be an unused value at least 233" \
   "$fixture"
 
 fixture="$(make_fixture unexpected-workflow-job)"

@@ -4,6 +4,11 @@ apply plugin: 'kotlin-android'
 apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin-parcelize'
 
+// The type registries decide how calls are encoded, so release builds read only the reviewed ones on master.
+// TYPES_URL_OVERRIDE and DEFAULT_V13_TYPES_URL_OVERRIDE are debug inputs, like CHAINS_URL_DEBUG_OVERRIDE.
+def TYPES_URL_DEFAULT = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/chains/all_chains_types_android.json"
+def DEFAULT_V13_TYPES_URL_DEFAULT = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/chains/default_v13_types.json"
+
 android {
     compileSdkVersion rootProject.compileSdkVersion
 
@@ -12,17 +17,16 @@ android {
         targetSdkVersion rootProject.targetSdkVersion
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        // Allow overriding runtime/type sources to align with specific Polkadot SDK releases
-        def TYPES_URL_DEFAULT = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/chains/all_chains_types_android.json"
-        def DEFAULT_V13_TYPES_URL_DEFAULT = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/chains/default_v13_types.json"
-        def typesUrl = readOptionalSecret("TYPES_URL_OVERRIDE") ?: TYPES_URL_DEFAULT
-        def defaultV13TypesUrl = readOptionalSecret("DEFAULT_V13_TYPES_URL_OVERRIDE") ?: DEFAULT_V13_TYPES_URL_DEFAULT
-        buildConfigField "String", "TYPES_URL", "\"${typesUrl}\""
-        buildConfigField "String", "DEFAULT_V13_TYPES_URL", "\"${defaultV13TypesUrl}\""
     }
 
     buildTypes {
         debug {
+            // Allow overriding runtime/type sources to align with specific Polkadot SDK releases
+            def typesUrl = readOptionalSecret("TYPES_URL_OVERRIDE") ?: TYPES_URL_DEFAULT
+            def defaultV13TypesUrl = readOptionalSecret("DEFAULT_V13_TYPES_URL_OVERRIDE") ?: DEFAULT_V13_TYPES_URL_DEFAULT
+            buildConfigField "String", "TYPES_URL", "\"${typesUrl}\""
+            buildConfigField "String", "DEFAULT_V13_TYPES_URL", "\"${defaultV13TypesUrl}\""
+
             def CHAINS_URL_DEBUG_DEFAULT = "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/development/chains/v13/chains_dev_prod.json"
             def chainsUrlDebug = readOptionalSecret("CHAINS_URL_DEBUG_OVERRIDE") ?: CHAINS_URL_DEBUG_DEFAULT
             buildConfigField "String", "CHAINS_URL", "\"${chainsUrlDebug}\""
@@ -31,8 +35,11 @@ android {
         release {
             // Release discovery is intentionally immutable. Mutable discovery may
             // only narrow APK-approved routes, and the effective-registry audit
-            // attests this exact endpoint. Overrides remain debug-only.
+            // attests this exact endpoint. Overrides remain debug-only, for the
+            // type registries as well.
             buildConfigField "String", "CHAINS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/chains/v13/chains.json\""
+            buildConfigField "String", "TYPES_URL", "\"${TYPES_URL_DEFAULT}\""
+            buildConfigField "String", "DEFAULT_V13_TYPES_URL", "\"${DEFAULT_V13_TYPES_URL_DEFAULT}\""
         }
     }
 
@@ -66,6 +73,13 @@ android {
 
     }
     namespace = 'jp.co.soramitsu.runtime'
+}
+
+// A release build that reads another type registry than the reviewed one fails to configure, whatever the overrides say.
+[TYPES_URL: TYPES_URL_DEFAULT, DEFAULT_V13_TYPES_URL: DEFAULT_V13_TYPES_URL_DEFAULT].each { field, reviewedUrl ->
+    if (android.buildTypes.release.buildConfigFields[field]?.value != "\"${reviewedUrl}\"") {
+        throw new GradleException("Release ${field} must be the reviewed ${reviewedUrl}; type registry overrides are debug-only")
+    }
 }
 
 dependencies {

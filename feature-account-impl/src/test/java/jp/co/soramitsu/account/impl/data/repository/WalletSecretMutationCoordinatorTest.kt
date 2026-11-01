@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageUnavailabl
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.substrateAccountId
+import jp.co.soramitsu.core.crypto.SubstratePasswordRule
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.coredb.model.WalletCustodyLocal
@@ -104,6 +105,157 @@ class WalletSecretMutationCoordinatorTest {
         assertEquals("preserved orphan", preferences.value("10:TON_SECRETS"))
         assertNull(database.account(10)?.tonPublicKey)
     }
+
+    @Test
+    fun addTonBindsAPasswordWalletsUniversalKeyOnlyWithItsStoredPassword() = runBlocking {
+        val existing = substratePrototype(substrateFixture(1), isSelected = true).copyForTest(id = 10)
+        database.put(existing)
+        val protected = jp.co.soramitsu.common.utils.TonKeyDerivation.deriveAccount(PASSWORD_PHRASE, "TREZOR")
+        val after = existing.copyForTest(tonPublicKey = protected.publicKey)
+
+        preferences.putEncryptedString("10:SUBSTRATE_SECRETS", passwordSubstrateSecret("//polkadot"))
+        expectCoordinatorFailure { coordinator.addTon(existing, after, universalTonSecret(protected)) }
+        assertNull(database.account(10)?.tonPublicKey)
+
+        preferences.putEncryptedString("10:SUBSTRATE_SECRETS", passwordSubstrateSecret("//polkadot///TREZOR"))
+        coordinator.addTon(existing, after, universalTonSecret(protected))
+        assertArrayEquals(protected.publicKey, database.account(10)?.tonPublicKey)
+        assertEquals(universalTonSecret(protected), preferences.value("10:TON_SECRETS"))
+    }
+
+    @Test
+    fun replaceUniversalTonSwapsTheNoPasswordRootForThePasswordOne() = runBlocking {
+        val (before, legacy, protected) = passwordWalletWithLegacyTon()
+        val after = before.copyForTest(tonPublicKey = protected.publicKey)
+
+        coordinator.replaceUniversalTon(before, after, universalTonSecret(protected))
+
+        val stored = requireNotNull(database.account(10))
+        assertArrayEquals(protected.publicKey, stored.tonPublicKey)
+        assertArrayEquals(before.substratePublicKey, stored.substratePublicKey)
+        assertEquals(before.name, stored.name)
+        assertEquals(before.isBackedUp, stored.isBackedUp)
+        assertEquals(universalTonSecret(protected), preferences.value("10:TON_SECRETS"))
+        assertFalse(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
+        assertFalse(legacy.publicKey.contentEquals(protected.publicKey))
+        // The password key gives way only to its no-password counterpart, never to another key.
+        val other = jp.co.soramitsu.common.utils.TonKeyDerivation.deriveAccount(PASSWORD_PHRASE, "other")
+        expectCoordinatorFailure {
+            coordinator.replaceUniversalTon(stored, stored.copyForTest(tonPublicKey = other.publicKey), universalTonSecret(other))
+        }
+        assertEquals(universalTonSecret(protected), preferences.value("10:TON_SECRETS"))
+    }
+
+    @Test
+    fun replaceUniversalTonMovesBackWhenFundsReachTheOldAddress() = runBlocking {
+        val (before, legacy, protected) = passwordWalletWithLegacyTon()
+        coordinator.replaceUniversalTon(before, before.copyForTest(tonPublicKey = protected.publicKey), universalTonSecret(protected))
+        val switched = requireNotNull(database.account(10))
+
+        coordinator.replaceUniversalTon(switched, before, universalTonSecret(legacy))
+
+        assertArrayEquals(legacy.publicKey, database.account(10)?.tonPublicKey)
+        assertEquals(universalTonSecret(legacy), preferences.value("10:TON_SECRETS"))
+        assertFalse(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
+    }
+
+    @Test
+    fun replaceUniversalTonWaitsForATonConnectSaveCancelledBeforeItsRowInsert() = runBlocking {
+        val (before, legacy, protected) = passwordWalletWithLegacyTon()
+        // A connection save staged its journal and stopped before inserting its row.
+        preferences.putEncryptedString(TonConnectStorageKeys.MUTATION_JOURNAL_KEY, "pending-ton-connect-save")
+
+        val refused = expectCoordinatorFailure {
+            coordinator.replaceUniversalTon(before, before.copyForTest(tonPublicKey = protected.publicKey), universalTonSecret(protected))
+        }
+
+        assertEquals(WalletMutationFailureReason.CONNECTED_APPS, refused.reason)
+        assertArrayEquals(legacy.publicKey, database.account(10)?.tonPublicKey)
+        assertEquals(universalTonSecret(legacy), preferences.value("10:TON_SECRETS"))
+        assertFalse(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
+    }
+
+    @Test
+    fun replaceUniversalTonRefusesAnythingButTheSameWordsPasswordKey() = runBlocking {
+        val (before, legacy, protected) = passwordWalletWithLegacyTon()
+        val other = jp.co.soramitsu.common.utils.TonKeyDerivation.deriveAccount(PASSWORD_PHRASE, "other")
+        val otherWords = jp.co.soramitsu.common.utils.TonKeyDerivation.deriveAccount(OTHER_PHRASE, "TREZOR")
+        val attempts = listOf(
+            before.copyForTest(tonPublicKey = other.publicKey) to universalTonSecret(other),
+            before.copyForTest(tonPublicKey = otherWords.publicKey) to universalTonSecret(otherWords, OTHER_PHRASE),
+            before.copyForTest(tonPublicKey = protected.publicKey) to universalTonSecret(other)
+        )
+        for ((after, encoded) in attempts) {
+            expectCoordinatorFailure { coordinator.replaceUniversalTon(before, after, encoded) }
+            assertArrayEquals(legacy.publicKey, database.account(10)?.tonPublicKey)
+            assertEquals(universalTonSecret(legacy), preferences.value("10:TON_SECRETS"))
+        }
+
+        // A wallet without a password has no protected key to switch to.
+        preferences.putEncryptedString("10:SUBSTRATE_SECRETS", passwordSubstrateSecret("//polkadot"))
+        expectCoordinatorFailure {
+            coordinator.replaceUniversalTon(before, before.copyForTest(tonPublicKey = protected.publicKey), universalTonSecret(protected))
+        }
+        assertEquals(universalTonSecret(legacy), preferences.value("10:TON_SECRETS"))
+    }
+
+    @Test
+    fun replaceUniversalTonWaitsForConnectedTonAppsAndReplaysAfterInterruption() = runBlocking {
+        val (before, legacy, protected) = passwordWalletWithLegacyTon()
+        val after = before.copyForTest(tonPublicKey = protected.publicKey)
+        database.tonConnectionOwners += 10L to TonConnectionSecretOwner(
+            clientId = "ab".repeat(16),
+            url = "https://dapp.example/connect",
+            source = "WEB"
+        )
+        val refused = expectCoordinatorFailure { coordinator.replaceUniversalTon(before, after, universalTonSecret(protected)) }
+        assertEquals(WalletMutationFailureReason.CONNECTED_APPS, refused.reason)
+        assertEquals(universalTonSecret(legacy), preferences.value("10:TON_SECRETS"))
+        assertArrayEquals(legacy.publicKey, database.account(10)?.tonPublicKey)
+
+        database.tonConnectionOwners.clear()
+        database.failBeforeTransactionNumber = 3
+        expectFailure<InjectedDatabaseFailure> { coordinator.replaceUniversalTon(before, after, universalTonSecret(protected)) }
+        assertTrue(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
+        assertArrayEquals(legacy.publicKey, database.account(10)?.tonPublicKey)
+
+        coordinator().reconcilePendingMutation()
+        assertArrayEquals(protected.publicKey, database.account(10)?.tonPublicKey)
+        assertEquals(universalTonSecret(protected), preferences.value("10:TON_SECRETS"))
+        assertFalse(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
+    }
+
+    private fun passwordWalletWithLegacyTon(): Triple<MetaAccountLocal, jp.co.soramitsu.common.utils.TonKeyDerivation.TonAccount,
+        jp.co.soramitsu.common.utils.TonKeyDerivation.TonAccount> {
+        val legacy = jp.co.soramitsu.common.utils.TonKeyDerivation.deriveAccount(PASSWORD_PHRASE)
+        val protected = jp.co.soramitsu.common.utils.TonKeyDerivation.deriveAccount(PASSWORD_PHRASE, "TREZOR")
+        val before = substratePrototype(substrateFixture(1), isSelected = true)
+            .copyForTest(id = 10, tonPublicKey = legacy.publicKey)
+        database.put(before)
+        // As 4.2.x stored it: the path keeps the password, the TON root ignored it.
+        preferences.putEncryptedString("10:SUBSTRATE_SECRETS", passwordSubstrateSecret("//polkadot///TREZOR"))
+        preferences.putEncryptedString("10:TON_SECRETS", universalTonSecret(legacy))
+        return Triple(before, legacy, protected)
+    }
+
+    private fun passwordSubstrateSecret(path: String): String {
+        val mnemonic = MnemonicCreator.fromWords(PASSWORD_PHRASE)
+        val keypair = EthereumKeypairFactory.createWithPrivateKey(privateKey(1))
+        return SubstrateSecrets(
+            substrateKeyPair = keypair,
+            entropy = mnemonic.entropy,
+            seed = privateKey(1),
+            substrateDerivationPath = path
+        ).toHexString()
+    }
+
+    private fun universalTonSecret(
+        account: jp.co.soramitsu.common.utils.TonKeyDerivation.TonAccount,
+        phrase: String = PASSWORD_PHRASE
+    ): String = TonSecrets(
+        phrase.encodeToByteArray(),
+        jp.co.soramitsu.common.data.Keypair(account.publicKey, account.privateKey)
+    ).toHexString()
 
     @Test
     fun tonAdditionCannotShadowDedicatedAccountsBeforeStagingOrDuringReplay() = runBlocking {
@@ -382,6 +534,52 @@ class WalletSecretMutationCoordinatorTest {
         coordinator.create(substratePrototype(fixture), fixture.encoded, null, null)
 
         assertNotNull(database.account(77))
+    }
+
+    // substrate-password-vectors.json default24-unicode: an import may open the account the browser
+    // extension 4.2 made from this password (SubstratePasswordRule.NFC).
+    @Test
+    fun createBindsAWalletImportedWithAnEarlierExtensionsPasswordRule() = runBlocking {
+        val fixture = earlierRuleFixture(seedRule = SubstratePasswordRule.NFC, entropyPhrase = UNICODE_PHRASE)
+
+        coordinator.create(substratePrototype(fixture), fixture.encoded, null, null)
+
+        assertNotNull(database.account(77))
+        assertEquals(fixture.encoded, preferences.value("77:SUBSTRATE_SECRETS"))
+    }
+
+    @Test
+    fun createRejectsEntropyThatNoPasswordRuleBindsToTheSeed() = runBlocking {
+        val fixture = earlierRuleFixture(seedRule = SubstratePasswordRule.NFC, entropyPhrase = PASSWORD_PHRASE)
+
+        val failure = expectCoordinatorFailure {
+            coordinator.create(substratePrototype(fixture), fixture.encoded, null, null)
+        }
+
+        assertEquals(WalletMutationFailureReason.SECRET_BINDING_FAILED, failure.reason)
+        assertTrue(preferences.keys().isEmpty())
+        assertTrue(database.accounts().isEmpty())
+    }
+
+    private fun earlierRuleFixture(seedRule: SubstratePasswordRule, entropyPhrase: String): SubstrateFixture {
+        val path = "//polkadot///p\u00e4ssw\u00f6rd \uff26\uff37"
+        val decodedPath = SubstrateJunctionDecoder.decode(path)
+        val seed = SubstrateSeedFactory.deriveSeed32(UNICODE_PHRASE, decodedPath.password, seedRule).seed
+        val keypair = SubstrateKeypairFactory.generate(
+            encryptionType = EncryptionType.ECDSA,
+            seed = seed,
+            junctions = decodedPath.junctions
+        )
+        return SubstrateFixture(
+            publicKey = keypair.publicKey,
+            accountId = keypair.publicKey.substrateAccountId(),
+            encoded = SubstrateSecrets(
+                substrateKeyPair = keypair,
+                entropy = MnemonicCreator.fromWords(entropyPhrase).entropy,
+                seed = seed,
+                substrateDerivationPath = path
+            ).toHexString()
+        )
     }
 
     @Test
@@ -2460,6 +2658,14 @@ class WalletSecretMutationCoordinatorTest {
         val ton: TonFixture,
         val prototype: MetaAccountLocal
     )
+
+    private companion object {
+        const val PASSWORD_PHRASE =
+            "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+        const val OTHER_PHRASE = "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong"
+        const val UNICODE_PHRASE = "abandon amount liar amount expire adjust cage candy arch gather drum bullet " +
+            "absurd math era live bid rhythm alien crouch range attend journey unaware"
+    }
 }
 
 private class FakeWalletMutationIdentifierSource(

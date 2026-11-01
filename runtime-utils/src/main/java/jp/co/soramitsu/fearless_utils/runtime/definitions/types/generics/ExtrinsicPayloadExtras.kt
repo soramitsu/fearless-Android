@@ -5,6 +5,8 @@ import io.emeraldpay.polkaj.scale.ScaleCodecWriter
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.Type
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.TypeReference
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.bytes
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.fromByteArray
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Option
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.composite.Tuple
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.errors.EncodeDecodeException
@@ -64,7 +66,8 @@ object AdditionalExtras : ExtrinsicPayloadExtras(
     ),
     defaultValues = mapOf(
         _CHECK_METADATA_HASH to METADATA_HASH_DISABLED
-    )
+    ),
+    additional = true
 ) {
     const val BLOCK_HASH = _MORTALITY
     const val GENESIS = _GENESIS
@@ -77,17 +80,22 @@ open class ExtrinsicPayloadExtras(
     name: String,
     private val extrasMapping: Map<String, Type<*>>,
     // Used when a caller-built map omits an extension the runtime lists, so manual maps stay valid on newer runtimes.
-    private val defaultValues: Map<String, Any?> = emptyMap()
+    private val defaultValues: Map<String, Any?> = emptyMap(),
+    // Selects which half of each portable signed extension type these bytes must match.
+    private val additional: Boolean = false
 ) : Type<ExtrinsicPayloadExtrasInstance>(name) {
 
     override fun decode(
         scaleCodecReader: ScaleCodecReader,
         runtime: RuntimeSnapshot
     ): ExtrinsicPayloadExtrasInstance {
-        val enabledSignedExtras = runtime.metadata.extrinsic.signedExtensions
+        val enabledSignedExtras = extensions(runtime)
 
         return enabledSignedExtras.associateWith { name ->
-            extrasMapping[name]?.decode(scaleCodecReader, runtime)
+            val type = extrasMapping[name]
+            val decoded = type?.decode(scaleCodecReader, runtime)
+            validate(runtime, name, type?.bytes(runtime, decoded) ?: byteArrayOf())
+            decoded
         }
     }
 
@@ -96,10 +104,13 @@ open class ExtrinsicPayloadExtras(
         runtime: RuntimeSnapshot,
         value: ExtrinsicPayloadExtrasInstance
     ) {
-        val enabledSignedExtras = runtime.metadata.extrinsic.signedExtensions
+        val enabledSignedExtras = extensions(runtime)
 
         return enabledSignedExtras.forEach { name ->
-            extrasMapping[name]?.encodeUnsafe(scaleCodecWriter, runtime, value[name] ?: defaultValues[name])
+            val encoded = extrasMapping[name]?.bytes(runtime, value[name] ?: defaultValues[name]) ?: byteArrayOf()
+            validate(runtime, name, encoded)
+            // Raw extension bytes: the payload carries no SCALE length prefix per extension.
+            scaleCodecWriter.directWrite(encoded, 0, encoded.size)
         }
     }
 
@@ -109,6 +120,24 @@ open class ExtrinsicPayloadExtras(
         return instance is Map<*, *> && instance.keys.all { it is String }
     }
 
-    private fun unknownSignedExtension(name: String): Nothing =
-        throw EncodeDecodeException("Unknown signed extension: $name")
+    private fun extensions(runtime: RuntimeSnapshot): List<String> {
+        val names = runtime.metadata.extrinsic.signedExtensions
+        if (names.size != names.distinct().size) throw EncodeDecodeException("Duplicate signed extension")
+        return names
+    }
+
+    private fun validate(runtime: RuntimeSnapshot, name: String, encoded: ByteArray) {
+        val types = runtime.metadata.extrinsic.signedExtensionTypes
+        // Legacy metadata has no portable extension types. Preserve its existing encoding.
+        if (types.isEmpty()) return
+        val extension = types[name] ?: throw EncodeDecodeException("Missing signed extension type: $name")
+        val type = (if (additional) extension.additional else extension.extra)
+            ?: throw EncodeDecodeException("Unresolved signed extension: $name")
+        // Unknown extensions are accepted only when metadata proves that they consume zero bytes.
+        // Known extensions must consume and reproduce exactly the bytes written for them.
+        val decoded = type.fromByteArray(runtime, encoded)
+        if (!type.bytes(runtime, decoded).contentEquals(encoded)) {
+            throw EncodeDecodeException("Unsupported signed extension encoding: $name")
+        }
+    }
 }

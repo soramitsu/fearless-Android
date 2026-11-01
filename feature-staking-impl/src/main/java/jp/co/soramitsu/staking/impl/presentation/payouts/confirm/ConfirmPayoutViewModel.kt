@@ -83,7 +83,7 @@ class ConfirmPayoutViewModel @Inject constructor(
     private val stakingStateFlow = relayChainInteractor.selectedAccountStakingStateFlow()
         .share()
 
-    private val payouts = payload.payouts.map { Payout(it.validatorInfo.address, it.era, it.amountInPlanks) }
+    private val payouts = payload.payouts.map { Payout(it.validatorInfo.address, it.era, it.amountInPlanks, it.page) }
 
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
@@ -151,7 +151,7 @@ class ConfirmPayoutViewModel @Inject constructor(
             val accountAddress = stakingStateFlow.first().accountAddress
             val amount = tokenType.amountFromPlanks(payload.totalRewardInPlanks)
 
-            val payoutStakersPayloads = payouts.map { MakePayoutPayload.PayoutStakersPayload(it.era, it.validatorAddress) }
+            val payoutStakersPayloads = payouts.map { MakePayoutPayload.PayoutStakersPayload(it.era, it.validatorAddress, it.page) }
 
             val makePayoutPayload = if(tokenType.syntheticStakingType() == SyntheticStakingType.SORA )  {
                 val rewardToken = soraRewardScenario.getRewardAsset()

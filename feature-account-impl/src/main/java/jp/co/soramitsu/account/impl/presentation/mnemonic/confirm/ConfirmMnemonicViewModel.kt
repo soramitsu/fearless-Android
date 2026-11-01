@@ -49,6 +49,10 @@ class ConfirmMnemonicViewModel @Inject constructor(
     private var createdAccountId: Long? = null
     private var createdAccountBackedUp = false
 
+    // Read before this screen adds an account to an existing wallet, so a skipped first attempt
+    // cannot lower it.
+    private var walletBackedUpBeforeAdding: Boolean? = null
+
     val nextButtonEnableLiveData: LiveData<Boolean> = combine(confirmationMnemonicWords, proceedInProgress) { (words: List<String>, progress: Boolean) ->
         originMnemonic.size == words.size && !progress
     }
@@ -145,6 +149,11 @@ class ConfirmMnemonicViewModel @Inject constructor(
         val isSubstrateOrEthereumAccount = payload.accountTypes.contains(WalletEcosystem.Substrate) || payload.accountTypes.contains(WalletEcosystem.Ethereum)
         val isTonAccount = payload.accountTypes.contains(WalletEcosystem.Ton)
 
+        // The wallet keeps one backed-up flag for all its keys. Confirming the phrase of an account
+        // added to it backs up only that account, so it must not clear a warning about the others.
+        val walletBackedUp = payload.metaId?.let { isWalletBackedUpBeforeAdding(it) } ?: true
+        val marksBackedUp = isBackedUp && walletBackedUp
+
         val accountId = createdAccountId ?: run {
             val addAccountPayload = when  {
                 payload.metaId != null -> {
@@ -153,7 +162,7 @@ class ConfirmMnemonicViewModel @Inject constructor(
                         payloadExtras.accountName,
                         mnemonicString,
                         payloadExtras.ethereumDerivationPath,
-                        isBackedUp
+                        marksBackedUp
                     )
                 }
 
@@ -165,7 +174,8 @@ class ConfirmMnemonicViewModel @Inject constructor(
                         payloadExtras.substrateDerivationPath,
                         payloadExtras.ethereumDerivationPath,
                         null,
-                        isBackedUp
+                        isBackedUp,
+                        freshlyGenerated = true
                     )
                 }
 
@@ -180,15 +190,20 @@ class ConfirmMnemonicViewModel @Inject constructor(
             // A later completion failure must retry the saved wallet, not create it again.
             interactor.createAccount(addAccountPayload).getOrThrow().also {
                 createdAccountId = it
-                createdAccountBackedUp = isBackedUp
+                createdAccountBackedUp = marksBackedUp
             }
         }
-        if (isBackedUp && !createdAccountBackedUp) {
+        if (marksBackedUp && !createdAccountBackedUp) {
             interactor.updateWalletBackedUp(accountId)
             createdAccountBackedUp = true
         }
         interactor.saveChainSelectFilter(accountId, "Popular")
         continueBasedOnCodeStatus()
+    }
+
+    private suspend fun isWalletBackedUpBeforeAdding(walletId: Long): Boolean {
+        return walletBackedUpBeforeAdding
+            ?: interactor.getMetaAccount(walletId).isBackedUp.also { walletBackedUpBeforeAdding = it }
     }
 
     fun matchingErrorAnimationCompleted() {

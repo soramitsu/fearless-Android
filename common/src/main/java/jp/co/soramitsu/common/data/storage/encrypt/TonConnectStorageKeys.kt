@@ -164,3 +164,12 @@ object TonConnectStorageKeys {
 object WalletCrossStoreMutationMutex {
     val instance = Mutex()
 }
+
+/**
+ * Held while a wallet's TON root is replaced, from staging the new key until Room names it and
+ * the journal clears, so a reader can re-check an identity it read earlier against a settled
+ * one. Taken after [WalletCrossStoreMutationMutex] whenever both are held.
+ */
+object WalletTonRootReplacementMutex {
+    val instance = Mutex()
+}

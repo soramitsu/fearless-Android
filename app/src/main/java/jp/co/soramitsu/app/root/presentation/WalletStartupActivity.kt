@@ -43,17 +43,43 @@ internal fun Intent.toWalletInternalHandoff(
     context: Context,
     target: Class<*>
 ): Intent {
-    return Intent(this).apply {
-        // The exported startup Activity may receive caller-controlled task
-        // flags. Preserve only URI grants needed by document imports, then
-        // apply the wallet's own single-task-stack handoff contract.
-        component = null
-        setPackage(null)
-        selector = null
-        setClass(context, target)
-        flags = (flags and WALLET_URI_GRANT_FLAGS) or
-            Intent.FLAG_ACTIVITY_CLEAR_TOP or
-            Intent.FLAG_ACTIVITY_SINGLE_TOP
+    // The exported startup Activity receives caller-controlled Intents, and
+    // the wallet graph treats its host's Intent as a deep link. Build the
+    // handoff from scratch: extras (including Navigation's deep-link ids and
+    // arguments), clip data, selectors, categories, task flags and every URI
+    // outside WalletEntryIntentPolicy stay behind, so the graph always starts
+    // at splash and the PIN check.
+    val sourceData = data
+    val sourceFlags = flags
+    val entryData = WalletEntryIntentPolicy.admit(
+        action = action,
+        uri = sourceData?.let { uri ->
+            WalletEntryUri(
+                scheme = uri.scheme,
+                encodedAuthority = uri.encodedAuthority,
+                encodedPath = uri.encodedPath
+            )
+        },
+        type = type
+    )
+
+    return Intent(context, target).apply {
+        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        when (entryData) {
+            null -> action = Intent.ACTION_MAIN
+            WalletEntryData.JSON_DOCUMENT -> {
+                action = Intent.ACTION_VIEW
+                // A document import keeps its type and the caller's URI
+                // grants, the only flags it may carry across the handoff.
+                setDataAndType(sourceData, WalletEntryIntentPolicy.JSON_MIME_TYPE)
+                addFlags(sourceFlags and WALLET_URI_GRANT_FLAGS)
+            }
+            WalletEntryData.BUY_PROVIDER_REDIRECT,
+            WalletEntryData.TON_CONNECT_LINK -> {
+                action = Intent.ACTION_VIEW
+                data = sourceData
+            }
+        }
     }
 }
 

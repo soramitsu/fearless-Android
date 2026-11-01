@@ -12,6 +12,7 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import com.reown.android.internal.common.exception.MalformedWalletConnectUri
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
+import jp.co.soramitsu.account.api.domain.UniversalWalletPasswordNotice
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
@@ -182,6 +183,7 @@ class BalanceListViewModel @Inject constructor(
     private val portfolioPreferences: PortfolioPresentationPreferences,
     private val tokenGroupRegistry: jp.co.soramitsu.runtime.multiNetwork.tokengroups.TokenGroupRegistry,
     private val updateSecurityNotice: UpdateSecurityNoticeTracker,
+    private val universalPasswordNotice: UniversalWalletPasswordNotice = UniversalWalletPasswordNotice.NONE,
 ) : BaseViewModel(), WalletScreenInterface {
 
     private var awaitAssetsJob: Job? = null
@@ -194,6 +196,15 @@ class BalanceListViewModel @Inject constructor(
 
     private val _showUpdateSecurityNotice = MutableLiveData<Event<Unit>>()
     val showUpdateSecurityNotice: LiveData<Event<Unit>> = _showUpdateSecurityNotice
+
+    private val _showUniversalPasswordNotice = MutableLiveData<Event<UniversalPasswordNoticeState>>()
+    val showUniversalPasswordNotice: LiveData<Event<UniversalPasswordNoticeState>> = _showUniversalPasswordNotice
+
+    private val _universalPasswordSwitchResult = MutableLiveData<Event<UniversalPasswordNoticeState>>()
+    val universalPasswordSwitchResult: LiveData<Event<UniversalPasswordNoticeState>> = _universalPasswordSwitchResult
+
+    // Declared before init, which starts the notice observer.
+    private val universalPasswordNoticeCheck = MutableStateFlow(0)
 
     private val _openPlayMarket = MutableLiveData<Event<Unit>>()
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
@@ -861,6 +872,7 @@ class BalanceListViewModel @Inject constructor(
         observeToolbarStates()
         observeNetworkIssues()
         observeFiatSymbolChange()
+        observeUniversalPasswordNotice()
         viewModelScope.launch {
             withContext(coroutineManager.io) {
             }
@@ -881,12 +893,58 @@ class BalanceListViewModel @Inject constructor(
     }
 
     /** It counts as shown only once closed; one that was not closed is shown at the next launch. */
-    fun onUpdateSecurityNoticeClosed() = updateSecurityNotice.acknowledge()
+    fun onUpdateSecurityNoticeClosed() {
+        updateSecurityNotice.acknowledge()
+        universalPasswordNoticeCheck.value += 1
+    }
+
+    // Once per wallet, when a password wallet still holds addresses its words alone open;
+    // never on top of the update security notice.
+    private fun observeUniversalPasswordNotice() {
+        combine(currentMetaAccountFlow.map { it.id }.distinctUntilChanged(), universalPasswordNoticeCheck) { metaId, _ -> metaId }
+            .onEach { metaId ->
+                if (updateSecurityNotice.isPending || universalPasswordNotice.isDismissed(metaId)) return@onEach
+                val rows = withContext(coroutineManager.default) { universalPasswordRowsOrEmpty { rows(metaId) } }
+                if (rows.isNotEmpty()) _showUniversalPasswordNotice.value = Event(UniversalPasswordNoticeState(metaId, rows))
+            }.launchIn(viewModelScope)
+    }
+
+    fun onUniversalPasswordSwitch(metaId: Long) {
+        viewModelScope.launch {
+            val rows = withContext(coroutineManager.default) { universalPasswordRowsOrEmpty { switch(metaId) } }
+            _universalPasswordSwitchResult.value = Event(UniversalPasswordNoticeState(metaId, rows))
+            BalanceUpdateTrigger.invoke()
+        }
+    }
+
+    // The notice is optional: a wallet it cannot read simply shows none.
+    private suspend fun universalPasswordRowsOrEmpty(
+        read: suspend UniversalWalletPasswordNotice.() -> List<UniversalWalletPasswordNotice.Row>
+    ): List<UniversalWalletPasswordNotice.Row> = try {
+        universalPasswordNotice.read()
+    } catch (failure: CancellationException) {
+        throw failure
+    } catch (_: Exception) {
+        emptyList()
+    }
+
+    /** Shown automatically once; the wallet's options keep it reachable. */
+    fun onUniversalPasswordNoticeClosed(metaId: Long) = universalPasswordNotice.dismiss(metaId)
 
     override fun onRefresh() {
         sync()
         viewModelScope.launch {
             BalanceUpdateTrigger.invoke()
+        }
+        refreshUniversalPasswordNotice()
+    }
+
+    // Re-checks the addresses this wallet's slots left; funds that reached one show the notice again.
+    private fun refreshUniversalPasswordNotice() {
+        viewModelScope.launch {
+            val metaId = currentMetaAccountFlow.first().id
+            withContext(coroutineManager.default) { universalPasswordRowsOrEmpty { refresh(metaId); emptyList() } }
+            universalPasswordNoticeCheck.value += 1
         }
     }
 
@@ -1201,12 +1259,6 @@ class BalanceListViewModel @Inject constructor(
                 }
 
                 else -> {
-                    val cbdcFormat = interactor.tryReadCBDCAddressFormat(content)
-                    if (cbdcFormat != null) {
-                        router.openCBDCSend(cbdcQrInfo = cbdcFormat)
-                        return@launch
-                    }
-
                     val soraFormat =
                         interactor.tryReadSoraFormat(content)
                     if (soraFormat != null) {
