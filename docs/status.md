@@ -11,6 +11,8 @@ selected commits, not merged wholesale), versionCode 233, database 84.
 On 1 November 2026 the release line also took the two account changes described
 below: universal accounts protected by the wallet password (#1273 with its review
 fixes) and imports that can open an earlier browser extension's Substrate account.
+The same day the signed bundle (built from `8e14689d4`) was rolled out to Play's
+Internal testing track.
 
 - Staking and nomination pools for the native DOT of Polkadot Asset Hub and KSM
   of Kusama Asset Hub: bond (no controller), nominate, bond more, unbond,
