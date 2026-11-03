@@ -11,9 +11,6 @@ feature-account-api/src/main/java/jp/co/soramitsu/account/api/presentation/accou
 feature-account-impl/src/main/java/jp/co/soramitsu/account/impl/data/repository/datasource/AccountDataSource.kt	// TODO for compatibility only
 feature-account-impl/src/main/java/jp/co/soramitsu/account/impl/domain/AssetNotNeedAccountUseCaseImpl.kt	// todo make better way to check that we support price provider
 feature-account-impl/src/main/java/jp/co/soramitsu/account/impl/presentation/options_switch_node/OptionsSwitchNodeContent.kt	// TODO temporarily hide this button
-feature-crowdloan-impl/src/main/java/jp/co/soramitsu/crowdloan/impl/domain/contribute/CrowdloanContributeInteractor.kt	val accountId = selectedMetaAccount.accountId(chain)!! // TODO optional for ethereum chains
-feature-crowdloan-impl/src/main/java/jp/co/soramitsu/crowdloan/impl/domain/contribute/custom/karura/KaruraContributeInteractor.kt	// TODO crowdloan
-feature-crowdloan-impl/src/main/java/jp/co/soramitsu/crowdloan/impl/presentation/contribute/custom/CustomContributeViewModel.kt	// todo rework with dagger separate validate systems
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/data/network/blockhain/calls/ExtrinsicBuilderExt.kt	// TODO rename to createPool when polkadot runtime upgrades to 9390
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/data/repository/StakingConstantsRepository.kt	// todo need research
 feature-staking-impl/src/main/java/jp/co/soramitsu/staking/impl/presentation/collators/change/custom/select/SelectCustomCollatorsViewModel.kt	// todo do we need apply selected collators when moving back?
