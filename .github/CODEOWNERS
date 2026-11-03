@@ -25,7 +25,8 @@
 /**/*Signer* @soramitsu/fearless @soramitsu/android-developers @soramitsu/security
 
 # Every install reads the production chain catalog and app configuration from master within minutes, so changes
-# to them need the security team. The reviewed XCM route snapshot that guards the catalog belongs with them.
-/remote-config/production/chains/ @soramitsu/security
-/remote-config/production/appConfigs/ @soramitsu/security
-/runtime/src/test/resources/reviewed-production-xcm-routes.tsv @soramitsu/security
+# to them also request the security team, as does the reviewed XCM route snapshot that guards the catalog. The
+# app owners stay listed beside it, so an urgent catalog repair never waits on a single team.
+/remote-config/production/chains/ @soramitsu/fearless @soramitsu/security
+/remote-config/production/appConfigs/ @soramitsu/fearless @soramitsu/security
+/runtime/src/test/resources/reviewed-production-xcm-routes.tsv @soramitsu/fearless @soramitsu/android-developers @soramitsu/security
