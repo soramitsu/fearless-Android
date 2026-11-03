@@ -107,8 +107,8 @@ require_block_line "$build_job" \
   "    runs-on: ubuntu-24.04" \
   "pinned Ubuntu 24.04 runner"
 require_block_line "$build_job" \
-  "    timeout-minutes: 90" \
-  "90-minute instrumentation-capable timeout"
+  "    timeout-minutes: 120" \
+  "120-minute instrumentation-capable timeout"
 require_block_line "$build_job" \
   "          bash ./scripts/test-android-migration-ci-gate.sh" \
   "migration CI adversarial guard invocation"

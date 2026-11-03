@@ -15,7 +15,8 @@ concurrency:
 jobs:
   build-and-test:
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    # The four emulator shards and the full instrumentation run take about 55 minutes; the whole job about 95.
+    timeout-minutes: 120
     env:
       CI: true
       FW_COLOUR_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
