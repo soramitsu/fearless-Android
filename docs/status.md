@@ -13,6 +13,8 @@ below: universal accounts protected by the wallet password (#1273 with its revie
 fixes) and imports that can open an earlier browser extension's Substrate account.
 The same day the signed bundle (built from `8e14689d4`) was rolled out to Play's
 Internal testing track.
+On 3 November 2026 Google approved it for Open testing and it was published there
+to all testers; Production still runs 229.
 
 - Staking and nomination pools for the native DOT of Polkadot Asset Hub and KSM
   of Kusama Asset Hub: bond (no controller), nominate, bond more, unbond,
