@@ -6,18 +6,8 @@ def computeVersionCode() {
     return Integer.valueOf(rootProject.versionCode)
 }
 
-def static releaseNotes() {
-    return System.getenv('CI_FIREBASE_RELEASENOTES') ?: ''
-}
-
-def static firebaseGroup() {
-    return System.getenv('CI_FIREBASE_GROUP') ?: ''
-}
-
 
 ext {
     computeVersionName = this.&computeVersionName
     computeVersionCode = this.&computeVersionCode
-    releaseNotes = this.&releaseNotes
-    firebaseGroup = this.&firebaseGroup
 }

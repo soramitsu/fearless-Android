@@ -18,7 +18,7 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
-import jp.co.soramitsu.common.utils.isGooglePlayServicesAvailable
+import jp.co.soramitsu.common.utils.canOpenHttpsLinks
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_impl.R
@@ -125,7 +125,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
                     launcher
                 )
             }
-            val isGoogleAvailable = context?.isGooglePlayServicesAvailable() == true
+            val isGoogleAvailable = context?.canOpenHttpsLinks() == true
             googleBackupLayout.isVisible = isGoogleAvailable && viewModel.isShowBackupWithGoogle
             googleBackupButton.setOnClickListener {
                 viewModel.onGoogleBackupClick(

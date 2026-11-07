@@ -57,8 +57,6 @@
 }
 
 -keep class jp.co.soramitsu.backup.** { *; }
--keep class com.google.api.** { *; }
--keep class io.opencensus.trace.** { *; }
 
 # JNA (used by the Reown SDK) and kotlinx.serialization
 -keep class com.sun.jna.** { *; }
@@ -95,24 +93,11 @@
 
 -dontwarn java.awt.*
 
-# Google Drive and Signin
-# Needed to keep generic types and @Key annotations accessed via reflection
+# Keep generic signatures and annotations that reflection-based libraries read.
 -keepattributes Signature,RuntimeVisibleAnnotations,AnnotationDefault
 
--keepclassmembers class * {
-  @com.google.api.client.util.Key <fields>;
-}
-
-# Needed by google-http-client-android when linking against an older platform version
-
--dontwarn com.google.api.client.extensions.android.**
-
-# Needed by google-api-client-android when linking against an older platform version
-
--dontwarn com.google.api.client.googleapis.extensions.android.**
-
-# Needed by google-play-services when linking against an older platform version
-
+# The app itself uses no Google Play services (Drive backup has its own OAuth and REST client).
+# Reown's firebase-messaging still brings some; drop this with it.
 -dontwarn com.google.android.gms.**
 
 # This is generated automatically by the Android Gradle plugin.

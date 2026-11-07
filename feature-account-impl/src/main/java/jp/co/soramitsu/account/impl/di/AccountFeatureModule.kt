@@ -6,6 +6,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -35,7 +36,14 @@ import jp.co.soramitsu.account.impl.domain.NomisScoreInteractorImpl
 import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.account.impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.account.impl.presentation.common.mixin.impl.CryptoTypeChooser
+import jp.co.soramitsu.account.impl.data.backup.EncryptedGoogleOAuthTokenStore
+import jp.co.soramitsu.account.impl.presentation.google_signin.GoogleDriveSignInActivity
 import jp.co.soramitsu.backup.BackupService
+import jp.co.soramitsu.backup.oauth.GoogleDriveAuthorization
+import jp.co.soramitsu.backup.oauth.GoogleOAuthConfig
+import jp.co.soramitsu.backup.oauth.GoogleOAuthTokenClient
+import jp.co.soramitsu.backup.passkey.GoogleDriveHttpTransport
+import jp.co.soramitsu.backup.passkey.OkHttpGoogleDriveHttpTransport
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
@@ -67,6 +75,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import okhttp3.OkHttpClient
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -230,11 +239,43 @@ class AccountFeatureModule {
 
     @Provides
     @Singleton
-    fun provideBackupService(context: Context): BackupService {
-        return BackupService.create(
-            context = context,
-            token = BuildConfig.WEB_CLIENT_ID
+    fun provideGoogleDriveHttpTransport(): GoogleDriveHttpTransport {
+        // A client of its own: no shared interceptor ever sees a Google token.
+        return OkHttpGoogleDriveHttpTransport(
+            OkHttpClient.Builder()
+                .connectTimeout(GOOGLE_CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .readTimeout(GOOGLE_IO_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .writeTimeout(GOOGLE_IO_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .callTimeout(GOOGLE_CALL_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(false)
+                .build()
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideGoogleDriveAuthorization(
+        transport: GoogleDriveHttpTransport,
+        encryptedPreferences: EncryptedPreferences
+    ): GoogleDriveAuthorization {
+        val config = GoogleOAuthConfig.create(BuildConfig.GOOGLE_DRIVE_OAUTH_CLIENT_ID)
+        return GoogleDriveAuthorization(
+            config = config,
+            tokenClient = GoogleOAuthTokenClient(config, transport),
+            store = EncryptedGoogleOAuthTokenStore(encryptedPreferences)
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideBackupService(
+        context: Context,
+        authorization: GoogleDriveAuthorization,
+        transport: GoogleDriveHttpTransport
+    ): BackupService {
+        return BackupService.create(authorization, transport) { prompt ->
+            GoogleDriveSignInActivity.intent(context, prompt)
+        }
     }
 
     @Provides
@@ -328,5 +369,11 @@ class AccountFeatureModule {
         selectedFiat: SelectedFiat
     ): AssetNotNeedAccountUseCase {
         return AssetNotNeedAccountUseCaseImpl(chainRegistry, assetDao, tokenPriceDao, selectedFiat)
+    }
+
+    private companion object {
+        const val GOOGLE_CONNECT_TIMEOUT_SECONDS = 20L
+        const val GOOGLE_IO_TIMEOUT_SECONDS = 60L
+        const val GOOGLE_CALL_TIMEOUT_SECONDS = 120L
     }
 }

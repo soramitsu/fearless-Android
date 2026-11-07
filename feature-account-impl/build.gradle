@@ -136,5 +136,7 @@ dependencies {
     implementation project(':core-foundation')
 
     implementation project(':core-backup')
+    // The Google Drive OAuth and REST client shares one bounded OkHttp transport.
+    implementation libs.okhttp
     implementation libs.web3jDep
 }

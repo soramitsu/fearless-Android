@@ -21,16 +21,7 @@ customview = "1.2.0-alpha02"
 customviewPoolingcontainer = "1.0.0"
 dagger = "2.56"
 detekt = "1.23.6"
-firebaseAppdistributionGradle = "5.3.1"
 fragmentKtx = "1.8.5"
-gmsPlayServices = "18.5.0"
-googlePlayServicesAuth = "21.6.0"
-googleDriveApi = "v3-rev20261011-2.0.0"
-googleApiClientAndroid = "2.9.2"
-googleHttpClientGson = "2.2.0"
-googleOauthClient = "1.39.0"
-playIntegrity = "1.6.0"
-googleServices = "4.4.1"
 gson = "2.10.1"
 hiltNavComposeVersion = "1.2.0"
 insetterVersion = "0.5.0"
@@ -84,10 +75,8 @@ converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref
 converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "retrofit" }
 core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 credentials = { module = "androidx.credentials:credentials", version.ref = "credentialsVersion" }
-credentials-play-services-auth = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentialsVersion" }
 ext-junit = { module = "androidx.test.ext:junit", version.ref = "junitVersion" }
 arch-core-testing = { module = "androidx.arch.core:core-testing", version.ref = "archCoreTest" }
-firebase-appdistribution-gradle = { module = "com.google.firebase:firebase-appdistribution-gradle", version.ref = "firebaseAppdistributionGradle" }
 insetter-widgets = { module = "dev.chrisbanes.insetter:insetter-widgets", version.ref = "insetterVersion" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 junit = { module = "junit:junit", version.ref = "junit" }
@@ -128,7 +117,6 @@ storiesProgressView = { module = "com.github.ildixhaferri:StoriesProgressView", 
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxingVersion" }
 zxing-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxingEmbeddedVersion" }
 
-google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
 gradleplugins-detekt = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 gradleplugins-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 gradleplugins-android = { module = "com.android.tools.build:gradle", version.ref = "android_plugin" }
@@ -174,14 +162,6 @@ customview-poolingcontainer = { module = "androidx.customview:customview-pooling
 
 fragmentKtx = { module = "androidx.fragment:fragment-ktx", version.ref = "fragmentKtx" }
 material = { module = "com.google.android.material:material", version.ref = "material" }
-play-services-base = { module = "com.google.android.gms:play-services-base", version.ref = "gmsPlayServices" }
-play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "googlePlayServicesAuth" }
-google-api-services-drive = { module = "com.google.apis:google-api-services-drive", version.ref = "googleDriveApi" }
-google-api-client = { module = "com.google.api-client:google-api-client", version.ref = "googleApiClientAndroid" }
-google-api-client-android = { module = "com.google.api-client:google-api-client-android", version.ref = "googleApiClientAndroid" }
-google-http-client-gson = { module = "com.google.http-client:google-http-client-gson", version.ref = "googleHttpClientGson" }
-google-oauth-client = { module = "com.google.oauth-client:google-oauth-client", version.ref = "googleOauthClient" }
-play-integrity = { module = "com.google.android.play:integrity", version.ref = "playIntegrity" }
 
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }

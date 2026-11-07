@@ -59,8 +59,6 @@ buildscript {
         classpath libs.gradleplugins.android
         classpath libs.gradleplugins.kotlin
         classpath libs.kotlin.serialization
-        classpath libs.google.services
-        classpath libs.firebase.appdistribution.gradle
         classpath libs.gradleplugins.compose
         classpath libs.org.jacoco.core
         classpath libs.sonarqube.gradle.plugin
@@ -238,6 +236,33 @@ allprojects {
                     configuration.name
             )) {
                 configuration.resolutionStrategy.activateDependencyLocking()
+            }
+        }
+    }
+}
+
+// 4.3.2 removed Play services, Firebase and the Google API client libraries. They had raised these
+// libraries, so every Android module keeps at least the version 4.3.1 (233) shipped: the locked
+// release graph never goes older, and debug builds and unit tests resolve what the release ships.
+// com.google.guava:listenablefuture is the exception: 233's 9999.0-empty placeholder only works next
+// to Guava, which left with the API client, so the runtime now needs the real 1.0 jar for
+// ListenableFuture (androidx.concurrent, WorkManager, CameraX).
+def versionFloorFrom233 = [
+        "androidx.loader:loader:1.1.0",
+        "com.google.android.gms:play-services-base:18.5.0",
+        "com.google.android.gms:play-services-basement:18.9.0",
+        "com.google.android.gms:play-services-tasks:18.2.0",
+        "com.google.code.gson:gson:2.11.0",
+        "com.google.errorprone:error_prone_annotations:2.50.0",
+        "org.jspecify:jspecify:1.0.1"
+]
+subprojects { subproject ->
+    ["com.android.application", "com.android.library"].each { pluginId ->
+        subproject.plugins.withId(pluginId) {
+            versionFloorFrom233.each { notation ->
+                subproject.dependencies.constraints.add("implementation", notation) {
+                    because("4.3.1 (233) shipped this version; removing Google SDKs must not downgrade it")
+                }
             }
         }
     }
