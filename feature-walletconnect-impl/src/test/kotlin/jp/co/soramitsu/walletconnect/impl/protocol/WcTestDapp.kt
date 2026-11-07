@@ -1,5 +1,6 @@
 package jp.co.soramitsu.walletconnect.impl.protocol
 
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
@@ -187,3 +188,26 @@ internal class WcMemoryStorage(var json: String? = null) : WalletConnectStateSto
         json = null
     }
 }
+
+/** The stored state of one acknowledged EVM session on [topic] that expires at [expiry] (unix seconds). */
+internal fun storedSessionState(topic: String, expiry: Long): String = Json.encodeToString(
+    WcStoredState.serializer(),
+    WcStoredState(
+        sessions = listOf(
+            WcStoredSession(
+                topic = topic,
+                symKey = "11".repeat(32),
+                selfPublicKey = "22".repeat(32),
+                peerPublicKey = "33".repeat(32),
+                pairingTopic = "44".repeat(32),
+                relayProtocol = "irn",
+                expiry = expiry,
+                acknowledged = true,
+                namespaces = mapOf(
+                    "eip155" to WcStoredSessionNamespace(listOf("eip155:1"), listOf("eip155:1:0xabc"), listOf("personal_sign"), emptyList())
+                ),
+                peer = WcStoredMetadata("dApp", "", "https://app.example.org", emptyList())
+            )
+        )
+    )
+)

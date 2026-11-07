@@ -9,17 +9,21 @@ import jp.co.soramitsu.walletconnect.impl.protocol.WcTestClock
 import jp.co.soramitsu.walletconnect.impl.protocol.WcTestDapp
 import jp.co.soramitsu.walletconnect.impl.protocol.WcTestRelay
 import jp.co.soramitsu.walletconnect.impl.protocol.eventually
+import jp.co.soramitsu.walletconnect.impl.protocol.storedSessionState
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.concurrent.CopyOnWriteArrayList
 
 class WCDelegateTest {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -47,8 +51,22 @@ class WCDelegateTest {
         assertEquals(emptyList<Any>(), runBlocking { withTimeout(5_000) { WCDelegate.activeSessionFlow.first() } })
     }
 
-    private fun client() = WalletConnectClient(
-        storage = WcMemoryStorage(),
+    @Test
+    fun `the delegate listens before attach returns, so an expiry found at start reaches the app`() {
+        val topic = "cd".repeat(32)
+        val client = client(WcMemoryStorage(storedSessionState(topic, expiry = clock.nowSeconds() - 1)), start = false)
+        val received = CopyOnWriteArrayList<WalletConnectEvent>()
+        scope.launch(start = CoroutineStart.UNDISPATCHED) { WCDelegate.walletEvents.collect { received += it } }
+
+        WCDelegate.attach(client)
+        assertTrue(client.hasCollector)
+        client.start()
+
+        eventually { received.any { it is WalletConnectEvent.SessionDeleted && it.topic == topic } }
+    }
+
+    private fun client(storage: WcMemoryStorage = WcMemoryStorage(), start: Boolean = true) = WalletConnectClient(
+        storage = storage,
         transport = relay,
         verifyKeySource = { error("offline") },
         config = WalletConnectClientConfig(
@@ -60,5 +78,5 @@ class WCDelegateTest {
         ),
         clock = clock,
         scope = scope
-    ).also { it.start() }
+    ).also { if (start) it.start() }
 }

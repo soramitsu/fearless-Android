@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -96,6 +97,11 @@ class WalletConnectClient internal constructor(
     @Volatile
     private var cachedIdentity: WcClientIdentity? = null
 
+    /**
+     * Proposals, requests, deletions, settlements and connection changes, to every collector. Nothing
+     * is emitted before the first collector subscribes (see [start]); later events reach whoever
+     * collects at the time.
+     */
     val events: SharedFlow<WalletConnectEvent> = _events.asSharedFlow()
 
     /** The open sessions, updated whenever one is approved, settled, changed or deleted. */
@@ -103,12 +109,21 @@ class WalletConnectClient internal constructor(
 
     val isConfigured: Boolean get() = relayConfig.isValid
 
-    /** Loads the stored state and reconnects the stored sessions. Safe to call more than once. */
+    /** Whether anyone collects [events] now. */
+    internal val hasCollector: Boolean get() = _events.subscriptionCount.value > 0
+
+    /**
+     * Loads the stored state and reconnects the stored sessions. Safe to call more than once. The
+     * first sweep, the relay and every operation wait until [events] has a collector: a session that
+     * expired while the app was closed is reported, never dropped for want of a listener.
+     */
     fun start() {
         if (started) return
         started = true
         scope.launch {
             val loaded = store.load()
+            _events.subscriptionCount.first { it > 0 }
+            launch { relay.connected.collect { emit(WalletConnectEvent.ConnectionChanged(it)) } }
             if (loaded) {
                 sweepExpired()
                 publishSessions()
@@ -122,9 +137,6 @@ class WalletConnectClient internal constructor(
                 delay(SWEEP_INTERVAL_MILLIS)
                 runCatchingNonCancellation { sweepExpired() }
             }
-        }
-        scope.launch {
-            relay.connected.collect { emit(WalletConnectEvent.ConnectionChanged(it)) }
         }
     }
 

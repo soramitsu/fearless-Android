@@ -8,6 +8,7 @@ import co.jp.soramitsu.walletconnect.model.WalletConnectVerifyContext
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.walletconnect.impl.protocol.WalletConnectClient
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
@@ -52,12 +53,15 @@ object WCDelegate {
 
     val client: WalletConnectClient? get() = attached.value
 
-    /** Connects the delegate to [client] once; later calls with the same client do nothing. */
+    /**
+     * Connects the delegate to [client] once; later calls with the same client do nothing. The
+     * collector subscribes before this returns, so nothing the client emits once started is missed.
+     */
     @Synchronized
     fun attach(client: WalletConnectClient) {
         if (attached.value === client) return
         attached.value = client
-        scope.launch {
+        scope.launch(start = CoroutineStart.UNDISPATCHED) {
             client.events.collect { event ->
                 remember(event)
                 events.emit(event)

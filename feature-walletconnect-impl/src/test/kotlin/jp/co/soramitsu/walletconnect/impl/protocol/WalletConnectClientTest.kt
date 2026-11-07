@@ -436,6 +436,50 @@ class WalletConnectClientTest {
     }
 
     @Test
+    fun `a session that expired while the app was closed is reported to a collector launched before start`() {
+        val topic = settledSession(client())
+        scopes.forEach { it.cancel() }
+        relay.dropConnection()
+        events.clear()
+        clock.advanceSeconds(WcRpcOptionsTable.SESSION_TTL_SECONDS + 1)
+
+        // The harness launches its collector with a plain launch and calls start() right away, so the
+        // collector may subscribe only after start() has begun; the expiry found at load still arrives.
+        val restarted = client(fresh = false)
+
+        assertEquals(topic, awaitEvent<WalletConnectEvent.SessionDeleted>().topic)
+        assertNull(restarted.session(topic))
+        assertEquals(1, events.count { it is WalletConnectEvent.SessionDeleted })
+    }
+
+    @Test
+    fun `nothing is swept or connected before a collector subscribes`() {
+        val topic = settledSession(client())
+        scopes.forEach { it.cancel() }
+        relay.dropConnection()
+        clock.advanceSeconds(WcRpcOptionsTable.SESSION_TTL_SECONDS + 1)
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default).also { scopes += it }
+        val restarted = WalletConnectClient(
+            storage = storage,
+            transport = relay,
+            verifyKeySource = { attestor.publicKey },
+            config = WalletConnectClientConfig(PROJECT_ID, null, WalletConnectMetadata("w", "w", "https://w", emptyList()), emptySet(), "ua"),
+            clock = clock,
+            scope = scope
+        )
+
+        restarted.start()
+        Thread.sleep(SETTLE_MILLIS)
+        val beforeCollector = storage.json
+
+        val late = CopyOnWriteArrayList<WalletConnectEvent>()
+        scope.launch { restarted.events.collect { late += it } }
+
+        eventually { late.any { it is WalletConnectEvent.SessionDeleted && it.topic == topic } }
+        assertTrue("the stored session was kept until someone listened", beforeCollector!!.contains(topic))
+    }
+
+    @Test
     fun `the client reconnects and resubscribes after the connection drops`() {
         val client = client()
         val topic = settledSession(client)
@@ -597,5 +641,6 @@ class WalletConnectClientTest {
 
     private companion object {
         const val PROJECT_ID = "0123456789abcdef0123456789abcdef"
+        const val SETTLE_MILLIS = 300L
     }
 }
