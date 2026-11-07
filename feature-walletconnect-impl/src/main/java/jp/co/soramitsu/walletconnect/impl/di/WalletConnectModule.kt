@@ -19,6 +19,7 @@ import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import jp.co.soramitsu.walletconnect.impl.data.EncryptedWalletConnectStateStorage
 import jp.co.soramitsu.walletconnect.impl.data.EncryptionUtilStateCipher
+import jp.co.soramitsu.walletconnect.impl.data.LegacyWalletConnectSdkCleanup
 import jp.co.soramitsu.walletconnect.impl.data.OkHttpVerifyKeySource
 import jp.co.soramitsu.walletconnect.impl.presentation.ClientSessionClient
 import jp.co.soramitsu.walletconnect.impl.presentation.PoolEvmTransactionSender
@@ -28,6 +29,7 @@ import jp.co.soramitsu.walletconnect.impl.presentation.chainRegistryRuntimeSourc
 import jp.co.soramitsu.walletconnect.impl.protocol.OkHttpRelayTransport
 import jp.co.soramitsu.walletconnect.impl.protocol.WalletConnectClient
 import jp.co.soramitsu.walletconnect.impl.protocol.WalletConnectClientConfig
+import jp.co.soramitsu.walletconnect.impl.protocol.WalletConnectStateStorage
 import jp.co.soramitsu.walletconnect.impl.protocol.WcClock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,17 +40,23 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 @Module
 class WalletConnectModule {
+    /** The one storage the client loads and a legacy import writes into before the client starts. */
+    @Provides
+    @Singleton
+    fun provideWalletConnectStateStorage(context: Context, encryptionUtil: EncryptionUtil): WalletConnectStateStorage =
+        EncryptedWalletConnectStateStorage(
+            preferences = context.getSharedPreferences(EncryptedWalletConnectStateStorage.FILE_NAME, Context.MODE_PRIVATE),
+            cipher = EncryptionUtilStateCipher(encryptionUtil)
+        )
+
     @Provides
     @Singleton
     fun provideWalletConnectClient(
         context: Context,
-        encryptionUtil: EncryptionUtil,
+        storage: WalletConnectStateStorage,
         okHttpClient: OkHttpClient
     ): WalletConnectClient = WalletConnectClient(
-        storage = EncryptedWalletConnectStateStorage(
-            preferences = context.getSharedPreferences(EncryptedWalletConnectStateStorage.FILE_NAME, Context.MODE_PRIVATE),
-            cipher = EncryptionUtilStateCipher(encryptionUtil)
-        ),
+        storage = storage,
         transport = OkHttpRelayTransport(okHttpClient),
         verifyKeySource = OkHttpVerifyKeySource(okHttpClient),
         config = WalletConnectClientConfig(
@@ -61,6 +69,13 @@ class WalletConnectModule {
         clock = WcClock.System,
         scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     )
+
+    @Provides
+    @Singleton
+    fun provideLegacyWalletConnectSdkCleanup(context: Context): LegacyWalletConnectSdkCleanup {
+        val markers = context.getSharedPreferences(EncryptedWalletConnectStateStorage.FILE_NAME, Context.MODE_PRIVATE)
+        return LegacyWalletConnectSdkCleanup(context = context, markers = markers)
+    }
 
     @Provides
     @Suppress("LongParameterList")

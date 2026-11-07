@@ -82,6 +82,24 @@ class WcStateStoreTest {
     }
 
     @Test
+    fun `a handled entry kept forever survives expiry and the cap`() = runBlocking {
+        // A one-time marker (the legacy import's) is stored with Long.MAX_VALUE: never expired, dropped last.
+        val store = WcStateStore(storage, clock)
+        store.load()
+        val now = clock.nowSeconds()
+        val expiring = (0 until WcLimits.MAX_HANDLED_ENTRIES + 10).associate { "m:$it" to now + 10 + it }
+        store.mutate { it.copy(handled = expiring + (FOREVER_KEY to Long.MAX_VALUE), pairings = listOf(pairing())) }
+        assertEquals(Long.MAX_VALUE, store.state.handled[FOREVER_KEY])
+        clock.advanceSeconds(ONE_YEAR_SECONDS)
+        store.mutate { it.copy(handled = it.handled + ("m:late" to clock.nowSeconds() + 10)) }
+
+        assertEquals(Long.MAX_VALUE, store.state.handled[FOREVER_KEY])
+        assertEquals(setOf(FOREVER_KEY, "m:late"), store.state.handled.keys)
+        val reloaded = WcStateStore(storage, clock).also { it.load() }
+        assertEquals(Long.MAX_VALUE, reloaded.state.handled[FOREVER_KEY])
+    }
+
+    @Test
     fun `stored models map to the app's models`() {
         val verify = WcStoredVerify("VALID", "https://a.org", "https://a.org/x", isScam = false).toModel()
         assertEquals("https://a.org", verify.verifiedOrigin)
@@ -97,4 +115,9 @@ class WcStateStoreTest {
 
     private fun pairing() =
         WcStoredPairing("t".repeat(64), "k".repeat(64), "irn", clock.nowSeconds() + 300, active = false)
+
+    private companion object {
+        const val FOREVER_KEY = "legacy-import:reown"
+        const val ONE_YEAR_SECONDS = 31_536_000L
+    }
 }
