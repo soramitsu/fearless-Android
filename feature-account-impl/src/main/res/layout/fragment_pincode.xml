@@ -28,6 +28,23 @@
         app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:layout_constraintVertical_bias="0.55" />
 
+    <TextView
+        android:id="@+id/forgotPin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:minHeight="48dp"
+        android:gravity="center"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:text="@string/pin_recovery_forgot"
+        android:textAppearance="@style/TextAppearance.Soramitsu.Body1"
+        android:textColor="@color/white"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <androidx.compose.ui.platform.ComposeView
         android:id="@+id/pinRecoveryContent"
         android:layout_width="0dp"

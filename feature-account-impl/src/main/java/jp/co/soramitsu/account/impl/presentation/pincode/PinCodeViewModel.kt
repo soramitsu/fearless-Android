@@ -55,7 +55,9 @@ class PinCodeViewModel @Inject constructor(
         val strongBiometric: Boolean = false,
         val deviceCredential: Boolean = false,
         val choices: List<WalletPinRecovery.Choice> = emptyList(),
-        val error: Boolean = false
+        val error: Boolean = false,
+        /** Started from "Forgot PIN?" for a readable PIN, not for an unreadable one. */
+        val forgotten: Boolean = false
     )
 
     val biometricPromptGate = PinBiometricPromptGate()
@@ -79,6 +81,9 @@ class PinCodeViewModel @Inject constructor(
     private val _biometricSwitchDialogLiveData = MutableLiveData<Event<Boolean>>()
     val biometricSwitchDialogLiveData: LiveData<Event<Boolean>> = _biometricSwitchDialogLiveData
     val recoveryState = MutableLiveData(RecoveryState())
+    /** "Forgot PIN?" shows on the unlock screen while it asks for a readable PIN. */
+    private val _forgotPinVisible = MutableLiveData(false)
+    val forgotPinVisible: LiveData<Boolean> = _forgotPinVisible
     private var fingerPrintAvailable = false
     private var strongAvailable = false
     private var credentialAvailable = false
@@ -113,6 +118,7 @@ class PinCodeViewModel @Inject constructor(
                     PinHealth.HEALTHY -> {
                         currentState = ScreenState.Checking
                         recoveryState.value = RecoveryState(visible = false)
+                        _forgotPinVisible.value = biometricAllowed
                         _showFingerPrintEvent.value = Event(canUseBiometricUnlock())
                         if (biometricAllowed && biometricVault.wasInvalidated()) {
                             _fingerPrintErrorEvent.value = Event(resourceManager.getString(R.string.pincode_biometrics_changed))
@@ -125,17 +131,35 @@ class PinCodeViewModel @Inject constructor(
         }
     }
 
-    private suspend fun startRecovery() {
+    private suspend fun startRecovery(forgotten: Boolean = false) {
         challenge?.let(pinRecovery::cancel)
         challenge = null
         currentState = ScreenState.Recovering
-        recoveryState.value = RecoveryState()
+        _forgotPinVisible.value = false
+        recoveryState.value = RecoveryState(forgotten = forgotten)
         biometricPreviouslyEnabled = interactor.isBiometricEnabled()
-        val id = pinRecovery.begin()
+        val id = pinRecovery.begin(forgotten)
         challenge = id
         val choices = pinRecovery.choices(id)
         recoveryState.value = RecoveryState(loading = false, choices = choices,
-            strongBiometric = strongAvailable && biometricPreviouslyEnabled, deviceCredential = credentialAvailable)
+            strongBiometric = strongAvailable && biometricPreviouslyEnabled, deviceCredential = credentialAvailable,
+            forgotten = forgotten)
+    }
+
+    /**
+     * "Forgot PIN?" on the unlock screen: the backup-proof recovery for a readable PIN. Proving one
+     * wallet's backup opens the wallet key, and the new PIN then rewraps it.
+     */
+    fun forgotPin() {
+        if (busy || currentState != ScreenState.Checking || !biometricAllowed) return
+        busy = true
+        viewModelScope.launch {
+            try {
+                startRecovery(forgotten = true)
+            } catch (failure: CancellationException) { throw failure }
+            catch (_: Exception) { recoveryFailed() }
+            finally { busy = false }
+        }
     }
 
     fun configureRecoveryAuthentication(strong: Boolean, deviceCredential: Boolean) {
@@ -190,13 +214,14 @@ class PinCodeViewModel @Inject constructor(
     fun strongBiometricSucceeded(cipher: Cipher?) {
         val id = challenge ?: return
         if (currentState != ScreenState.Recovering || !strongAvailable || !biometricPreviouslyEnabled || busy) return
-        // Once a vault exists, only its key proves the biometric; a later enrollment cannot.
-        if (biometricVault.isEnrolled() && cipher?.let(biometricVault::decryptPin) == null) return
+        // Once a vault exists, only its key proves the biometric; a later enrollment cannot. Its PIN
+        // must then open the wallet key, which the new PIN rewraps.
+        val vaultPin = if (biometricVault.isEnrolled()) (cipher?.let(biometricVault::decryptPin) ?: return) else null
         if (!biometricVault.isEnrolled() && biometricVault.wasInvalidated()) return
         busy = true
         viewModelScope.launch {
             try {
-                pinRecovery.strongBiometricSucceeded(id)
+                pinRecovery.strongBiometricSucceeded(id, vaultPin)
                 showPinCreation()
             } catch (failure: CancellationException) { throw failure }
             catch (_: Exception) { recoveryFailed() }
@@ -338,6 +363,7 @@ class PinCodeViewModel @Inject constructor(
 
     private fun showPinCreation() {
         currentState = ScreenState.Creating
+        _forgotPinVisible.value = false
         recoveryState.value = RecoveryState(visible = false)
         _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_create_top_title))
         _homeButtonVisibilityLiveData.value = pinCodeAction.toolbarConfiguration.backVisible
@@ -347,6 +373,7 @@ class PinCodeViewModel @Inject constructor(
         challenge?.let(pinRecovery::cancel)
         challenge = null
         currentState = ScreenState.Recovering
+        _forgotPinVisible.value = false
         recoveryState.value = RecoveryState(loading = false, error = true)
         _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_enter_pin_code))
     }
@@ -354,6 +381,8 @@ class PinCodeViewModel @Inject constructor(
     fun backPressed() {
         if (busy) return
         if (currentState is ScreenState.Confirmation) showPinCreation()
+        // Back from "Forgot PIN?" returns to the PIN pad; the readable PIN still works.
+        else if (currentState == ScreenState.Recovering && recoveryState.value?.forgotten == true) retryRecovery()
         else if (pinCodeAction.toolbarConfiguration.backVisible) {
             challenge?.let(pinRecovery::cancel)
             challenge = null

@@ -228,8 +228,12 @@ class ImportAccountViewModel @Inject constructor(
                 throw failure
             } catch (failure: Exception) {
                 recoveryError.value = resourceManager.getString(
-                    if (failure is WalletRecoveryIdentityMismatch) R.string.wallet_recovery_different_key
-                    else R.string.wallet_recovery_restore_failed
+                    when (failure) {
+                        is WalletRecoveryIdentityMismatch -> R.string.wallet_recovery_different_key
+                        is jp.co.soramitsu.account.impl.domain.recovery.WalletPinRecoveryKeyUnavailableException ->
+                            R.string.pin_recovery_key_unavailable
+                        else -> R.string.wallet_recovery_restore_failed
+                    }
                 )
             } finally {
                 importInProgressLiveData.value = false

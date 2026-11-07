@@ -267,12 +267,12 @@ class PinCodeBiometricVaultViewModelTest {
 
         model.strongBiometricSucceeded(null)
         runCurrent()
-        coVerify(exactly = 0) { recovery.strongBiometricSucceeded(any()) }
+        coVerify(exactly = 0) { recovery.strongBiometricSucceeded(any(), any()) }
 
         every { vault.decryptPin(cipher) } returns "123456"
         model.strongBiometricSucceeded(cipher)
         runCurrent()
-        coVerify(exactly = 1) { recovery.strongBiometricSucceeded("challenge") }
+        coVerify(exactly = 1) { recovery.strongBiometricSucceeded("challenge", any()) }
     }
 
     @Test fun `strong recovery is blocked after the phone's biometrics changed`() = runTest(dispatcher) {
@@ -288,6 +288,6 @@ class PinCodeBiometricVaultViewModelTest {
         assertEquals(PinCodeViewModel.RecoveryPrompt.Blocked, model.recoveryBiometricPrompt())
         model.strongBiometricSucceeded(null)
         runCurrent()
-        coVerify(exactly = 0) { recovery.strongBiometricSucceeded(any()) }
+        coVerify(exactly = 0) { recovery.strongBiometricSucceeded(any(), any()) }
     }
 }
