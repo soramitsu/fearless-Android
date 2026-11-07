@@ -133,7 +133,8 @@ internal class ReownSessionImporter(
      * Imports into [storage], the client's own storage; call before the client starts. The SDK's data is
      * read off the caller's coroutine, so a caller that stops waiting (its timeout) is released at once,
      * even while a Keystore call hangs. From then on nothing is written: the import may finish reading, but
-     * it leaves the client's state alone, and a write already under way is finished before the caller goes on.
+     * it leaves the client's state alone. A write already under way gets up to
+     * [ReownImportWriteGate.CLOSE_WAIT_MILLIS] to finish before the caller goes on.
      */
     suspend fun importInto(storage: WalletConnectStateStorage): ReownImportResult {
         val gate = ReownImportWriteGate()
