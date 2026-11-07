@@ -54,6 +54,7 @@ opencsv = "5.7.1"
 orgJacocoCore = "0.8.12"
 progressButtonsVersion = "2.1.0"
 recyclerviewVersion = "1.3.2"
+timber = "5.0.1"
 retrofit = "2.11.0"
 roomVersion = "2.7.2"
 rules = "1.6.1"
@@ -109,6 +110,7 @@ mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockito
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navControllerVersion" }
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navControllerVersion" }
 navigation-testing = { module = "androidx.navigation:navigation-testing", version.ref = "navControllerVersion" }
 opencsv = { module = "com.opencsv:opencsv", version.ref = "opencsv" }
