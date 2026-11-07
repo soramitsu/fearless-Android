@@ -305,7 +305,7 @@ class SavedEndpointAttachmentAuthenticationInstrumentedTest {
             }
             baselinePreferences = diagnostic.getJSONObject("afterPreferences")
         }
-        heartbeatEvidence = SavedEndpointHeartbeatEvidence(baselinePreferences, args)
+        heartbeatEvidence = SavedEndpointHeartbeatEvidence(baselinePreferences)
         val path = context.getDatabasePath("app.db")
         check(path.isFile && path.length() in 1..67_108_864)
         val sql = SQLiteDatabase.openDatabase(path.path, null, SQLiteDatabase.OPEN_READONLY).use { db ->
@@ -358,7 +358,7 @@ class SavedEndpointAttachmentAuthenticationInstrumentedTest {
         result
     }
 
-    /** Exact SQL and preferences except the explicit PIN counter and validated one-day Firebase append. */
+    /** Exact SQL and preferences except the explicit PIN counter; a Firebase heartbeat an older version left must stay unchanged. */
     private fun assertPersistentEquals(expectedSql: JSONObject, observed: JSONObject, failedAttempts: Int = 0, exactPreferenceBytes: Boolean = false) {
         try { heartbeatEvidence.observe(observed) }
         finally { writeProof(observed.getString("phase"), observed) }

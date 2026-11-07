@@ -118,10 +118,10 @@ class SavedEndpointSelectionAuthenticationInstrumentedTest {
         LoopbackGenesisPeer(EndpointInventorySource.OWNED).use { peer ->
             endpoint = peer.url
             prepareFreshOwnedFixture()
-            SavedEndpointHeartbeatEvidence.awaitFreshHeartbeat(context, InstrumentationRegistry.getArguments())
+            SavedEndpointHeartbeatEvidence.assertNoFreshFirebaseHeartbeat(context)
             val setup = captureSnapshot("after-setup", false)
             try {
-                heartbeatEvidence = SavedEndpointHeartbeatEvidence(setup.getJSONObject("preferences"), InstrumentationRegistry.getArguments())
+                heartbeatEvidence = SavedEndpointHeartbeatEvidence(setup.getJSONObject("preferences"))
                 heartbeatEvidence.observe(setup)
             } finally { writeProof("after-setup", setup) }
             launch()
@@ -469,7 +469,7 @@ class SavedEndpointSelectionAuthenticationInstrumentedTest {
         compose.onNodeWithTag("saved_endpoint_attachment_status").assertIsDisplayed()
     }
 
-    /** Exact SQL and preferences except the explicit PIN counter and validated one-day Firebase append. */
+    /** Exact SQL and preferences except the explicit PIN counter; a Firebase heartbeat an older version left must stay unchanged. */
     private fun assertPersistentEquals(expectedSql: JSONObject, observed: JSONObject, failedAttempts: Int = 0, exactPreferenceBytes: Boolean = false) {
         assertEquals(SavedEndpointInspectionRawSnapshot.canonical(SavedEndpointDecisionRawSnapshot.persistedSql(expectedSql)),
             SavedEndpointInspectionRawSnapshot.canonical(SavedEndpointDecisionRawSnapshot.persistedSql(observed.getJSONObject("sql"))))
