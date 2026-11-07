@@ -57,7 +57,7 @@ class WalletPinDisposableKeyringTest {
     }
 
     @Test
-    fun `a lost or corrupt factor before anything is sealed falls back to the legacy PIN and starts a new SK`() = runBlocking {
+    fun `a lost or corrupt factor before anything is sealed falls back to the legacy PIN and starts a new SK`(): Unit = runBlocking {
         for (damage in listOf(EnvelopeStorageHarness::loseFactor, EnvelopeStorageHarness::corruptFactor)) {
             val shared = keyringCreatedNothingSealed()
             val harness = restart(shared)
@@ -136,7 +136,7 @@ class WalletPinDisposableKeyringTest {
     }
 
     @Test
-    fun `once anything is sealed a lost factor needs key material, and nothing falls back`() = runBlocking {
+    fun `once anything is sealed a lost factor needs key material, and nothing falls back`(): Unit = runBlocking {
         val harness = restart(keyringCreatedNothingSealed())
         assertEquals(PinVerification.CORRECT, harness.authority.verify(PIN))
         // Seal one value only; the legacy PIN is still there.
