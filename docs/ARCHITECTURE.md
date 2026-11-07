@@ -35,7 +35,15 @@ This document explains how the Android app is structured, how modules interact, 
 - TON: Supported via TON-specific remote sources, contracts, and DB tables.
 
 ## External Integrations
-- WalletConnect v2: Initialized in `App.setupWalletConnect()` using the Reown WalletConnect SDK. Project ID set via `BuildConfig.WALLET_CONNECT_PROJECT_ID`.
+- WalletConnect v2: the wallet side of the protocol is written in this repository
+  (`feature-walletconnect-impl`, package `jp.co.soramitsu.walletconnect.impl.protocol`): X25519,
+  HKDF-SHA256, ChaCha20-Poly1305 and Ed25519 on BouncyCastle, the relay over an OkHttp WebSocket,
+  Verify API v2 attestations checked with ES256. Pairings and sessions are kept in the
+  `walletconnect_v2` preferences file, sealed with the app's wallet encryption key.
+  `App` starts it through `WalletConnectStarter`; the project ID is `BuildConfig.WALLET_CONNECT_PROJECT_ID`.
+  Before the client loads its state, the starter runs the optional `LegacyWalletConnectImport` binding
+  (Reown 1.6.9 sessions into the new storage) on a background thread; the old SDK's files are deleted
+  only after it reports `IMPORTED` or `NOTHING_TO_IMPORT`, and are kept without an importer.
 - TON Connect: Dedicated feature modules `feature-tonconnect-api` and `feature-tonconnect-impl` with persistence in `core-db` (`TonConnectDao`).
 
 ## Build Types & Tooling

@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## 4.3.2 (unreleased)
+
+- WalletConnect: the closed-source Reown SDK (WalletConnect Community License)
+  is replaced by a WalletConnect v2 wallet written in this repository on
+  BouncyCastle and OkHttp: pairing, session proposals and settlement, requests,
+  ping, update, extend and deletion, over the WalletConnect relay. Firebase
+  Cloud Messaging, Google datatransport, SQLCipher, kethereum and Scarlet leave
+  the app with the SDK.
+- WalletConnect: the connection and signing screens show the site WalletConnect
+  Verify attests instead of the URL a dApp names for itself. They warn when the
+  site is unverified or differs from that URL, and refuse sites Verify lists as
+  scams.
+- WalletConnect: a session offers only the methods Fearless signs. Requests for
+  other methods or chains, expired or oversized requests are answered with an
+  error before they reach the screen. One-click sign-in is declined, so dApps
+  use the regular connection request.
+- Upgrade: the old SDK's databases, preferences and Keystore keys (WalletConnect
+  session keys only) stay on the device. A legacy import hook runs before the
+  client starts; they are deleted only after it imports their sessions or finds
+  nothing to import. Without an importer, dApps connected with 4.3.1 or earlier
+  must be connected again. Wallet data is never touched.
+
 ## 4.3.1
 
 - Staking: Polkadot and Kusama staking returns on their Asset Hubs, where the

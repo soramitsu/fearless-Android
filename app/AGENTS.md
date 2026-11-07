@@ -83,6 +83,8 @@ Run, Lint, Test
 - Full checks: `./gradlew detektAll runTest`
 
 Troubleshooting
-- WalletConnect init errors: verify `WALLET_CONNECT_PROJECT_ID` and network reachability.
+- WalletConnect does not pair: verify `WALLET_CONNECT_PROJECT_ID` (32 hex characters) and that
+  `wss://relay.walletconnect.org` is reachable. The in-repo client connects only while a pairing
+  or session is stored.
 - Missing features at runtime: ensure `matchingFallbacks` and proper build type are used.
 - Runtime source is owned by `runtime-utils` and `runtime-websocket`; validate its manifest before release.
