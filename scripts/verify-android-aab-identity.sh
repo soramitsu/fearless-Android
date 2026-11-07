@@ -72,50 +72,38 @@ expected_native_sha256() {
     base/lib/armeabi-v7a/libandroidx.graphics.path.so)
       echo "41399eba6fc2a60f6f14642375c1824f3cf25eb8fec7397d753730a3ceda3e2b"
       ;;
-    base/lib/armeabi-v7a/libsodium.so)
-      echo "8bcd304a813f3d814793c8553cd6a8814b64b2c188d66e8462f82053d7855343"
-      ;;
     base/lib/armeabi-v7a/libsqlcipher.so)
       echo "4790ca6bbf562e6f5e477ed4ca73c0db60a0d0413a702d02884a35a67e6a7980"
       ;;
     base/lib/armeabi-v7a/libsr25519java.so)
-      echo "d217b2511bf2c7f90ea29879d5ecad86c62d95a3ee2dd412fbb0f6d804e5f3de"
+      echo "7e2701966ee9f17922900cf1bf6eb46507492c2bdac66bc0a47e2079f13f0f4d"
       ;;
     base/lib/arm64-v8a/libandroidx.graphics.path.so)
       echo "41e9a793c43a0f4fddb19e33f346bace464f30f888ba7b9eaf96294ea115bfb6"
-      ;;
-    base/lib/arm64-v8a/libsodium.so)
-      echo "939ba2865a93abe39c4d6a29802419b36b1bfd0b320396eeaccd4d660468a664"
       ;;
     base/lib/arm64-v8a/libsqlcipher.so)
       echo "d63a8d6bc0bb1bb1575e201f5c4d6bbcda7b9464bb309fb2f88daa6e1ee4a57b"
       ;;
     base/lib/arm64-v8a/libsr25519java.so)
-      echo "a37f031de78b841dab6a8c69900a64fe427d53d2a4f77d8f3c059caab5849c12"
+      echo "cca739ef44e0d3f93e7b21cfe08cde8f3820e5fc493be21e5b0e1474196a209e"
       ;;
     base/lib/x86/libandroidx.graphics.path.so)
       echo "eb0570b41fd3bff25d8204a967c03bd7550719e768b791f680cc40cbe35f29af"
-      ;;
-    base/lib/x86/libsodium.so)
-      echo "a6cd7f654ff400d080b16b3e794971b2c2b2cbc12bf0cee444f7e2ea950839ae"
       ;;
     base/lib/x86/libsqlcipher.so)
       echo "7799bfcdc38be283f02221d4d25acf8c8b3b13e12b95181791919fc315d7ed7b"
       ;;
     base/lib/x86/libsr25519java.so)
-      echo "56f26fe8e7e55026cf36be6c22a62037389d4f59cc8ee35d6bb295b5dc5441aa"
+      echo "f3a4cadfe6493cfc19ca107c2325e85013ff414931e6464244f529be19dcb974"
       ;;
     base/lib/x86_64/libandroidx.graphics.path.so)
       echo "4e56c996f13670e70082658de7880c4020eabf4f25e43387f88ed78a713fc9f0"
-      ;;
-    base/lib/x86_64/libsodium.so)
-      echo "a8b52ce229d18338b9f0b0f4d2396078582c9742d771367394b8e9b3cbabb81c"
       ;;
     base/lib/x86_64/libsqlcipher.so)
       echo "85dcbc655a1d1a34d0d6eb4d56d6563bf9aeceba8a6921c6c0d2252f474a4d6b"
       ;;
     base/lib/x86_64/libsr25519java.so)
-      echo "b024dcc2ebf236f21d329e3d637a6fdd39746ad1dc0e0ccc99143279617946dc"
+      echo "2e9e7d68a9d0b31356f6c69f5c5867a59d829411671113686706ed2695bd98be"
       ;;
     *)
       return 1
@@ -123,9 +111,30 @@ expected_native_sha256() {
   esac
 }
 
-source_native_path() {
+SR25519_MANIFEST="$ROOT_DIR/runtime-utils/native/sr25519/reproducible-build.json"
+
+# libsr25519java.so is built from runtime-utils/native/sr25519 during the Gradle
+# build; its reviewed per-ABI SHA-256 lives in the reproducible-build manifest.
+reproducible_native_sha256() {
   local entry="$1"
-  echo "$ROOT_DIR/app/src/main/jniLibs/${entry#base/lib/}"
+  local abi="${entry#base/lib/}"
+  abi="${abi%%/*}"
+  python3 -I - "$SR25519_MANIFEST" "$abi" <<'PY'
+import json
+import re
+import sys
+
+manifest_path, abi = sys.argv[1:]
+try:
+    with open(manifest_path, "r", encoding="utf-8") as manifest_file:
+        manifest = json.load(manifest_file)
+    digest = manifest["abis"][abi]["sha256"]
+except (OSError, ValueError, KeyError, TypeError):
+    sys.exit(1)
+if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
+    sys.exit(1)
+print(digest, end="")
+PY
 }
 
 bundletool_manifest_value() {
@@ -1714,19 +1723,15 @@ temporary_files+=("$expected_entries_file" "$actual_entries_file")
 
 cat > "$expected_entries_file" <<'ENTRIES'
 base/lib/arm64-v8a/libandroidx.graphics.path.so
-base/lib/arm64-v8a/libsodium.so
 base/lib/arm64-v8a/libsqlcipher.so
 base/lib/arm64-v8a/libsr25519java.so
 base/lib/armeabi-v7a/libandroidx.graphics.path.so
-base/lib/armeabi-v7a/libsodium.so
 base/lib/armeabi-v7a/libsqlcipher.so
 base/lib/armeabi-v7a/libsr25519java.so
 base/lib/x86/libandroidx.graphics.path.so
-base/lib/x86/libsodium.so
 base/lib/x86/libsqlcipher.so
 base/lib/x86/libsr25519java.so
 base/lib/x86_64/libandroidx.graphics.path.so
-base/lib/x86_64/libsodium.so
 base/lib/x86_64/libsqlcipher.so
 base/lib/x86_64/libsr25519java.so
 ENTRIES
@@ -1792,12 +1797,12 @@ while IFS= read -r entry; do
   expected_sha="$(expected_native_sha256 "$entry")" ||
     fail "No approved checksum exists for $entry."
   case "$entry" in
-    */libsodium.so|*/libsr25519java.so)
-      source_path="$(source_native_path "$entry")"
-      require_regular_file "$source_path" "approved source native library" 67108864
-      source_sha="$(sha256_file "$source_path")"
-      [[ "$source_sha" == "$expected_sha" ]] ||
-        fail "Approved source native library checksum changed for $source_path."
+    */libsr25519java.so)
+      require_regular_file "$SR25519_MANIFEST" "sr25519 reproducible-build manifest" 65536
+      manifest_sha="$(reproducible_native_sha256 "$entry")" ||
+        fail "The sr25519 reproducible-build manifest has no valid checksum for $entry."
+      [[ "$manifest_sha" == "$expected_sha" ]] ||
+        fail "Approved sr25519 checksum differs from the reproducible-build manifest for $entry."
       ;;
   esac
 

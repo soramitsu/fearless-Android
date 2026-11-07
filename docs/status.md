@@ -24,6 +24,22 @@ different Substrate call signed than the one shown.
   change must be signed before it reaches 4.3.2+ clients.
 - dApp (WalletConnect) Polkadot payloads are signed exactly as the dApp sent them, mode and hash included.
 
+## 4.3.2 (in progress): sr25519 library built from source
+
+- `libsr25519java.so`, which holds every sr25519 key (Polkadot, Kusama, SORA),
+  is no longer committed. Gradle builds it from `runtime-utils/native/sr25519`
+  (schnorrkel 0.11.5 on curve25519-dalek 4.1.3, which fixes RUSTSEC-2024-0344;
+  jni 0.22.4; zeroize 1.9.1) with Rust 1.99.1, cargo-ndk 4.1.2 and NDK r30 at
+  API 26 with 16 KB pages. Two clean builds are byte-identical, and every ABI
+  must match `runtime-utils/native/sr25519/reproducible-build.json`.
+- The JNI ABI and the keys are unchanged: JVM tests show identical keypairs and
+  derivations and cross-verifying signatures against the 4.3.1 library, plus the
+  Substrate vectors. Exceptions no longer contain keypair bytes, a short chain
+  code throws instead of aborting, and native copies of secrets are wiped.
+- The unused libsodium binaries, sources and build script are removed.
+- Builds need rustup, cargo-ndk 4.1.2 and NDK `30.0.16248370`; the hosted
+  release workflow's isolated SDK provides neither yet.
+
 ## Production release 4.3.1 (233): Asset Hub staking — 30 October 2026
 
 4.3.1 brings back Polkadot and Kusama staking, which 4.3.0 could not offer because

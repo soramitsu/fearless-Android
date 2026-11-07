@@ -44,8 +44,9 @@ fi
 PROVENANCE_DOC="${PUBLIC_ARTIFACT_PROVENANCE_DOC:-docs/binary-provenance.md}"
 DEFAULT_PROVENANCE_DOC="docs/binary-provenance.md"
 GRADLE_DISTRIBUTION_SHA256="8fad3d78296ca518113f3d29016617c7f9367dc005f932bd9d93bf45ba46072b"
-SR25519_SOURCE_COMMIT="7500809f33243ee47ecb2ec8563fc284ac4de0d6"
-EXPECTED_DOCUMENTED_BINARY_COUNT=10
+SR25519_CRATE="runtime-utils/native/sr25519"
+SR25519_MANIFEST="$SR25519_CRATE/reproducible-build.json"
+EXPECTED_DOCUMENTED_BINARY_COUNT=2
 
 sha256() {
   if command -v sha256sum >/dev/null 2>&1; then
@@ -58,14 +59,6 @@ sha256() {
 expected_checksum() {
   case "$1" in
     gradle/wrapper/gradle-wrapper.jar) echo "81a82aaea5abcc8ff68b3dfcb58b3c3c429378efd98e7433460610fecd7ae45f" ;;
-    app/src/main/jniLibs/arm64-v8a/libsodium.so) echo "939ba2865a93abe39c4d6a29802419b36b1bfd0b320396eeaccd4d660468a664" ;;
-    app/src/main/jniLibs/armeabi-v7a/libsodium.so) echo "8bcd304a813f3d814793c8553cd6a8814b64b2c188d66e8462f82053d7855343" ;;
-    app/src/main/jniLibs/x86/libsodium.so) echo "a6cd7f654ff400d080b16b3e794971b2c2b2cbc12bf0cee444f7e2ea950839ae" ;;
-    app/src/main/jniLibs/x86_64/libsodium.so) echo "a8b52ce229d18338b9f0b0f4d2396078582c9742d771367394b8e9b3cbabb81c" ;;
-    app/src/main/jniLibs/arm64-v8a/libsr25519java.so) echo "a37f031de78b841dab6a8c69900a64fe427d53d2a4f77d8f3c059caab5849c12" ;;
-    app/src/main/jniLibs/armeabi-v7a/libsr25519java.so) echo "d217b2511bf2c7f90ea29879d5ecad86c62d95a3ee2dd412fbb0f6d804e5f3de" ;;
-    app/src/main/jniLibs/x86/libsr25519java.so) echo "56f26fe8e7e55026cf36be6c22a62037389d4f59cc8ee35d6bb295b5dc5441aa" ;;
-    app/src/main/jniLibs/x86_64/libsr25519java.so) echo "b024dcc2ebf236f21d329e3d637a6fdd39746ad1dc0e0ccc99143279617946dc" ;;
     runtime-utils/libs/polkaj-scale-0.2.3.jar) echo "bea0f3904fef83497b9e5802f36408663a4aba462bf63ded38b89a5f22befa4d" ;;
     *) echo "" ;;
   esac
@@ -130,58 +123,82 @@ check_strict_provenance_contract() {
   local path
   for path in \
     runtime-utils/libs/polkaj-scale-0.2.3.jar \
-    gradle/wrapper/gradle-wrapper.jar \
-    app/src/main/jniLibs/arm64-v8a/libsodium.so \
-    app/src/main/jniLibs/armeabi-v7a/libsodium.so \
-    app/src/main/jniLibs/x86/libsodium.so \
-    app/src/main/jniLibs/x86_64/libsodium.so \
-    app/src/main/jniLibs/arm64-v8a/libsr25519java.so \
-    app/src/main/jniLibs/armeabi-v7a/libsr25519java.so \
-    app/src/main/jniLibs/x86/libsr25519java.so \
-    app/src/main/jniLibs/x86_64/libsr25519java.so; do
+    gradle/wrapper/gradle-wrapper.jar; do
     require_tracked_file "$path"
     check_checksum "$path"
     check_documented_binary "$path"
   done
 
   for path in \
-    scripts/build-libsodium.sh \
-    scripts/build-sr25519.sh \
-    third_party/libsodium/LICENSE \
-    third_party/libsodium/configure.ac \
-    third_party/libsodium/autogen.sh \
+    scripts/build-sr25519.py \
+    "$SR25519_CRATE/Cargo.toml" \
+    "$SR25519_CRATE/Cargo.lock" \
+    "$SR25519_CRATE/rust-toolchain.toml" \
+    "$SR25519_CRATE/.cargo/config.toml" \
+    "$SR25519_CRATE/src/lib.rs" \
+    "$SR25519_MANIFEST" \
     gradle/wrapper/gradle-wrapper.properties; do
     require_tracked_file "$path"
   done
 
-  [[ -x scripts/build-libsodium.sh ]] || fail "scripts/build-libsodium.sh must be executable."
-  [[ -x scripts/build-sr25519.sh ]] || fail "scripts/build-sr25519.sh must be executable."
-  [[ -x third_party/libsodium/autogen.sh ]] || fail "third_party/libsodium/autogen.sh must be executable."
-  if git ls-files --error-unmatch -- third_party/libsodium/configure >/dev/null 2>&1; then
-    fail "Generated third_party/libsodium/configure must not be tracked; rebuild it from configure.ac."
-  fi
+  [[ -x scripts/build-sr25519.py ]] || fail "scripts/build-sr25519.py must be executable."
 
-  require_provenance_text 'third_party/libsodium'
-  require_provenance_text 'https://github.com/jedisct1/libsodium'
-  require_provenance_text 'libsodium 1.0.19'
-  require_provenance_text 'scripts/build-libsodium.sh'
-  require_provenance_text 'scripts/build-sr25519.sh'
+  require_provenance_text 'scripts/build-sr25519.py'
+  require_provenance_text "$SR25519_MANIFEST"
   require_provenance_text 'bash ./scripts/test-public-artifact-provenance-audit.sh'
   require_provenance_text './scripts/audit-public-artifacts.sh --strict-provenance'
   require_provenance_text './scripts/audit-public-artifacts.sh --release --strict-provenance'
-  require_provenance_text "$SR25519_SOURCE_COMMIT"
   require_provenance_text "$GRADLE_DISTRIBUTION_SHA256"
 
-  grep -Fq "EXPECTED_SOURCE_COMMIT=\"$SR25519_SOURCE_COMMIT\"" scripts/build-sr25519.sh ||
-    fail "scripts/build-sr25519.sh must enforce the documented source commit."
-  grep -Fq './autogen.sh' scripts/build-libsodium.sh ||
-    fail "scripts/build-libsodium.sh must bootstrap a clean vendored source checkout."
-  grep -Fq 'AC_INIT([libsodium],[1.0.19]' third_party/libsodium/configure.ac ||
-    fail "Vendored libsodium source version is missing or changed."
   grep -Fq "distributionSha256Sum=$GRADLE_DISTRIBUTION_SHA256" gradle/wrapper/gradle-wrapper.properties ||
     fail "Gradle 9.0 distributionSha256Sum is missing or changed."
-  grep -Fq "SR25519_SOURCE_COMMIT: $SR25519_SOURCE_COMMIT" .github/workflows/android-release.yml ||
-    fail "Android release workflow must separately pin the documented SR25519 source commit."
+  check_sr25519_source_build
+}
+
+# libsr25519java.so is built from source by Gradle. The repository must hold the
+# crate, the pinned toolchain and the reviewed per-ABI SHA-256 values, and no
+# prebuilt copy; the provenance document repeats every reviewed SHA-256.
+check_sr25519_source_build() {
+  if git ls-files -- '*libsr25519java*' '*libsodium*' | grep -q .; then
+    fail "Prebuilt sr25519 or sodium libraries must not be tracked; libsr25519java.so is built from $SR25519_CRATE."
+  fi
+  python3 -I - "$SR25519_MANIFEST" "$PROVENANCE_DOC" "$SR25519_CRATE/rust-toolchain.toml" \
+    runtime-utils/build.gradle <<'PY' || fail "The sr25519 reproducible-build contract is incomplete."
+import json
+import re
+import sys
+
+manifest_path, document_path, toolchain_path, gradle_path = sys.argv[1:]
+with open(manifest_path, encoding="utf-8") as handle:
+    manifest = json.load(handle)
+with open(document_path, encoding="utf-8") as handle:
+    document = handle.read()
+with open(toolchain_path, encoding="utf-8") as handle:
+    toolchain = handle.read()
+with open(gradle_path, encoding="utf-8") as handle:
+    gradle = handle.read()
+errors = []
+abis = manifest.get("abis", {})
+if sorted(abis) != ["arm64-v8a", "armeabi-v7a", "x86", "x86_64"]:
+    errors.append("manifest must list exactly the four Android ABIs")
+for abi, entry in sorted(abis.items()):
+    digest = entry.get("sha256", "")
+    if not re.fullmatch(r"[0-9a-f]{64}", digest):
+        errors.append(f"malformed SHA-256 for {abi}")
+    elif document.count(f"| {abi} | `{digest}` |") != 1:
+        errors.append(f"provenance document must list the {abi} SHA-256 exactly once")
+version = re.fullmatch(r"rustc (\d+\.\d+\.\d+) \(.*\)", manifest.get("rustc", ""))
+if not version or f'channel = "{version.group(1)}"' not in toolchain:
+    errors.append("rust-toolchain.toml must pin the manifest's rustc version")
+if f'ndkVersion "{manifest.get("ndkVersion")}"' not in gradle:
+    errors.append("runtime-utils/build.gradle must pin the manifest's NDK version")
+for field in ("rustc", "cargoNdk", "ndkVersion"):
+    if str(manifest.get(field)) not in document:
+        errors.append(f"provenance document must name the manifest {field}")
+for message in errors:
+    print("[artifact-audit][error] " + message, file=sys.stderr)
+sys.exit(1 if errors else 0)
+PY
 }
 
 check_public_google_services() {

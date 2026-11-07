@@ -132,8 +132,8 @@ android {
     sourceSets {
         // Released-secret golden vectors, shared by the JVM and device suites.
         androidTest.assets.srcDirs += files("src/test/resources/wallet-secret-vectors")
-        // Validate SR25519 secrets with the library shipped by the production app.
-        androidTest.jniLibs.srcDirs += files("$rootDir/app/src/main/jniLibs")
+        // libsr25519java.so (the production SR25519 library) reaches this module's
+        // androidTest APK through :runtime-utils, which builds it from source.
     }
 
     namespace = 'jp.co.soramitsu.common'

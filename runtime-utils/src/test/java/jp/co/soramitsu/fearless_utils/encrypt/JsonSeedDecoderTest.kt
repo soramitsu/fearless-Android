@@ -10,12 +10,13 @@ import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecodingException.Inc
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecodingException.InvalidJsonException
 import jp.co.soramitsu.fearless_utils.encrypt.model.NetworkTypeIdentifier
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
-import org.junit.Ignore
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.junit.MockitoJUnitRunner
@@ -150,11 +151,25 @@ class JsonSeedDecoderTest {
     }
 
     @Test
-    @Ignore("sr25519 is not supported in unit tests")
     fun `should not extract seed from sr25519 crypto`() {
+        Sr25519HostLibrary.assumeAvailable()
         val result = decoder.decode(VALID_JSON_SR25519, VALID_PASSWORD)
 
         assertNull(result.seed)
+    }
+
+    // A polkadot-js export from 2020: its Ed25519-form sr25519 secret must still open the
+    // account it names and sign for it.
+    @Test
+    fun `should decode a polkadot-js sr25519 json into a signing keypair`() {
+        Sr25519HostLibrary.assumeAvailable()
+        val result = decoder.decode(VALID_JSON_SR25519, VALID_PASSWORD)
+        val keypair = result.keypair
+        val message = "polkadot-js sr25519 import".toByteArray()
+
+        assertEquals("F2dMuaCik4Ackmo9hoMMV79ETtVNvKSZMVK5sue9q1syPrW", keypair.publicKey.toAddress(VALID_ADDRESS_BYTE))
+        val signature = Signer.sign(MultiChainEncryption.Substrate(EncryptionType.SR25519), message, keypair)
+        assertTrue(Signer.verifySr25519(message, signature.signature, keypair.publicKey))
     }
 
     @Test

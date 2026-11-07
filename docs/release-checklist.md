@@ -94,10 +94,11 @@ procedure.
   repository-variable, tagger, public-key, and signer replacement.
   Confirm the AAB contract derives package/version and the embedded
   `jp.co.soramitsu.fearless.RELEASE_COMMIT` value from the bundle itself,
-  rejects a source-SHA mismatch, and verifies the exact current 16-file native
-  inventory and checksums. Unexpected libraries, duplicate entries, and
-  substitutions of sodium, sr25519, SQLCipher, or AndroidX path binaries must
-  fail.
+  rejects a source-SHA mismatch, and verifies the exact current 12-file native
+  inventory and checksums (the sr25519 ones equal
+  `runtime-utils/native/sr25519/reproducible-build.json`). Unexpected libraries,
+  duplicate entries, and substitutions of sr25519, SQLCipher, or AndroidX path
+  binaries must fail.
   Do not accept Play’s broad-media “continue anyway” override: the version-code
   231 release and merged manifests must contain neither `READ_MEDIA_IMAGES` nor
   `READ_MEDIA_VIDEO` and must supersede legacy open-test builds 221/109.

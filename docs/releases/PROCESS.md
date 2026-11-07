@@ -33,9 +33,12 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
   from its fixed URL only after checking SHA-256
   `e4446ff06a276155697597cc0f1b15da004ff083f4964a35271ecee567177370`;
   provenance also records the Java, javac, jarsigner, and keytool binary
-  digests. Full source-development builds may need Rust, but the release
-  workflow consumes checksum-pinned checked-in JNI artifacts and does not
-  install a mutable Rust toolchain.
+  digests. Every build, including release, compiles `libsr25519java.so` from
+  `runtime-utils/native/sr25519` and needs Rust 1.99.1 (pinned by its
+  `rust-toolchain.toml`), cargo-ndk 4.1.2 and NDK `30.0.16248370`; the build
+  fails unless each ABI matches `runtime-utils/native/sr25519/reproducible-build.json`.
+  The hosted release workflow's isolated SDK does not yet provide the NDK or the
+  Rust toolchain, so release AABs are built locally until it does.
 - Secrets: configured via env or `local.properties` (see README / docs samples).
 - Optional alignment overrides (first run mirrors): `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, and debug-only `CHAINS_URL_DEBUG_OVERRIDE`. Release chain discovery is pinned.
 
@@ -143,11 +146,12 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
   - The AAB verifier requires its manifest to embed the exact tagged 40-character
     source commit, enforces the compiled network-security configuration and
     explicit cleartext denial, checks every current native entry, and rejects
-    ELF magic in any ZIP entry outside the exact 16-library allowlist. Its 135
+    ELF magic in any ZIP entry outside the exact 12-library allowlist. Its 135
     negative cases cover identity and source mismatch, unsafe or ambiguous
     network policy, missing/extra/duplicate payloads, dynamic-module injection,
-    disguised ELF assets, renamed ELF binaries, and substitutions of sodium,
-    sr25519, SQLCipher, and AndroidX path binaries.
+    disguised ELF assets, renamed ELF binaries, and substitutions of sr25519
+    (two ABIs), SQLCipher, and AndroidX path binaries. The sr25519 checksums
+    must also equal the reproducible-build manifest.
     Its explicit R8 policy suite fixes 4 positive and 19 negative/adversarial
     cases, including the legacy five-argument default, absent-versus-required
     mismatches, non-canonical aliases, and source-binding bypass attempts.

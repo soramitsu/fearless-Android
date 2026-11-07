@@ -1672,7 +1672,7 @@ import zipfile
 
 source, destination = sys.argv[1:]
 signature = re.compile(r"^META-INF/(MANIFEST\.MF|[^/]+\.(SF|RSA|DSA|EC))$", re.I)
-target = "base/lib/arm64-v8a/libsodium.so"
+target = "base/lib/arm64-v8a/libsr25519java.so"
 changed = False
 with zipfile.ZipFile(source, "r") as source_zip, zipfile.ZipFile(destination, "w") as output_zip:
     for info in source_zip.infolist():

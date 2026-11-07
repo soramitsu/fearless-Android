@@ -1,3 +1,8 @@
+import groovy.json.JsonSlurper
+import java.util.Locale
+import javax.inject.Inject
+import org.gradle.process.ExecOperations
+
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlinx-serialization'
@@ -5,6 +10,9 @@ apply plugin: 'kotlinx-serialization'
 android {
     namespace 'jp.co.soramitsu.fearless_utils'
     compileSdkVersion rootProject.compileSdkVersion
+    // The NDK that links libsr25519java.so; it must equal ndkVersion in
+    // native/sr25519/reproducible-build.json.
+    ndkVersion "30.0.16248370"
     defaultConfig {
         minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
@@ -19,10 +27,14 @@ android {
         test.java.srcDirs += "$projectDir/src/testShared/java"
         androidTest.java.srcDirs += "$projectDir/src/testShared/java"
     }
+    packaging {
+        jniLibs {
+            // Ship the reviewed, already stripped bytes listed in reproducible-build.json.
+            keepDebugSymbols += ["**/libsr25519java.so"]
+        }
+    }
 }
 
-// Native sr25519 binaries remain app-owned under app/src/main/jniLibs, with
-// source and binary provenance recorded in docs/binary-provenance.md.
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
     implementation "com.madgag.spongycastle:prov:1.58.0.0"
@@ -50,4 +62,172 @@ dependencies {
 // excluded from ordinary host tests; all runtime validation here uses local fixtures.
 tasks.withType(Test).configureEach {
     exclude '**/integration/**'
+}
+
+// libsr25519java (sr25519 keys of Polkadot, Kusama and SORA accounts) is built
+// from native/sr25519 by scripts/build-sr25519.py: for Android into
+// build/sr25519/jniLibs, which every variant packages, and for the host JVM into
+// build/sr25519/host for unit tests. No prebuilt copy exists in the repository.
+// See docs/binary-provenance.md.
+
+/** Runs scripts/build-sr25519.py; never cached, so binaries always come from local source. */
+abstract class Sr25519NativeBuild extends DefaultTask {
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    abstract ConfigurableFileCollection getSources()
+
+    @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
+    abstract RegularFileProperty getBuildScript()
+
+    @Input
+    abstract ListProperty<String> getModeArguments()
+
+    @Internal
+    abstract DirectoryProperty getCargoTargetDirectory()
+
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDirectory()
+
+    @Inject
+    abstract ExecOperations getExecOperations()
+
+    @TaskAction
+    void build() {
+        def command = ["python3", "-I", buildScript.get().asFile.absolutePath]
+        command += modeArguments.get()
+        command += ["--target-dir", cargoTargetDirectory.get().asFile.absolutePath]
+        if (!modeArguments.get().contains("--host-output")) {
+            command += ["--output", outputDirectory.get().asFile.absolutePath]
+        }
+        execOperations.exec { it.commandLine(command) }
+    }
+}
+
+def sr25519Crate = file("native/sr25519")
+def sr25519Manifest = new JsonSlurper().parse(new File(sr25519Crate, "reproducible-build.json"))
+if (sr25519Manifest.ndkVersion != android.ndkVersion) {
+    throw new GradleException(
+        "runtime-utils ndkVersion ${android.ndkVersion} differs from " +
+            "native/sr25519/reproducible-build.json (${sr25519Manifest.ndkVersion})."
+    )
+}
+def sr25519BuildScript = rootProject.file("scripts/build-sr25519.py")
+def sr25519Sources = files(
+    fileTree(sr25519Crate) { exclude "target/**" },
+    sr25519BuildScript
+)
+def sr25519NdkDirectory = new File(
+    androidComponents.sdkComponents.sdkDirectory.get().asFile,
+    "ndk/${android.ndkVersion}"
+)
+def sr25519AllowHashMismatch =
+    providers.gradleProperty("sr25519.allowHashMismatch").orNull == "true"
+
+// Release, Internal App Sharing and release unit-test graphs must use exactly the
+// reviewed binaries and must not skip the native tests.
+def isReleaseTask = { task ->
+    def name = task.name.toLowerCase(Locale.ROOT)
+    name.contains("release") || name.contains("internalappsharing")
+}
+
+def buildSr25519Android = tasks.register("buildSr25519AndroidLibraries", Sr25519NativeBuild) {
+    group = "build"
+    description = "Builds libsr25519java.so for all four ABIs from native/sr25519 and verifies it."
+    sources.from(sr25519Sources)
+    buildScript.set(sr25519BuildScript)
+    modeArguments.set(
+        ["--ndk", sr25519NdkDirectory.absolutePath] +
+            (sr25519AllowHashMismatch ? ["--allow-hash-mismatch"] : [])
+    )
+    cargoTargetDirectory.set(layout.buildDirectory.dir("sr25519/cargo-android"))
+    outputDirectory.set(layout.buildDirectory.dir("sr25519/jniLibs"))
+}
+
+tasks.register("recordSr25519NativeHashes", Sr25519NativeBuild) {
+    group = "build"
+    description = "Rebuilds libsr25519java.so and writes its SHA-256 values to reproducible-build.json."
+    sources.from(sr25519Sources)
+    buildScript.set(sr25519BuildScript)
+    modeArguments.set(["--ndk", sr25519NdkDirectory.absolutePath, "--record"])
+    cargoTargetDirectory.set(layout.buildDirectory.dir("sr25519/cargo-android"))
+    outputDirectory.set(layout.buildDirectory.dir("sr25519/recorded-jniLibs"))
+    outputs.upToDateWhen { false }
+}
+
+tasks.register("verifySr25519ReproducibleBuild", Sr25519NativeBuild) {
+    group = "verification"
+    description = "Builds libsr25519java.so twice from clean target directories and requires " +
+        "byte-identical binaries that match reproducible-build.json."
+    sources.from(sr25519Sources)
+    buildScript.set(sr25519BuildScript)
+    modeArguments.set(["--ndk", sr25519NdkDirectory.absolutePath, "--reproducibility-check"])
+    cargoTargetDirectory.set(layout.buildDirectory.dir("sr25519/reproducibility"))
+    outputDirectory.set(layout.buildDirectory.dir("sr25519/reproducibility-outputs"))
+    outputs.upToDateWhen { false }
+}
+
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        variant.sources.jniLibs?.addGeneratedSourceDirectory(buildSr25519Android) { task ->
+            task.outputDirectory
+        }
+    }
+}
+
+gradle.taskGraph.whenReady { graph ->
+    if (sr25519AllowHashMismatch && graph.allTasks.any { isReleaseTask(it) }) {
+        throw new GradleException(
+            "-Psr25519.allowHashMismatch=true is for local debug builds only; release builds " +
+                "must package the libsr25519java.so listed in native/sr25519/reproducible-build.json."
+        )
+    }
+}
+
+// Host library for JVM unit tests. Without cargo the sr25519 tests are skipped
+// with the reason; release unit tests fail instead.
+def sr25519CargoHome = providers.environmentVariable("CARGO_HOME")
+    .orElse(providers.systemProperty("user.home").map { "$it/.cargo" })
+    .get()
+def sr25519CargoAvailable = (
+    (providers.environmentVariable("PATH").getOrElse("").split(File.pathSeparator) as List) +
+        ["$sr25519CargoHome/bin"]
+).any { new File(it, "cargo").canExecute() }
+def sr25519HostDirectory = layout.buildDirectory.dir("sr25519/host")
+def sr25519HostLibrary = sr25519HostDirectory.map {
+    it.file(System.mapLibraryName("sr25519java")).asFile.absolutePath
+}
+def sr25519MissingReason =
+    "cargo was not found on PATH or in $sr25519CargoHome/bin; install rustup (https://rustup.rs) " +
+        "to build native/sr25519 for the sr25519 unit tests"
+
+def buildSr25519Host = tasks.register("buildSr25519HostLibrary", Sr25519NativeBuild) {
+    group = "build"
+    description = "Builds libsr25519java for this host so JVM unit tests can load it."
+    sources.from(sr25519Sources)
+    buildScript.set(sr25519BuildScript)
+    modeArguments.set(["--host-output", sr25519HostDirectory.get().asFile.absolutePath])
+    cargoTargetDirectory.set(layout.buildDirectory.dir("sr25519/cargo-host"))
+    outputDirectory.set(sr25519HostDirectory)
+    onlyIf("cargo is installed") { sr25519CargoAvailable }
+}
+
+def sr25519LegacyLibrary = providers.gradleProperty("sr25519.legacyLibrary").orNull
+tasks.withType(Test).configureEach { test ->
+    test.dependsOn(buildSr25519Host)
+    test.systemProperty("java.library.path", sr25519HostDirectory.get().asFile.absolutePath)
+    if (sr25519CargoAvailable) {
+        test.systemProperty("sr25519.hostLibrary", sr25519HostLibrary.get())
+    } else {
+        test.systemProperty("sr25519.hostLibrary.unavailable", sr25519MissingReason)
+        if (isReleaseTask(test)) {
+            def reason = sr25519MissingReason
+            test.doFirst { throw new GradleException("Release unit tests cannot skip sr25519: " + reason) }
+        } else {
+            test.doFirst { logger.warn("sr25519 tests will be skipped: " + sr25519MissingReason) }
+        }
+    }
+    if (sr25519LegacyLibrary != null) {
+        test.systemProperty("sr25519.legacyLibrary", new File(sr25519LegacyLibrary).absolutePath)
+    }
 }

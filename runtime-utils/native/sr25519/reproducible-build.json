@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "crate": "runtime-utils/native/sr25519",
+  "library": "libsr25519java.so",
+  "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "cargoNdk": "cargo-ndk 4.1.2",
+  "ndkVersion": "30.0.16248370",
+  "androidApiLevel": 26,
+  "sourceDateEpoch": 1794009600,
+  "jniExports": [
+    "Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_deriveKeypairHard",
+    "Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_deriveKeypairSoft",
+    "Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_derivePublicSoft",
+    "Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_fromEd25519Bytes",
+    "Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_keypairFromSeed",
+    "Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_sign",
+    "Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_test",
+    "Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_toEd25519Bytes",
+    "Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_verify",
+    "Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_deriveKeypairHard",
+    "Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_deriveKeypairSoft",
+    "Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_derivePublicSoft",
+    "Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_fromEd25519Bytes",
+    "Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_keypairFromSeed",
+    "Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_sign",
+    "Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_test",
+    "Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_toEd25519Bytes",
+    "Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_verify"
+  ],
+  "abis": {
+    "arm64-v8a": {
+      "rustTarget": "aarch64-linux-android",
+      "sha256": "cca739ef44e0d3f93e7b21cfe08cde8f3820e5fc493be21e5b0e1474196a209e"
+    },
+    "armeabi-v7a": {
+      "rustTarget": "armv7-linux-androideabi",
+      "sha256": "7e2701966ee9f17922900cf1bf6eb46507492c2bdac66bc0a47e2079f13f0f4d"
+    },
+    "x86": {
+      "rustTarget": "i686-linux-android",
+      "sha256": "f3a4cadfe6493cfc19ca107c2325e85013ff414931e6464244f529be19dcb974"
+    },
+    "x86_64": {
+      "rustTarget": "x86_64-linux-android",
+      "sha256": "2e9e7d68a9d0b31356f6c69f5c5867a59d829411671113686706ed2695bd98be"
+    }
+  }
+}

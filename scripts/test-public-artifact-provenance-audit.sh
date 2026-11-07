@@ -30,7 +30,7 @@ expect_failure() {
 expect_failure "release without strict provenance" "$AUDIT" --release
 
 cp "$ROOT_DIR/docs/binary-provenance.md" "$tmp_dir/provenance.md"
-sed -i.bak '/app\/src\/main\/jniLibs\/arm64-v8a\/libsodium.so/d' "$tmp_dir/provenance.md"
+sed -i.bak '/^| `runtime-utils\/libs\/polkaj-scale-0.2.3.jar` |/d' "$tmp_dir/provenance.md"
 expect_failure "undocumented allowlisted binary" env \
   PUBLIC_ARTIFACT_PROVENANCE_DOC="$tmp_dir/provenance.md" \
   "$AUDIT" --strict-provenance
@@ -42,7 +42,7 @@ expect_failure "stale extra provenance row" env \
   "$AUDIT" --strict-provenance
 
 cp "$ROOT_DIR/docs/binary-provenance.md" "$tmp_dir/provenance.md"
-grep -F '| `app/src/main/jniLibs/arm64-v8a/libsodium.so` |' "$ROOT_DIR/docs/binary-provenance.md" >> "$tmp_dir/provenance.md"
+grep -F '| `gradle/wrapper/gradle-wrapper.jar` |' "$ROOT_DIR/docs/binary-provenance.md" >> "$tmp_dir/provenance.md"
 expect_failure "duplicate provenance row" env \
   PUBLIC_ARTIFACT_PROVENANCE_DOC="$tmp_dir/provenance.md" \
   "$AUDIT" --strict-provenance
@@ -53,15 +53,19 @@ expect_failure "missing provenance self-test command" env \
   PUBLIC_ARTIFACT_PROVENANCE_DOC="$tmp_dir/provenance.md" \
   "$AUDIT" --strict-provenance
 
+sr25519_arm64_sha256="$(
+  python3 -I -c 'import json, sys; print(json.load(open(sys.argv[1]))["abis"]["arm64-v8a"]["sha256"])' \
+    "$ROOT_DIR/runtime-utils/native/sr25519/reproducible-build.json"
+)"
 cp "$ROOT_DIR/docs/binary-provenance.md" "$tmp_dir/provenance.md"
-sed -i.bak 's/7500809f33243ee47ecb2ec8563fc284ac4de0d6/0000000000000000000000000000000000000000/g' "$tmp_dir/provenance.md"
-expect_failure "missing pinned sr25519 source revision" env \
+sed -i.bak "s/$sr25519_arm64_sha256/$(printf '0%.0s' {1..64})/g" "$tmp_dir/provenance.md"
+expect_failure "sr25519 reproducible-build checksum out of sync" env \
   PUBLIC_ARTIFACT_PROVENANCE_DOC="$tmp_dir/provenance.md" \
   "$AUDIT" --strict-provenance
 
 cp "$ROOT_DIR/docs/binary-provenance.md" "$tmp_dir/provenance.md"
-sed -i.bak 's/libsodium 1\.0\.19/libsodium unknown/g' "$tmp_dir/provenance.md"
-expect_failure "missing vendored libsodium source release" env \
+sed -i.bak 's/cargo-ndk 4\.1\.2/cargo-ndk unknown/g' "$tmp_dir/provenance.md"
+expect_failure "missing pinned sr25519 build toolchain" env \
   PUBLIC_ARTIFACT_PROVENANCE_DOC="$tmp_dir/provenance.md" \
   "$AUDIT" --strict-provenance
 

@@ -276,15 +276,14 @@ jobs:
             "build-tools;36.0.0" \
             "platform-tools" \
             "emulator" \
-            "ndk;28.0.12674087" \
-            "ndk;25.2.9519653"
+            "ndk;30.0.16248370"
 
       - name: Export NDK environment
         run: |
           {
-            echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087"
-            echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/28.0.12674087"
-            echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087"
+            echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/30.0.16248370"
+            echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/30.0.16248370"
+            echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/30.0.16248370"
           } >> "$GITHUB_ENV"
 
       - name: NDK revision
@@ -296,13 +295,11 @@ jobs:
 
       - name: Setup Rust toolchain
         run: |
-          rustup toolchain install stable --profile minimal
-          rustup default stable
-          rustup target add \
-            aarch64-linux-android \
-            armv7-linux-androideabi \
-            i686-linux-android \
-            x86_64-linux-android
+          set -euo pipefail
+          # rust-toolchain.toml pins Rust 1.99.1 and the four Android targets
+          # that build libsr25519java.so; cargo-ndk is pinned in its manifest.
+          (cd runtime-utils/native/sr25519 && rustup toolchain install)
+          cargo install cargo-ndk --version 4.1.2 --locked
 
       - name: Gradle version
         run: ./gradlew --version --no-daemon --console=plain --stacktrace

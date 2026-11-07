@@ -31,9 +31,8 @@ android {
 
     sourceSets {
         androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
-        // Exercise the same SR25519 implementation shipped by the production
-        // app when running migration integrity tests from this library module.
-        androidTest.jniLibs.srcDirs += files("$rootDir/app/src/main/jniLibs")
+        // The production SR25519 library reaches this module's androidTest APK
+        // through :runtime-utils, which builds libsr25519java.so from source.
         // Secrets exactly as released builds stored them (common's golden
         // vectors), so the migration validators are checked against them too.
         test.resources.srcDirs += files("$rootDir/common/src/test/resources/wallet-secret-vectors")

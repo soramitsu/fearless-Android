@@ -1512,7 +1512,7 @@ import zipfile
 
 source, destination, mode = sys.argv[1:]
 replacement_targets = {
-    "replace-sodium": "base/lib/arm64-v8a/libsodium.so",
+    "replace-sr25519-arm64": "base/lib/arm64-v8a/libsr25519java.so",
     "replace-sr25519": "base/lib/x86/libsr25519java.so",
     "replace-sqlcipher": "base/lib/armeabi-v7a/libsqlcipher.so",
     "replace-path": "base/lib/x86_64/libandroidx.graphics.path.so",
@@ -1649,7 +1649,7 @@ with zipfile.ZipFile(destination, "w") as archive:
         archive.writestr("base/lib/arm64-v8a/libevil.so", b"unexpected native\n")
     elif mode == "unexpected-module":
         archive.writestr(
-            "dynamic/lib/arm64-v8a/libsodium.so",
+            "dynamic/lib/arm64-v8a/libsr25519java.so",
             b"unexpected dynamic module native\n",
         )
     elif mode == "asset-elf":
@@ -1663,7 +1663,7 @@ with zipfile.ZipFile(destination, "w") as archive:
             b"\x7fELF\x02\x01\x01\x00renamed native payload\n",
         )
     elif mode == "duplicate-entry":
-        target = "base/lib/arm64-v8a/libsodium.so"
+        target = "base/lib/arm64-v8a/libsr25519java.so"
         original = next(data for info, data in entries if info.filename == target)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", UserWarning)
@@ -1890,7 +1890,7 @@ for bypass_mode in \
   missing-agp-metadata \
   duplicate-agp-metadata \
   missing-abi \
-  replace-sodium; do
+  replace-sr25519-arm64; do
   bypass_artifact="$tmp_dir/r8-policy-bypass-$bypass_mode.aab"
   mutate_artifact "$bypass_mode" "$bypass_artifact" "$fixture_without_r8"
   case "$bypass_mode" in
@@ -1900,7 +1900,7 @@ for bypass_mode in \
     missing-abi)
       expected_diagnostic="Native payload entries differ from the exact allowlist"
       ;;
-    replace-sodium)
+    replace-sr25519-arm64)
       expected_diagnostic="Embedded native library checksum mismatch"
       ;;
   esac
@@ -2128,7 +2128,7 @@ for mutation in \
 done
 
 for mutation in \
-  replace-sodium \
+  replace-sr25519-arm64 \
   replace-sr25519 \
   replace-sqlcipher \
   replace-path; do
