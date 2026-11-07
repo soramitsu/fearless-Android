@@ -11,8 +11,8 @@ curve25519-kotlin no longer packaged. Still open:
 - SpongyCastle and kethereum leave with the Reown SDK (separate lane).
 - ton-kotlin hashes cells and BOCs with kotlinx-crypto (same single maintainer as
   curve25519-kotlin); cells are in scope to stay for 4.3.2.
-- Confirm with a minified release build that R8 reports no missing
-  curve25519-kotlin classes.
+- sr25519 JSON backups are checked only up to the decrypted PKCS8 secret in unit
+  tests; the keypair itself needs the native library (device tests).
 
 ## Production release 4.3.1 (233): Asset Hub staking — 30 October 2026
 

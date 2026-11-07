@@ -18,8 +18,12 @@ code use BouncyCastle 1.85 or code in this repository:
 - TON phrases, keys, signatures and encrypted-comment key agreement use
   `TonMnemonic` and `TonEd25519` in runtime-utils; no key material reaches ton-kotlin.
   curve25519-kotlin is no longer packaged (unit and device test classpaths keep it as
-  the reference). `TonEd25519.verify` accepts every valid signature (no shipped path
-  verifies TON signatures). ton-kotlin cells, BOC, addresses and StateInit stay.
+  the reference): an R8-minified app build reports no missing classes and keeps no
+  ton-kotlin Ed25519 or `org.ton.api` class. `TonEd25519.verify` accepts every valid
+  signature (no shipped path verifies TON signatures). ton-kotlin cells, BOC, addresses
+  and StateInit stay.
+- Jetton transfers carry a random 64-bit query_id. Until now `newWalletQueryId()` parsed
+  a "0x"-prefixed hex string, which BigInteger rejects, so every query_id was 0.
 - The SCALE codec is built from the polkaj-scale 0.2.3 sources (Apache-2.0, `NOTICE`);
   `runtime-utils/libs/polkaj-scale-0.2.3.jar` is deleted.
 - Evidence: RFC 8032, BIP39 (TREZOR, substrate-bip39, Japanese) and NFKD vectors;
