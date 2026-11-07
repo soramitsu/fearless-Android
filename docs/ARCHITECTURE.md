@@ -42,7 +42,8 @@ This document explains how the Android app is structured, how modules interact, 
   `walletconnect_v2` preferences file, sealed with the app's wallet encryption key.
   `App` starts it through `WalletConnectStarter`; the project ID is `BuildConfig.WALLET_CONNECT_PROJECT_ID`.
   Before the client loads its state, the starter runs the optional `LegacyWalletConnectImport` binding
-  (Reown 1.6.9 sessions into the new storage) on a background thread; the old SDK's files are deleted
+  (`ReownLegacyWalletConnectImport`: Reown 1.6.9 sessions into the new storage, see
+  `docs/walletconnect-reown-migration.md`) on a background thread; the old SDK's files are deleted
   only after it reports `IMPORTED` or `NOTHING_TO_IMPORT`, and are kept without an importer.
 - TON Connect: Dedicated feature modules `feature-tonconnect-api` and `feature-tonconnect-impl` with persistence in `core-db` (`TonConnectDao`).
 
