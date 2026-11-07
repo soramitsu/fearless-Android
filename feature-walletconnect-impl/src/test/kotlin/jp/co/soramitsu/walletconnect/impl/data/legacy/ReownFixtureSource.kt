@@ -35,9 +35,14 @@ internal class ReownFixtureSource(
 }
 
 /** A ledger in memory. */
-internal class MemoryImportLedger(override var isDone: Boolean = false, override var failedAttempts: Int = 0) : ReownImportLedger {
-    override fun markDone() {
+internal class MemoryImportLedger(
+    override var isDone: Boolean = false,
+    override var keepsLegacyFiles: Boolean = false,
+    override var failedAttempts: Int = 0
+) : ReownImportLedger {
+    override fun markDone(keepLegacyFiles: Boolean) {
         isDone = true
+        keepsLegacyFiles = keepLegacyFiles
     }
 
     override fun recordFailedAttempt() {

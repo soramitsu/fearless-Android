@@ -20,12 +20,15 @@ internal interface ReownLegacySource {
     fun readDatabase(name: String): LegacyDatabaseFiles?
 }
 
-/** Remembers across starts that the import finished, and how many attempts failed. */
+/** Remembers across starts that the import finished, whether the SDK's files must stay, and failed attempts. */
 internal interface ReownImportLedger {
     val isDone: Boolean
+
+    /** The finished import left something usable out (over a limit), so the SDK's files are never deleted. */
+    val keepsLegacyFiles: Boolean
     val failedAttempts: Int
 
-    fun markDone()
+    fun markDone(keepLegacyFiles: Boolean)
 
     fun recordFailedAttempt()
 }
@@ -43,27 +46,37 @@ internal enum class ReownImportFailure {
 }
 
 internal sealed interface ReownImportResult {
-    /** An earlier start imported everything. */
-    data object AlreadyImported : ReownImportResult
+    /** Whether the SDK's files may now be deleted: only once everything usable is saved in the client's state. */
+    val allowsCleanup: Boolean
+
+    /** An earlier start finished the import. */
+    data class AlreadyImported(val keepsLegacyFiles: Boolean) : ReownImportResult {
+        override val allowsCleanup: Boolean get() = !keepsLegacyFiles
+    }
 
     /** The SDK left nothing on this device (a new install, or cleaned up before). */
-    data object NothingToImport : ReownImportResult
+    data object NothingToImport : ReownImportResult {
+        override val allowsCleanup: Boolean get() = true
+    }
 
-    data class Imported(val summary: ReownImportSummary) : ReownImportResult
+    data class Imported(val summary: ReownImportSummary) : ReownImportResult {
+        override val allowsCleanup: Boolean get() = summary.isComplete
+    }
 
-    data class Failed(val reason: ReownImportFailure) : ReownImportResult
-
-    /** Whether the SDK's files may now be deleted: never after a failure, so a later start can try again. */
-    val allowsCleanup: Boolean get() = this !is Failed
+    /** Nothing was saved and the SDK's files stay, so a later start can try again. */
+    data class Failed(val reason: ReownImportFailure) : ReownImportResult {
+        override val allowsCleanup: Boolean get() = false
+    }
 }
 
 /**
- * Carries the WalletConnect sessions of the removed Reown SDK over to the in-repo client on the first
- * start after the update, before the client loads its state. It only reads what the SDK left: the
- * databases are decrypted in memory, the preferences are opened only when complete, and nothing of the
- * SDK's is written, renamed or deleted here. On any failure the user's sessions stay where they are, the
- * app starts normally, and a later start tries again ([MAX_FAILED_ATTEMPTS] times at most); the worst
- * case is that the user reconnects their dApps.
+ * Carries the WalletConnect sessions and pairings of the removed Reown SDK over to the in-repo client on
+ * the first start after the update, before the client loads its state. It only reads what the SDK left:
+ * the databases are decrypted in memory, the preferences are opened only when complete, and nothing of
+ * the SDK's is written, renamed or deleted here. Cleanup may follow only when everything usable is saved
+ * ([ReownImportResult.allowsCleanup]). On any failure the SDK's files stay, the app starts normally, and a
+ * later start tries again ([MAX_FAILED_ATTEMPTS] times at most); the worst case is that the user
+ * reconnects their dApps.
  */
 internal class ReownSessionImporter(
     private val source: ReownLegacySource,
@@ -80,8 +93,8 @@ internal class ReownSessionImporter(
 
     internal fun importBlocking(storage: WalletConnectStateStorage): ReownImportResult {
         val precondition = when {
-            ledger.isDone -> ReownImportResult.AlreadyImported
-            !source.hasLegacyData() -> ReownImportResult.NothingToImport.also { ledger.markDone() }
+            ledger.isDone -> ReownImportResult.AlreadyImported(ledger.keepsLegacyFiles)
+            !source.hasLegacyData() -> ReownImportResult.NothingToImport.also { ledger.markDone(keepLegacyFiles = false) }
             ledger.failedAttempts >= MAX_FAILED_ATTEMPTS -> ReownImportResult.Failed(ReownImportFailure.GAVE_UP)
             else -> null
         }
@@ -92,7 +105,7 @@ internal class ReownSessionImporter(
             return ReownImportResult.Failed(ReownImportFailure.LEGACY_UNREADABLE)
         }
         val summary = mergeInto(storage, snapshot) ?: return ReownImportResult.Failed(ReownImportFailure.STORAGE_UNAVAILABLE)
-        ledger.markDone()
+        ledger.markDone(keepLegacyFiles = !summary.isComplete)
         return ReownImportResult.Imported(summary)
     }
 
@@ -114,7 +127,7 @@ internal class ReownSessionImporter(
                     signDatabase = sign?.let { image(it, requireNotNull(key)) },
                     coreDatabase = core?.let { image(it, requireNotNull(key)) }
                 )
-                reader.read(sources, nowSeconds())
+                reader.read(sources)
             }
         } catch (ignored: Exception) {
             null
@@ -149,10 +162,12 @@ internal class ReownSessionImporter(
 internal class PreferencesReownImportLedger(private val preferences: SharedPreferences) : ReownImportLedger {
     override val isDone: Boolean get() = preferences.getBoolean(DONE, false)
 
+    override val keepsLegacyFiles: Boolean get() = preferences.getBoolean(KEEP_LEGACY_FILES, false)
+
     override val failedAttempts: Int get() = preferences.getInt(FAILED_ATTEMPTS, 0)
 
-    override fun markDone() {
-        preferences.edit().putBoolean(DONE, true).commit()
+    override fun markDone(keepLegacyFiles: Boolean) {
+        preferences.edit().putBoolean(KEEP_LEGACY_FILES, keepLegacyFiles).putBoolean(DONE, true).commit()
     }
 
     override fun recordFailedAttempt() {
@@ -161,6 +176,7 @@ internal class PreferencesReownImportLedger(private val preferences: SharedPrefe
 
     companion object {
         const val DONE = "reown_import.done.v1"
+        const val KEEP_LEGACY_FILES = "reown_import.keep_legacy_files.v1"
         const val FAILED_ATTEMPTS = "reown_import.failed_attempts.v1"
     }
 }

@@ -15,6 +15,7 @@ import jp.co.soramitsu.walletconnect.impl.protocol.WcTestDapp
 import jp.co.soramitsu.walletconnect.impl.protocol.WcTestRelay
 import jp.co.soramitsu.walletconnect.impl.protocol.eventually
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -72,28 +73,23 @@ class ReownMigrationClientTest {
     }
 
     @Test
-    fun `every session the user saw is listed again, with its dApp`() {
+    fun `every live session is listed again, with its dApp, and its topic is watched`() {
         val client = migratedClient()
 
-        eventually { client.sessions.value.size == 2 }
+        eventually { client.sessions.value.size == 3 }
         val listed = client.sessions.value.associateBy { it.topic }
-        assertEquals(setOf("alpha", "beta").map { sessions.getValue(it)["topic"].asString }.toSet(), listed.keys)
-        assertEquals("Alpha Swap", listed.getValue(sessions.getValue("alpha")["topic"].asString).metaData!!.name)
-        assertTrue(dappTopics().all { it in relay.subscriptions })
+        assertEquals(setOf("alpha", "beta", "unsettled").map(::topic).toSet(), listed.keys)
+        assertEquals("Alpha Swap", listed.getValue(topic("alpha")).metaData!!.name)
+        eventually { dappTopics().all { it in relay.subscriptions } }
     }
 
     @Test
-    fun `the request the SDK had not answered yet can still be answered`() {
+    fun `a session that expired while the app was off is reported when the client starts`() {
         val client = migratedClient()
-        val topic = topic("alpha")
-        val dapp = WcTestDapp(relay, clock)
 
-        eventually { client.pendingRequests(topic).isNotEmpty() }
-        assertEquals(listOf(1794000000123456L), client.pendingRequests(topic).map { it.request.id })
-        runBlocking { client.respond(topic, 1794000000123456L, JsonPrimitive("0xlate")) }
-
-        val answer = dapp.all(topic, symKey("alpha")).last() as WcJsonRpc.Result
-        assertEquals(1794000000123456L, answer.id)
+        eventually { events.any { event -> event is WalletConnectEvent.SessionDeleted && event.topic == topic("expired") } }
+        assertTrue(client.session(topic("expired")) == null)
+        assertTrue(topic("expired") !in relay.subscriptions)
     }
 
     @Test
@@ -149,7 +145,9 @@ class ReownMigrationClientTest {
             scope = scope,
             relayUrls = listOf("wss://relay.test")
         ).also { client ->
-            scope.launch { client.events.collect { events += it } }
+            // Subscribed before start(): the client's events have no replay, so a listener that subscribes
+            // later misses what start() reports, such as a session that expired while the app was off.
+            scope.launch(start = CoroutineStart.UNDISPATCHED) { client.events.collect { events += it } }
             client.start()
         }
     }

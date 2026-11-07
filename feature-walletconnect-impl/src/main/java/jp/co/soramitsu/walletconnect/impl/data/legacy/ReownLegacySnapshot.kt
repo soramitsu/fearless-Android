@@ -4,36 +4,41 @@ import java.security.MessageDigest
 
 /**
  * What the removed Reown SDK (Fearless Android 4.3.1 and earlier) kept for the wallet, read back once on
- * upgrade so that every paired dApp keeps working: live sessions with their keys, pairings, the relay
- * identity, and dApp requests that were received but not yet answered.
+ * upgrade so that every paired dApp keeps working: sessions with their keys, pairings and the relay
+ * identity. Proposals and requests that were in flight are not part of it.
  */
 internal data class ReownLegacySnapshot(
     /** The Ed25519 seed (hex) of the relay identity the SDK signed its relay sign-in with. */
     val clientSeed: String?,
     val pairings: List<ReownLegacyPairing>,
     val sessions: List<ReownLegacySession>,
-    val pendingRequests: List<ReownLegacyRequest>,
     /** Why records were left behind: fixed codes only, never a topic, key or payload. */
     val skipped: List<ReownSkipReason>
 )
 
 /** Why a record the SDK kept was not carried over. Codes only, so they are safe in logs. */
 internal enum class ReownSkipReason {
+    /** No topic, no key, or a key that does not hash to the topic: the session cannot be used. */
     SESSION_INCOMPLETE,
-    SESSION_EXPIRED,
-    SESSION_NOT_SETTLED,
+
+    /** No namespaces: nothing was approved, so nothing can be requested over it. */
     SESSION_WITHOUT_NAMESPACES,
+
+    /** Expired, and left out only because the client's limit was reached. */
+    SESSION_EXPIRED,
+
+    /** No topic or no key: the pairing cannot be used. */
     PAIRING_INCOMPLETE,
+
+    /** Expired, and left out only because the client's limit was reached. */
     PAIRING_EXPIRED,
+
+    /** The relay identity's key pair is not readable; the client makes a new one. */
     IDENTITY_UNREADABLE,
-    REQUEST_UNREADABLE,
-    REQUEST_EXPIRED,
-    REQUEST_NOT_ALLOWED,
+
+    /** Still usable but over the client's limit: the SDK's files are then kept. */
     LIMIT_REACHED
 }
-
-/** The Verify result the SDK stored for a request: `VALID`, `INVALID` or `UNKNOWN`, and the attested origin. */
-internal data class ReownLegacyVerify(val validation: String, val origin: String?, val isScam: Boolean)
 
 internal data class ReownLegacyMetadata(
     val name: String,
@@ -83,14 +88,6 @@ internal data class ReownLegacySession(
     val peer: ReownLegacyMetadata?
 )
 
-/** A `wc_sessionRequest` the SDK received and had not answered: its JSON-RPC body as the dApp sent it. */
-internal data class ReownLegacyRequest(
-    val id: Long,
-    val topic: String,
-    val body: String,
-    val verify: ReownLegacyVerify?
-)
-
 /** The SDK's two databases (already decrypted) and its key chain (tag to hex value). */
 internal class ReownLegacySources(
     val keyChain: Map<String, String>,
@@ -103,25 +100,23 @@ internal class ReownLegacySources(
  * Kotlin 1.6.9 (and the WalletConnect Kotlin SDK before the rename, which used the same names):
  * - `WalletConnectV2.db`: SessionDao, NamespaceDao, ProposalNamespaceDao (required namespaces) and
  *   OptionalNamespaceDao, joined on session_id; list columns hold comma-separated values;
- * - `WalletConnectAndroidCore.db`: Pairing, MetaData (by sequence_topic and type PEER/SELF),
- *   JsonRpcHistoryDao (requests, with a NULL response while unanswered) and VerifyContext (by request id);
+ * - `WalletConnectAndroidCore.db`: Pairing and MetaData (by sequence_topic and type PEER/SELF);
  * - key chain: a topic's symmetric key under the topic, `key_agreement/<topic>` = self + peer public keys,
  *   `key_did_keypair` = relay identity private + public key.
  *
- * Expired records and records whose keys are missing or do not match are skipped with a reason.
+ * Every keyed, complete session and pairing is read, settled or not and expired or not: the client
+ * reports what expired once it starts, as it does for its own records. Only records that cannot be used
+ * (no key, a key that does not match, no namespaces) are left behind, each with a reason code.
  */
 internal class ReownLegacySnapshotReader {
 
-    fun read(sources: ReownLegacySources, nowSeconds: Long): ReownLegacySnapshot {
+    fun read(sources: ReownLegacySources): ReownLegacySnapshot {
         val skipped = mutableListOf<ReownSkipReason>()
         val peers = peerMetadata(sources.coreDatabase)
-        val sessions = readSessions(sources, peers, nowSeconds, skipped)
-        val sessionTopics = sessions.map { it.topic }.toSet()
         return ReownLegacySnapshot(
             clientSeed = clientSeed(sources.keyChain, skipped),
-            pairings = readPairings(sources, peers, nowSeconds, skipped),
-            sessions = sessions,
-            pendingRequests = pendingRequests(sources.coreDatabase, sessionTopics),
+            pairings = readPairings(sources, peers, skipped),
+            sessions = readSessions(sources, peers, skipped),
             skipped = skipped
         )
     }
@@ -129,7 +124,6 @@ internal class ReownLegacySnapshotReader {
     private fun readSessions(
         sources: ReownLegacySources,
         peers: Map<String, ReownLegacyMetadata>,
-        nowSeconds: Long,
         skipped: MutableList<ReownSkipReason>
     ): List<ReownLegacySession> {
         val database = sources.signDatabase ?: return emptyList()
@@ -138,14 +132,13 @@ internal class ReownLegacySnapshotReader {
         val optional = database.readTable(OPTIONAL_NAMESPACE_TABLE).orEmpty().groupBy { it.long(SESSION_ID) }
         return database.readTable(SESSION_TABLE).orEmpty().mapNotNull { row ->
             val id = row.long(ID)
-            val session = sessionOf(row, sources.keyChain, peers[row.string(TOPIC)])?.copy(
+            val session = sessionOf(row, sources.keyChain, peers[row.string(TOPIC)?.lowercase()])?.copy(
                 namespaces = namespaces[id].orEmpty().associate { it.requireString(KEY) to sessionNamespaceOf(it) },
                 requiredNamespaces = required[id].orEmpty().associate { it.requireString(KEY) to proposalNamespaceOf(it) },
                 optionalNamespaces = optional[id].orEmpty().associate { it.requireString(KEY) to proposalNamespaceOf(it) }
             )
             val problem = when {
                 session == null -> ReownSkipReason.SESSION_INCOMPLETE
-                session.expiry <= nowSeconds -> ReownSkipReason.SESSION_EXPIRED
                 session.namespaces.isEmpty() -> ReownSkipReason.SESSION_WITHOUT_NAMESPACES
                 else -> null
             }
@@ -164,7 +157,8 @@ internal class ReownLegacySnapshotReader {
         val agreement = keyChain["$KEY_AGREEMENT_PREFIX$topic"]?.takeIf { it.length == 2 * KEY_HEX_LENGTH }
         val selfPublicKey = row.string(SELF_PARTICIPANT) ?: agreement?.take(KEY_HEX_LENGTH)
         val peerPublicKey = row.string(PEER_PARTICIPANT)?.takeIf { it.isNotEmpty() } ?: agreement?.drop(KEY_HEX_LENGTH)
-        if (selfPublicKey == null || peerPublicKey == null) return null
+        val expiry = row.long(EXPIRY)
+        if (selfPublicKey == null || peerPublicKey == null || expiry == null) return null
         return ReownLegacySession(
             topic = topic,
             symKey = symKey,
@@ -172,7 +166,7 @@ internal class ReownLegacySnapshotReader {
             peerPublicKey = peerPublicKey.lowercase(),
             pairingTopic = row.string(PAIRING_TOPIC).orEmpty(),
             relayProtocol = row.string(RELAY_PROTOCOL) ?: DEFAULT_RELAY_PROTOCOL,
-            expiry = row.long(EXPIRY) ?: 0L,
+            expiry = expiry,
             acknowledged = row.boolean(IS_ACKNOWLEDGED) ?: false,
             namespaces = emptyMap(),
             requiredNamespaces = emptyMap(),
@@ -184,19 +178,13 @@ internal class ReownLegacySnapshotReader {
     private fun readPairings(
         sources: ReownLegacySources,
         peers: Map<String, ReownLegacyMetadata>,
-        nowSeconds: Long,
         skipped: MutableList<ReownSkipReason>
     ): List<ReownLegacyPairing> = sources.coreDatabase?.readTable(PAIRING_TABLE).orEmpty().mapNotNull { row ->
         val topic = row.string(TOPIC)?.lowercase()
         val symKey = topic?.let { sources.keyChain[it]?.lowercase() }?.takeIf { it.isKeyHex() }
-        val expiry = row.long(EXPIRY) ?: 0L
-        val problem = when {
-            topic == null || symKey == null -> ReownSkipReason.PAIRING_INCOMPLETE
-            expiry <= nowSeconds -> ReownSkipReason.PAIRING_EXPIRED
-            else -> null
-        }
-        if (problem != null) skipped += problem
-        if (problem != null || topic == null || symKey == null) {
+        val expiry = row.long(EXPIRY)
+        if (topic == null || symKey == null || expiry == null) {
+            skipped += ReownSkipReason.PAIRING_INCOMPLETE
             null
         } else {
             ReownLegacyPairing(
@@ -222,27 +210,6 @@ internal class ReownLegacySnapshotReader {
                     redirect = row.string(NATIVE_REDIRECT)?.takeIf { it.isNotEmpty() }
                 )
             }
-
-    private fun pendingRequests(
-        coreDatabase: SqliteDatabaseImage?,
-        sessionTopics: Set<String>
-    ): List<ReownLegacyRequest> {
-        val verify = coreDatabase?.readTable(VERIFY_TABLE).orEmpty().mapNotNull { row ->
-            val id = row.long(ID) ?: return@mapNotNull null
-            id to ReownLegacyVerify(
-                validation = row.string(VALIDATION) ?: UNKNOWN_VALIDATION,
-                origin = row.string(ORIGIN),
-                isScam = row.boolean(IS_SCAM) ?: false
-            )
-        }.toMap()
-        return coreDatabase?.readTable(HISTORY_TABLE).orEmpty().mapNotNull { row ->
-            val topic = row.string(TOPIC)?.lowercase()
-            val id = row.long(REQUEST_ID)
-            val body = row.string(BODY)
-            val pending = row.string(METHOD) == SESSION_REQUEST_METHOD && row[RESPONSE] == null && topic in sessionTopics
-            if (pending && topic != null && id != null && body != null) ReownLegacyRequest(id, topic, body, verify[id]) else null
-        }
-    }
 
     private fun clientSeed(keyChain: Map<String, String>, skipped: MutableList<ReownSkipReason>): String? {
         val pair = keyChain[CLIENT_ID_KEYPAIR_TAG] ?: return null
@@ -274,7 +241,6 @@ internal class ReownLegacySnapshotReader {
         private const val KEY_AGREEMENT_PREFIX = "key_agreement/"
         private const val KEY_HEX_LENGTH = 64
         private const val DEFAULT_RELAY_PROTOCOL = "irn"
-        private const val SESSION_REQUEST_METHOD = "wc_sessionRequest"
         private const val PEER_TYPE = "PEER"
         private const val SESSION_TABLE = "SessionDao"
         private const val NAMESPACE_TABLE = "NamespaceDao"
@@ -282,12 +248,6 @@ internal class ReownLegacySnapshotReader {
         private const val OPTIONAL_NAMESPACE_TABLE = "OptionalNamespaceDao"
         private const val PAIRING_TABLE = "Pairing"
         private const val METADATA_TABLE = "MetaData"
-        private const val HISTORY_TABLE = "JsonRpcHistoryDao"
-        private const val VERIFY_TABLE = "VerifyContext"
-        private const val VALIDATION = "validation"
-        private const val ORIGIN = "origin"
-        private const val IS_SCAM = "is_scam"
-        private const val UNKNOWN_VALIDATION = "UNKNOWN"
         private const val ID = "id"
         private const val SESSION_ID = "session_id"
         private const val KEY = "key"
@@ -310,10 +270,6 @@ internal class ReownLegacySnapshotReader {
         private const val URL = "url"
         private const val ICONS = "icons"
         private const val NATIVE_REDIRECT = "native"
-        private const val REQUEST_ID = "request_id"
-        private const val METHOD = "method"
-        private const val BODY = "body"
-        private const val RESPONSE = "response"
     }
 }
 

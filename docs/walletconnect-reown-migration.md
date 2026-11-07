@@ -11,20 +11,19 @@ Code: `feature-walletconnect-impl/src/main/java/jp/co/soramitsu/walletconnect/im
 
 ## What is carried over
 
-- **Sessions.** Only the ones the SDK listed as connected: settled (`is_acknowledged`) and not
-  expired, exactly what `WalletKit.getListOfActiveSessions()` showed. Each keeps:
+- **Every keyed, complete session, settled or not.** Each keeps:
   - its symmetric key (the key must hash to the topic);
   - its self and peer public keys;
   - its session, required and optional namespaces;
   - its pairing topic, expiry and the dApp's metadata.
-- **Pairings that have not expired.** A dApp can propose again over an existing pairing.
+- **Sessions that expired while the app was off.** These are imported too, so the client reports them
+  through its own expiry path when it starts, instead of their vanishing silently.
+- **Pairings**, so a dApp can propose again over an existing pairing.
 - **The relay identity** (`key_did_keypair`), unless the client already made its own.
-- **Requests the SDK received but had not answered** (`wc_sessionRequest` with no response). Each
-  keeps its stored Verify result. A request must still be open and name a chain and method its
-  session approved, as a live request must.
 
+Proposals and requests that were in flight are not carried over, as in the web wallet's SDK import.
 Records the client already has always win, so importing twice changes nothing. The client's limits
-apply: sessions, pairings, pending requests per session, and metadata sizes and icons.
+apply, live records first: sessions, pairings, and metadata sizes and icons.
 
 ## Where the SDK kept it, and how it is read
 
@@ -64,7 +63,10 @@ On any failure, the starter leaves every SDK file where it is and the app starts
 - client storage that is unavailable is retried without counting.
 
 The worst case is that the user reconnects their dApps. `LegacyWalletConnectSdkCleanup` deletes the
-SDK's files only after an import succeeded or found nothing to import.
+SDK's files only after an import was saved, or found nothing to import. If a live session or pairing had
+to be left out over a limit, the import is incomplete: the ledger remembers it, and the files are never
+deleted. Records that cannot be used at all are not counted as left out: a missing key, a key that does
+not match its topic, or no namespaces.
 
 ## Tests
 
@@ -77,4 +79,5 @@ SDK's files only after an import succeeded or found nothing to import.
 - **Unit tests** check the decoder and reader against the rows SQLCipher itself returns, the import
   rules, the importer's failure handling, and the end-to-end path. In the end-to-end test,
   `ReownMigrationClientTest` starts the in-repo client on imported state and answers dApp requests over
-  the migrated sessions.
+  the migrated sessions. It also checks that a session which expired while the app was off is reported
+  once a listener exists.

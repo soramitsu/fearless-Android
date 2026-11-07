@@ -11,7 +11,6 @@ import org.junit.Test
 class ReownLegacySnapshotReaderTest {
 
     private val reown = section("reown")
-    private val now = reown["now"].asLong
     private val keyChain: Map<String, String> = reown.getAsJsonObject("keychain").entrySet().associate { it.key to it.value.asString }
     private val sessions = reown.getAsJsonArray("sessions").map { it.asJsonObject }.associateBy { it["name"].asString }
     private val pairings = reown.getAsJsonArray("pairings").map { it.asJsonObject }.associateBy { it["name"].asString }
@@ -26,10 +25,13 @@ class ReownLegacySnapshotReaderTest {
     }
 
     @Test
-    fun `live sessions come back with their keys, namespaces and dApp metadata`() {
-        val snapshot = ReownLegacySnapshotReader().read(sources, now)
+    fun `sessions come back with their keys, namespaces and dApp metadata`() {
+        val snapshot = ReownLegacySnapshotReader().read(sources)
 
-        assertEquals(listOf("alpha", "beta", "unsettled").map { sessions.getValue(it)["topic"].asString }, snapshot.sessions.map { it.topic })
+        assertEquals(
+            listOf("alpha", "beta", "expired", "unsettled").map { sessions.getValue(it)["topic"].asString },
+            snapshot.sessions.map { it.topic }
+        )
         val alpha = snapshot.sessions.first()
         val expected = sessions.getValue("alpha")
         assertEquals(expected["sym"].asString, alpha.symKey)
@@ -62,7 +64,7 @@ class ReownLegacySnapshotReaderTest {
 
     @Test
     fun `a session without a stored peer key takes it from the key agreement, and unset chains stay null`() {
-        val beta = ReownLegacySnapshotReader().read(sources, now).sessions.single { it.topic == sessions.getValue("beta")["topic"].asString }
+        val beta = ReownLegacySnapshotReader().read(sources).sessions.single { it.topic == sessions.getValue("beta")["topic"].asString }
 
         assertEquals(sessions.getValue("beta")["peer"].asString, beta.peerPublicKey)
         assertTrue(beta.acknowledged)
@@ -74,15 +76,13 @@ class ReownLegacySnapshotReaderTest {
     }
 
     @Test
-    fun `expired sessions and sessions whose key is gone are left behind with a reason code`() {
-        val snapshot = ReownLegacySnapshotReader().read(sources, now)
+    fun `only a session whose key is gone is left behind with a reason code, expired and unsettled ones are read`() {
+        val snapshot = ReownLegacySnapshotReader().read(sources)
 
-        val topics = snapshot.sessions.map { it.topic }
-        listOf("expired", "keyless").forEach { name -> assertTrue(name, sessions.getValue(name)["topic"].asString !in topics) }
-        assertEquals(
-            listOf(ReownSkipReason.SESSION_EXPIRED, ReownSkipReason.SESSION_INCOMPLETE, ReownSkipReason.PAIRING_EXPIRED),
-            snapshot.skipped
-        )
+        assertTrue(sessions.getValue("keyless")["topic"].asString !in snapshot.sessions.map { it.topic })
+        assertEquals(listOf(ReownSkipReason.SESSION_INCOMPLETE), snapshot.skipped)
+        assertEquals(sessions.getValue("expired")["expiry"].asLong, snapshot.sessions.single { it.topic == sessions.getValue("expired")["topic"].asString }.expiry)
+        assertEquals(false, snapshot.sessions.single { it.topic == sessions.getValue("unsettled")["topic"].asString }.acknowledged)
     }
 
     @Test
@@ -91,40 +91,34 @@ class ReownLegacySnapshotReaderTest {
         val wrongKey = sessions.getValue("beta")["sym"].asString
         val corrupted = ReownLegacySources(keyChain + (alphaTopic to wrongKey), sources.signDatabase, sources.coreDatabase)
 
-        val snapshot = ReownLegacySnapshotReader().read(corrupted, now)
+        val snapshot = ReownLegacySnapshotReader().read(corrupted)
 
         assertTrue(snapshot.sessions.none { it.topic == alphaTopic })
     }
 
     @Test
-    fun `live pairings, the relay identity and unanswered requests come back`() {
-        val snapshot = ReownLegacySnapshotReader().read(sources, now)
+    fun `pairings and the relay identity come back`() {
+        val snapshot = ReownLegacySnapshotReader().read(sources)
 
-        val live = pairings.getValue("live")
-        assertEquals(listOf(live["topic"].asString), snapshot.pairings.map { it.topic })
-        assertEquals(live["sym"].asString, snapshot.pairings.single().symKey)
-        assertTrue(snapshot.pairings.single().active)
-        assertEquals("Alpha Swap", snapshot.pairings.single().peer!!.name)
+        assertEquals(listOf("live", "old").map { pairings.getValue(it)["topic"].asString }, snapshot.pairings.map { it.topic })
+        val live = snapshot.pairings.first()
+        assertEquals(pairings.getValue("live")["sym"].asString, live.symKey)
+        assertTrue(live.active)
+        assertEquals("Alpha Swap", live.peer!!.name)
         assertEquals(reown["identitySeed"].asString, snapshot.clientSeed)
-
-        val request = snapshot.pendingRequests.single()
-        assertEquals(1794000000123456L, request.id)
-        assertEquals(sessions.getValue("alpha")["topic"].asString, request.topic)
-        assertEquals(reown["pendingRequestBody"].asString, request.body)
-        assertEquals(ReownLegacyVerify(validation = "VALID", origin = "https://alpha.example", isScam = false), request.verify)
     }
 
     @Test
     fun `without databases only the identity is read`() {
-        val snapshot = ReownLegacySnapshotReader().read(ReownLegacySources(keyChain, null, null), now)
+        val snapshot = ReownLegacySnapshotReader().read(ReownLegacySources(keyChain, null, null))
 
         assertEquals(reown["identitySeed"].asString, snapshot.clientSeed)
-        assertTrue(snapshot.sessions.isEmpty() && snapshot.pairings.isEmpty() && snapshot.pendingRequests.isEmpty())
+        assertTrue(snapshot.sessions.isEmpty() && snapshot.pairings.isEmpty())
     }
 
     @Test
     fun `an unreadable identity is skipped, not guessed`() {
-        val snapshot = ReownLegacySnapshotReader().read(ReownLegacySources(mapOf("key_did_keypair" to "zz"), null, null), now)
+        val snapshot = ReownLegacySnapshotReader().read(ReownLegacySources(mapOf("key_did_keypair" to "zz"), null, null))
 
         assertNull(snapshot.clientSeed)
         assertEquals(listOf(ReownSkipReason.IDENTITY_UNREADABLE), snapshot.skipped)

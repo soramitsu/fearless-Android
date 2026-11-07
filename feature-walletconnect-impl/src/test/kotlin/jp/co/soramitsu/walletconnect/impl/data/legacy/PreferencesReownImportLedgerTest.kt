@@ -19,12 +19,17 @@ class PreferencesReownImportLedgerTest {
 
         first.recordFailedAttempt()
         first.recordFailedAttempt()
-        first.markDone()
+        assertFalse(first.keepsLegacyFiles)
+        first.markDone(keepLegacyFiles = true)
 
         val second = PreferencesReownImportLedger(preferences())
         assertTrue(second.isDone)
+        assertTrue(second.keepsLegacyFiles)
         assertEquals(2, second.failedAttempts)
-        assertEquals(setOf(PreferencesReownImportLedger.DONE, PreferencesReownImportLedger.FAILED_ATTEMPTS), values.keys)
+        assertEquals(
+            setOf(PreferencesReownImportLedger.DONE, PreferencesReownImportLedger.KEEP_LEGACY_FILES, PreferencesReownImportLedger.FAILED_ATTEMPTS),
+            values.keys
+        )
     }
 
     private fun preferences(): SharedPreferences {

@@ -2,9 +2,12 @@ package jp.co.soramitsu.walletconnect.impl.data.legacy
 
 import jp.co.soramitsu.walletconnect.impl.data.legacy.LegacyFixtures.bytes
 import jp.co.soramitsu.walletconnect.impl.data.legacy.LegacyFixtures.section
+import jp.co.soramitsu.walletconnect.impl.protocol.WcLimits
 import jp.co.soramitsu.walletconnect.impl.protocol.WcMemoryStorage
 import jp.co.soramitsu.walletconnect.impl.protocol.WcStoredMetadata
 import jp.co.soramitsu.walletconnect.impl.protocol.WcStoredPairing
+import jp.co.soramitsu.walletconnect.impl.protocol.WcStoredSession
+import jp.co.soramitsu.walletconnect.impl.protocol.WcStoredSessionNamespace
 import jp.co.soramitsu.walletconnect.impl.protocol.WcStoredState
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -30,12 +33,13 @@ class ReownSessionImporterTest {
         val result = runBlocking { importer().importInto(storage) }
 
         val summary = (result as ReownImportResult.Imported).summary
-        assertEquals(listOf(2, 1, 1), listOf(summary.sessions, summary.pairings, summary.requests))
+        assertEquals(listOf(4, 1, 2), listOf(summary.sessions, summary.expiredSessions, summary.pairings))
         assertTrue(summary.identity)
         assertTrue(result.allowsCleanup)
         assertTrue(ledger.isDone)
+        assertFalse(ledger.keepsLegacyFiles)
         val state = WcStoredStateJson.decodeOrEmpty(storage.json)
-        assertEquals(2, state.sessions.size)
+        assertEquals(4, state.sessions.size)
         assertEquals(1, storage.writes)
     }
 
@@ -46,7 +50,7 @@ class ReownSessionImporterTest {
 
         val again = runBlocking { importer().importInto(storage) }
 
-        assertEquals(ReownImportResult.AlreadyImported, again)
+        assertEquals(ReownImportResult.AlreadyImported(keepsLegacyFiles = false), again)
         assertTrue(again.allowsCleanup)
         assertEquals(stored, storage.json)
         assertEquals(1, storage.writes)
@@ -122,9 +126,37 @@ class ReownSessionImporterTest {
 
         val state = WcStoredStateJson.decodeOrEmpty(storage.json)
         assertEquals(own, state.pairings.first())
-        assertEquals(2, state.pairings.size)
+        assertEquals(3, state.pairings.size)
         assertEquals("ef".repeat(32), state.clientSeed)
-        assertEquals(2, state.sessions.size)
+        assertEquals(4, state.sessions.size)
+    }
+
+    @Test
+    fun `an import that had to leave a live session out never lets the cleanup delete the SDK's files`() {
+        val full = (1 until WcLimits.MAX_SESSIONS).map { index ->
+            WcStoredSession(
+                topic = index.toString().padStart(64, '0'),
+                symKey = "33".repeat(32),
+                selfPublicKey = "44".repeat(32),
+                peerPublicKey = "55".repeat(32),
+                pairingTopic = "",
+                relayProtocol = "irn",
+                expiry = now + 100,
+                acknowledged = true,
+                namespaces = mapOf("eip155" to WcStoredSessionNamespace(null, emptyList(), emptyList(), emptyList())),
+                peer = WcStoredMetadata("", "", "", emptyList())
+            )
+        }
+        storage.json = WcStoredStateJson.encode(WcStoredState(sessions = full))
+
+        val result = runBlocking { importer().importInto(storage) }
+
+        assertTrue(result is ReownImportResult.Imported)
+        assertFalse(result.allowsCleanup)
+        assertTrue(ledger.isDone && ledger.keepsLegacyFiles)
+        val later = runBlocking { importer().importInto(storage) }
+        assertEquals(ReownImportResult.AlreadyImported(keepsLegacyFiles = true), later)
+        assertFalse(later.allowsCleanup)
     }
 
     @Test
