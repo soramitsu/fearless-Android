@@ -16,6 +16,7 @@ import jp.co.soramitsu.common.compose.component.InfoItemSetViewState
 import jp.co.soramitsu.common.compose.component.InfoItemViewState
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
@@ -237,6 +238,8 @@ class SessionProposalViewModel @Inject constructor(
     }
 
     private fun callSessionApprove() {
+        // A wallet that re-locked meanwhile approves nothing; the proposal waits for the PIN.
+        if (WalletSessionLock.isLocked()) return
         if (isApproving.value) return
         val activeProposal = proposal ?: run {
             walletConnectRouter.back()

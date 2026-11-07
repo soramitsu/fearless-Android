@@ -18,6 +18,7 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.compose.component.SigningSummaryViewState
 import jp.co.soramitsu.common.data.network.config.FeatureToggleConfig
 import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.walletconnect.impl.presentation.DappSigningPausedException
@@ -76,11 +77,23 @@ class RequestPreviewViewModelTest {
             every { ethereumAddress } returns evmAddress.fromHex()
         }
         coEvery { accountRepository.allMetaAccounts() } returns listOf(wallet)
+        WalletSessionLock.unlock()
     }
 
     @After
     fun tearDown() {
+        WalletSessionLock.lock()
         Dispatchers.resetMain()
+    }
+
+    @Test
+    fun `a locked wallet signs nothing`() {
+        val viewModel = viewModel(requestId = shown.request.id)
+        WalletSessionLock.lock()
+
+        viewModel.onSignClick()
+
+        coVerify(exactly = 0) { interactor.handleSignAction(any(), any(), any(), any(), any(), any()) }
     }
 
     @Test

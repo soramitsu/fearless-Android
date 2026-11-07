@@ -14,6 +14,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import jp.co.soramitsu.walletconnect.impl.presentation.awaitErrorDialog
@@ -61,11 +62,13 @@ class SessionProposalViewModelTest {
         }
         coEvery { interactor.getChains() } returns emptyList()
         coEvery { interactor.checkChainsSupported(any()) } returns Result.success(true)
+        WalletSessionLock.unlock()
     }
 
     @After
     fun tearDown() {
         WCDelegate.sessionProposalEvent = null
+        WalletSessionLock.lock()
         Dispatchers.resetMain()
     }
 
@@ -83,6 +86,16 @@ class SessionProposalViewModelTest {
         coVerify(exactly = 0) { interactor.approveSession(any(), any(), any(), any(), any()) }
         dialog.positiveClick()
         verify { router.back() }
+    }
+
+    @Test
+    fun `a locked wallet approves nothing`() {
+        WCDelegate.sessionProposalEvent = proposal to verifyContext(isScam = null)
+        WalletSessionLock.lock()
+
+        viewModel().onApproveClick()
+
+        coVerify(exactly = 0) { interactor.approveSession(any(), any(), any(), any(), any()) }
     }
 
     @Test

@@ -15,6 +15,7 @@ import jp.co.soramitsu.common.compose.component.GradientIconState
 import jp.co.soramitsu.common.compose.component.SigningSummaryViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -179,9 +180,13 @@ class RequestPreviewViewModel @Inject constructor(
         }
     }
 
+    // Nothing is signed while the wallet is locked (the request waits for the PIN), before the
+    // request is decoded, nor when the wallet or Verify refuses it.
+    private fun signingBlocked(): Boolean =
+        WalletSessionLock.isLocked() || isLoading.value || summaryFlow.value?.blocksSigning != false || refusesScam()
+
     override fun onSignClick() {
-        // Nothing is signed before the request is decoded, nor when the wallet or Verify refuses it.
-        if (isLoading.value || summaryFlow.value?.blocksSigning != false || refusesScam()) return
+        if (signingBlocked()) return
         val chain = requestChainFlow.value ?: return
         val displayedRequest = recentSession ?: return
         val currentRequest = walletConnectInteractor.getPendingListOfSessionRequests(topic).pendingRequest(displayedRequest.request.id)
