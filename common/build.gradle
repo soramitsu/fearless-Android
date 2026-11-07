@@ -18,6 +18,8 @@ android {
 
         buildConfigField "long", "VERSION_CODE", "${rootProject.versionCode}"
         buildConfigField "String", "VERSION_NAME", "\"${rootProject.versionName}\""
+        // Kill switch for NEW wallet-secret sealing (4.3.2 PIN envelope). Off never unseals or blocks reads.
+        buildConfigField "boolean", "WALLET_SECRET_SEALING_ENABLED", "true"
 
         buildConfigField "String", "POLKASWAP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/polkaswapSettings.json\""
         buildConfigField "String", "FEATURE_TOGGLE_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/appConfigs/feature_toggle\""
