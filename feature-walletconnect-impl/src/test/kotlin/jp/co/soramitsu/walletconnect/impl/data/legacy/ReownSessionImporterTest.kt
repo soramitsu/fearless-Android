@@ -236,6 +236,27 @@ class ReownSessionImporterTest {
     }
 
     @Test
+    fun `an import the client overwrote after the starter gave up is imported again on the next start`() {
+        // The starter timed out while the import's write was under way, past the gate's wait: the write landed,
+        // but the client had already loaded the state from before, and its first change replaced the import,
+        // marker included. The starter counted the outcome as FAILED, so the SDK's files stayed.
+        val landed = importer().importBlocking(storage)
+        assertTrue(landed is ReownImportResult.Imported)
+        val clientSeed = "ab".repeat(32)
+        storage.json = WcStoredStateJson.encode(WcStoredState(clientSeed = clientSeed))
+
+        val next = runBlocking { importer().importInto(storage) }
+
+        assertTrue(next is ReownImportResult.Imported)
+        assertTrue(next.allowsCleanup)
+        assertEquals(2, attempts.value)
+        val state = storedState()
+        assertEquals(4, state.sessions.size)
+        assertEquals(clientSeed, state.clientSeed)
+        assertEquals(false, ReownImportMarker.read(state))
+    }
+
+    @Test
     fun `closing the gate stops writes that have not started and waits for one under way`() {
         val gate = ReownImportWriteGate()
         val writing = CountDownLatch(1)
