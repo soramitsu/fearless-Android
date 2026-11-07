@@ -26,10 +26,21 @@ class SecureScreenUsageContractTest {
 
         GUARDED_SCREENS.forEach { path ->
             val text = sources[path] ?: error("Missing $path")
-            assertTrue(path, "SecureScreenGuard(this)" in text)
+            assertTrue(path, GUARD_CONSTRUCTION.containsMatchIn(text))
             listOf("onViewCreated()", "onStart()", "onStop()", "onDestroyView()").forEach { call ->
                 assertTrue("$path does not forward $call", "secureScreen.$call" in text)
             }
+        }
+    }
+
+    @Test
+    fun `screens that show secrets name screen readers that could read them`() {
+        // Below Android 14 any accessibility service can read these screens, so they warn first.
+        val sources = mainSources().toMap()
+
+        SCREEN_READER_WARNING_SCREENS.forEach { path ->
+            val text = sources[path] ?: error("Missing $path")
+            assertTrue(path, "SecureScreenGuard(this, warnAboutScreenReaders = true)" in text)
         }
     }
 
@@ -58,7 +69,20 @@ class SecureScreenUsageContractTest {
             "$PRESENTATION/common/SecureScreenFlag.kt",
             "$PRESENTATION/common/SecureScreenGuard.kt",
             // A bottom sheet has its own window, which no fragment transition clears.
-            "$PRESENTATION/mnemonic/backup/BackupMnemonicDialog.kt"
+            "$PRESENTATION/mnemonic/backup/BackupMnemonicDialog.kt",
+            // Bottom sheets that take a backup password: their own windows too.
+            "$PRESENTATION/create_backup_password/CreateBackupPasswordDialog.kt",
+            "$PRESENTATION/importing/remote_backup/ImportRemoteWalletDialog.kt"
+        )
+
+        val GUARD_CONSTRUCTION = Regex("""SecureScreenGuard\(this(, warnAboutScreenReaders = (true|false))?\)""")
+
+        val SCREEN_READER_WARNING_SCREENS = listOf(
+            "$PRESENTATION/exporting/ExportFragment.kt",
+            "$PRESENTATION/importing/ImportAccountFragment.kt",
+            "$PRESENTATION/mnemonic/backup/BackupMnemonicFragment.kt",
+            "$PRESENTATION/mnemonic/confirm/ConfirmMnemonicFragment.kt",
+            "$PRESENTATION/recovery/ArchivedWalletRecoveryFragment.kt"
         )
 
         val GUARDED_SCREENS = listOf(
