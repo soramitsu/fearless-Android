@@ -25,8 +25,8 @@ android {
 // source and binary provenance recorded in docs/binary-provenance.md.
 // The SCALE codec (package io.emeraldpay.polkaj.scale) is polkaj-scale 0.2.3 built from source here.
 dependencies {
-    implementation "com.madgag.spongycastle:prov:1.58.0.0"
-    implementation "net.i2p.crypto:eddsa:0.3.0"
+    // Key-path cryptography: BIP39 PBKDF2, Ed25519, scrypt and xsalsa20-poly1305.
+    implementation libs.bouncycastle
     implementation "com.caverock:androidsvg-aar:1.4"
     implementation project(':runtime-websocket')
     implementation libs.gson
@@ -35,6 +35,12 @@ dependencies {
     implementation libs.coroutines.core
     implementation libs.kotlinx.serialization.json
     testImplementation libs.junit
+    // Reference implementations for the differential tests of the code that replaced them.
+    testImplementation "com.madgag.spongycastle:prov:1.58.0.0"
+    testImplementation "net.i2p.crypto:eddsa:0.3.0"
+    testImplementation libs.ton.crypto
+    testImplementation libs.ton.tonapi
+    testImplementation libs.ton.tvm
     testImplementation "net.bytebuddy:byte-buddy:1.18.10"
     testImplementation "net.bytebuddy:byte-buddy-agent:1.18.10"
     testImplementation "org.mockito:mockito-inline:5.2.0"
