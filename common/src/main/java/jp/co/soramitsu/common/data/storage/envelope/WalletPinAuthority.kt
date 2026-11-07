@@ -27,6 +27,11 @@ enum class PinVerification {
  * legacy PIN creates the keyring, so the first unlock on this build moves the
  * PIN inside the encryption. With sealing switched off, a device that has no
  * keyring keeps working exactly as 4.3.1 did.
+ *
+ * A keyring whose PIN wrap can never open again while no stored value is
+ * sealed holds nothing: it is disposable. The PIN is then checked and
+ * recovered as before the keyring existed, and a correct PIN starts a new SK,
+ * so there is never a lockout while values are unsealed.
  */
 @Singleton
 class WalletPinAuthority @Inject constructor(
@@ -41,7 +46,11 @@ class WalletPinAuthority @Inject constructor(
         encryptedPreferences.requireDurableStorageHealthy()
         val health = when (keyring.pinWrapState()) {
             WalletSecretKeyring.PinWrapState.USABLE -> PinHealth.HEALTHY
-            WalletSecretKeyring.PinWrapState.UNUSABLE -> PinHealth.UNREADABLE
+            // A disposable keyring answers with the legacy PIN; without one there is
+            // nothing to ask for, which is recovery, never a first-PIN onboarding.
+            WalletSecretKeyring.PinWrapState.UNUSABLE ->
+                if (legacyPinHealth() == PinHealth.HEALTHY && isKeyringDisposable()) PinHealth.HEALTHY else PinHealth.UNREADABLE
+
             WalletSecretKeyring.PinWrapState.ABSENT -> null
         }
         WalletPinHealth.replaceKeyring(health)
@@ -50,76 +59,56 @@ class WalletPinAuthority @Inject constructor(
 
     /**
      * Checks [pin]. On CORRECT, SK is open in [WalletSecretSession]: from the
-     * PIN wrap, or from a keyring this first unlock just created.
+     * PIN wrap, or from a keyring this unlock just created.
      */
     @Synchronized
     fun verify(pin: String): PinVerification {
         when (keyring.pinWrapState()) {
-            WalletSecretKeyring.PinWrapState.USABLE -> return when (val opening = openWrap(pin)) {
+            WalletSecretKeyring.PinWrapState.USABLE -> when (val opening = openWrap(pin)) {
                 is WalletSecretKeyring.PinOpening.Opened -> {
                     try {
                         openSession(opening.key, WalletSecretSession.Origin.PIN_WRAP)
                     } finally {
                         opening.key.close()
                     }
-                    PinVerification.CORRECT
+                    return PinVerification.CORRECT
                 }
 
-                WalletSecretKeyring.PinOpening.WrongPin -> PinVerification.WRONG
-                WalletSecretKeyring.PinOpening.Unusable -> {
-                    WalletPinHealth.replaceKeyring(PinHealth.UNREADABLE)
-                    PinVerification.UNREADABLE
-                }
+                WalletSecretKeyring.PinOpening.WrongPin -> return PinVerification.WRONG
+                WalletSecretKeyring.PinOpening.Unusable -> return verifyWithUnusableWrap(pin)
             }
 
-            // A keyring whose wrap can never open: only a backup proof can reach SK now.
-            WalletSecretKeyring.PinWrapState.UNUSABLE -> return PinVerification.UNREADABLE
+            WalletSecretKeyring.PinWrapState.UNUSABLE -> return verifyWithUnusableWrap(pin)
             WalletSecretKeyring.PinWrapState.ABSENT -> Unit
         }
-        val stored = try {
-            encryptedPreferences.getDecryptedString(PinPreferenceSnapshot.PIN_KEY)
-        } catch (_: ClassCastException) {
-            return PinVerification.UNREADABLE
-        }
-        // The stored PIN is judged before the typed one: an unreadable PIN is never a wrong guess.
-        if (PinHealth.assess(true, stored) != PinHealth.HEALTHY) return PinVerification.UNREADABLE
-        if (!isWalletPin(pin) ||
-            !MessageDigest.isEqual(checkNotNull(stored).toByteArray(Charsets.US_ASCII), pin.toByteArray(Charsets.US_ASCII))
-        ) {
-            return PinVerification.WRONG
-        }
+        val verification = verifyLegacy(pin)
         // The first unlock on this build puts SK under the PIN that was just proved.
-        createKeyringQuietly(pin)
-        return PinVerification.CORRECT
+        if (verification == PinVerification.CORRECT) createKeyringQuietly(pin)
+        return verification
     }
 
     /**
      * Checks [pin] for emergency key access without the wallet database and
      * without unlocking the session: on CORRECT the caller gets SK (null when no
-     * keyring exists yet) to open sealed values, and must close it. It never
-     * creates a keyring.
+     * keyring holds anything yet) to open sealed values, and must close it. It
+     * never creates or replaces a keyring.
      */
     @Synchronized
     fun verifyForEmergency(pin: String): Pair<PinVerification, WalletSecretKeyring.OpenedKey?> {
         when (keyring.pinWrapState()) {
-            WalletSecretKeyring.PinWrapState.USABLE -> return when (val opening = openWrap(pin)) {
-                is WalletSecretKeyring.PinOpening.Opened -> PinVerification.CORRECT to opening.key
-                WalletSecretKeyring.PinOpening.WrongPin -> PinVerification.WRONG to null
-                WalletSecretKeyring.PinOpening.Unusable -> PinVerification.UNREADABLE to null
+            WalletSecretKeyring.PinWrapState.USABLE -> when (val opening = openWrap(pin)) {
+                is WalletSecretKeyring.PinOpening.Opened -> return PinVerification.CORRECT to opening.key
+                WalletSecretKeyring.PinOpening.WrongPin -> return PinVerification.WRONG to null
+                WalletSecretKeyring.PinOpening.Unusable ->
+                    return (if (isKeyringDisposable()) verifyLegacy(pin) else PinVerification.UNREADABLE) to null
             }
 
-            WalletSecretKeyring.PinWrapState.UNUSABLE -> return PinVerification.UNREADABLE to null
+            WalletSecretKeyring.PinWrapState.UNUSABLE ->
+                return (if (isKeyringDisposable()) verifyLegacy(pin) else PinVerification.UNREADABLE) to null
+
             WalletSecretKeyring.PinWrapState.ABSENT -> Unit
         }
-        val stored = try {
-            encryptedPreferences.getDecryptedString(PinPreferenceSnapshot.PIN_KEY)
-        } catch (_: ClassCastException) {
-            return PinVerification.UNREADABLE to null
-        }
-        if (PinHealth.assess(true, stored) != PinHealth.HEALTHY) return PinVerification.UNREADABLE to null
-        val matches = isWalletPin(pin) &&
-            MessageDigest.isEqual(checkNotNull(stored).toByteArray(Charsets.US_ASCII), pin.toByteArray(Charsets.US_ASCII))
-        return (if (matches) PinVerification.CORRECT else PinVerification.WRONG) to null
+        return verifyLegacy(pin) to null
     }
 
     /**
@@ -137,7 +126,14 @@ class WalletPinAuthority @Inject constructor(
             if (!firstPin) createKeyringQuietly(pin)
             return
         }
-        val opened = sessionKey() ?: error("A PIN change needs the wallet key the old PIN opened")
+        val opened = sessionKey()
+        if (opened == null) {
+            // A keyring that holds nothing: the legacy PIN changes, and a new SK follows it.
+            check(isKeyringDisposable()) { "A PIN change needs the wallet key the old PIN opened" }
+            encryptedPreferences.savePinCodeDurably(pin)
+            replaceDisposableKeyringQuietly(pin)
+            return
+        }
         try {
             keyring.replacePin(opened, pin, expectedRecord = null)
             WalletPinHealth.replaceKeyring(PinHealth.HEALTHY)
@@ -155,31 +151,39 @@ class WalletPinAuthority @Inject constructor(
         encryptedPreferences.capturePinResetSnapshot().withKeyringPinRecord(keyring.pinRecord())
 
     /**
-     * Sets [pin] after a recovery proof. With a keyring, [recoveredKey] (SK
-     * from a backup wrap or the biometric vault's PIN) is required and only
-     * the PIN wrap changes. Without one, the legacy PIN is replaced and a
-     * keyring is created for the new PIN.
+     * Whether a recovery must bring key material: a keyring exists that is not
+     * disposable. Without one, a backup proof alone authorizes a new PIN, as
+     * before the keyring existed.
+     */
+    @Synchronized
+    fun recoveryNeedsKeyMaterial(): Boolean = keyring.exists() && !isKeyringDisposable()
+
+    /**
+     * Sets [pin] after a recovery proof. With a keyring that holds anything,
+     * [recoveredKey] (SK from a backup wrap or the biometric vault's PIN) is
+     * required and only the PIN wrap changes. Otherwise the legacy PIN is
+     * replaced and a keyring is created (or started again) for the new PIN.
      */
     @Synchronized
     fun saveRecovered(pin: String, expected: PinResetSnapshot, recoveredKey: WalletSecretKeyring.OpenedKey?, forgotten: Boolean) {
         require(isWalletPin(pin))
         check(expected.matches(captureResetSnapshot())) { "The PIN changed while recovery was open" }
-        if (keyring.exists()) {
-            val key = checkNotNull(recoveredKey) { "Recovery needs the wallet key once a keyring exists" }
-            keyring.replacePin(key, pin, expectedRecord = keyring.pinRecord())
+        if (recoveredKey != null && keyring.exists()) {
+            keyring.replacePin(recoveredKey, pin, expectedRecord = keyring.pinRecord())
             WalletPinHealth.replaceKeyring(PinHealth.HEALTHY)
             if (encryptedPreferences.hasKey(PinPreferenceSnapshot.PIN_KEY)) {
                 encryptedPreferences.savePinCodeDurably(pin)
             }
-            openSession(key, WalletSecretSession.Origin.BACKUP_PROOF)
+            openSession(recoveredKey, WalletSecretSession.Origin.BACKUP_PROOF)
             return
         }
+        check(!recoveryNeedsKeyMaterial()) { "Recovery needs the wallet key once a keyring holds anything" }
         if (forgotten) {
             encryptedPreferences.saveForgottenPinCodeDurably(pin, expected)
         } else {
             encryptedPreferences.saveRecoveredPinCodeDurably(pin, expected)
         }
-        createKeyringQuietly(pin)
+        if (keyring.exists()) replaceDisposableKeyringQuietly(pin) else createKeyringQuietly(pin)
     }
 
     /**
@@ -198,6 +202,57 @@ class WalletPinAuthority @Inject constructor(
     fun sessionKey(): WalletSecretKeyring.OpenedKey? =
         WalletSecretSession.withKey { keyId, key -> WalletSecretKeyring.OpenedKey(keyId, key) }
 
+    /**
+     * A keyring whose PIN wrap can never open while no stored value is sealed
+     * (under any SK): it holds nothing, so nothing is lost by starting a new SK.
+     */
+    private fun isKeyringDisposable(): Boolean =
+        keyring.exists() && keyring.pinWrapState() == WalletSecretKeyring.PinWrapState.UNUSABLE && !anyValueSealed()
+
+    private fun anyValueSealed(): Boolean {
+        var sealed = false
+        encryptedPreferences.forEachKeyWithPrefixes(WalletSecretSealPolicy.SCANNED_PREFIXES, MAX_SCANNED_KEY_BYTES) { key ->
+            if (!sealed && WalletSecretSealPolicy.isSealable(key)) {
+                sealed = WalletSecretEnvelope.isSealed(encryptedPreferences.getDecryptedStringSnapshot(key)?.plaintext)
+            }
+        }
+        return sealed
+    }
+
+    /** The PIN wrap cannot open: the legacy PIN answers while the keyring is disposable, and a new SK follows. */
+    private fun verifyWithUnusableWrap(pin: String): PinVerification {
+        if (!isKeyringDisposable()) {
+            WalletPinHealth.replaceKeyring(PinHealth.UNREADABLE)
+            return PinVerification.UNREADABLE
+        }
+        val verification = verifyLegacy(pin)
+        if (verification == PinVerification.CORRECT) replaceDisposableKeyringQuietly(pin)
+        return verification
+    }
+
+    /** The legacy `pin_code` check. The stored PIN is judged before the typed one: an unreadable PIN is never a wrong guess. */
+    private fun verifyLegacy(pin: String): PinVerification {
+        val stored = try {
+            encryptedPreferences.getDecryptedString(PinPreferenceSnapshot.PIN_KEY)
+        } catch (_: ClassCastException) {
+            return PinVerification.UNREADABLE
+        }
+        if (PinHealth.assess(true, stored) != PinHealth.HEALTHY) return PinVerification.UNREADABLE
+        val matches = isWalletPin(pin) &&
+            MessageDigest.isEqual(checkNotNull(stored).toByteArray(Charsets.US_ASCII), pin.toByteArray(Charsets.US_ASCII))
+        return if (matches) PinVerification.CORRECT else PinVerification.WRONG
+    }
+
+    /** The legacy `pin_code` alone, never the keyring's published health. */
+    private fun legacyPinHealth(): PinHealth = try {
+        PinHealth.assess(
+            encryptedPreferences.hasKey(PinPreferenceSnapshot.PIN_KEY),
+            encryptedPreferences.getDecryptedString(PinPreferenceSnapshot.PIN_KEY)
+        )
+    } catch (_: ClassCastException) {
+        PinHealth.UNREADABLE
+    }
+
     private fun createKeyringQuietly(pin: String): Boolean {
         if (!sealer.isSealingEnabled() || keyring.exists()) return false
         val created = try {
@@ -207,13 +262,31 @@ class WalletPinAuthority @Inject constructor(
             // The legacy PIN keeps working; the next unlock tries again.
             return false
         }
+        opened(created, WalletSecretSession.Origin.NEW_KEYRING)
+        return true
+    }
+
+    /** A new SK for a disposable keyring, under the PIN just proved; failure leaves the legacy PIN in charge. */
+    private fun replaceDisposableKeyringQuietly(pin: String): Boolean {
+        if (!sealer.isSealingEnabled()) return false
+        val current = keyring.currentKeyId() ?: return false
+        val replaced = try {
+            keyring.replaceUnusable(pin, current)
+        } catch (failure: Exception) {
+            if (failure is InterruptedException) throw failure
+            return false
+        }
+        opened(replaced, WalletSecretSession.Origin.NEW_KEYRING)
+        return true
+    }
+
+    private fun opened(key: WalletSecretKeyring.OpenedKey, origin: WalletSecretSession.Origin) {
         try {
-            openSession(created, WalletSecretSession.Origin.NEW_KEYRING)
+            openSession(key, origin)
             WalletPinHealth.replaceKeyring(PinHealth.HEALTHY)
         } finally {
-            created.close()
+            key.close()
         }
-        return true
     }
 
     /** A malformed typed PIN is a wrong guess without running the KDF. */
@@ -229,5 +302,6 @@ class WalletPinAuthority @Inject constructor(
 
     private companion object {
         const val PIN_LENGTH = 6
+        const val MAX_SCANNED_KEY_BYTES = 1_024
     }
 }

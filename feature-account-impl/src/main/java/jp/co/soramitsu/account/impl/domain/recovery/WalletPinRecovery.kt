@@ -39,10 +39,12 @@ class WalletPinRecoveryKeyUnavailableException :
 /**
  * One short-lived in-memory grant, bound to the exact old PIN and public wallet identity.
  *
- * Once the wallet keyring exists, a grant is authorized only with key
+ * Once the wallet keyring holds anything, a grant is authorized only with key
  * material: SK from the proved root's backup wrap, or from the PIN wrap opened
- * with the biometric vault's PIN. The new PIN then rewraps that SK. A grant
- * may also start for a readable PIN the user forgot ("Forgot PIN?").
+ * with the biometric vault's PIN. The new PIN then rewraps that SK. A keyring
+ * that holds nothing (its PIN wrap cannot open and no value is sealed) is
+ * recovered as before the keyring existed, so it never locks anyone out. A
+ * grant may also start for a readable PIN the user forgot ("Forgot PIN?").
  */
 @Singleton
 class WalletPinRecovery internal constructor(
@@ -112,14 +114,14 @@ class WalletPinRecovery internal constructor(
 
     /**
      * Only the BIOMETRIC_STRONG prompt callback may invoke this entry point, with the PIN its
-     * vault unsealed. Once a keyring exists that PIN must open its PIN wrap; before that, an
-     * enrolled vault proves the biometric only with its PIN, which must be a readable PIN's value.
+     * vault unsealed. Once a keyring holds anything that PIN must open its PIN wrap; before that,
+     * an enrolled vault proves the biometric only with its PIN, which must be a readable PIN's value.
      */
     suspend fun strongBiometricSucceeded(id: String, vaultPin: String? = null): Unit = withContext(Dispatchers.IO) {
         check(accounts.isBiometricEnabled())
         requireCurrent(id)
         val key = when {
-            keyring.exists() -> {
+            authority.recoveryNeedsKeyMaterial() -> {
                 val pin = checkNotNull(vaultPin) { "The keyring needs the biometric vault's PIN" }
                 when (val opening = keyring.openWithPin(pin)) {
                     is WalletSecretKeyring.PinOpening.Opened -> opening.key
@@ -147,8 +149,12 @@ class WalletPinRecovery internal constructor(
         requireCurrent(id)
         val identity = fingerprint(identities.read(target.metaId, target.scope()))
         val candidate = keyRecovery.prove(target.metaId, target.scope(), mode, material, path, password)
-        // Once a keyring exists the proof must open SK; it then opens the sealed key K4 inspects.
-        val key = if (keyring.exists()) openWithProof(candidate) ?: throw WalletPinRecoveryKeyUnavailableException() else null
+        // Once a keyring holds anything the proof must open SK; it then opens the sealed key K4 inspects.
+        val key = if (authority.recoveryNeedsKeyMaterial()) {
+            openWithProof(candidate) ?: throw WalletPinRecoveryKeyUnavailableException()
+        } else {
+            null
+        }
         try {
             // K4 verifies the supplied backup against the durable identity and repairs
             // only that key when needed. Recovery input never enters this grant.

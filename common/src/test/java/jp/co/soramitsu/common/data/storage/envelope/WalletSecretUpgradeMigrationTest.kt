@@ -371,26 +371,34 @@ class WalletSecretUpgradeMigrationTest {
     }
 
     @Test
-    fun `a lost hardware key makes the PIN unreadable and a backup proof still opens SK`() = runBlocking {
-        val harness = EnvelopeStorageHarness(shared = legacyStorage())
-        harness.authority.verify(PIN)
-        harness.migration.run()
-        WalletSecretSession.clear()
-        harness.hardware.loseAll()
+    fun `a lost or corrupt factor after sealing needs a backup proof, which opens SK and gets a new factor`() = runBlocking {
+        for (damage in listOf(EnvelopeStorageHarness::loseFactor, EnvelopeStorageHarness::corruptFactor)) {
+            resetEnvelopeGlobals()
+            val harness = EnvelopeStorageHarness(shared = legacyStorage())
+            harness.authority.verify(PIN)
+            harness.migration.run()
+            WalletSecretSession.clear()
+            damage(harness)
+            val damagedFactor = harness.factorValues()
 
-        assertEquals(PinHealth.UNREADABLE, harness.authority.health())
-        assertEquals(PinVerification.UNREADABLE, harness.authority.verify(PIN))
-        val root = WalletSecretPayloads.rootKeys(WalletSecretEnvelopeScope.ETHEREUM_ROOT, checkNotNull(legacySecrets["7:ETHEREUM_SECRETS"])).single()
-        val recovered = checkNotNull(harness.keyring.openWithBackup(WalletRootKeyKind.entries.mapNotNull { it.canonical(root.privateKey) }))
-        val snapshot = harness.authority.captureResetSnapshot()
-        harness.authority.saveRecovered("112233", snapshot, recovered, forgotten = false)
-        recovered.close()
+            assertEquals(PinHealth.UNREADABLE, harness.authority.health())
+            assertEquals(PinVerification.UNREADABLE, harness.authority.verify(PIN))
+            assertTrue(harness.authority.recoveryNeedsKeyMaterial())
+            val root = WalletSecretPayloads.rootKeys(WalletSecretEnvelopeScope.ETHEREUM_ROOT, checkNotNull(legacySecrets["7:ETHEREUM_SECRETS"])).single()
+            val recovered = checkNotNull(harness.keyring.openWithBackup(WalletRootKeyKind.entries.mapNotNull { it.canonical(root.privateKey) }))
+            val snapshot = harness.authority.captureResetSnapshot()
+            harness.authority.saveRecovered("112233", snapshot, recovered, forgotten = false)
+            recovered.close()
 
-        assertEquals(WalletSecretSession.Origin.BACKUP_PROOF, WalletSecretSession.origin())
-        WalletSecretSession.clear()
-        assertEquals(PinHealth.HEALTHY, harness.authority.health())
-        assertEquals(PinVerification.CORRECT, harness.authority.verify("112233"))
-        assertEveryOriginalOpens(harness)
+            assertEquals(WalletSecretSession.Origin.BACKUP_PROOF, WalletSecretSession.origin())
+            // The damaged factor is left as it was; the new PIN wrap names a new one.
+            assertTrue(harness.factorValues().entries.containsAll(damagedFactor.entries))
+            assertEquals(damagedFactor.size + 1, harness.factorValues().size)
+            WalletSecretSession.clear()
+            assertEquals(PinHealth.HEALTHY, harness.authority.health())
+            assertEquals(PinVerification.CORRECT, harness.authority.verify("112233"))
+            assertEveryOriginalOpens(harness)
+        }
     }
 
     @Test
