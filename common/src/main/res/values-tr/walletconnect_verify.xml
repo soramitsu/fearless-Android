@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="walletconnect_origin_unverified">Bu site doğrulanamadı. Yalnızca güveniyorsanız devam edin.</string>
+    <string name="walletconnect_origin_mismatch">Bu istek %2$s yerine %1$s adresinden geliyor. Sahte bir site olabilir.</string>
+    <string name="walletconnect_scam_blocked">%1$s bilinen bir dolandırıcılık sitesidir. Fearless engelledi.</string>
+    <string name="walletconnect_link_expired">Bu WalletConnect bağlantısının süresi doldu. dApp\'ten yeni bir bağlantı alın.</string>
+</resources>

@@ -83,6 +83,54 @@ different Substrate call signed than the one shown.
   audit, the Drive client pin, and the dependency provenance check. The build-log verifier no longer
   checks `WEB_CLIENT_ID_RELEASE`, which the build stopped reading (suite now 3 positive / 26).
 
+## 4.3.2 lane: WalletConnect without the Reown SDK — 7 November 2026
+
+The Reown WalletConnect SDK (WalletConnect Community License, not open source) is
+gone. `feature-walletconnect-impl` now holds the wallet side of WalletConnect v2
+(package `protocol`): pairing URIs, session proposal, approval and rejection,
+settlement, requests and their answers, ping, update, extend, event and delete in
+both directions, pairing ping and delete, and expiry. Crypto is BouncyCastle
+(X25519, HKDF-SHA256, ChaCha20-Poly1305, Ed25519 for the relay JWT and `did:key`,
+P-256 for Verify); the relay is an OkHttp WebSocket to `relay.walletconnect.org`
+with `relay.walletconnect.com` as failover, connected only while a pairing or
+session exists and the app is in the foreground. Envelopes of type 0 and 1,
+message de-duplication across restarts and reconnects with resubscription are
+covered. One-click sign-in (`wc_sessionAuthenticate`) is declined with
+WC_METHOD_UNSUPPORTED, so dApps fall back to the session proposal they send with
+it.
+
+- Verify API v2: attestations are checked with ES256 against the Verify server's
+  published key and bound to the message they came with. The proposal and
+  request screens show the attested site; an unverified or mismatching site gets
+  one short warning; a site Verify lists as a scam is refused.
+- Requests for methods the session did not approve or the wallet does not sign,
+  for chains outside the session, expired, oversized or beyond 20 pending per
+  session are answered with an error before any screen opens. Sessions offer only
+  the methods Fearless signs. The existing request binding, summaries and the
+  Polkadot/EVM signing kill switches are unchanged and still decide every
+  signature.
+- Storage: pairings, sessions and their keys live in the `walletconnect_v2`
+  preferences file, sealed with the app's wallet encryption key (`EncryptionUtil`,
+  AES-256-GCM); WalletConnect never writes into `fearless_prefs`.
+- Upgrade: `WalletConnectStarter` runs `LegacyWalletConnectImport` on a
+  background thread before the client loads its state, then starts the client.
+  The old SDK's `WalletConnectAndroidCore.db`, `WalletConnectV2.db`,
+  `WalletConnectV2_notify.db`, `wc_key_store`, `db_key_store` and Keystore keys
+  `wc_keystore_key` and `_wc_db_key_` are deleted only when the import reports
+  IMPORTED or NOTHING_TO_IMPORT. The default binding (no importer) reports
+  NOT_ATTEMPTED and keeps them; until an importer is bound, dApps connected
+  before must be connected again. Wallet data is never touched.
+- Removed with the SDK: Firebase Cloud Messaging and its Firebase/datatransport
+  components, the `POST_NOTIFICATIONS`, `WAKE_LOCK` and C2DM permissions, SQLCipher
+  (`libsqlcipher.so`), kethereum, multibase and Scarlet from JitPack. The AAB
+  identity gate and its tests list the smaller surface.
+- No library drops below 4.3.1 (233): the 87 the SDK had raised (web3j
+  crypto/abi/utils/rlp 4.9.8-hotfix, OkHttp 5.1.0, Kotlin stdlib 2.2.10,
+  coroutines 1.10.2, serialization 1.7.3, Compose 1.7.8, security-crypto
+  1.1.0-alpha06, Tink 1.8.0 and others) are held at least at their 233 versions
+  by dependency constraints in the root `build.gradle`; every other release
+  library resolves exactly as in 233.
+
 ## Production release 4.3.1 (233): Asset Hub staking — 30 October 2026
 
 4.3.1 brings back Polkadot and Kusama staking, which 4.3.0 could not offer because
@@ -1884,7 +1932,7 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - Accounts & Onboarding: Present (`feature-account-*`, `feature-onboarding-*`).
 - Staking & Crowdloans: Present for Substrate ecosystems (`feature-staking-*`, `feature-crowdloan-*`).
 - Swaps & Pools: Polkaswap and liquidity pools present (`feature-polkaswap-*`, `feature-liquiditypools-*`).
-- WalletConnect v2: Initialized in `App.setupWalletConnect()` with Reown SDK.
+- WalletConnect v2: in-repo client (no SDK) started by `App` through `WalletConnectStarter`.
 - TON Connect: Present (`feature-tonconnect-*`).
 - NFTs: Present; details screen has TODO placeholders.
 
@@ -2039,10 +2087,12 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
   unused legacy Spongy Castle PKIX/PGP artifacts are replaced by only the
   provider primitives required by `fearless-utils`.
 - Local validation: `scripts/validate-local.sh` runs the same checks and now installs Android platform/build-tools 36 to match the compile SDK, along with NDK r28 and platform-tools.
-- WalletConnect/Reown SDK: BOM 1.6.9 resolves Kotlin 2.2 runtime metadata, so
-  release builds use exact AGP 8.10.1 / R8 8.10.24 with compileSdk 36; the
-  bundled UniFFI native libraries retain 16 KB page alignment.
-- WalletConnect Pay: dependency excluded (until Reown publishes 16 KB-native builds) to avoid packaging the `yttrium-wcpay` 4 KB libraries.
+- WalletConnect: since 4.3.2 the app ships no WalletConnect SDK. The Reown BOM
+  1.6.9 (and the excluded WalletConnect Pay) are gone. The 87 libraries it had
+  raised in 4.3.1 (233), among them web3j crypto/abi/utils/rlp 4.9.8-hotfix,
+  OkHttp 5.1.0, Kotlin stdlib 2.2.10, coroutines 1.10.2, serialization 1.7.3,
+  Compose 1.7.8, security-crypto 1.1.0-alpha06 and Tink 1.8.0, are held at
+  least at those versions by dependency constraints in the root `build.gradle`.
 - Google Play 16 KB page-size compliance: Native bundles rebuilt with NDK r28, `readelf -l` verification runs in CI on sr25519/toolChecker libraries, and the Play Console warning is cleared.
 - Native crypto rebuild tooling: `scripts/build-libsodium.sh` now auto-detects the host-specific `toolchains/llvm/prebuilt` directory (darwin/linux/windows) so libsodium can be rebuilt on non-macOS hosts without manual tweaks.
 - Utils composite build: public CI checks out `soramitsu/fearless-utils-Android`

@@ -5,6 +5,8 @@ import androidx.lifecycle.SavedStateHandle
 import co.jp.soramitsu.feature_walletconnect_impl.R
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
+import co.jp.soramitsu.walletconnect.model.WalletConnectValidation
+import co.jp.soramitsu.walletconnect.model.WalletConnectVerifyContext
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -39,6 +41,7 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -63,6 +66,7 @@ class RequestPreviewViewModelTest {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         every { resourceManager.getString(any()) } answers { "string:${firstArg<Int>()}" }
         every { interactor.getPendingListOfSessionRequests(TEST_TOPIC) } returns listOf(shown, newer)
+        every { interactor.getVerifyContext(any(), any()) } returns null
         coEvery { interactor.getChains() } returns listOf(ethereumChain)
         val wallet = mockk<MetaAccount>(relaxed = true) {
             every { id } returns 1L
@@ -154,6 +158,42 @@ class RequestPreviewViewModelTest {
         dialog.positiveClick()
 
         verify { router.back() }
+    }
+
+    @Test
+    fun `a request from a site Verify lists as a scam is never signed`() {
+        every { resourceManager.getString(any(), *anyVararg()) } answers { "string:${firstArg<Int>()}" }
+        every { interactor.getVerifyContext(TEST_TOPIC, shown.request.id) } returns WalletConnectVerifyContext(
+            WalletConnectValidation.INVALID,
+            "https://drainer.example",
+            "https://app.example.org",
+            isScam = true
+        )
+        val model = viewModel(requestId = shown.request.id)
+
+        model.onSignClick()
+        val dialog = model.awaitErrorDialog { it.message == "string:${R.string.walletconnect_scam_blocked}" }
+        dialog.positiveClick()
+
+        assertTrue(model.state.value.isBlocked)
+        verify { router.back() }
+        coVerify(exactly = 0) { interactor.handleSignAction(any(), any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `the host row shows the verified origin and the warning names a mismatch`() {
+        every { resourceManager.getString(any(), *anyVararg()) } answers { "string:${firstArg<Int>()}" }
+        every { interactor.getVerifyContext(TEST_TOPIC, shown.request.id) } returns WalletConnectVerifyContext(
+            WalletConnectValidation.INVALID,
+            "https://app.examp1e.org",
+            "https://app.example.org",
+            isScam = false
+        )
+
+        val state = viewModel(requestId = shown.request.id).state.value
+
+        assertTrue(state.tableItems.any { it.value == "app.examp1e.org" })
+        assertEquals("string:${R.string.walletconnect_origin_mismatch}", state.originWarning)
     }
 
     @Test

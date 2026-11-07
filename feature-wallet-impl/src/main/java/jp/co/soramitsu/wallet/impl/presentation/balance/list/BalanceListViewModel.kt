@@ -9,7 +9,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
-import com.reown.android.internal.common.exception.MalformedWalletConnectUri
+import co.jp.soramitsu.walletconnect.model.WalletConnectPairingExpiredException
+import co.jp.soramitsu.walletconnect.model.WalletConnectUriException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.UniversalWalletPasswordNotice
@@ -1334,14 +1335,14 @@ class BalanceListViewModel @Inject constructor(
             pairingUri = pairingUri,
             onError = { error ->
                 viewModelScope.launch(coroutineManager.main.immediate) {
-                    if (error.throwable is MalformedWalletConnectUri) {
-                        showError(
+                    when (error) {
+                        is WalletConnectUriException -> showError(
                             title = resourceManager.getString(R.string.connection_invalid_url_error_title),
                             message = resourceManager.getString(R.string.connection_invalid_url_error_message),
                             positiveButtonText = resourceManager.getString(R.string.common_close)
                         )
-                    } else {
-                        showError(error.throwable.message ?: "WalletConnect pairing error")
+                        is WalletConnectPairingExpiredException -> showError(resourceManager.getString(R.string.walletconnect_link_expired))
+                        else -> showError(error.message ?: "WalletConnect pairing error")
                     }
                 }
             }

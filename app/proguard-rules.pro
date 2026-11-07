@@ -58,7 +58,7 @@
 
 -keep class jp.co.soramitsu.backup.** { *; }
 
-# JNA (used by the Reown SDK) and kotlinx.serialization
+# JNA and kotlinx.serialization
 -keep class com.sun.jna.** { *; }
 -keepclassmembers class * extends com.sun.jna.* { public *; }
 -keepattributes *Annotation*, InnerClasses
@@ -232,8 +232,3 @@
 -keep,allowobfuscation,allowshrinking class com.google.gson.reflect.TypeToken
 -keep,allowobfuscation,allowshrinking class * extends com.google.gson.reflect.TypeToken
 
-# Reown (formerly WalletConnect) ProGuard rules
--keep class com.reown.walletkit.client.Wallet$Model { *; }
--keep class com.reown.walletkit.client.Wallet { *; }
--keep class com.reown.android.** { *; }
--dontwarn com.reown.**

@@ -1,8 +1,9 @@
 package jp.co.soramitsu.walletconnect.impl.presentation
 
-import androidx.core.net.toUri
-import com.reown.android.Core
-import com.reown.walletkit.client.Wallet
+import co.jp.soramitsu.walletconnect.model.WalletConnectMetadata
+import co.jp.soramitsu.walletconnect.model.WalletConnectRpcRequest
+import co.jp.soramitsu.walletconnect.model.WalletConnectValidation
+import co.jp.soramitsu.walletconnect.model.WalletConnectVerifyContext
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.serialization.json.Json
@@ -27,24 +28,36 @@ val Chain.caip2id: String
         return namespace.value + ":" + chainId
     }
 
-val Core.Model.AppMetaData?.dappUrl: String?
-    get() = runCatching {
-        this?.url?.toUri()?.schemeSpecificPart?.removePrefix("//")?.removeSuffix("/")
-    }.getOrNull() ?: this?.url
+/** The dApp's self-reported URL without its scheme, as the screens showed it. Not verified. */
+val WalletConnectMetadata?.dappUrl: String?
+    get() = this?.url?.let(::hostOf)
 
-/** Whether Reown Verify reports the dApp's origin as a known scam. */
-val Wallet.Model.VerifyContext?.isFlaggedAsScam: Boolean
+/** `https://app.example/path` → `app.example/path`: the scheme and a trailing slash dropped. */
+internal fun hostOf(url: String): String = url.substringAfter("://", url).removeSuffix("/")
+
+/** Whether WalletConnect Verify reports the dApp's origin as a known scam. */
+val WalletConnectVerifyContext?.isFlaggedAsScam: Boolean
     get() = this?.isScam == true
+
+/**
+ * The site to show for a dApp: the origin Verify attested when there is one, otherwise the URL the
+ * dApp claims, which [WalletConnectVerifyContext.validation] then marks as unverified.
+ */
+val WalletConnectVerifyContext.displayedHost: String?
+    get() = when (validation) {
+        WalletConnectValidation.VALID, WalletConnectValidation.INVALID -> verifiedOrigin?.let(::hostOf)
+        WalletConnectValidation.UNKNOWN -> claimedUrl?.let(::hostOf)
+    }
 
 /**
  * What the request asks to sign. Null when the dApp sent malformed params (for example a
  * `personal_sign` message that is not hex), so a bad request is refused instead of throwing.
  */
-val Wallet.Model.SessionRequest.JSONRPCRequest.message: String?
+val WalletConnectRpcRequest.message: String?
     get() = runCatching { requestMessage(method, params) }.getOrNull()
 
 /** The account the request names, or null when it names none or its params are malformed. */
-val Wallet.Model.SessionRequest.JSONRPCRequest.address: String?
+val WalletConnectRpcRequest.address: String?
     get() = runCatching { requestAddress(method, params) }.getOrNull()
 
 internal fun String.toJsonObject(): JsonObject = Json.parseToJsonElement(this).jsonObject

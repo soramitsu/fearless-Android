@@ -5,7 +5,8 @@ import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.feature_walletconnect_impl.R
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
-import com.reown.walletkit.client.Wallet
+import co.jp.soramitsu.walletconnect.model.WalletConnectRequest
+import co.jp.soramitsu.walletconnect.model.WalletConnectVerifyContext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
@@ -26,9 +27,12 @@ import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.walletconnect.impl.presentation.WalletConnectMethod
 import jp.co.soramitsu.walletconnect.impl.presentation.address
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
-import jp.co.soramitsu.walletconnect.impl.presentation.dappUrl
+import jp.co.soramitsu.walletconnect.impl.presentation.displayedHost
+import jp.co.soramitsu.walletconnect.impl.presentation.isFlaggedAsScam
 import jp.co.soramitsu.walletconnect.impl.presentation.message
+import jp.co.soramitsu.walletconnect.impl.presentation.originWarning
 import jp.co.soramitsu.walletconnect.impl.presentation.pendingRequest
+import jp.co.soramitsu.walletconnect.impl.presentation.scamNotice
 import jp.co.soramitsu.walletconnect.impl.presentation.summary.WalletConnectRequestSummaries
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -59,7 +63,7 @@ class WalletConnectSignMessageViewModel @Inject constructor(
     private var isClosing = false
 
     private val topic: String = savedStateHandle[WalletConnectSignMessageFragment.SESSION_REQUEST_TOPIC_KEY] ?: error("No session info provided")
-    private val sessions: List<Wallet.Model.SessionRequest> = walletConnectInteractor.getPendingListOfSessionRequests(topic).also {
+    private val sessions: List<WalletConnectRequest> = walletConnectInteractor.getPendingListOfSessionRequests(topic).also {
         if (it.isEmpty()) {
             walletConnectRouter.back()
         }
@@ -67,7 +71,26 @@ class WalletConnectSignMessageViewModel @Inject constructor(
 
     private val recentSession = sessions.takeIf { it.isNotEmpty() }?.sortedByDescending { it.request.id }?.get(0)
 
+    // Where the dApp that sent the request really runs, as WalletConnect Verify attested it.
+    private val verifyContext: WalletConnectVerifyContext = recentSession?.let {
+        walletConnectInteractor.getVerifyContext(topic, it.request.id)
+    } ?: WalletConnectVerifyContext.unknown(recentSession?.peerMetaData?.url)
+
     private val requestWalletItemFlow: Flow<WalletItemViewState?> = flow<WalletItemViewState?> {
+        if (recentSession != null && verifyContext.isFlaggedAsScam) {
+            // A known scam site: one notice, and closing it answers the dApp with an error.
+            launch(Dispatchers.Main.immediate) {
+                showError(
+                    title = resourceManager.getString(R.string.common_error_general_title),
+                    message = verifyContext.scamNotice(resourceManager),
+                    positiveButtonText = resourceManager.getString(R.string.common_close),
+                    positiveClick = ::onClose,
+                    onBackClick = ::onClose
+                )
+            }
+            emit(null)
+            return@flow
+        }
         if (recentSession != null && recentSession.request.message == null) {
             // Malformed params: nothing can be shown or signed, closing answers the dApp with an error.
             launch(Dispatchers.Main.immediate) {
@@ -175,7 +198,8 @@ class WalletConnectSignMessageViewModel @Inject constructor(
     val state = combine(requestWalletItemFlow, headlineFlow) { requestWallet, headline ->
         requestWallet?.let {
             SessionRequestViewState(
-                connectionUrl = recentSession?.peerMetaData?.dappUrl,
+                connectionUrl = verifyContext.displayedHost,
+                originWarning = verifyContext.originWarning(resourceManager),
                 message = InfoItemViewState(
                     title = resourceManager.getString(
                         if (recentSession?.isTransaction() == true) R.string.common_transaction else R.string.common_message
@@ -189,7 +213,7 @@ class WalletConnectSignMessageViewModel @Inject constructor(
     }
         .stateIn(this, SharingStarted.Eagerly, SessionRequestViewState.default)
 
-    private fun Wallet.Model.SessionRequest.isTransaction(): Boolean = request.method in TRANSACTION_METHODS
+    private fun WalletConnectRequest.isTransaction(): Boolean = request.method in TRANSACTION_METHODS
 
     override fun onClose() {
         val requestId = recentSession?.request?.id
@@ -222,7 +246,7 @@ class WalletConnectSignMessageViewModel @Inject constructor(
 
     override fun onPreviewClick() {
         val displayedRequest = recentSession
-        if (displayedRequest == null) {
+        if (displayedRequest == null || verifyContext.isFlaggedAsScam) {
             walletConnectRouter.back()
             return
         }

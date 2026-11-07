@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="walletconnect_origin_unverified">Não foi possível verificar este site. Continue apenas se confiar nele.</string>
+    <string name="walletconnect_origin_mismatch">Esta solicitação vem de %1$s, não de %2$s. Pode ser um site falso.</string>
+    <string name="walletconnect_scam_blocked">%1$s é um site fraudulento conhecido. A Fearless o bloqueou.</string>
+    <string name="walletconnect_link_expired">Este link do WalletConnect expirou. Peça um novo ao dApp.</string>
+</resources>

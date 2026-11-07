@@ -1,6 +1,6 @@
 package jp.co.soramitsu.walletconnect.impl.presentation.summary
 
-import com.reown.walletkit.client.Wallet
+import co.jp.soramitsu.walletconnect.model.WalletConnectRequest
 import jp.co.soramitsu.common.utils.readableUtf8Text
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
@@ -81,7 +81,7 @@ internal class WalletConnectRequestDecoder(
     private val runtimeOf: suspend (Chain) -> RuntimeSnapshot?
 ) {
 
-    suspend fun summary(chain: Chain, request: Wallet.Model.SessionRequest): WalletConnectRequestSummary {
+    suspend fun summary(chain: Chain, request: WalletConnectRequest): WalletConnectRequestSummary {
         val method = WalletConnectMethod.values().firstOrNull { it.method == request.request.method }
         val message = request.request.message
         if (method == null || message == null) return WalletConnectRequestSummary.Undecoded

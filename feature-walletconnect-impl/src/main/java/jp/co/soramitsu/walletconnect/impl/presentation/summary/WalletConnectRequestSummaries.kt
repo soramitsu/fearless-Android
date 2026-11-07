@@ -1,6 +1,6 @@
 package jp.co.soramitsu.walletconnect.impl.presentation.summary
 
-import com.reown.walletkit.client.Wallet
+import co.jp.soramitsu.walletconnect.model.WalletConnectRequest
 import jp.co.soramitsu.common.compose.component.SigningSummaryViewState
 import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -32,8 +32,7 @@ class WalletConnectRequestSummaries internal constructor(
         featureToggles
     )
 
-    suspend fun summary(chain: Chain, request: Wallet.Model.SessionRequest): SigningSummaryViewState =
-        presenter.present(
+    suspend fun summary(chain: Chain, request: WalletConnectRequest): SigningSummaryViewState = presenter.present(
             chain = chain,
             summary = decoder.summary(chain, request),
             paused = featureToggles.pausesDappSigning(request.request.method)

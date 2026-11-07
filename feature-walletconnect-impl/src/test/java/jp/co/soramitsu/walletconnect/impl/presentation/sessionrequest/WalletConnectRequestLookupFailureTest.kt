@@ -4,7 +4,7 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.SavedStateHandle
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
-import com.reown.walletkit.client.Wallet
+import co.jp.soramitsu.walletconnect.model.WalletConnectRequest
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -48,13 +48,14 @@ class WalletConnectRequestLookupFailureTest {
     private val total = mockk<TotalBalanceUseCase>()
     private val resources = mockk<ResourceManager>()
     private val icons = mockk<AddressIconGenerator>()
-    private val request = mockk<Wallet.Model.SessionRequest>(relaxed = true)
+    private val request = mockk<WalletConnectRequest>(relaxed = true)
     private val viewModels = mutableListOf<WalletConnectSignMessageViewModel>()
 
     @Before
     fun setup() {
         Dispatchers.setMain(dispatcher)
         every { interactor.getPendingListOfSessionRequests("topic") } returns listOf(request)
+        every { interactor.getVerifyContext(any(), any()) } returns null
         every { request.request.method } returns "unsupported-fixture-method"
         every { resources.getString(any()) } answers { "text-${firstArg<Int>()}" }
         every { resources.getQuantityString(any(), any(), *anyVararg()) } returns "hidden"

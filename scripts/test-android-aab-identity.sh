@@ -42,8 +42,6 @@ component_manifest_modes=(
   oauth-sign-in-exported-true
   missing-receiver
   unexpected-receiver
-  firebase-receiver-permission-missing
-  firebase-receiver-exported-false
   profile-permission-missing
   receiver-intent-mutated
   missing-provider
@@ -878,12 +876,9 @@ permissions = [
     ("uses-permission", "android.permission.CAMERA", None),
     ("uses-permission", "android.permission.HIDE_OVERLAY_WINDOWS", None),
     ("uses-permission", "android.permission.INTERNET", None),
-    ("uses-permission", "android.permission.POST_NOTIFICATIONS", None),
     ("uses-permission", "android.permission.USE_BIOMETRIC", None),
     ("uses-permission", "android.permission.USE_FINGERPRINT", None),
     ("uses-permission", "android.permission.VIBRATE", None),
-    ("uses-permission", "android.permission.WAKE_LOCK", None),
-    ("uses-permission", "com.google.android.c2dm.permission.RECEIVE", None),
     (
         "uses-permission",
         f"{package_name}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
@@ -1125,11 +1120,6 @@ scanner = add_component(
     "jp.co.soramitsu.common.scan.ScannerActivity",
     **{attribute_exported: "false"},
 )
-add_component(
-    "activity",
-    "com.google.android.gms.common.api.GoogleApiActivity",
-    **{attribute_exported: "false"},
-)
 oauth_sign_in = add_component(
     "activity",
     "jp.co.soramitsu.account.impl.presentation.google_signin.GoogleDriveSignInActivity",
@@ -1151,52 +1141,12 @@ add_component(
     "com.journeyapps.barcodescanner.CaptureActivity",
 )
 
-firebase_messaging = add_component(
-    "service",
-    "com.google.firebase.messaging.FirebaseMessagingService",
-    **{attribute_exported: "false"},
-)
-add_intent_filter(
-    firebase_messaging,
-    ["com.google.firebase.MESSAGING_EVENT"],
-    priority=-500,
-)
-component_discovery = add_component(
-    "service",
-    "com.google.firebase.components.ComponentDiscoveryService",
-    **{attribute_exported: "false"},
-)
-add_component(
+room_service = add_component(
     "service",
     "androidx.room.MultiInstanceInvalidationService",
     **{attribute_exported: "false"},
 )
-add_component(
-    "service",
-    "com.google.android.datatransport.runtime.backends.TransportBackendDiscovery",
-    **{attribute_exported: "false"},
-)
-add_component(
-    "service",
-    "com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService",
-    **{
-        attribute_exported: "false",
-        attribute_permission: "android.permission.BIND_JOB_SERVICE",
-    },
-)
 
-firebase_receiver = add_component(
-    "receiver",
-    "com.google.firebase.iid.FirebaseInstanceIdReceiver",
-    **{
-        attribute_exported: "true",
-        attribute_permission: "com.google.android.c2dm.permission.SEND",
-    },
-)
-firebase_receive_filter = add_intent_filter(
-    firebase_receiver,
-    ["com.google.android.c2dm.intent.RECEIVE"],
-)
 profile_receiver = add_component(
     "receiver",
     "androidx.profileinstaller.ProfileInstallReceiver",
@@ -1206,18 +1156,15 @@ profile_receiver = add_component(
         attribute_permission: "android.permission.DUMP",
     },
 )
-for profile_action in (
-    "androidx.profileinstaller.action.INSTALL_PROFILE",
-    "androidx.profileinstaller.action.SKIP_FILE",
-    "androidx.profileinstaller.action.SAVE_PROFILE",
-    "androidx.profileinstaller.action.BENCHMARK_OPERATION",
-):
+profile_filters = [
     add_intent_filter(profile_receiver, [profile_action])
-add_component(
-    "receiver",
-    "com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver",
-    **{attribute_exported: "false"},
-)
+    for profile_action in (
+        "androidx.profileinstaller.action.INSTALL_PROFILE",
+        "androidx.profileinstaller.action.SKIP_FILE",
+        "androidx.profileinstaller.action.SAVE_PROFILE",
+        "androidx.profileinstaller.action.BENCHMARK_OPERATION",
+    )
+]
 
 file_provider = add_component(
     "provider",
@@ -1226,14 +1173,6 @@ file_provider = add_component(
         attribute_authorities: f"{package_name}.provider",
         attribute_exported: "false",
         attribute_grant_uri_permissions: "true",
-    },
-)
-firebase_provider = add_component(
-    "provider",
-    "com.google.firebase.provider.FirebaseInitProvider",
-    **{
-        attribute_authorities: f"{package_name}.firebaseinitprovider",
-        attribute_exported: "false",
     },
 )
 startup_provider = add_component(
@@ -1342,13 +1281,13 @@ elif mode == "mutated-ton-host":
 elif mode == "ton-autoverify-false":
     ton_filter.set(attribute_auto_verify, "false")
 elif mode == "missing-service":
-    remove_component(component_discovery)
+    remove_component(room_service)
 elif mode == "unexpected-service":
     add_component(
         "service", "jp.example.UnreviewedService", **{attribute_exported: "false"}
     )
 elif mode == "service-exported":
-    component_discovery.set(attribute_exported, "true")
+    room_service.set(attribute_exported, "true")
 elif mode == "oauth-redirect-scheme-mutated":
     oauth_redirect_filter.find("data").set(attribute_scheme, "com.example.attacker")
 elif mode == "oauth-redirect-not-exported":
@@ -1368,15 +1307,11 @@ elif mode == "unexpected-receiver":
     add_component(
         "receiver", "jp.example.UnreviewedReceiver", **{attribute_exported: "false"}
     )
-elif mode == "firebase-receiver-permission-missing":
-    del firebase_receiver.attrib[attribute_permission]
-elif mode == "firebase-receiver-exported-false":
-    firebase_receiver.set(attribute_exported, "false")
 elif mode == "profile-permission-missing":
     del profile_receiver.attrib[attribute_permission]
 elif mode == "receiver-intent-mutated":
-    firebase_receive_filter.find("action").set(
-        attribute_name, "com.google.android.c2dm.intent.ATTACK"
+    profile_filters[0].find("action").set(
+        attribute_name, "androidx.profileinstaller.action.ATTACK"
     )
 elif mode == "missing-provider":
     remove_component(startup_provider)
@@ -1395,7 +1330,7 @@ elif mode == "authority-mutated":
     file_provider.set(attribute_authorities, f"{package_name}.mutated")
 elif mode == "authority-duplicated":
     startup_provider.set(
-        attribute_authorities, firebase_provider.get(attribute_authorities)
+        attribute_authorities, file_provider.get(attribute_authorities)
     )
 elif mode == "authority-repeated":
     authority = file_provider.get(attribute_authorities)
@@ -1505,7 +1440,6 @@ source, destination, mode = sys.argv[1:]
 replacement_targets = {
     "replace-sr25519-arm64": "base/lib/arm64-v8a/libsr25519java.so",
     "replace-sr25519": "base/lib/x86/libsr25519java.so",
-    "replace-sqlcipher": "base/lib/armeabi-v7a/libsqlcipher.so",
     "replace-path": "base/lib/x86_64/libandroidx.graphics.path.so",
 }
 network_security_entry = "base/res/xml/network_security_config.xml"
@@ -2121,7 +2055,6 @@ done
 for mutation in \
   replace-sr25519-arm64 \
   replace-sr25519 \
-  replace-sqlcipher \
   replace-path; do
   artifact="$tmp_dir/$mutation.aab"
   mutate_artifact "$mutation" "$artifact"
@@ -2254,13 +2187,13 @@ for manifest_mode in "${component_manifest_modes[@]}"; do
     missing-root|missing-wallet-root|root-exported-true|root-disabled)
       expected_diagnostic="wallet startup activity chain is missing or has unsafe"
       ;;
-    scanner-exported-true|service-exported|oauth-redirect-scheme-mutated|oauth-redirect-extra-filter|oauth-sign-in-exported-true|firebase-receiver-permission-missing|profile-permission-missing|file-provider-exported-true)
+    scanner-exported-true|service-exported|oauth-redirect-scheme-mutated|oauth-redirect-extra-filter|oauth-sign-in-exported-true|profile-permission-missing|file-provider-exported-true)
       expected_diagnostic="exported non-launcher component lacks a required permission"
       ;;
     duplicate-launcher-filter)
       expected_diagnostic="contains duplicate intent filters"
       ;;
-    unexpected-activity|unexpected-activity-alias|launcher-extra-action|launcher-extra-category|launcher-extra-data|missing-ton-filter|mutated-ton-host|ton-autoverify-false|missing-service|unexpected-service|oauth-redirect-not-exported|missing-receiver|unexpected-receiver|firebase-receiver-exported-false|receiver-intent-mutated|missing-provider|unexpected-provider|authority-mutated|grant-uri-disabled|provider-read-permission|provider-write-permission)
+    unexpected-activity|unexpected-activity-alias|launcher-extra-action|launcher-extra-category|launcher-extra-data|missing-ton-filter|mutated-ton-host|ton-autoverify-false|missing-service|unexpected-service|oauth-redirect-not-exported|missing-receiver|unexpected-receiver|receiver-intent-mutated|missing-provider|unexpected-provider|authority-mutated|grant-uri-disabled|provider-read-permission|provider-write-permission)
       expected_diagnostic="exact manifest component surface differs from the reviewed allowlist"
       ;;
     authority-duplicated)
@@ -2298,9 +2231,9 @@ for manifest_mode in "${component_manifest_modes[@]}"; do
   component_manifest_negative_count=$((component_manifest_negative_count + 1))
 done
 
-[[ "${#component_manifest_modes[@]}" == "57" ]] ||
+[[ "${#component_manifest_modes[@]}" == "55" ]] ||
   fail \
-    "expected 57 declared component mutation modes; got ${#component_manifest_modes[@]}"
+    "expected 55 declared component mutation modes; got ${#component_manifest_modes[@]}"
 [[ "$component_manifest_negative_count" == "${#component_manifest_modes[@]}" ]] ||
   fail \
     "not every declared component mutation mode executed: " \
@@ -2314,8 +2247,8 @@ done
     "$r8_policy_negative_count"
 [[ "$positive_count" == "2" ]] ||
   fail "expected 2 positive cases; got $positive_count"
-[[ "$negative_count" == "137" ]] ||
-  fail "expected 137 negative cases; got $negative_count"
+[[ "$negative_count" == "134" ]] ||
+  fail "expected 134 negative cases; got $negative_count"
 
 printf '%s\n' \
   "[android-aab-r8-policy-test] $r8_policy_positive_count positive + $r8_policy_negative_count negative/adversarial cases passed"

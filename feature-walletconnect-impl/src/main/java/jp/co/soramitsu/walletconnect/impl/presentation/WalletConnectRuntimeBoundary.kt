@@ -1,10 +1,12 @@
 package jp.co.soramitsu.walletconnect.impl.presentation
 
-import com.reown.walletkit.client.Wallet
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import java.util.concurrent.CancellationException
 
 /**
- * Contains recoverable failures raised synchronously by the optional Reown SDK.
+ * Contains recoverable failures raised synchronously by a WalletConnect call.
  *
  * Deliberately contains [RuntimeException] except coroutine cancellation. Fatal
  * VM/linkage errors and [CancellationException] propagate unchanged.
@@ -17,9 +19,29 @@ internal inline fun <T> walletConnectRuntimeBoundary(operation: () -> T): Result
     Result.failure(error)
 }
 
-internal inline fun callWalletConnect(onError: (Wallet.Model.Error) -> Unit, operation: () -> Unit) {
-    walletConnectRuntimeBoundary(operation)
-        .onFailure { error -> onError(Wallet.Model.Error(error)) }
+/**
+ * Runs a WalletConnect call and reports its outcome to [onSuccess] or [onError]. Relay and storage
+ * failures are reported; cancellation and fatal errors propagate.
+ */
+internal inline fun callWalletConnect(
+    onSuccess: () -> Unit,
+    onError: (Throwable) -> Unit,
+    operation: () -> Unit
+) {
+    try {
+        operation()
+    } catch (error: CancellationException) {
+        throw error
+    } catch (error: Exception) {
+        onError(error)
+        return
+    }
+    onSuccess()
+}
+
+/** Where the interactor runs the WalletConnect calls its callers do not wait for. */
+internal object WalletConnectCalls {
+    val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 }
 
 internal inline fun <T> walletConnectValueOrBack(value: T?, onUnavailable: () -> Unit): T? = value.also {

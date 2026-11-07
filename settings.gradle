@@ -225,9 +225,6 @@ if (dependencyProvenanceRequired) {
                 }
                 filter {
                     includeGroup 'com.github.ildixhaferri'
-                    includeGroupByRegex 'com[.]github[.]komputing([.].*)?'
-                    includeGroup 'com.github.multiformats'
-                    includeGroup 'com.walletconnect.Scarlet'
                 }
             }
         }

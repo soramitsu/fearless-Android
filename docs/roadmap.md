@@ -44,6 +44,54 @@ different Substrate call signed than the one shown.
 - Qualify the browser sign-in on devices (Chrome, Firefox, Samsung Internet; process death while
   the browser is open) and a Drive round trip with 4.3.1, iOS and extension backups.
 
+## 4.3.2 lane: WalletConnect without the Reown SDK — 7 November 2026
+
+The Reown WalletConnect SDK (WalletConnect Community License, not open source) is
+gone. `feature-walletconnect-impl` now holds the wallet side of WalletConnect v2
+(package `protocol`): pairing URIs, session proposal, approval and rejection,
+settlement, requests and their answers, ping, update, extend, event and delete in
+both directions, pairing ping and delete, and expiry. Crypto is BouncyCastle
+(X25519, HKDF-SHA256, ChaCha20-Poly1305, Ed25519 for the relay JWT and `did:key`,
+P-256 for Verify); the relay is an OkHttp WebSocket to `relay.walletconnect.org`
+with `relay.walletconnect.com` as failover, connected only while a pairing or
+session exists and the app is in the foreground. Envelopes of type 0 and 1,
+message de-duplication across restarts and reconnects with resubscription are
+covered. One-click sign-in (`wc_sessionAuthenticate`) is declined with
+WC_METHOD_UNSUPPORTED, so dApps fall back to the session proposal they send with
+it.
+
+- Verify API v2: attestations are checked with ES256 against the Verify server's
+  published key and bound to the message they came with. The proposal and
+  request screens show the attested site; an unverified or mismatching site gets
+  one short warning; a site Verify lists as a scam is refused.
+- Requests for methods the session did not approve or the wallet does not sign,
+  for chains outside the session, expired, oversized or beyond 20 pending per
+  session are answered with an error before any screen opens. Sessions offer only
+  the methods Fearless signs. The existing request binding, summaries and the
+  Polkadot/EVM signing kill switches are unchanged and still decide every
+  signature.
+- Storage: pairings, sessions and their keys live in the `walletconnect_v2`
+  preferences file, sealed with the app's wallet encryption key (`EncryptionUtil`,
+  AES-256-GCM); WalletConnect never writes into `fearless_prefs`.
+- Upgrade: `WalletConnectStarter` runs `LegacyWalletConnectImport` on a
+  background thread before the client loads its state, then starts the client.
+  The old SDK's `WalletConnectAndroidCore.db`, `WalletConnectV2.db`,
+  `WalletConnectV2_notify.db`, `wc_key_store`, `db_key_store` and Keystore keys
+  `wc_keystore_key` and `_wc_db_key_` are deleted only when the import reports
+  IMPORTED or NOTHING_TO_IMPORT. The default binding (no importer) reports
+  NOT_ATTEMPTED and keeps them; until an importer is bound, dApps connected
+  before must be connected again. Wallet data is never touched.
+- Removed with the SDK: Firebase Cloud Messaging and its Firebase/datatransport
+  components, the `POST_NOTIFICATIONS`, `WAKE_LOCK` and C2DM permissions, SQLCipher
+  (`libsqlcipher.so`), kethereum, multibase and Scarlet from JitPack. The AAB
+  identity gate and its tests list the smaller surface.
+- No library drops below 4.3.1 (233): the 87 the SDK had raised (web3j
+  crypto/abi/utils/rlp 4.9.8-hotfix, OkHttp 5.1.0, Kotlin stdlib 2.2.10,
+  coroutines 1.10.2, serialization 1.7.3, Compose 1.7.8, security-crypto
+  1.1.0-alpha06, Tink 1.8.0 and others) are held at least at their 233 versions
+  by dependency constraints in the root `build.gradle`; every other release
+  library resolves exactly as in 233.
+
 ## Production release 4.3.1 (233): Asset Hub staking — 30 October 2026
 
 4.3.1 brings back Polkadot and Kusama staking, which 4.3.0 could not offer because

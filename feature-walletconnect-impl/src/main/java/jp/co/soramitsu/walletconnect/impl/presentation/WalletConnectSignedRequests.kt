@@ -1,6 +1,6 @@
 package jp.co.soramitsu.walletconnect.impl.presentation
 
-import com.reown.walletkit.client.Wallet
+import co.jp.soramitsu.walletconnect.model.WalletConnectRequest
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -22,7 +22,7 @@ internal class WalletConnectSignedRequests {
     private val signed = HashMap<RequestId, Record>()
 
     suspend fun responseFor(
-        request: Wallet.Model.SessionRequest,
+        request: WalletConnectRequest,
         sign: suspend () -> SignedRequest,
         broadcast: suspend (SignedRequest.Transaction) -> String
     ): String = mutex.withLock {
@@ -43,7 +43,7 @@ internal class WalletConnectSignedRequests {
     private data class RequestId(val topic: String, val id: Long)
 
     private data class RequestContent(val chainId: String?, val method: String, val params: String) {
-        constructor(request: Wallet.Model.SessionRequest) : this(
+        constructor(request: WalletConnectRequest) : this(
             chainId = request.chainId,
             method = request.request.method,
             params = request.request.params

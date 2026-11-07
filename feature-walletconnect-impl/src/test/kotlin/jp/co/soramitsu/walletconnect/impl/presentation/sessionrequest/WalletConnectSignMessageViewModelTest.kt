@@ -4,6 +4,8 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.SavedStateHandle
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
+import co.jp.soramitsu.walletconnect.model.WalletConnectValidation
+import co.jp.soramitsu.walletconnect.model.WalletConnectVerifyContext
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -48,6 +50,7 @@ class WalletConnectSignMessageViewModelTest {
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         coEvery { interactor.getChains() } returns listOf(ethereumChain)
+        every { interactor.getVerifyContext(any(), any()) } returns null
         coEvery { accountRepository.allMetaAccounts() } returns emptyList()
     }
 
@@ -91,6 +94,26 @@ class WalletConnectSignMessageViewModelTest {
         verify(exactly = 0) { interactor.rejectSessionRequest(any(), any(), any(), any()) }
     }
 
+    @Test
+    fun `a request from a site Verify lists as a scam is refused and answered on close`() {
+        every { resourceManager.getString(any(), *anyVararg()) } returns "scam notice"
+        every { interactor.getPendingListOfSessionRequests(TEST_TOPIC) } returns listOf(personalSign(id = 9))
+        every { interactor.getVerifyContext(TEST_TOPIC, 9) } returns WalletConnectVerifyContext(
+            WalletConnectValidation.UNKNOWN,
+            "https://drainer.example",
+            "https://app.example.org",
+            isScam = true
+        )
+        val viewModel = viewModel()
+
+        val dialog = viewModel.awaitErrorDialog { it.message == "scam notice" }
+        dialog.positiveClick()
+        viewModel.onPreviewClick()
+
+        verify { interactor.rejectSessionRequest(TEST_TOPIC, 9, any(), any()) }
+        verify(exactly = 0) { router.openRequestPreview(any(), any()) }
+    }
+
     private fun personalSign(id: Long) = sessionRequest(
         id = id,
         method = "personal_sign",
@@ -108,8 +131,8 @@ class WalletConnectSignMessageViewModelTest {
         addressIconGenerator = mockk<AddressIconGenerator>(relaxed = true),
         requestSummaries = WalletConnectRequestSummaries(
             WalletConnectRequestDecoder {
-            null
-        },
+                null
+            },
             WalletConnectSummaryPresenter(resourceManager),
             featureToggleStore()
         )

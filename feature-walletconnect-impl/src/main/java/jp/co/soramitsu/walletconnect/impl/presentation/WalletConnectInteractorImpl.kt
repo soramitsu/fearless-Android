@@ -1,11 +1,11 @@
 package jp.co.soramitsu.walletconnect.impl.presentation
 
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
-import com.reown.android.cacao.signature.SignatureType
-import com.reown.android.utils.cacao.sign
-import com.reown.walletkit.client.Wallet
-import com.reown.walletkit.client.WalletKit
-import com.reown.walletkit.utils.CacaoSigner
+import co.jp.soramitsu.walletconnect.model.WalletConnectProposal
+import co.jp.soramitsu.walletconnect.model.WalletConnectRequest
+import co.jp.soramitsu.walletconnect.model.WalletConnectSession
+import co.jp.soramitsu.walletconnect.model.WalletConnectSessionNamespace
+import co.jp.soramitsu.walletconnect.model.WalletConnectVerifyContext
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
@@ -24,7 +24,9 @@ import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -45,8 +47,9 @@ class WalletConnectInteractorImpl internal constructor(
     private val runtimeSource: PolkadotRuntimeSource,
     private val transactionSender: EvmTransactionSender,
     private val featureToggles: ProductFeatureToggleStore,
-    private val sessionClient: WalletConnectSessionClient = WalletKitSessionClient,
-    private val signedRequests: WalletConnectSignedRequests = WalletConnectSignedRequests.processWide
+    private val sessionClient: WalletConnectSessionClient,
+    private val signedRequests: WalletConnectSignedRequests = WalletConnectSignedRequests.processWide,
+    private val scope: CoroutineScope = WalletConnectCalls.scope
 ) : WalletConnectInteractor {
 
     @Suppress("MagicNumber")
@@ -57,16 +60,16 @@ class WalletConnectInteractorImpl internal constructor(
             return namespace.value + ":" + chainId
         }
 
-    private val Wallet.Model.SessionRequest.signedMessage: String
+    private val WalletConnectRequest.signedMessage: String
         get() = request.message ?: rejectRequest("The request params are malformed")
 
-    private val Wallet.Model.SessionRequest.eip155ChainId: BigInteger
+    private val WalletConnectRequest.eip155ChainId: BigInteger
         get() = chainId?.removePrefix("${Caip2Namespace.EIP155.value}:")?.toBigIntegerOrNull()
             ?: rejectRequest("The request names no eip155 chain")
 
     override suspend fun getChains(): List<Chain> = chainsRepository.getChains()
 
-    override suspend fun checkChainsSupported(proposal: Wallet.Model.SessionProposal): Result<Boolean> {
+    override suspend fun checkChainsSupported(proposal: WalletConnectProposal): Result<Boolean> {
         val chains = getChains()
 
         val proposalRequiredChains = proposal.requiredNamespaces.flatMap { it.value.chains.orEmpty() }
@@ -78,12 +81,30 @@ class WalletConnectInteractorImpl internal constructor(
     }
 
     override suspend fun approveSession(
-        proposal: Wallet.Model.SessionProposal,
+        proposal: WalletConnectProposal,
         selectedWalletIds: Set<Long>,
         selectedOptionalChainIds: Set<String>,
-        onSuccess: (Wallet.Params.SessionApprove) -> Unit,
-        onError: (Wallet.Model.Error) -> Unit
+        onSuccess: () -> Unit,
+        onError: (Throwable) -> Unit
     ) {
+        val namespaces = try {
+            sessionNamespaces(proposal, selectedWalletIds, selectedOptionalChainIds)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            onError(error)
+            return
+        }
+        callWalletConnect(onSuccess, onError) { sessionClient.approveSession(proposal, namespaces) }
+    }
+
+    // The accounts of the selected wallets on the chains the user approved, with only the methods this
+    // wallet can sign: a session never promises a method the wallet would refuse.
+    private suspend fun sessionNamespaces(
+        proposal: WalletConnectProposal,
+        selectedWalletIds: Set<Long>,
+        selectedOptionalChainIds: Set<String>
+    ): Map<String, WalletConnectSessionNamespace> {
         val chains = getChains()
         val allMetaAccounts = withContext(Dispatchers.IO) { accountRepository.allMetaAccounts() }
 
@@ -100,7 +121,7 @@ class WalletConnectInteractorImpl internal constructor(
                 }
             }
 
-            Wallet.Model.Namespace.Session(
+            WalletConnectSessionNamespace(
                 chains = proposal.value.chains,
                 accounts = requiredAccounts,
                 events = proposal.value.events,
@@ -128,7 +149,7 @@ class WalletConnectInteractorImpl internal constructor(
 
                 val sessionChains = optionalNamespaceSelectedChains.map { it.caip2id }
 
-                Wallet.Model.Namespace.Session(
+                WalletConnectSessionNamespace(
                     chains = sessionChains,
                     accounts = optionalAccounts,
                     events = optional.value.events,
@@ -137,76 +158,57 @@ class WalletConnectInteractorImpl internal constructor(
             }
         }
 
-        val sessionNamespaces = requiredSessionNamespaces.mapValues { required ->
+        val merged = requiredSessionNamespaces.mapValues { required ->
             val optional = optionalSessionNamespaces[required.key]
 
-            Wallet.Model.Namespace.Session(
+            WalletConnectSessionNamespace(
                 chains = (required.value.chains.orEmpty() + optional?.chains.orEmpty()).distinct(),
                 accounts = (required.value.accounts + optional?.accounts.orEmpty()).distinct(),
                 events = (required.value.events + optional?.events.orEmpty()).distinct(),
                 methods = (required.value.methods + optional?.methods.orEmpty()).distinct()
             )
         } + optionalSessionNamespaces.filter { it.key !in requiredSessionNamespaces.keys }
-
-        callWalletConnect(onError) {
-            WalletKit.approveSession(
-                params = Wallet.Params.SessionApprove(
-                    proposerPublicKey = proposal.proposerPublicKey,
-                    namespaces = sessionNamespaces,
-                    relayProtocol = proposal.relayProtocol
-                ),
-                onSuccess = onSuccess,
-                onError = onError
-            )
+        return merged.mapValues { (namespace, session) ->
+            session.copy(methods = session.methods.filter { it in signableMethods(namespace) })
         }
     }
 
     override fun rejectSession(
-        proposal: Wallet.Model.SessionProposal,
-        onSuccess: (Wallet.Params.SessionReject) -> Unit,
-        onError: (Wallet.Model.Error) -> Unit
+        proposal: WalletConnectProposal,
+        onSuccess: () -> Unit,
+        onError: (Throwable) -> Unit
     ) {
-        callWalletConnect(onError) {
-            WalletKit.rejectSession(
-                params = Wallet.Params.SessionReject(
-                    proposal.proposerPublicKey,
-                    "User rejected"
-                ),
-                onSuccess = onSuccess,
-                onError = onError
-            )
+        scope.launch {
+            callWalletConnect(onSuccess, onError) {
+                sessionClient.rejectSession(proposal, USER_REJECTED_CODE, "User rejected.")
+            }
         }
     }
 
     override fun silentRejectSession(
-        proposal: Wallet.Model.SessionProposal,
-        onSuccess: (Wallet.Params.SessionReject) -> Unit,
-        onError: (Wallet.Model.Error) -> Unit
+        proposal: WalletConnectProposal,
+        onSuccess: () -> Unit,
+        onError: (Throwable) -> Unit
     ) {
-        callWalletConnect(onError) {
-            WalletKit.rejectSession(
-                params = Wallet.Params.SessionReject(
-                    proposal.proposerPublicKey,
-                    "Blockchain not supported by wallet"
-                ),
-                onSuccess = onSuccess,
-                onError = onError
-            )
+        scope.launch {
+            callWalletConnect(onSuccess, onError) {
+                sessionClient.rejectSession(proposal, UNSUPPORTED_CHAINS_CODE, "Blockchain not supported by wallet")
+            }
         }
     }
 
     override suspend fun handleSignAction(
         chain: Chain,
         topic: String,
-        recentSession: Wallet.Model.SessionRequest,
+        recentSession: WalletConnectRequest,
         onSignError: (Exception) -> Unit,
         onRequestSuccess: (operationHash: String?, chainId: ChainId?) -> Unit,
-        onRequestError: (Wallet.Model.Error) -> Unit
+        onRequestError: (Throwable) -> Unit
     ) {
         // Every read of the dApp's params happens in here: a malformed request fails, it never throws.
         // A retry after a failed response re-sends what was signed: nothing is signed or broadcast twice.
         val method = recentSession.request.method
-        // A veto can arrive while the request waits for the ledger, Reown or a runtime, so it is checked again
+        // A veto can arrive while the request waits for the ledger, the relay or a runtime, so it is checked again
         // before the key is read, before a broadcast and before a signature is handed to the dApp.
         val requireSigningAllowed = { if (featureToggles.pausesDappSigning(method)) throw DappSigningPausedException() }
         val signResult = try {
@@ -235,27 +237,20 @@ class WalletConnectInteractorImpl internal constructor(
             return
         }
 
-        callWalletConnect(onRequestError) {
-            sessionClient.respondSessionRequest(
-                params = Wallet.Params.SessionRequestResponse(
-                    sessionTopic = topic,
-                    jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcResult(
-                        id = recentSession.request.id,
-                        result = signResult
-                    )
-                ),
-                onSuccess = {
-                    val operationHash = signResult.takeIf {
-                        recentSession.request.method == WalletConnectMethod.EthereumSendTransaction.method
-                    }
-                    val chainId = chain.id.takeIf {
-                        recentSession.request.method == WalletConnectMethod.EthereumSendTransaction.method
-                    }
-                    onRequestSuccess(operationHash, chainId)
-                },
-                onError = onRequestError
-            )
-        }
+        sessionClient.respondSessionRequest(
+            topic = topic,
+            response = WalletConnectResponse.Result(id = recentSession.request.id, result = signResult),
+            onSuccess = {
+                val operationHash = signResult.takeIf {
+                    recentSession.request.method == WalletConnectMethod.EthereumSendTransaction.method
+                }
+                val chainId = chain.id.takeIf {
+                    recentSession.request.method == WalletConnectMethod.EthereumSendTransaction.method
+                }
+                onRequestSuccess(operationHash, chainId)
+            },
+            onError = onRequestError
+        )
     }
 
     // Signs with the key of exactly the account the request names, once the user approved that
@@ -263,16 +258,16 @@ class WalletConnectInteractorImpl internal constructor(
     private suspend fun signRequest(
         chain: Chain,
         topic: String,
-        recentSession: Wallet.Model.SessionRequest,
+        recentSession: WalletConnectRequest,
         requireSigningAllowed: () -> Unit
     ): SignedRequest {
         val method = WalletConnectMethod.values().firstOrNull { it.method == recentSession.request.method }
             ?: rejectRequest("The method is not supported")
         requireRequest(method.isAvailableOn(chain)) { "The method cannot sign on the request network" }
         val verifyContext = walletConnectRuntimeBoundary {
-            sessionClient.getVerifyContext(recentSession.request.id)
+            sessionClient.getVerifyContext(topic, recentSession.request.id)
         }.getOrNull()
-        requireRequest(!verifyContext.isFlaggedAsScam) { "Reown Verify reports the dApp as a scam" }
+        requireRequest(!verifyContext.isFlaggedAsScam) { "WalletConnect Verify reports the dApp as a scam" }
         val account = SigningAccount(
             keypairProvider,
             chain,
@@ -300,7 +295,7 @@ class WalletConnectInteractorImpl internal constructor(
     private fun approvedAccountId(
         chain: Chain,
         topic: String,
-        recentSession: Wallet.Model.SessionRequest
+        recentSession: WalletConnectRequest
     ): ByteArray {
         val requestChainId = recentSession.chainId?.takeIf { it == chain.caip2id }
             ?: rejectRequest("The request is for another network")
@@ -320,26 +315,19 @@ class WalletConnectInteractorImpl internal constructor(
         rejection: WalletConnectRequestRejectedException
     ) {
         // Best effort: if this fails the request stays pending and the user can still reject it.
-        callWalletConnect(onError = {}) {
-            sessionClient.respondSessionRequest(
-                params = Wallet.Params.SessionRequestResponse(
-                    sessionTopic = topic,
-                    jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcError(
-                        id = requestId,
-                        code = REQUEST_REJECTED_CODE,
-                        message = "Request rejected: ${rejection.message.orEmpty()}"
-                    )
-                ),
-                onSuccess = {},
-                onError = {}
-            )
-        }
+        sessionClient.respondSessionRequest(
+            topic = topic,
+            response = WalletConnectResponse.Error(
+                id = requestId,
+                code = REQUEST_REJECTED_CODE,
+                message = "Request rejected: ${rejection.message.orEmpty()}"
+            ),
+            onSuccess = {},
+            onError = {}
+        )
     }
 
-    private suspend fun getEthSignTypedResult(
-        account: SigningAccount,
-        recentSession: Wallet.Model.SessionRequest
-    ): String {
+    private suspend fun getEthSignTypedResult(account: SigningAccount, recentSession: WalletConnectRequest): String {
         val typedData = recentSession.signedMessage
         typedDataChainId(typedData)?.let { domainChainId ->
             requireRequest(domainChainId == recentSession.eip155ChainId) { "The typed data is for another chain" }
@@ -355,7 +343,7 @@ class WalletConnectInteractorImpl internal constructor(
     // Signed here, broadcast by the caller: these exact bytes are what any retry broadcasts again.
     private suspend fun getEthSendTransaction(
         account: SigningAccount,
-        recentSession: Wallet.Model.SessionRequest
+        recentSession: WalletConnectRequest
     ): SignedRequest.Transaction {
         val chainId = recentSession.chainId?.removePrefix("${Caip2Namespace.EIP155.value}:") ?: error("No chain")
         val raw = checkedTransaction(account, recentSession)
@@ -370,7 +358,7 @@ class WalletConnectInteractorImpl internal constructor(
 
     private suspend fun getEthSignTransactionResult(
         account: SigningAccount,
-        recentSession: Wallet.Model.SessionRequest
+        recentSession: WalletConnectRequest
     ): String {
         val chainId = recentSession.chainId?.removePrefix("${Caip2Namespace.EIP155.value}:") ?: error("No chain")
         val raw = checkedTransaction(account, recentSession)
@@ -382,22 +370,15 @@ class WalletConnectInteractorImpl internal constructor(
         ).getOrThrow()
     }
 
-    private suspend fun getEthPersonalSignResult(
-        account: SigningAccount,
-        recentSession: Wallet.Model.SessionRequest
-    ): String {
+    private suspend fun getEthPersonalSignResult(account: SigningAccount, recentSession: WalletConnectRequest): String {
         val message = recentSession.signedMessage
 
-        return CacaoSigner.sign(
-            message,
-            account.evmKeypair().privateKey,
-            SignatureType.EIP191
-        ).s
+        return Eip191.personalSign(message, account.evmKeypair().privateKey)
     }
 
     private suspend fun getPolkadotSignTransaction(
         account: SigningAccount,
-        recentSession: Wallet.Model.SessionRequest
+        recentSession: WalletConnectRequest
     ): String {
         // The payload exactly as the user saw it; every signed byte below is encoded from this object.
         val signPayload = PolkadotSignPayload.parse(recentSession.signedMessage)
@@ -421,10 +402,7 @@ class WalletConnectInteractorImpl internal constructor(
         return polkadotSignatureResponse(recentSession.request.id, signature.multiSignature().toHexString(withPrefix = true))
     }
 
-    private suspend fun getPolkadotSignMessage(
-        account: SigningAccount,
-        recentSession: Wallet.Model.SessionRequest
-    ): String {
+    private suspend fun getPolkadotSignMessage(account: SigningAccount, recentSession: WalletConnectRequest): String {
         val data = recentSession.signedMessage
 
         val (multiChainEncryption, keypair) = if (account.chain.isEthereumBased) {
@@ -445,10 +423,7 @@ class WalletConnectInteractorImpl internal constructor(
     }.toString()
 
     // The transaction to sign, refused unless it is for the request's chain and from the request's account.
-    private fun checkedTransaction(
-        account: SigningAccount,
-        recentSession: Wallet.Model.SessionRequest
-    ): RawTransaction {
+    private fun checkedTransaction(account: SigningAccount, recentSession: WalletConnectRequest): RawTransaction {
         // Read as the preview read it: the recipient, value and data signed are the ones shown.
         val transaction = WalletConnectEvmTransaction.parse(recentSession.signedMessage)
         transaction.chainId?.let { transactionChainId ->
@@ -464,74 +439,68 @@ class WalletConnectInteractorImpl internal constructor(
     override fun rejectSessionRequest(
         sessionTopic: String,
         requestId: Long,
-        onSuccess: (Wallet.Params.SessionRequestResponse) -> Unit,
-        onError: (Wallet.Model.Error) -> Unit
+        onSuccess: () -> Unit,
+        onError: (Throwable) -> Unit
     ) {
-        callWalletConnect(onError) {
-            sessionClient.respondSessionRequest(
-                params = Wallet.Params.SessionRequestResponse(
-                    sessionTopic = sessionTopic,
-                    jsonRpcResponse = Wallet.Model.JsonRpcResponse.JsonRpcError(
-                        id = requestId,
-                        code = 4001,
-                        message = "User rejected request"
-                    )
-                ),
-                onSuccess = onSuccess,
-                onError = onError
-            )
-        }
+        sessionClient.respondSessionRequest(
+            topic = sessionTopic,
+            response = WalletConnectResponse.Error(id = requestId, code = REQUEST_REJECTED_CODE, message = "User rejected request"),
+            onSuccess = onSuccess,
+            onError = onError
+        )
     }
 
-    override fun getActiveSessionByTopic(topic: String) = walletConnectRuntimeBoundary {
+    override fun getActiveSessionByTopic(topic: String): WalletConnectSession? = walletConnectRuntimeBoundary {
         sessionClient.getActiveSessionByTopic(topic)
-    }.getOrElse { error ->
-        error.printStackTrace()
-        null
-    }
+    }.getOrNull()
 
-    override fun getPendingListOfSessionRequests(topic: String) = walletConnectRuntimeBoundary {
-        sessionClient.getPendingListOfSessionRequests(topic)
-    }.getOrElse { error ->
-        error.printStackTrace()
-        emptyList()
-    }
+    override fun getPendingListOfSessionRequests(topic: String): List<WalletConnectRequest> =
+        walletConnectRuntimeBoundary {
+            sessionClient.getPendingListOfSessionRequests(topic)
+        }.getOrElse { emptyList() }
+
+    override fun getVerifyContext(topic: String, requestId: Long): WalletConnectVerifyContext? =
+        walletConnectRuntimeBoundary {
+            sessionClient.getVerifyContext(topic, requestId)
+        }.getOrNull()
 
     override fun disconnectSession(
         topic: String,
-        onSuccess: (Wallet.Params.SessionDisconnect) -> Unit,
-        onError: (Wallet.Model.Error) -> Unit
+        onSuccess: () -> Unit,
+        onError: (Throwable) -> Unit
     ) {
-        callWalletConnect(onError) {
-            WalletKit.disconnectSession(
-                params = Wallet.Params.SessionDisconnect(topic),
-                onSuccess = {
-                    WCDelegate.refreshConnections()
-                    onSuccess(it)
-                },
-                onError = onError
-            )
+        scope.launch {
+            callWalletConnect(onSuccess, onError) { sessionClient.disconnect(topic) }
         }
     }
 
     override fun pair(
         pairingUri: String,
-        onSuccess: (Wallet.Params.Pair) -> Unit,
-        onError: (Wallet.Model.Error) -> Unit
+        onSuccess: () -> Unit,
+        onError: (Throwable) -> Unit
     ) {
-        val pairingParams = Wallet.Params.Pair(pairingUri)
-        callWalletConnect(onError) {
-            WalletKit.pair(
-                params = pairingParams,
-                onSuccess = onSuccess,
-                onError = onError
-            )
+        scope.launch {
+            callWalletConnect(onSuccess, onError) { sessionClient.pair(pairingUri) }
         }
     }
 
     companion object {
         private const val PAYLOAD_HASH_THRESHOLD = 256
         private const val REQUEST_REJECTED_CODE = 4001
+        private const val USER_REJECTED_CODE = 5000L
+        private const val UNSUPPORTED_CHAINS_CODE = 5100L
+
+        /** The methods this wallet signs in a namespace: EVM methods in `eip155`, Polkadot ones in `polkadot`. */
+        internal fun signableMethods(namespace: String): Set<String> = WalletConnectMethod.values()
+            .filter { method ->
+                when (namespace) {
+                    Caip2Namespace.EIP155.value -> method.isEvmMethod
+                    Caip2Namespace.POLKADOT.value -> !method.isEvmMethod
+                    else -> false
+                }
+            }
+            .map { it.method }
+            .toSet()
     }
 }
 

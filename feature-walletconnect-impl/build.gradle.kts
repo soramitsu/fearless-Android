@@ -5,6 +5,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("kotlin-parcelize")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("kotlinx-serialization")
 }
 android {
     namespace = "co.jp.soramitsu.feature_walletconnect_impl"
@@ -40,17 +41,12 @@ dependencies {
 
     implementation(libs.web3jDep)
 
-    implementation(platform(libs.reownBomDep))
-    implementation(libs.reownCoreDep) {
-        // Exclude JNA to prevent class duplication - JNA is added as direct dependency in app module
-        exclude(group = "net.java.dev.jna")
-    }
-    implementation(libs.reownWalletKitDep) {
-        // Exclude JNA to prevent class duplication - JNA is added as direct dependency in app module
-        exclude(group = "net.java.dev.jna")
-        // Exclude WalletConnect Pay until 16 KB native builds are available
-        exclude(group = "com.walletconnect", module = "pay")
-    }
+    // The in-repo WalletConnect v2 client: BouncyCastle crypto, OkHttp WebSocket relay, JSON.
+    implementation(libs.bouncycastle)
+    implementation(libs.okhttp)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.coroutines.core)
+    implementation(libs.lifecycle.process)
 
     implementation(libs.zxing.core)
     implementation(libs.zxing.embedded)
