@@ -27,6 +27,9 @@ compared as plaintext. 4.3.2 (lane `pin-envelope`):
 - "Forgot PIN?" on the unlock screen: proving one wallet's backup opens SK and
   sets a new PIN. A keyring whose PIN wrap cannot open while nothing is sealed
   falls back to the legacy PIN and starts a new SK: no lockout while unsealed.
+  A value that cannot be read counts as sealed once SK has begun sealing (a mark
+  stored before the first seal), so a new SK never strands a value that reads
+  again when its device key returns.
 - Kill switch: `WALLET_SECRET_SEALING_ENABLED` and the remote veto
   `wallet_secret_sealing_enabled` stop new sealing only.
 - Every later build must read envelopes: a build without this code would treat
