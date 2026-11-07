@@ -22,6 +22,7 @@ import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
 import jp.co.soramitsu.tonconnect.api.model.TonDappConnection
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -100,6 +101,24 @@ class RootViewModelTonConnectTest {
         coVerify(exactly = 0) { router.openTonSignRequestWithResult(any(), any(), any()) }
 
         WalletSessionLock.unlock()
+
+        coVerify(exactly = 1) {
+            router.openTonSignRequestWithResult(match { it.metaId == WALLET_ID }, BridgeMethod.SEND_TRANSACTION.title, SIGN_REQUEST)
+        }
+    }
+
+    @Test fun `a request that arrives during unlock waits until the PIN screen has been replaced`() {
+        coEvery { ton.prepareSignRequest(EVENT.message.params, WALLET_ID) } returns SIGN_REQUEST
+        coEvery { router.openTonSignRequestWithResult(any(), any(), any()) } returns Result.success("boc" to "hash")
+        // Unlocking resumes the handler while the PIN screen is still shown; the request screens open only after it.
+        val pinScreenReplaced = CompletableDeferred<Unit>()
+        coEvery { router.awaitDappRoutes() } coAnswers { pinScreenReplaced.await() }
+
+        model()
+
+        coVerify(exactly = 0) { router.openTonSignRequestWithResult(any(), any(), any()) }
+
+        pinScreenReplaced.complete(Unit)
 
         coVerify(exactly = 1) {
             router.openTonSignRequestWithResult(match { it.metaId == WALLET_ID }, BridgeMethod.SEND_TRANSACTION.title, SIGN_REQUEST)

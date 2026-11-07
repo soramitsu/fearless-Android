@@ -206,7 +206,7 @@ class RootViewModel @Inject constructor(
     // Requests wait in the buffer while the wallet is locked, so no sign screen opens over the PIN.
     private fun observeTonConnectEvents() {
         tonConnectInteractor.eventsFlow().buffer(Channel.UNLIMITED).onEach { event ->
-            WalletSessionLock.awaitUnlocked()
+            awaitDappScreens()
             try {
                 when(event.method) {
                     BridgeMethod.SEND_TRANSACTION -> {
@@ -258,7 +258,7 @@ class RootViewModel @Inject constructor(
             .onSuccess { WCDelegate.refreshConnections() }
 
         WCDelegate.walletEvents.buffer(Channel.UNLIMITED).onEach {
-            WalletSessionLock.awaitUnlocked()
+            awaitDappScreens()
             when (it) {
                 is WalletConnectEvent.SessionProposal -> {
                     handleSessionProposal(it.proposal)
@@ -271,6 +271,16 @@ class RootViewModel @Inject constructor(
                 else -> {}
             }
         }.stateIn(this, SharingStarted.Eagerly, null)
+    }
+
+    // A dApp request opens only once the wallet is unlocked and the PIN screen has been replaced: unlocking
+    // resumes these handlers before the PIN screen navigates away, and the request screens cannot be reached
+    // from it. A wallet that locks again meanwhile waits for the PIN again.
+    private suspend fun awaitDappScreens() {
+        do {
+            WalletSessionLock.awaitUnlocked()
+            rootRouter.awaitDappRoutes()
+        } while (WalletSessionLock.isLocked())
     }
 
     private suspend fun handleSessionRequest(sessionRequest: WalletConnectRequest) {
