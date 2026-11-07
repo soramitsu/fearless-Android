@@ -32,9 +32,14 @@ class TypeInformation internal constructor(
 private class Preparation(private val metadata: FrameMetadataV15) {
     private val registry = metadata.types
 
-    // Every reference in the registry resolves, so the visitor `as_basic_type_ref` runs for every reference can never
-    // fail and only its compact result matters. Real metadata always takes this path; otherwise each visit runs.
-    private val registryClosed = registry.all { type -> type.def.references().all(::isKnown) }
+    init {
+        // scale-info registries are closed: every reference names a type in the registry. Then the visitor that
+        // `as_basic_type_ref` runs for every reference cannot fail and only its result for a compact matters, so it
+        // runs for compacts only. A registry with a dangling reference is refused outright: no runtime produces one.
+        if (!registry.all { type -> type.def.references().all(::isKnown) }) {
+            throw MetadataDecodeException("The type registry references unknown types")
+        }
+    }
 
     private val accessible: TreeSet<Long> = collectAccessible()
 
@@ -92,13 +97,15 @@ private class Preparation(private val metadata: FrameMetadataV15) {
     // `AsBasicTypeRef for UntrackedSymbol`.
     private fun typeRef(id: Long): TypeRef {
         val type = registry.getOrNull(id) ?: throw MetadataDecodeException("Could not find type for id `$id`.")
-        val compactPrimitives = if (type.def is TypeDefV15.Compact || !registryClosed) primitivesBelow(type) else emptyList()
         return when (val def = type.def) {
             is TypeDefV15.Primitive -> primitiveRef(def.primitive)
-            is TypeDefV15.Compact -> when {
-                compactPrimitives.size > 1 -> throw MetadataDecodeException("Unexpected: $compactPrimitives")
-                compactPrimitives.size == 1 -> compactRef(compactPrimitives.single())
-                else -> TypeRef.Void
+            is TypeDefV15.Compact -> {
+                val primitives = primitivesBelow(type)
+                when {
+                    primitives.size > 1 -> throw MetadataDecodeException("Unexpected: $primitives")
+                    primitives.size == 1 -> compactRef(primitives.single())
+                    else -> TypeRef.Void
+                }
             }
             is TypeDefV15.Variant -> if (def.variants.isEmpty()) TypeRef.Void else byId(id)
             is TypeDefV15.Composite -> if (def.fields.isEmpty()) TypeRef.Void else byId(id)
