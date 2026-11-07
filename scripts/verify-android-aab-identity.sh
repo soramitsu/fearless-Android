@@ -75,9 +75,6 @@ expected_native_sha256() {
     base/lib/armeabi-v7a/libsodium.so)
       echo "8bcd304a813f3d814793c8553cd6a8814b64b2c188d66e8462f82053d7855343"
       ;;
-    base/lib/armeabi-v7a/libsqlcipher.so)
-      echo "4790ca6bbf562e6f5e477ed4ca73c0db60a0d0413a702d02884a35a67e6a7980"
-      ;;
     base/lib/armeabi-v7a/libsr25519java.so)
       echo "d217b2511bf2c7f90ea29879d5ecad86c62d95a3ee2dd412fbb0f6d804e5f3de"
       ;;
@@ -86,9 +83,6 @@ expected_native_sha256() {
       ;;
     base/lib/arm64-v8a/libsodium.so)
       echo "939ba2865a93abe39c4d6a29802419b36b1bfd0b320396eeaccd4d660468a664"
-      ;;
-    base/lib/arm64-v8a/libsqlcipher.so)
-      echo "d63a8d6bc0bb1bb1575e201f5c4d6bbcda7b9464bb309fb2f88daa6e1ee4a57b"
       ;;
     base/lib/arm64-v8a/libsr25519java.so)
       echo "a37f031de78b841dab6a8c69900a64fe427d53d2a4f77d8f3c059caab5849c12"
@@ -99,9 +93,6 @@ expected_native_sha256() {
     base/lib/x86/libsodium.so)
       echo "a6cd7f654ff400d080b16b3e794971b2c2b2cbc12bf0cee444f7e2ea950839ae"
       ;;
-    base/lib/x86/libsqlcipher.so)
-      echo "7799bfcdc38be283f02221d4d25acf8c8b3b13e12b95181791919fc315d7ed7b"
-      ;;
     base/lib/x86/libsr25519java.so)
       echo "56f26fe8e7e55026cf36be6c22a62037389d4f59cc8ee35d6bb295b5dc5441aa"
       ;;
@@ -110,9 +101,6 @@ expected_native_sha256() {
       ;;
     base/lib/x86_64/libsodium.so)
       echo "a8b52ce229d18338b9f0b0f4d2396078582c9742d771367394b8e9b3cbabb81c"
-      ;;
-    base/lib/x86_64/libsqlcipher.so)
-      echo "85dcbc655a1d1a34d0d6eb4d56d6563bf9aeceba8a6921c6c0d2252f474a4d6b"
       ;;
     base/lib/x86_64/libsr25519java.so)
       echo "b024dcc2ebf236f21d329e3d637a6fdd39746ad1dc0e0ccc99143279617946dc"
@@ -548,12 +536,9 @@ expected_permissions = {
     ("uses-permission", "android.permission.ACCESS_NETWORK_STATE", ""),
     ("uses-permission", "android.permission.CAMERA", ""),
     ("uses-permission", "android.permission.INTERNET", ""),
-    ("uses-permission", "android.permission.POST_NOTIFICATIONS", ""),
     ("uses-permission", "android.permission.USE_BIOMETRIC", ""),
     ("uses-permission", "android.permission.USE_FINGERPRINT", ""),
     ("uses-permission", "android.permission.VIBRATE", ""),
-    ("uses-permission", "android.permission.WAKE_LOCK", ""),
-    ("uses-permission", "com.google.android.c2dm.permission.RECEIVE", ""),
     (
         "uses-permission",
         f"{expected_package}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
@@ -744,35 +729,12 @@ expected_components = [
     ),
     expected_component(
         "service",
-        "com.google.android.datatransport.runtime.backends.TransportBackendDiscovery",
-    ),
-    expected_component(
-        "service",
-        "com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService",
-        permission="android.permission.BIND_JOB_SERVICE",
-    ),
-    expected_component(
-        "service",
         "com.google.android.gms.auth.api.signin.RevocationBoundService",
         exported=True,
         permission=(
             "com.google.android.gms.auth.api.signin.permission."
             "REVOCATION_NOTIFICATION"
         ),
-    ),
-    expected_component(
-        "service",
-        "com.google.firebase.components.ComponentDiscoveryService",
-    ),
-    expected_component(
-        "service",
-        "com.google.firebase.messaging.FirebaseMessagingService",
-        intent_filters=[
-            expected_filter(
-                ["com.google.firebase.MESSAGING_EVENT"],
-                priority=-500,
-            )
-        ],
     ),
     expected_component(
         "receiver",
@@ -789,19 +751,6 @@ expected_components = [
         ],
     ),
     expected_component(
-        "receiver",
-        "com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver",
-    ),
-    expected_component(
-        "receiver",
-        "com.google.firebase.iid.FirebaseInstanceIdReceiver",
-        exported=True,
-        permission="com.google.android.c2dm.permission.SEND",
-        intent_filters=[
-            expected_filter(["com.google.android.c2dm.intent.RECEIVE"])
-        ],
-    ),
-    expected_component(
         "provider",
         "androidx.core.content.FileProvider",
         authorities=[f"{production_package}.provider"],
@@ -811,11 +760,6 @@ expected_components = [
         "provider",
         "androidx.startup.InitializationProvider",
         authorities=[f"{production_package}.androidx-startup"],
-    ),
-    expected_component(
-        "provider",
-        "com.google.firebase.provider.FirebaseInitProvider",
-        authorities=[f"{production_package}.firebaseinitprovider"],
     ),
 ]
 expected_components.sort(key=lambda component: (component["type"], component["name"]))
@@ -1714,19 +1658,15 @@ temporary_files+=("$expected_entries_file" "$actual_entries_file")
 cat > "$expected_entries_file" <<'ENTRIES'
 base/lib/arm64-v8a/libandroidx.graphics.path.so
 base/lib/arm64-v8a/libsodium.so
-base/lib/arm64-v8a/libsqlcipher.so
 base/lib/arm64-v8a/libsr25519java.so
 base/lib/armeabi-v7a/libandroidx.graphics.path.so
 base/lib/armeabi-v7a/libsodium.so
-base/lib/armeabi-v7a/libsqlcipher.so
 base/lib/armeabi-v7a/libsr25519java.so
 base/lib/x86/libandroidx.graphics.path.so
 base/lib/x86/libsodium.so
-base/lib/x86/libsqlcipher.so
 base/lib/x86/libsr25519java.so
 base/lib/x86_64/libandroidx.graphics.path.so
 base/lib/x86_64/libsodium.so
-base/lib/x86_64/libsqlcipher.so
 base/lib/x86_64/libsr25519java.so
 ENTRIES
 LC_ALL=C sort -o "$expected_entries_file" "$expected_entries_file"
