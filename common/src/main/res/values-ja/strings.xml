@@ -96,6 +96,7 @@
   <string name="backup_not_backed_up_message">デバイスを紛失したり盗まれたりした場合、財布と全ての資金が永久に失われます</string>
   <string name="backup_not_backed_up_title">バックアップされていません！</string>
   <string name="backup_now">今すぐバックアップ</string>
+  <string name="backup_password_rule">12文字以上で小文字・大文字・数字・記号のうち3種類以上、または16文字以上にしてください。PIN、ウォレット名、アドレスは使えません。</string>
   <string name="backup_wallet_backup_to_google">Googleへバックアップ</string>
   <string name="backup_wallet_delete_alert_message">Googleのバックアップを削除した場合、ウォレットを復元できるのは、あなたが手動でバックアップしたパスフレーズのみとなります</string>
   <plurals name="backup_wallet_delete_copies_alert_message">

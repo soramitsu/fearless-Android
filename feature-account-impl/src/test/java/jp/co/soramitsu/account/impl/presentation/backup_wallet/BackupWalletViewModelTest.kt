@@ -1,11 +1,13 @@
 package jp.co.soramitsu.account.impl.presentation.backup_wallet
 
+import android.app.Activity
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.SavedStateHandle
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
@@ -50,6 +52,7 @@ class BackupWalletViewModelTest {
     private val totalBalanceUseCase = mockk<TotalBalanceUseCase>()
     private val resourceManager = mockk<ResourceManager>()
     private val viewModels = mutableListOf<BackupWalletViewModel>()
+    private val router = mockk<AccountRouter>(relaxed = true)
 
     private val ownAddress = "5Own"
     private val phoneCopy = BackupAccountMeta("Wallet", ownAddress, "phone")
@@ -141,6 +144,26 @@ class BackupWalletViewModelTest {
     }
 
     @Test
+    fun `a Google Drive backup of the wallet asks for the PIN first, like the other exports`() = runTest(dispatcher) {
+        every { router.openCreateBackupPasswordDialogAfterPinCheck(any(), any()) } returns flowOf(Activity.RESULT_OK)
+        val vm = checkedViewModel()
+        coVerify(exactly = 1) { interactor.getGoogleBackupCopies(WALLET_ID) }
+
+        vm.onGoogleBackupClick()
+        runCurrent()
+
+        verify(exactly = 1) {
+            router.openCreateBackupPasswordDialogAfterPinCheck(
+                match { it.walletId == WALLET_ID && it.addAccountPayload == null },
+                R.string.account_export
+            )
+        }
+        verify(exactly = 0) { router.openCreateBackupPasswordDialogWithResult(any()) }
+        // A saved backup refreshes the screen.
+        coVerify(exactly = 2) { interactor.getGoogleBackupCopies(WALLET_ID) }
+    }
+
+    @Test
     fun `a wallet whose funds are all hidden shows them before a backup decision, labelled`() = runTest(dispatcher) {
         every { totalBalanceUseCase.observe(WALLET_ID) } returns flowOf(portfolio(hidden = BigDecimal("125"), hiddenCount = 2))
         val vm = checkedViewModel()
@@ -168,7 +191,7 @@ class BackupWalletViewModelTest {
 
     private fun TestScope.checkedViewModel(): BackupWalletViewModel {
         val vm = BackupWalletViewModel(
-            accountRouter = mockk<AccountRouter>(relaxed = true),
+            accountRouter = router,
             savedStateHandle = SavedStateHandle(mapOf(BackupWalletDialog.ACCOUNT_ID_KEY to WALLET_ID)),
             accountInteractor = interactor,
             accountDetailsInteractor = detailsInteractor,

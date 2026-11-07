@@ -111,6 +111,9 @@ interface AccountRouter : SecureRouter {
 
     fun openCreateBackupPasswordDialogWithResult(payload: SaveBackupPayload?): Flow<Int>
 
+    /** Opens the backup password dialog for an existing wallet only after the PIN check; emits its result. */
+    fun openCreateBackupPasswordDialogAfterPinCheck(payload: SaveBackupPayload, pinCodeTitleRes: Int? = null): Flow<Int>
+
     fun openMnemonicAgreementsDialogForGoogleBackup(
         accountName: String,
         accountTypes: List<WalletEcosystem>

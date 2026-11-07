@@ -96,6 +96,7 @@
   <string name="backup_not_backed_up_message">Se o seu dispositivo for perdido ou roubado, você perderá sua carteira e todos os seus fundos para sempre</string>
   <string name="backup_not_backed_up_title">Não foi feito backup!</string>
   <string name="backup_now">Faça backup agora</string>
+  <string name="backup_password_rule">Use 12+ caracteres com 3 destes tipos: minúsculas, maiúsculas, números, símbolos, ou 16+ caracteres. Não use o PIN, o nome da carteira nem um endereço.</string>
   <string name="backup_wallet_backup_to_google">Backup para o Google</string>
   <string name="backup_wallet_delete_alert_message">Se você excluir seu backup do Google, só poderá recuperar sua carteira com um backup manual de sua senha</string>
   <plurals name="backup_wallet_delete_copies_alert_message">

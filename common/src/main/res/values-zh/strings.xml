@@ -96,6 +96,7 @@
   <string name="backup_not_backed_up_message">如果您的设备丢失或被盗，您将永远失去钱包和所有资金。</string>
   <string name="backup_not_backed_up_title">未备份！</string>
   <string name="backup_now">立即备份</string>
+  <string name="backup_password_rule">至少 12 个字符，包含小写字母、大写字母、数字、符号中的 3 种，或至少 16 个字符。不能是 PIN、钱包名称或地址。</string>
   <string name="backup_wallet_backup_to_google">备份到谷歌</string>
   <string name="backup_wallet_delete_alert_message">如果您删除了Google的备份，只能通过手动备份助记词来恢复您的钱包。</string>
   <plurals name="backup_wallet_delete_copies_alert_message">

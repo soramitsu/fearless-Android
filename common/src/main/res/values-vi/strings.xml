@@ -96,6 +96,7 @@
   <string name="backup_not_backed_up_message">Nếu thiết bị của bạn bị mất hoặc bị đánh cắp, bạn sẽ mất ví và toàn bộ tiền của mình mãi mãi</string>
   <string name="backup_not_backed_up_title">Chưa sao lưu!</string>
   <string name="backup_now">Sao lưu ngay</string>
+  <string name="backup_password_rule">Dùng ít nhất 12 ký tự gồm 3 loại: chữ thường, chữ hoa, chữ số, ký hiệu; hoặc ít nhất 16 ký tự. Không dùng mã PIN, tên ví hoặc địa chỉ.</string>
   <string name="backup_wallet_backup_to_google">Sao lưu vào Google</string>
   <string name="backup_wallet_delete_alert_message">Nếu bạn xóa bản sao lưu Google của mình, bạn sẽ chỉ có thể khôi phục ví của mình bằng cách sao lưu thủ công cụm mật khẩu của mình</string>
   <plurals name="backup_wallet_delete_copies_alert_message">

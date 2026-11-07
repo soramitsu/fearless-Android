@@ -96,6 +96,7 @@
   <string name="backup_not_backed_up_message">Если ваше устройство будет потеряно или украдено, вы навсегда потеряете свой кошелек и все свои средства.</string>
   <string name="backup_not_backed_up_title">Нет резервной копии</string>
   <string name="backup_now">Резервное копирование сейчас</string>
+  <string name="backup_password_rule">Не менее 12 символов трёх типов из четырёх: строчные, заглавные, цифры, символы. Или не менее 16 символов. Не PIN-код, не имя кошелька и не адрес.</string>
   <string name="backup_wallet_backup_to_google">Сохранить кошелек в Google</string>
   <string name="backup_wallet_delete_alert_message">Если вы удалите свою резервную копию Google, вы сможете восстановить свой кошелек только с резервной копией вашей парольной фразы вручную.</string>
   <plurals name="backup_wallet_delete_copies_alert_message">

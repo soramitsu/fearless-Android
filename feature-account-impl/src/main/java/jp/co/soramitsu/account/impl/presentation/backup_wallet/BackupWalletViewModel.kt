@@ -36,6 +36,7 @@ import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -81,6 +82,7 @@ class BackupWalletViewModel @Inject constructor(
         flowOf { accountInteractor.googleBackupAddressForWallet(walletId) }
 
     val requestGoogleAuth = MutableSharedFlow<Event<Unit>>()
+    private var pendingBackupResult: Job? = null
     private val refresh = MutableSharedFlow<Event<Unit>>()
     private val isAuthedToGoogle = MutableStateFlow(false)
 
@@ -367,12 +369,18 @@ class BackupWalletViewModel @Inject constructor(
         }
     }
 
+    // Uploading the wallet's recovery material to Drive is an export, so it needs the PIN like the
+    // phrase, seed and JSON exports on this screen.
     private fun openCreateBackupPasswordDialog() {
         val payload = SaveBackupPayload(
             walletId = walletId,
             addAccountPayload = null
         )
-        accountRouter.openCreateBackupPasswordDialogWithResult(payload)
+        pendingBackupResult?.cancel()
+        pendingBackupResult = accountRouter.openCreateBackupPasswordDialogAfterPinCheck(
+            payload,
+            pinCodeTitleRes = R.string.account_export
+        )
             .onEach { resultCode ->
                 if (resultCode == Activity.RESULT_OK) {
                     checkIsWalletBackedUpToGoogle()

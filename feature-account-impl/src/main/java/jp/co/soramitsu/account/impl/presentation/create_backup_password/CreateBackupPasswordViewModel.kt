@@ -12,6 +12,7 @@ import jp.co.soramitsu.account.api.presentation.backup.GoogleBackupIssue
 import jp.co.soramitsu.account.api.presentation.backup.showGoogleBackupIssue
 import jp.co.soramitsu.account.api.presentation.backup.toGoogleBackupIssue
 import jp.co.soramitsu.account.api.presentation.create_backup_password.SaveBackupPayload
+import jp.co.soramitsu.account.impl.domain.BackupPasswordRule
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.backup.GoogleSignInResult
 import jp.co.soramitsu.backup.domain.exceptions.AuthConsentException
@@ -59,6 +60,9 @@ class CreateBackupPasswordViewModel @Inject constructor(
     /** Asks the screen to sign in to Google again with its activity result launcher. */
     val requestGoogleSignIn = MutableSharedFlow<Event<Unit>>()
 
+    /** The wallet name and addresses a new backup password must not be; null until loaded. */
+    private val passwordForbiddenValues = MutableStateFlow<ForbiddenValues?>(null)
+
     private val originPassword = MutableStateFlow("")
     private val confirmPassword = MutableStateFlow("")
     private val isUserAgreedWithStatements = MutableStateFlow(false)
@@ -88,8 +92,22 @@ class CreateBackupPasswordViewModel @Inject constructor(
             confirmPassword.length >= originPassword.length &&
             confirmPassword != originPassword
     }
-    private val isSetButtonEnabled = combine(arePasswordsMatched, isAgreementsChecked) { arePasswordsMatched, isAgreementsChecked ->
-        arePasswordsMatched && isAgreementsChecked
+    // Until the wallet name and addresses are known, no password counts as acceptable.
+    private val passwordProblem = combine(originPassword, passwordForbiddenValues) { password, forbidden ->
+        if (forbidden == null) {
+            BackupPasswordRule.Problem.TOO_SHORT_OR_SIMPLE
+        } else {
+            BackupPasswordRule.check(password, forbidden.walletName, forbidden.addresses)
+        }
+    }
+
+    // Only a typed password is marked: an empty field just shows the rule.
+    private val highlightPasswordRule = combine(originPassword, passwordProblem) { password, problem ->
+        password.isNotEmpty() && problem != null && !isBackupUploaded
+    }
+
+    private val isSetButtonEnabled = combine(arePasswordsMatched, isAgreementsChecked, passwordProblem) { matched, agreed, problem ->
+        matched && agreed && (problem == null || isBackupUploaded)
     }
 
     private val initialState = CreateBackupPasswordViewState(
@@ -113,7 +131,9 @@ class CreateBackupPasswordViewModel @Inject constructor(
         passwordMatchingTextResource = null,
         highlightConfirmPassword = false,
         isSetButtonEnabled = true,
-        isLoading = false
+        isLoading = false,
+        passwordRuleTextResource = R.string.backup_password_rule,
+        highlightPasswordRule = false
     )
     val state = combineFlows(
         originPassword,
@@ -125,9 +145,11 @@ class CreateBackupPasswordViewModel @Inject constructor(
         isSetButtonEnabled,
         isLoading,
         isOriginPasswordVisible,
-        isConfirmPasswordVisible
+        isConfirmPasswordVisible,
+        highlightPasswordRule
     ) { originPassword, confirmPassword, isUserAgreedWithStatements, isAgreementsChecked, passwordMatchingTextResource,
-        highlightConfirmPassword, isSetButtonEnabled, isLoading, isOriginPasswordVisible, isConfirmPasswordVisible ->
+        highlightConfirmPassword, isSetButtonEnabled, isLoading, isOriginPasswordVisible, isConfirmPasswordVisible,
+        highlightPasswordRule ->
         CreateBackupPasswordViewState(
             originPasswordViewState = createTextInputViewState(
                 hint = resourceManager.getString(R.string.export_json_password_new),
@@ -149,7 +171,9 @@ class CreateBackupPasswordViewModel @Inject constructor(
             passwordMatchingTextResource = passwordMatchingTextResource,
             highlightConfirmPassword = highlightConfirmPassword,
             isSetButtonEnabled = isSetButtonEnabled,
-            isLoading = isLoading
+            isLoading = isLoading,
+            passwordRuleTextResource = R.string.backup_password_rule,
+            highlightPasswordRule = highlightPasswordRule
         )
     }.stateIn(viewModelScope, started = SharingStarted.Eagerly, initialValue = initialState)
 
@@ -200,6 +224,8 @@ class CreateBackupPasswordViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
+                // New backups only: the rule never stands between the user and a backup already uploaded.
+                if (!isBackupUploaded && !meetsPasswordRule(password)) return@launch
                 val walletId = createdWalletId ?: payload?.walletId ?: createWallet()
                 if (!isBackupUploaded) {
                     leftOutBackupTypes = interactor.saveGoogleBackupAccount(walletId, password)
@@ -242,6 +268,31 @@ class CreateBackupPasswordViewModel @Inject constructor(
         val issue = result.toGoogleBackupIssue() ?: return
         showBackupIssue(issue)
     }
+
+    init {
+        viewModelScope.launch { forbiddenValues() }
+    }
+
+    private suspend fun meetsPasswordRule(password: String): Boolean {
+        val forbidden = forbiddenValues()
+        return BackupPasswordRule.check(password, forbidden.walletName, forbidden.addresses) == null
+    }
+
+    private suspend fun forbiddenValues(): ForbiddenValues =
+        passwordForbiddenValues.value ?: loadForbiddenValues().also { passwordForbiddenValues.value = it }
+
+    private suspend fun loadForbiddenValues(): ForbiddenValues {
+        val walletId = payload?.walletId
+        if (walletId != null) {
+            // A wallet that cannot be read cannot be backed up either; the upload reports that.
+            val wallet = runCatching { interactor.getMetaAccount(walletId) }.getOrNull()
+            return ForbiddenValues(wallet?.name, wallet?.let(BackupPasswordRule::walletAddresses).orEmpty())
+        }
+        // A wallet created here has no addresses yet.
+        return ForbiddenValues(payload?.addAccountPayload?.accountName, emptySet())
+    }
+
+    private class ForbiddenValues(val walletName: String?, val addresses: Set<String>)
 
     private suspend fun createWallet(): Long {
         val addAccountPayload = requireNotNull(payload?.addAccountPayload) { "No wallet to back up" }

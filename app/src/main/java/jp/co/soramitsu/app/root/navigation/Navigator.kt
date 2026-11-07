@@ -183,6 +183,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.job
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.parcelize.Parcelize
@@ -373,6 +374,28 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
             resultKey = CreateBackupPasswordDialog.RESULT_BACKUP_KEY,
             bundle = bundle
         )
+    }
+
+    /**
+     * The Google Drive backup of an existing wallet exports its secret like the phrase, seed and JSON
+     * exports do, so it goes through the same PIN check first. The password dialog reports back to the
+     * entry below it, as [openCreateBackupPasswordDialogWithResult] does.
+     */
+    override fun openCreateBackupPasswordDialogAfterPinCheck(payload: SaveBackupPayload, pinCodeTitleRes: Int?): Flow<Int> {
+        val destinationId = R.id.createBackupPasswordDialog
+        val resultKey = CreateBackupPasswordDialog.RESULT_BACKUP_KEY
+        val resultHandle = controllerFor(destinationId)?.currentBackStackEntry?.savedStateHandle ?: return emptyFlow()
+        resultHandle.remove<Int>(resultKey)
+        return resultHandle.getStateFlow<Int?>(resultKey, null)
+            .onStart {
+                withPinCodeCheckRequired(
+                    NavComponentDelayedNavigation(destinationId, CreateBackupPasswordDialog.getBundle(payload)),
+                    pinCodeTitleRes = pinCodeTitleRes
+                )
+            }
+            .filterNotNull()
+            .take(1)
+            .onEach { resultHandle.remove<Int>(resultKey) }
     }
 
     override fun openMnemonicAgreementsDialogForGoogleBackup(
