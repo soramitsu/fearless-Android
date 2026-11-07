@@ -96,6 +96,14 @@ import java.lang.reflect.Proxy
  */
 class UniversalWalletPasswordRestoreTest {
 
+    // Secrets are read only in an unlocked session (4.3.2); these tests run unlocked.
+    @org.junit.Before
+    fun unlockWalletSession() = jp.co.soramitsu.common.data.storage.pin.WalletSessionLock.unlock()
+
+    @org.junit.After
+    fun lockWalletSession() = jp.co.soramitsu.common.data.storage.pin.WalletSessionLock.lock()
+
+
     @get:Rule
     val instantTaskRule = InstantTaskExecutorRule()
 

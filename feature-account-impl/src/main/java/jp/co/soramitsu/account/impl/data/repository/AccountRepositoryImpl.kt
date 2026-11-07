@@ -775,6 +775,9 @@ class AccountRepositoryImpl(
             null
         } catch (failure: WalletRecoveryRequiredException) {
             null
+        } catch (failure: jp.co.soramitsu.common.data.storage.envelope.WalletSecretLockedException) {
+            // Sealed and locked: nothing is offered until the PIN opens it.
+            null
         }
     }
 
@@ -815,6 +818,9 @@ class AccountRepositoryImpl(
 
             types
         } catch (failure: WalletRecoveryRequiredException) {
+            emptySet()
+        } catch (failure: jp.co.soramitsu.common.data.storage.envelope.WalletSecretLockedException) {
+            // Sealed and locked: nothing is offered until the PIN opens it.
             emptySet()
         }
     }
@@ -957,6 +963,9 @@ class AccountRepositoryImpl(
             listOfNotNull(passphrase.takeIf(String::isNotEmpty))
         } catch (failure: kotlinx.coroutines.CancellationException) {
             throw failure
+        } catch (failure: jp.co.soramitsu.common.data.storage.envelope.WalletSecretLockedException) {
+            // A sealed root while locked is not a missing password.
+            throw failure
         } catch (_: Exception) {
             emptyList()
         }
@@ -988,6 +997,16 @@ class AccountRepositoryImpl(
         scope: WalletSecretScope
     ): Boolean {
         return jp.co.soramitsu.common.data.storage.pin.WalletViewOnlyAccess.isEnabled() || !isScopeAccessible(getMetaAccount(metaId), scope)
+    }
+
+    override suspend fun hasSigningMaterial(metaId: Long, chain: IChain): Boolean {
+        val metaAccount = getMetaAccount(metaId)
+        val chainAccount = metaAccount.chainAccounts[chain.id]
+        return if (chainAccount != null) {
+            legacyStoreV2.hasChainSecrets(metaId, chainAccount.accountId)
+        } else {
+            substrateSecretStore.hasSecret(metaId)
+        }
     }
 
     override suspend fun isSigningRecoveryRequired(metaId: Long, chain: IChain): Boolean {

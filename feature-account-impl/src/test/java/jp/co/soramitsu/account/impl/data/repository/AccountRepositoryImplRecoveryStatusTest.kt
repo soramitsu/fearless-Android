@@ -75,6 +75,13 @@ import org.ton.mnemonic.Mnemonic
  */
 class AccountRepositoryImplRecoveryStatusTest {
 
+    // Background upgrades read secrets only in an unlocked session (4.3.2); these tests run unlocked.
+    @org.junit.Before
+    fun unlockWalletSession() = jp.co.soramitsu.common.data.storage.pin.WalletSessionLock.unlock()
+
+    @org.junit.After
+    fun lockWalletSession() = jp.co.soramitsu.common.data.storage.pin.WalletSessionLock.lock()
+
     private val preferences = HashMapEncryptedPreferences()
     private val accountDataSource = mock<AccountDataSource>()
 

@@ -3,7 +3,6 @@ package jp.co.soramitsu.liquiditypools.impl.data
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
-import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.models.IChain
@@ -13,7 +12,6 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.ExtrinsicMetadata
 import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadata
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module.MetadataFunction
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module.Module
-import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
@@ -258,7 +256,6 @@ class SoraDeFiMutationAuthorizerTest {
         init {
             val runtimeSnapshot = runtime(runtimeCalls)
             val selectedMetaAccount = metaAccount()
-            val substrateSecrets = if (hasSigningMaterial) mock<EncodableStruct<SubstrateSecrets>>() else null
             runBlocking {
                 whenever(toggleStore.polkaswapMutationsEnabled).thenReturn(liquidityEnabled)
                 whenever(toggleStore.demeterMutationsEnabled).thenReturn(true)
@@ -266,7 +263,7 @@ class SoraDeFiMutationAuthorizerTest {
                 whenever(chainRegistry.getRuntimeOrNull(soraMainChainId)).thenReturn(runtimeSnapshot)
                 whenever(accountRepository.getSelectedMetaAccount()).thenReturn(selectedMetaAccount)
                 whenever(accountRepository.isSigningRecoveryRequired(any(), any<IChain>())).thenReturn(false)
-                whenever(accountRepository.getSubstrateSecrets(any())).thenReturn(substrateSecrets)
+                whenever(accountRepository.hasSigningMaterial(any(), any<IChain>())).thenReturn(hasSigningMaterial)
                 whenever(walletRepository.getAccountSpendableBalance(any(), eq(ACCOUNT_ID)))
                     .thenReturn(spendableBalance)
             }

@@ -203,6 +203,13 @@ interface AccountRepository {
     suspend fun isSigningRecoveryRequired(metaId: Long, chain: IChain): Boolean
 
     /**
+     * Whether a signing secret is stored for [chain]: the per-network key when the
+     * wallet has one for that chain, otherwise the Substrate root. Key names only,
+     * so it answers the same while the wallet is locked and its secrets are sealed.
+     */
+    suspend fun hasSigningMaterial(metaId: Long, chain: IChain): Boolean
+
+    /**
      * Whether the stored phrase, seed and path of the root key of [ecosystem]
      * re-derive it. Null when the key is absent or its scope is blocked.
      */
