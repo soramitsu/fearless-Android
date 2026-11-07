@@ -5,6 +5,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("kotlin-parcelize")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("kotlinx-serialization")
 }
 android {
     namespace = "co.jp.soramitsu.feature_walletconnect_impl"
@@ -39,6 +40,13 @@ dependencies {
     implementation(project(":core-chain"))
 
     implementation(libs.web3jDep)
+
+    // The in-repo WalletConnect v2 client: BouncyCastle crypto, OkHttp WebSocket relay, JSON.
+    implementation(libs.bouncycastle)
+    implementation(libs.okhttp)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.coroutines.core)
+    implementation(libs.lifecycle.process)
 
     implementation(platform(libs.reownBomDep))
     implementation(libs.reownCoreDep) {
