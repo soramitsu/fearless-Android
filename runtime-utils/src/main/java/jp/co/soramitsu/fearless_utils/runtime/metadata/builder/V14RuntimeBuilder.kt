@@ -89,7 +89,7 @@ object V14RuntimeBuilder : RuntimeBuilder {
         )
     }
 
-    private fun buildStorage(
+    internal fun buildStorage(
         typeRegistry: TypeRegistry,
         struct: EncodableStruct<StorageMetadataV14>,
         moduleName: String
@@ -112,7 +112,7 @@ object V14RuntimeBuilder : RuntimeBuilder {
         )
     }
 
-    private fun buildCalls(
+    internal fun buildCalls(
         typeRegistry: TypeRegistry,
         callsRaw: EncodableStruct<PalletCallMetadataV14>,
         moduleIndex: Int
@@ -133,7 +133,7 @@ object V14RuntimeBuilder : RuntimeBuilder {
         }.groupByName()
     }
 
-    private fun buildEvents(
+    internal fun buildEvents(
         typeRegistry: TypeRegistry,
         eventsRaw: EncodableStruct<PalletEventMetadataV14>,
         moduleIndex: Int
@@ -168,7 +168,7 @@ object V14RuntimeBuilder : RuntimeBuilder {
         }
     }
 
-    private fun buildConstants(
+    internal fun buildConstants(
         typeRegistry: TypeRegistry,
         constantsRaw: List<EncodableStruct<PalletConstantMetadataV14>>
     ): Map<String, Constant> {
@@ -184,7 +184,7 @@ object V14RuntimeBuilder : RuntimeBuilder {
         }.groupByName()
     }
 
-    private fun buildErrors(
+    internal fun buildErrors(
         typeRegistry: TypeRegistry,
         errorsRaw: EncodableStruct<PalletErrorMetadataV14>
     ): Map<String, Error> {
