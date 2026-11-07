@@ -300,22 +300,27 @@ fallbacks are recorded in `config/remote-config-imports.json`. Historical migrat
 fixtures intentionally retain their original bytes. Existing installed clients
 still require the old configuration host; do not remove it as part of migration.
 
-Native libraries are unchanged by this import. For an intentional sr25519 rebuild,
-set `ANDROID_NDK_HOME` and run `scripts/build-sr25519.sh` with cargo-ndk installed.
-It builds the owned Rust source with its Cargo.lock and 16 KB linker alignment.
-Rebuilt binaries require refreshed provenance and device qualification.
+### Native sr25519 library (built from source)
 
-### Rebuild libsodium with 16 KB alignment
-
-We vendor libsodium sources under `third_party/libsodium` and ship aligned binaries under `app/src/main/jniLibs`.  
-If you need to refresh them (e.g., after pulling upstream changes), run:
+`libsr25519java.so`, which holds every sr25519 key operation (Polkadot, Kusama,
+SORA), is compiled from `runtime-utils/native/sr25519` during the Gradle build;
+the repository contains no prebuilt native library of its own. Install once:
 
 ```
-ANDROID_NDK_HOME=/Users/<you>/Library/Android/sdk/ndk/28.0.12674087 \
-./scripts/build-libsodium.sh
+# rustup from https://rustup.rs; rust-toolchain.toml then installs Rust 1.99.1
+# with the four Android targets on first use
+cargo install cargo-ndk --version 4.1.2 --locked
+sdkmanager "ndk;30.0.16248370"
 ```
 
-The script rebuilds `libsodium.so` for arm64-v8a, armeabi-v7a, x86, and x86_64 with the Google Play-required `-Wl,-z,common-page-size=4096 -Wl,-z,max-page-size=16384` flags and copies them into `app/src/main/jniLibs`.
+`./gradlew :app:assembleDebug` then runs `:runtime-utils:buildSr25519AndroidLibraries`
+(all four ABIs, API 26, 16 KB page alignment) and fails if a binary differs from
+`runtime-utils/native/sr25519/reproducible-build.json`. Unit tests of
+`runtime-utils` load a host build of the same crate and are skipped, with the
+reason, when cargo is missing. After an intended change to the crate, its
+`Cargo.lock` or the toolchain, run `./gradlew :runtime-utils:recordSr25519NativeHashes`
+and `./gradlew :runtime-utils:verifySr25519ReproducibleBuild`, and commit the
+updated manifest with the runtime source pins.
 
 Tracked native/vendor binary provenance is documented in
 `docs/binary-provenance.md`.

@@ -2,6 +2,14 @@
 
 # Roadmap & Technical Debt
 
+## 4.3.2 (in progress): sr25519 from source — open items
+
+- Add NDK `30.0.16248370`, Rust 1.99.1 (from `rust-toolchain.toml`) and
+  cargo-ndk 4.1.2 to the checksum-locked SDK of `android-release.yml`; until
+  then release AABs that compile `libsr25519java.so` are built locally.
+- Qualify the source-built `libsr25519java.so` on devices (all four ABIs) before
+  release: import, derive, sign and the AndroidTest sr25519 suites.
+
 ## Production release 4.3.1 (233): Asset Hub staking — 30 October 2026
 
 4.3.1 brings back Polkadot and Kusama staking, which 4.3.0 could not offer because
