@@ -12,6 +12,7 @@ import jp.co.soramitsu.app.root.domain.InitializeResult
 import jp.co.soramitsu.app.root.domain.NotSupportedAppVersionException
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.runtime.ChainConnection
@@ -22,9 +23,11 @@ import jp.co.soramitsu.tonconnect.api.model.BridgeMethod
 import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -128,6 +131,7 @@ class RootViewModel @Inject constructor(
         timeInBackground?.let {
             if (idleTimePassedFrom(it)) {
                 timerTask?.cancel()
+                WalletSessionLock.lock()
                 rootRouter.openPincodeCheck()
             }
         }
@@ -170,6 +174,7 @@ class RootViewModel @Inject constructor(
     private fun createTimerTask() = timerTask {
         viewModelScope.launch(Dispatchers.Main) {
             timeInBackground = null
+            WalletSessionLock.lock()
             rootRouter.openNavGraph()
         }
     }
@@ -196,8 +201,10 @@ class RootViewModel @Inject constructor(
     }
 
     // Each bridge request reaches this collector at most once (see TonConnectInteractor.eventsFlow).
+    // Requests wait in the buffer while the wallet is locked, so no sign screen opens over the PIN.
     private fun observeTonConnectEvents() {
-        tonConnectInteractor.eventsFlow().onEach { event ->
+        tonConnectInteractor.eventsFlow().buffer(Channel.UNLIMITED).onEach { event ->
+            WalletSessionLock.awaitUnlocked()
             try {
                 when(event.method) {
                     BridgeMethod.SEND_TRANSACTION -> {
@@ -248,7 +255,8 @@ class RootViewModel @Inject constructor(
         WCDelegate.registerDelegatesIfReady()
             .onSuccess { WCDelegate.refreshConnections() }
 
-        WCDelegate.walletEvents.onEach {
+        WCDelegate.walletEvents.buffer(Channel.UNLIMITED).onEach {
+            WalletSessionLock.awaitUnlocked()
             when (it) {
                 is Wallet.Model.SessionProposal -> {
                     handleSessionProposal(it)

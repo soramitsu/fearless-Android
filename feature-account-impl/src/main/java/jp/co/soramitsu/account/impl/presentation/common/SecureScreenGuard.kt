@@ -1,11 +1,17 @@
 package jp.co.soramitsu.account.impl.presentation.common
 
+import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
 import android.view.Window
 import android.view.WindowManager
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import jp.co.soramitsu.common.view.AccessibilityExposure
+import jp.co.soramitsu.common.view.protectSensitiveContent
+import jp.co.soramitsu.feature_account_impl.R
 
 /**
  * Applies [SecureScreenFlag] to the Activity window of a fragment that shows
@@ -17,9 +23,14 @@ import androidx.fragment.app.FragmentManager
  * fragment's siblings in its parent FragmentManager, i.e. the other
  * destinations of the NavHost that shows it.
  */
-internal class SecureScreenGuard(private val fragment: Fragment) {
+internal class SecureScreenGuard(
+    private val fragment: Fragment,
+    /** For screens that show or take a phrase, seed or key; never for the PIN pad, which every unlock shows. */
+    private val warnAboutScreenReaders: Boolean = false
+) {
 
     private val flag = SecureScreenFlag()
+    private var readerWarningShown = false
     private var observedManager: FragmentManager? = null
 
     private val siblingCallbacks = object : FragmentManager.FragmentLifecycleCallbacks() {
@@ -49,10 +60,33 @@ internal class SecureScreenGuard(private val fragment: Fragment) {
     fun onViewCreated() {
         observeSiblings()
         flag.show(fragment.requireActivity().window.asSecureFlagWindow())
+        // No tap-jacking through overlays, and on Android 14+ no reading by non-tool accessibility apps.
+        fragment.view?.protectSensitiveContent()
     }
 
     fun onStart() {
         flag.show(fragment.requireActivity().window.asSecureFlagWindow())
+        warnAboutScreenReadersOnce()
+    }
+
+    /**
+     * Before Android 14 any app with accessibility access can read this screen. Name the
+     * non-system ones once per screen, so the user can turn them off before revealing secrets.
+     */
+    private fun warnAboutScreenReadersOnce() {
+        if (!warnAboutScreenReaders || readerWarningShown) return
+        readerWarningShown = true
+        val context = fragment.context ?: return
+        val readers = runCatching { AccessibilityExposure.readersToWarnAbout(context) }.getOrDefault(emptyList())
+        if (readers.isEmpty()) return
+        AlertDialog.Builder(context)
+            .setTitle(R.string.accessibility_reader_warning_title)
+            .setMessage(context.getString(R.string.accessibility_reader_warning_message, readers.joinToString()))
+            .setPositiveButton(R.string.common_continue, null)
+            .setNegativeButton(R.string.accessibility_open_settings) { _, _ ->
+                runCatching { fragment.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
+            }
+            .show()
     }
 
     fun onStop() {

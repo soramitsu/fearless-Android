@@ -26,8 +26,8 @@
   <string name="account_creation_info">A mnemónica é usada para recuperar o acesso à conta. Anote-a, nós não poderemos recuperar a sua conta sem ela!</string>
   <string name="account_custom_secret">Contas com um segredo alterado</string>
   <string name="account_delete_confirm">Esquecer</string>
-  <string name="account_delete_confirmation_description">Certifique-se de ter exportado a sua conta antes de prosseguir.</string>
-  <string name="account_delete_confirmation_title">Esqueceu a conta?</string>
+  <string name="account_delete_confirmation_description">Ela sai da lista de carteiras, mas as chaves continuam neste telefone em Recuperação da carteira › Dados de carteira preservados até você excluí-las lá. Faça o backup da carteira antes.</string>
+  <string name="account_delete_confirmation_title">Remover esta carteira?</string>
   <string name="account_error_try_another_one">Por favor, tente outro.</string>
   <string name="account_export">Exportar conta</string>
   <string name="account_export_action">Exportar</string>
@@ -651,6 +651,11 @@
   <string name="pincode_enter_pin_code">Insira o código PIN</string>
   <string name="pincode_fingerprint_error">Não está autorizado. Tente outro dedo.</string>
   <string name="pincode_fingerprint_switch_dialog_title">Usar biometria para autorizar</string>
+  <string name="pincode_biometrics_changed">As impressões digitais ou os dados faciais deste telefone mudaram, por isso o desbloqueio biométrico foi desativado. Digite seu PIN.</string>
+  <string name="pincode_biometrics_changed_offer">Uma impressão digital ou um rosto foi adicionado ou alterado neste telefone. Reative o desbloqueio biométrico somente se foi você quem fez essa alteração.</string>
+  <string name="accessibility_reader_warning_title">Outro app pode ler esta tela</string>
+  <string name="accessibility_reader_warning_message">%1$s tem acesso de acessibilidade e pode ler o que esta tela mostra. Se você não confia nele, desative o acesso em Configurações › Acessibilidade antes.</string>
+  <string name="accessibility_open_settings">Abrir configurações</string>
   <string name="pincode_setup_top_title">Configurar código PIN</string>
   <string name="pincode_title_create">Defina o seu código PIN</string>
   <string name="pincode_touch_fingerprint_scanner">Toque no leitor de impressão digital</string>
@@ -1587,8 +1592,7 @@
     <string name="wallet_archive_delete_final">Confirmação final: excluir permanentemente este registro preservado? Isso não pode ser desfeito. As outras carteiras e registros serão mantidos.</string>
     <string name="wallet_archive_restore_confirm">Restaurar este endereço como uma carteira separada? O registro original será mantido. A frase de recuperação salva ainda pode precisar de verificação.</string>
     <string name="wallet_archive_continue_delete">Continuar para a confirmação final</string>
-    <string name="wallet_archive_export_warning">Estes dados podem conter chaves privadas e material de recuperação incompleto. Quem os receber poderá controlar seus fundos. Compartilhe apenas com um destino confiável.</string>
-    <string name="wallet_archive_share">Compartilhar dados armazenados</string>
+    <string name="wallet_archive_export_warning">Estes dados podem conter chaves privadas e material de recuperação incompleto. Quem os vir poderá controlar seus fundos. A cópia é apagada após um minuto; cole-a somente em um local privado.</string>
     <string name="wallet_archive_restored_name">Carteira restaurada</string>
     <string name="wallet_archive_purged">Registro preservado excluído</string>
 

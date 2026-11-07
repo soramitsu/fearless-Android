@@ -30,6 +30,7 @@ import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
 import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -312,6 +313,8 @@ class TonSignRequestViewModel @Inject constructor(
     }
 
     override fun onSignClick() {
+        // A wallet that re-locked meanwhile signs nothing; the request waits for the PIN.
+        if (WalletSessionLock.isLocked()) return
         viewModelScope.launch {
             val preview = state.value as? TonSignPreviewViewState ?: return@launch
             if (preview.loading || summary.value == null) return@launch

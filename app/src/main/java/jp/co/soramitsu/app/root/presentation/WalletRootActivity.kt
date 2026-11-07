@@ -42,6 +42,7 @@ import jp.co.soramitsu.common.utils.observe
 import jp.co.soramitsu.common.utils.showToast
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.runtime.BuildConfig
+import jp.co.soramitsu.common.view.hideOtherAppsOverlays
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -123,6 +124,7 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
             )
         )
         super.onCreate(savedInstanceState)
+        window.hideOtherAppsOverlays()
         if (!contentInitializationAllowed) return
 
         secureStorageRestartRedirector.register()

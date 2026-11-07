@@ -874,6 +874,7 @@ if len(component_modes) != len(component_mode_names):
 permissions = [
     ("uses-permission", "android.permission.ACCESS_NETWORK_STATE", None),
     ("uses-permission", "android.permission.CAMERA", None),
+    ("uses-permission", "android.permission.HIDE_OVERLAY_WINDOWS", None),
     ("uses-permission", "android.permission.INTERNET", None),
     ("uses-permission", "android.permission.POST_NOTIFICATIONS", None),
     ("uses-permission", "android.permission.USE_BIOMETRIC", None),

@@ -181,18 +181,30 @@ class AccountInteractorImplTest {
     }
 
     @Test
-    fun `a biometric unlock clears the count during a delay`() = runBlocking {
+    fun `a PIN unsealed by a biometric clears the count during a delay`() = runBlocking {
         val interactor = pinInteractor()
         pinCode = "123456"
         repeat(5) { interactor.isPinCorrect("000000") }
         passTime(30_000)
         interactor.isPinCorrect("000000")
         assertEquals(60_000L, interactor.getPinRetryDelayMillis())
-        interactor.registerBiometricUnlock()
+        assertTrue(interactor.verifyBiometricVaultPin("123456"))
         assertEquals(0L, interactor.getPinRetryDelayMillis())
         repeat(4) { assertFalse(interactor.isPinCorrect("000000")) }
         assertEquals("After a biometric unlock the next typos are not delayed", 0L, interactor.getPinRetryDelayMillis())
         assertTrue(interactor.isPinCorrect("123456"))
+    }
+
+    @Test
+    fun `a stale sealed PIN neither unlocks nor counts as a wrong guess`() = runBlocking {
+        val interactor = pinInteractor()
+        pinCode = "123456"
+        repeat(4) { interactor.isPinCorrect("000000") }
+        val before = interactor.getPinRetryDelayMillis()
+        assertFalse(interactor.verifyBiometricVaultPin("654321"))
+        assertEquals(before, interactor.getPinRetryDelayMillis())
+        pinCode = null
+        assertFalse("An unreadable stored PIN matches nothing", interactor.verifyBiometricVaultPin("123456"))
     }
 
     @Test

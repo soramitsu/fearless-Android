@@ -33,7 +33,7 @@ class ConfirmMnemonicFragment : BaseFragment<ConfirmMnemonicViewModel>() {
 
     // The shuffled recovery phrase words must never reach a screenshot, a
     // recording, a cast or the recents thumbnail.
-    private val secureScreen = SecureScreenGuard(this)
+    private val secureScreen = SecureScreenGuard(this, warnAboutScreenReaders = true)
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = FragmentConfirmMnemonicBinding.inflate(inflater, container, false)

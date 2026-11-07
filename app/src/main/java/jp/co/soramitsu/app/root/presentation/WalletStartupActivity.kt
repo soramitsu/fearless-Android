@@ -21,6 +21,7 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageHealth
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
+import jp.co.soramitsu.common.view.hideOtherAppsOverlays
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -111,6 +112,7 @@ abstract class WalletGateActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        window.hideOtherAppsOverlays()
         // Deliberately discard restored fragments/navigation. The incoming
         // Bundle is used only for our primitive payload sequence below.
         super.onCreate(null)

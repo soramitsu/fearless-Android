@@ -1,14 +1,9 @@
 package jp.co.soramitsu.app.root.presentation.emergency
 
-import android.content.ClipData
-import android.content.ClipDescription
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
-import android.os.Build
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.view.View
 import android.view.WindowManager
 import android.widget.Button
@@ -31,10 +26,13 @@ import jp.co.soramitsu.common.data.secrets.EmergencyRecoveryPageChangedException
 import jp.co.soramitsu.common.data.secrets.WalletEmergencyRecoveryReader
 import jp.co.soramitsu.common.data.secrets.WalletEmergencyRecoverySession
 import jp.co.soramitsu.common.data.storage.pin.PinAttemptLimiter
+import jp.co.soramitsu.common.resources.SensitiveClipboard
 import jp.co.soramitsu.common.data.storage.pin.WalletEmergencyAuthentication
 import jp.co.soramitsu.common.data.storage.pin.WalletEmergencyAuthenticator
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
+import jp.co.soramitsu.common.view.protectSensitiveContent
+import jp.co.soramitsu.common.view.hideOtherAppsOverlays
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -82,6 +80,8 @@ class WalletEmergencyExportActivity : AppCompatActivity() {
         )
         binding = ActivityWalletEmergencyExportBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        window.decorView.protectSensitiveContent()
+        window.hideOtherAppsOverlays()
 
         binding.emergencyUnlock.setOnClickListener { unlock() }
         binding.emergencyClose.setOnClickListener { finish() }
@@ -296,19 +296,8 @@ class WalletEmergencyExportActivity : AppCompatActivity() {
     }
 
     private fun copy(label: String, value: String) {
-        val clipboard = getSystemService(ClipboardManager::class.java) ?: return
-        val clip = ClipData.newPlainText(label, value)
-        // Keeps the value out of the keyboard's clipboard preview on Android 13+.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            clip.description.extras = PersistableBundle().apply {
-                putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
-            }
-        } else {
-            clip.description.extras = PersistableBundle().apply {
-                putBoolean(LEGACY_SENSITIVE_EXTRA, true)
-            }
-        }
-        clipboard.setPrimaryClip(clip)
+        // Marked sensitive, and cleared after a minute unless the user copied something else.
+        SensitiveClipboard.get(this).copy(label, value)
         Toast.makeText(this, R.string.common_copied, Toast.LENGTH_SHORT).show()
     }
 
@@ -324,7 +313,6 @@ class WalletEmergencyExportActivity : AppCompatActivity() {
         private const val ITEM_MARGIN_DP = 12
         private const val FIELD_MARGIN_DP = 8
         private const val UNSET_WALLET_ID = Long.MIN_VALUE
-        private const val LEGACY_SENSITIVE_EXTRA = "android.content.extra.IS_SENSITIVE"
 
         fun intent(context: Context): Intent = Intent(context, WalletEmergencyExportActivity::class.java)
     }

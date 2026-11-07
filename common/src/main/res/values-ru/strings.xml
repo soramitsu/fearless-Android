@@ -26,8 +26,8 @@
   <string name="account_creation_info">Мнемоническая фраза используется для восстановления доступа к аккаунту. Запишите ее, мы не сможем восстановить доступ к аккаунту без нее!</string>
   <string name="account_custom_secret">Аккаунты с измененным секретом</string>
   <string name="account_delete_confirm">Забыть</string>
-  <string name="account_delete_confirmation_description">Прежде чем продолжить, убедитесь, что вы создали резервную копию своей учетной записи.</string>
-  <string name="account_delete_confirmation_title">Забыть аккаунт?</string>
+  <string name="account_delete_confirmation_description">Он исчезнет из списка, но ключи останутся на этом телефоне в разделе «Восстановление кошелька» › «Сохранённые данные кошельков», пока вы не удалите их там. Сначала сделайте резервную копию.</string>
+  <string name="account_delete_confirmation_title">Удалить этот кошелёк?</string>
   <string name="account_error_try_another_one">Пожалуйста, попробуйте другой.</string>
   <string name="account_export">Экспорт аккаунта</string>
   <string name="account_export_action">Экспортировать</string>
@@ -719,6 +719,11 @@
   <string name="pincode_enter_pin_code">Введите PIN-код</string>
   <string name="pincode_fingerprint_error">Вы не авторизованы. Попробуйте другой палец.</string>
   <string name="pincode_fingerprint_switch_dialog_title">Использовать биометрию для авторизации</string>
+  <string name="pincode_biometrics_changed">Отпечатки пальцев или данные лица на этом телефоне изменились, поэтому биометрическая разблокировка отключена. Введите PIN-код.</string>
+  <string name="pincode_biometrics_changed_offer">На этом телефоне добавлен или изменён отпечаток пальца или лицо. Включайте биометрическую разблокировку снова, только если это изменение сделали вы.</string>
+  <string name="accessibility_reader_warning_title">Другое приложение может читать этот экран</string>
+  <string name="accessibility_reader_warning_message">У приложения %1$s есть доступ к специальным возможностям, и оно может читать содержимое этого экрана. Если вы ему не доверяете, сначала отключите доступ в разделе «Настройки» › «Специальные возможности».</string>
+  <string name="accessibility_open_settings">Открыть настройки</string>
   <string name="pincode_setup_top_title">Установить пин-код</string>
   <string name="pincode_title_create">Установите свой PIN-код</string>
   <string name="pincode_touch_fingerprint_scanner">Коснитесь сканера отпечатков пальцев</string>
@@ -1543,8 +1548,7 @@
     <string name="wallet_archive_delete_final">Последнее подтверждение: безвозвратно удалить эту запись? Отменить это действие нельзя. Другие кошельки и записи сохранятся.</string>
     <string name="wallet_archive_restore_confirm">Восстановить этот адрес как отдельный кошелёк? Исходная запись сохранится. Сохранённая фраза восстановления может требовать проверки.</string>
     <string name="wallet_archive_continue_delete">Перейти к последнему подтверждению</string>
-    <string name="wallet_archive_export_warning">Данные могут содержать закрытые ключи и неполные сведения для восстановления. Получатель может получить контроль над вашими средствами. Передавайте данные только доверенному получателю.</string>
-    <string name="wallet_archive_share">Поделиться сохранёнными данными</string>
+    <string name="wallet_archive_export_warning">Данные могут содержать закрытые ключи и неполные сведения для восстановления. Любой, кто их увидит, сможет распоряжаться вашими средствами. Копия удаляется через минуту; вставляйте её только в надёжное личное место.</string>
     <string name="wallet_archive_restored_name">Восстановленный кошелёк</string>
     <string name="wallet_archive_purged">Сохранённая запись удалена</string>
 

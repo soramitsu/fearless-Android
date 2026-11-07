@@ -52,9 +52,9 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 val prompt = promptGate.finish()
                 when (prompt) {
-                    Prompt.NORMAL -> viewModel.biometryAuthenticationSucceeded()
+                    Prompt.NORMAL -> viewModel.biometryAuthenticationSucceeded(result.cryptoObject?.cipher)
                     Prompt.STRONG_RECOVERY -> if (result.authenticationType == BiometricPrompt.AUTHENTICATION_RESULT_TYPE_BIOMETRIC) {
-                        viewModel.strongBiometricSucceeded()
+                        viewModel.strongBiometricSucceeded(result.cryptoObject?.cipher)
                     }
                     Prompt.DEVICE_CREDENTIAL -> if (result.authenticationType == BiometricPrompt.AUTHENTICATION_RESULT_TYPE_DEVICE_CREDENTIAL) {
                         viewModel.deviceCredentialSucceeded()
@@ -73,9 +73,11 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
 
     private val fingerprintWrapper: FingerprintWrapper by lazy {
         val biometricManager = BiometricManager.from(context?.applicationContext!!)
+        // Only Class 3 biometrics can open the Keystore key that seals the PIN.
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
             .setTitle(getString(R.string.pincode_biometry_dialog_title))
             .setNegativeButtonText(getString(R.string.common_cancel))
+            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
             .build()
         FingerprintWrapper(
             biometricManager,
@@ -138,12 +140,12 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
             startNormalPrompt()
         }
 
-        viewModel.biometricSwitchDialogLiveData.observeEvent {
-            showAuthWithBiometryDialog()
+        viewModel.biometricSwitchDialogLiveData.observeEvent { afterBiometricChange ->
+            showAuthWithBiometryDialog(afterBiometricChange)
         }
 
-        viewModel.showFingerPrintEvent.observeEvent {
-            binding.pinCodeView.changeFingerPrintButtonVisibility(fingerprintWrapper.isAuthReady())
+        viewModel.showFingerPrintEvent.observeEvent { offered ->
+            binding.pinCodeView.changeFingerPrintButtonVisibility(offered && fingerprintWrapper.isAuthReady())
         }
 
         viewModel.fingerPrintErrorEvent.observeEvent {
@@ -176,8 +178,10 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
     }
 
     private fun startNormalPrompt() {
-        if (recoveryContent.value.visible || !fingerprintWrapper.isAuthReady() || !promptGate.begin(Prompt.NORMAL)) return
-        fingerprintWrapper.startAuth()
+        if (recoveryContent.value.visible || !fingerprintWrapper.isAuthReady() || promptGate.inFlight() != null) return
+        val cipher = viewModel.biometricUnlockCipher() ?: return
+        if (!promptGate.begin(Prompt.NORMAL)) return
+        fingerprintWrapper.startAuth(cipher)
     }
 
     private fun startRecoveryPrompt(prompt: Prompt) {
@@ -193,21 +197,29 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
             credentialResult.launch(intent)
             return
         }
+        val recoveryPrompt = if (prompt == Prompt.STRONG_RECOVERY) viewModel.recoveryBiometricPrompt() else null
+        if (recoveryPrompt == PinCodeViewModel.RecoveryPrompt.Blocked) return
         if (!promptGate.begin(prompt)) return
         val builder = BiometricPrompt.PromptInfo.Builder()
             .setTitle(getString(if (prompt == Prompt.STRONG_RECOVERY) R.string.pin_recovery_biometric else R.string.pin_recovery_view_only))
             .setAllowedAuthenticators(if (prompt == Prompt.STRONG_RECOVERY) BiometricManager.Authenticators.BIOMETRIC_STRONG
                 else BiometricManager.Authenticators.DEVICE_CREDENTIAL)
         if (prompt == Prompt.STRONG_RECOVERY) builder.setNegativeButtonText(getString(R.string.common_cancel))
-        biometricPrompt.authenticate(builder.build())
+        if (recoveryPrompt is PinCodeViewModel.RecoveryPrompt.Sealed) {
+            biometricPrompt.authenticate(builder.build(), BiometricPrompt.CryptoObject(recoveryPrompt.cipher))
+        } else {
+            biometricPrompt.authenticate(builder.build())
+        }
     }
 
-    private fun showAuthWithBiometryDialog() {
+    private fun showAuthWithBiometryDialog(afterBiometricChange: Boolean) {
         val res = requireContext().resources
         ErrorDialog(
             isHideable = false,
             title = res.getString(R.string.pincode_biometry_dialog_title),
-            message = res.getString(R.string.pincode_fingerprint_switch_dialog_title),
+            message = res.getString(
+                if (afterBiometricChange) R.string.pincode_biometrics_changed_offer else R.string.pincode_fingerprint_switch_dialog_title
+            ),
             positiveButtonText = res.getString(R.string.common_use),
             negativeButtonText = res.getString(R.string.common_skip),
             positiveClick = viewModel::acceptAuthWithBiometry,

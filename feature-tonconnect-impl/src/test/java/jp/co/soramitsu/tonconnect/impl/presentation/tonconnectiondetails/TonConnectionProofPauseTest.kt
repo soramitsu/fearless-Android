@@ -19,6 +19,7 @@ import jp.co.soramitsu.tonconnect.api.model.AppEntity
 import jp.co.soramitsu.tonconnect.api.model.JsonBuilder
 import jp.co.soramitsu.tonconnect.impl.presentation.featureToggleStore
 import jp.co.soramitsu.tonconnect.impl.presentation.pauseTonSigning
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
@@ -56,6 +57,7 @@ class TonConnectionProofPauseTest {
 
     @Before
     fun setup() {
+        WalletSessionLock.unlock()
         Dispatchers.setMain(dispatcher)
         coEvery { interactor.getChain() } returns mockk(relaxed = true)
         coEvery { interactor.requestProof(any(), any(), any()) } returns mockk()
@@ -72,6 +74,7 @@ class TonConnectionProofPauseTest {
 
     @After
     fun tearDown() {
+        WalletSessionLock.lock()
         viewModels.forEach { it.coroutineContext.cancel() }
         unmockkObject(JsonBuilder)
         Dispatchers.resetMain()

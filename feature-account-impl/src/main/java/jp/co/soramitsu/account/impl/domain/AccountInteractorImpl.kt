@@ -1,5 +1,6 @@
 package jp.co.soramitsu.account.impl.domain
 
+import java.security.MessageDigest
 import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
 
 import android.content.Intent
@@ -186,8 +187,12 @@ class AccountInteractorImpl(
 
     override suspend fun getPinRetryDelayMillis(): Long = pinAttemptLimiter.remainingDelayMillis()
 
-    override suspend fun registerBiometricUnlock() {
+    override suspend fun verifyBiometricVaultPin(pin: String): Boolean {
+        val pinCode = accountRepository.getPinCode()
+        if (PinHealth.assess(true, pinCode) != PinHealth.HEALTHY) return false
+        if (!MessageDigest.isEqual(checkNotNull(pinCode).toByteArray(), pin.toByteArray())) return false
         pinAttemptLimiter.reset()
+        return true
     }
 
     override suspend fun isBiometricEnabled(): Boolean {

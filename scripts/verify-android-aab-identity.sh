@@ -547,6 +547,7 @@ forbidden_permissions = {
 expected_permissions = {
     ("uses-permission", "android.permission.ACCESS_NETWORK_STATE", ""),
     ("uses-permission", "android.permission.CAMERA", ""),
+    ("uses-permission", "android.permission.HIDE_OVERLAY_WINDOWS", ""),
     ("uses-permission", "android.permission.INTERNET", ""),
     ("uses-permission", "android.permission.POST_NOTIFICATIONS", ""),
     ("uses-permission", "android.permission.USE_BIOMETRIC", ""),

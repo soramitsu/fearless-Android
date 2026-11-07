@@ -26,8 +26,8 @@
   <string name="account_creation_info">Mnemonic được sử dụng để khôi phục quyền truy cập vào tài khoản. Viết và lưu giữ cẩn thận, chúng tôi sẽ không thể khôi phục tài khoản của bạn nếu không có nó!</string>
   <string name="account_custom_secret">Tài khoản với khóa bí mật thay đổi</string>
   <string name="account_delete_confirm">Quên</string>
-  <string name="account_delete_confirmation_description">Đảm bảo rằng bạn đã xuất tài khoản của mình trước khi tiếp tục.</string>
-  <string name="account_delete_confirmation_title">Quên tài khoản?</string>
+  <string name="account_delete_confirmation_description">Ví sẽ biến mất khỏi danh sách, nhưng khóa vẫn nằm trên điện thoại này trong Khôi phục ví › Dữ liệu ví được giữ lại cho đến khi bạn xóa ở đó. Hãy sao lưu ví trước.</string>
+  <string name="account_delete_confirmation_title">Xóa ví này?</string>
   <string name="account_error_try_another_one">Vui lòng thử một cái khác.</string>
   <string name="account_export">Xuất tài khoản</string>
   <string name="account_export_action">Xuất</string>
@@ -739,6 +739,11 @@
   <string name="pincode_enter_pin_code">Nhập mã PIN</string>
   <string name="pincode_fingerprint_error">Bạn không được cấp phép. Hãy thử một ngón tay khác.</string>
   <string name="pincode_fingerprint_switch_dialog_title">Sử dụng sinh trắc học để ủy quyền</string>
+  <string name="pincode_biometrics_changed">Dữ liệu vân tay hoặc khuôn mặt trên điện thoại này đã thay đổi nên tính năng mở khóa sinh trắc học đã bị tắt. Hãy nhập mã PIN.</string>
+  <string name="pincode_biometrics_changed_offer">Một vân tay hoặc khuôn mặt đã được thêm hoặc thay đổi trên điện thoại này. Chỉ bật lại mở khóa sinh trắc học nếu chính bạn đã thực hiện thay đổi đó.</string>
+  <string name="accessibility_reader_warning_title">Một ứng dụng khác có thể đọc màn hình này</string>
+  <string name="accessibility_reader_warning_message">%1$s có quyền trợ năng và có thể đọc nội dung trên màn hình này. Nếu bạn không tin tưởng ứng dụng đó, hãy tắt quyền này trong Cài đặt › Hỗ trợ tiếp cận trước.</string>
+  <string name="accessibility_open_settings">Mở cài đặt</string>
   <string name="pincode_setup_top_title">Thiết lập mã pin</string>
   <string name="pincode_title_create">Đặt mã pin của bạn</string>
   <string name="pincode_touch_fingerprint_scanner">Chạm vào cảm biến vân tay</string>
@@ -1470,8 +1475,7 @@
     <string name="wallet_archive_delete_final">Xác nhận cuối cùng: xóa vĩnh viễn bản ghi này? Không thể hoàn tác. Các ví và bản ghi khác vẫn được giữ lại.</string>
     <string name="wallet_archive_restore_confirm">Khôi phục địa chỉ này thành ví riêng? Bản ghi gốc sẽ được giữ lại. Cụm từ khôi phục đã lưu có thể vẫn cần được xác minh.</string>
     <string name="wallet_archive_continue_delete">Tiếp tục đến xác nhận cuối cùng</string>
-    <string name="wallet_archive_export_warning">Dữ liệu này có thể chứa khóa riêng tư và thông tin khôi phục không đầy đủ. Người nhận có thể kiểm soát tiền của bạn. Chỉ chia sẻ tới nơi bạn tin cậy.</string>
-    <string name="wallet_archive_share">Chia sẻ dữ liệu đã lưu</string>
+    <string name="wallet_archive_export_warning">Dữ liệu này có thể chứa khóa riêng tư và thông tin khôi phục không đầy đủ. Ai nhìn thấy có thể kiểm soát tiền của bạn. Bản sao sẽ bị xóa sau một phút; chỉ dán vào nơi riêng tư.</string>
     <string name="wallet_archive_restored_name">Ví đã khôi phục</string>
     <string name="wallet_archive_purged">Đã xóa bản ghi được giữ lại</string>
 

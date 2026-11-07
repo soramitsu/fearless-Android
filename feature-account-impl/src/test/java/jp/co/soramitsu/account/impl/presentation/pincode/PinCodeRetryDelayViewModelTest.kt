@@ -11,6 +11,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.impl.data.biometric.BiometricPinVault
 import jp.co.soramitsu.account.impl.domain.recovery.WalletPinRecovery
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
@@ -26,7 +27,9 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import javax.crypto.Cipher
 import org.junit.After
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
@@ -47,6 +50,8 @@ class PinCodeRetryDelayViewModelTest {
         every { getString(R.string.wallet_emergency_locked, 30) } returns "Try again in 30 seconds."
     }
     private val stores = mutableListOf<ViewModelStore>()
+    private val cipher: Cipher = Cipher.getInstance("AES/GCM/NoPadding")
+    private val vault = mockk<BiometricPinVault>(relaxed = true)
     private val delayed = mockk<DelayedNavigation>()
     private val saved = SavedStateHandle(mapOf(PincodeFragment.KEY_PINCODE_ACTION to PinCodeAction.Check(delayed, ToolbarConfiguration())))
 
@@ -63,7 +68,8 @@ class PinCodeRetryDelayViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun model(): PinCodeViewModel = PinCodeViewModel(interactor, router, vibrator, resources, saved, recovery).also {
+    private fun model(): PinCodeViewModel = PinCodeViewModel(interactor, router, vibrator, resources, saved, recovery, vault).also {
+            it.vaultDispatcher = dispatcher
         stores += ViewModelStore().apply { put("pin", it) }
         it.startAuth()
     }
@@ -131,25 +137,51 @@ class PinCodeRetryDelayViewModelTest {
         verify(exactly = 1) { vibrator.makeShortVibration() }
     }
 
-    @Test fun biometricUnlockDuringADelayClearsTheCountBeforeOpeningTheWallet() = runTest(dispatcher) {
+    @Test fun sealedBiometricUnlockDuringADelayOpensTheWalletThroughTheVaultPin() = runTest(dispatcher) {
         coEvery { interactor.getPinRetryDelayMillis() } returns 300_000L
+        coEvery { interactor.verifyBiometricVaultPin("123456") } returns true
+        every { vault.decryptPin(cipher) } returns "123456"
         val model = model()
+        model.fingerprintScannerAvailable(true)
         runCurrent()
-        model.biometryAuthenticationSucceeded()
+        model.biometryAuthenticationSucceeded(cipher)
         runCurrent()
         coVerifyOrder {
-            interactor.registerBiometricUnlock()
+            interactor.verifyBiometricVaultPin("123456")
             router.openAfterPinCode(delayed)
         }
+        coVerify(exactly = 0) { interactor.isPinCorrect(any()) }
     }
 
-    @Test fun biometricCallbackWithBiometricsTurnedOffClearsNothing() = runTest(dispatcher) {
+    @Test fun biometricCallbackWithBiometricsTurnedOffOpensNothing() = runTest(dispatcher) {
         coEvery { interactor.isBiometricEnabled() } returns false
+        every { vault.decryptPin(cipher) } returns "123456"
         val model = model()
         runCurrent()
-        model.biometryAuthenticationSucceeded()
+        model.biometryAuthenticationSucceeded(cipher)
         runCurrent()
-        coVerify(exactly = 0) { interactor.registerBiometricUnlock() }
+        coVerify(exactly = 0) { interactor.verifyBiometricVaultPin(any()) }
+        verify(exactly = 0) { router.openAfterPinCode(any()) }
+    }
+
+    @Test fun aBiometricWithoutTheVaultCipherOpensNothing() = runTest(dispatcher) {
+        val model = model()
+        runCurrent()
+        model.biometryAuthenticationSucceeded(null)
+        runCurrent()
+        coVerify(exactly = 0) { interactor.verifyBiometricVaultPin(any()) }
+        verify(exactly = 0) { router.openAfterPinCode(any()) }
+        assertNotNull(model.fingerPrintErrorEvent.value)
+    }
+
+    @Test fun aStaleSealedPinIsDiscardedAndOpensNothing() = runTest(dispatcher) {
+        coEvery { interactor.verifyBiometricVaultPin("111111") } returns false
+        every { vault.decryptPin(cipher) } returns "111111"
+        val model = model()
+        runCurrent()
+        model.biometryAuthenticationSucceeded(cipher)
+        runCurrent()
+        verify(exactly = 1) { vault.clear() }
         verify(exactly = 0) { router.openAfterPinCode(any()) }
     }
 }

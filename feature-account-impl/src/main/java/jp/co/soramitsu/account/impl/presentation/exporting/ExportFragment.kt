@@ -30,7 +30,7 @@ abstract class ExportFragment<V : ExportViewModel> : BaseFragment<V>() {
 
     // Mnemonic, seed and keystore JSON exports must never reach a
     // screenshot, a recording, a cast or the recents thumbnail.
-    private val secureScreen = SecureScreenGuard(this)
+    private val secureScreen = SecureScreenGuard(this, warnAboutScreenReaders = true)
 
     companion object {
         const val CHOOSER_REQUEST_CODE = 101

@@ -19,6 +19,7 @@ import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.isGooglePlayServicesAvailable
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.common.view.protectSensitiveContent
 
 @AndroidEntryPoint
 class BackupMnemonicDialog : BaseComposeBottomSheetDialogFragment<BackupMnemonicViewModel>() {
@@ -31,6 +32,7 @@ class BackupMnemonicDialog : BaseComposeBottomSheetDialogFragment<BackupMnemonic
         // first drawn; the flag goes away with the window.
         return super.onCreateDialog(savedInstanceState).apply {
             window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            window?.decorView?.protectSensitiveContent()
         }
     }
 

@@ -154,7 +154,10 @@ class CommonModule {
     @Provides
     @Singleton
     fun provideClipboardManager(context: Context): ClipboardManager {
-        return ClipboardManager(context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager)
+        return ClipboardManager(
+            context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager,
+            jp.co.soramitsu.common.resources.SensitiveClipboard.get(context)
+        )
     }
 
     @Provides

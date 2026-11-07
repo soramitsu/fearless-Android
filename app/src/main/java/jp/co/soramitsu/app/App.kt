@@ -9,6 +9,7 @@ import com.reown.android.relay.ConnectionType
 import com.reown.walletkit.client.Wallet
 import com.reown.walletkit.client.WalletKit
 import dagger.hilt.android.HiltAndroidApp
+import jp.co.soramitsu.app.root.domain.SharedExportCleanup
 import jp.co.soramitsu.app.root.domain.SoraCardLeftoverCleanup
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.OptionsProvider
@@ -33,6 +34,7 @@ open class App : Application() {
 
     @Inject lateinit var mutationAuthorizationRefresher: MutationAuthorizationRefresher
     @Inject lateinit var soraCardLeftoverCleanup: SoraCardLeftoverCleanup
+    @Inject lateinit var sharedExportCleanup: SharedExportCleanup
 
     private val languagesHolder: LanguagesHolder = LanguagesHolder()
     @Suppress("unused")
@@ -61,6 +63,7 @@ open class App : Application() {
 
         mutationAuthorizationRefresher.start()
         soraCardLeftoverCleanup.start()
+        sharedExportCleanup.start()
 
         // WalletConnect v2 setup (requires BuildConfig.WALLET_CONNECT_PROJECT_ID)
         setupWalletConnect()

@@ -26,8 +26,8 @@
   <string name="account_creation_info">ニーモニックは、アカウントへのアクセスを回復するために使用されます。それを書き留めてください、それがなければあなたのアカウントを回復することはできません！</string>
   <string name="account_custom_secret">シークレットが変更されたアカウント</string>
   <string name="account_delete_confirm">忘れる</string>
-  <string name="account_delete_confirmation_description">続行する前に、アカウントをバックアップしたことを確認してください</string>
-  <string name="account_delete_confirmation_title">アカウントをお忘れですか？</string>
+  <string name="account_delete_confirmation_description">ウォレットは一覧から消えますが、鍵はこの端末の「ウォレットの復元」›「保持されているウォレットデータ」に残り、そこで削除するまで消えません。先にバックアップしてください。</string>
+  <string name="account_delete_confirmation_title">このウォレットを削除しますか？</string>
   <string name="account_error_try_another_one">別のものをお試しください</string>
   <string name="account_export">アカウントをエクスポート</string>
   <string name="account_export_action">書き出す</string>
@@ -699,6 +699,11 @@
   <string name="pincode_enter_pin_code">PINコードを入力する</string>
   <string name="pincode_fingerprint_error">あなたは許可されていません。別の指を試してください</string>
   <string name="pincode_fingerprint_switch_dialog_title">生体認証を使用して認証する</string>
+  <string name="pincode_biometrics_changed">端末の指紋または顔データが変更されたため、生体認証によるロック解除をオフにしました。PINを入力してください。</string>
+  <string name="pincode_biometrics_changed_offer">この端末で指紋または顔が追加・変更されました。ご自身で変更した場合のみ、生体認証によるロック解除を再度オンにしてください。</string>
+  <string name="accessibility_reader_warning_title">別のアプリがこの画面を読み取れます</string>
+  <string name="accessibility_reader_warning_message">%1$s にはユーザー補助のアクセス権があり、この画面の内容を読み取れます。信頼できない場合は、先に［設定］›［ユーザー補助］でアクセスをオフにしてください。</string>
+  <string name="accessibility_open_settings">設定を開く</string>
   <string name="pincode_setup_top_title">PINコードの設定</string>
   <string name="pincode_title_create">pinコードを入力</string>
   <string name="pincode_touch_fingerprint_scanner">指紋スキャナーに触れます</string>
@@ -1511,8 +1516,7 @@
     <string name="wallet_archive_delete_final">最終確認：この保持記録を完全に削除しますか？元に戻せません。他のウォレットと保持記録は残ります。</string>
     <string name="wallet_archive_restore_confirm">このアドレスを別のウォレットとして復元しますか？元の記録は保持されます。保存済みの復元フレーズは検証が必要な場合があります。</string>
     <string name="wallet_archive_continue_delete">最終確認へ進む</string>
-    <string name="wallet_archive_export_warning">秘密鍵や不完全な復元情報が含まれる場合があります。受け取った人が資産を操作できる可能性があります。信頼できる保存先にのみ共有してください。</string>
-    <string name="wallet_archive_share">保存データを共有</string>
+    <string name="wallet_archive_export_warning">秘密鍵や不完全な復元情報が含まれる場合があります。見た人が資産を操作できる可能性があります。コピーは1分後に消去されます。非公開の場所にのみ貼り付けてください。</string>
     <string name="wallet_archive_restored_name">復元したウォレット</string>
     <string name="wallet_archive_purged">保持記録を削除しました</string>
 

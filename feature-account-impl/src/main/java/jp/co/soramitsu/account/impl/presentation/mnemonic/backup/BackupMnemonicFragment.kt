@@ -49,7 +49,7 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
 
     // The recovery phrase must never reach a screenshot, a recording, a cast
     // or the recents thumbnail.
-    private val secureScreen = SecureScreenGuard(this)
+    private val secureScreen = SecureScreenGuard(this, warnAboutScreenReaders = true)
 
     override val viewModel: BackupMnemonicViewModel by viewModels()
 

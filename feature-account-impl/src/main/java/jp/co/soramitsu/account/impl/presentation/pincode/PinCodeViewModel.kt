@@ -11,15 +11,21 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.vibration.DeviceVibrator
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.ImportMode
+import jp.co.soramitsu.account.impl.data.biometric.BiometricPinVault
 import jp.co.soramitsu.account.impl.domain.recovery.WalletPinRecovery
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.recovery.RecoveryTarget
 import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
 import jp.co.soramitsu.common.data.storage.pin.PinAttemptLimiter
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import jp.co.soramitsu.common.data.storage.pin.WalletViewOnlyAccess
 import jp.co.soramitsu.feature_account_impl.R
+import javax.crypto.Cipher
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /** PIN recovery never turns an unreadable stored PIN into first-run setup. */
@@ -30,7 +36,8 @@ class PinCodeViewModel @Inject constructor(
     private val deviceVibrator: DeviceVibrator,
     private val resourceManager: ResourceManager,
     savedStateHandle: SavedStateHandle,
-    private val pinRecovery: WalletPinRecovery
+    private val pinRecovery: WalletPinRecovery,
+    private val biometricVault: BiometricPinVault
 ) : BaseViewModel() {
     sealed class ScreenState {
         object Loading : ScreenState()
@@ -61,14 +68,16 @@ class PinCodeViewModel @Inject constructor(
     val matchingPincodeErrorEvent: LiveData<Event<Unit>> = _matchingPincodeErrorEvent
     private val _pinRetryDelayEvent = MutableLiveData<Event<String>>()
     val pinRetryDelayEvent: LiveData<Event<String>> = _pinRetryDelayEvent
-    private val _showFingerPrintEvent = MutableLiveData<Event<Unit>>()
-    val showFingerPrintEvent: LiveData<Event<Unit>> = _showFingerPrintEvent
+    /** Whether the PIN pad offers its biometric button. */
+    private val _showFingerPrintEvent = MutableLiveData<Event<Boolean>>()
+    val showFingerPrintEvent: LiveData<Event<Boolean>> = _showFingerPrintEvent
     private val _startFingerprintScannerEventLiveData = MutableLiveData<Event<Unit>>()
     val startFingerprintScannerEventLiveData: LiveData<Event<Unit>> = _startFingerprintScannerEventLiveData
     private val _fingerPrintErrorEvent = MutableLiveData<Event<String>>()
     val fingerPrintErrorEvent: LiveData<Event<String>> = _fingerPrintErrorEvent
-    private val _biometricSwitchDialogLiveData = MutableLiveData<Event<Unit>>()
-    val biometricSwitchDialogLiveData: LiveData<Event<Unit>> = _biometricSwitchDialogLiveData
+    /** Offers biometric unlock; true when the offer follows a change to the phone's biometrics. */
+    private val _biometricSwitchDialogLiveData = MutableLiveData<Event<Boolean>>()
+    val biometricSwitchDialogLiveData: LiveData<Event<Boolean>> = _biometricSwitchDialogLiveData
     val recoveryState = MutableLiveData(RecoveryState())
     private var fingerPrintAvailable = false
     private var strongAvailable = false
@@ -78,6 +87,16 @@ class PinCodeViewModel @Inject constructor(
     // Deliberately absent from SavedStateHandle: restoring a screen cannot restore authorization.
     private var challenge: String? = null
     private var busy = false
+    // The PIN just typed, held only while the biometric offer is open so it can be sealed.
+    private var pendingBiometricPin: String? = null
+
+    /** Keystore work (generating the vault key can take a second) stays off the main thread. */
+    @androidx.annotation.VisibleForTesting
+    internal var vaultDispatcher: CoroutineDispatcher = Dispatchers.IO
+
+    /** Exports, recovery screens and PIN changes take the PIN itself; only unlocking accepts biometrics. */
+    private val biometricAllowed: Boolean =
+        (pinCodeAction as? PinCodeAction.Check)?.allowBiometric == true
 
     fun startAuth() {
         if (currentState != null) return
@@ -94,7 +113,10 @@ class PinCodeViewModel @Inject constructor(
                     PinHealth.HEALTHY -> {
                         currentState = ScreenState.Checking
                         recoveryState.value = RecoveryState(visible = false)
-                        _showFingerPrintEvent.value = Event(Unit)
+                        _showFingerPrintEvent.value = Event(canUseBiometricUnlock())
+                        if (biometricAllowed && biometricVault.wasInvalidated()) {
+                            _fingerPrintErrorEvent.value = Event(resourceManager.getString(R.string.pincode_biometrics_changed))
+                        }
                         onResume()
                     }
                 }
@@ -140,9 +162,37 @@ class PinCodeViewModel @Inject constructor(
         }
     }
 
-    fun strongBiometricSucceeded() {
+    /**
+     * How the recovery screen's strong-biometric prompt must run: with the vault's key when one is
+     * enrolled, so that only a biometric enrolled before the vault was sealed can authorize a new PIN.
+     */
+    sealed interface RecoveryPrompt {
+        class Sealed(val cipher: Cipher) : RecoveryPrompt
+        object Unsealed : RecoveryPrompt
+        object Blocked : RecoveryPrompt
+    }
+
+    fun recoveryBiometricPrompt(): RecoveryPrompt {
+        if (!biometricVault.isEnrolled()) {
+            return if (biometricVault.wasInvalidated()) RecoveryPrompt.Blocked else RecoveryPrompt.Unsealed
+        }
+        return when (val prepared = biometricVault.prepareUnlock()) {
+            is BiometricPinVault.UnlockCipher.Ready -> RecoveryPrompt.Sealed(prepared.cipher)
+            BiometricPinVault.UnlockCipher.Invalidated -> {
+                _fingerPrintErrorEvent.value = Event(resourceManager.getString(R.string.pincode_biometrics_changed))
+                RecoveryPrompt.Blocked
+            }
+            BiometricPinVault.UnlockCipher.Unavailable -> RecoveryPrompt.Blocked
+        }
+    }
+
+    /** Only the BIOMETRIC_STRONG recovery prompt's callback may call this. */
+    fun strongBiometricSucceeded(cipher: Cipher?) {
         val id = challenge ?: return
         if (currentState != ScreenState.Recovering || !strongAvailable || !biometricPreviouslyEnabled || busy) return
+        // Once a vault exists, only its key proves the biometric; a later enrollment cannot.
+        if (biometricVault.isEnrolled() && cipher?.let(biometricVault::decryptPin) == null) return
+        if (!biometricVault.isEnrolled() && biometricVault.wasInvalidated()) return
         busy = true
         viewModelScope.launch {
             try {
@@ -187,8 +237,13 @@ class PinCodeViewModel @Inject constructor(
                     challenge = null
                 }
                 if (fingerPrintAvailable && pinCodeAction is PinCodeAction.Create && id == null) {
-                    _biometricSwitchDialogLiveData.value = Event(Unit)
-                } else authSuccess()
+                    pendingBiometricPin = code
+                    _biometricSwitchDialogLiveData.value = Event(false)
+                } else {
+                    // A changed or recovered PIN is resealed, so biometric unlock keeps matching it.
+                    resealOrClearVault(code)
+                    authSuccess()
+                }
             } catch (failure: CancellationException) { throw failure }
             catch (_: Exception) { recoveryFailed() }
             finally { busy = false }
@@ -207,13 +262,64 @@ class PinCodeViewModel @Inject constructor(
                     return@launch
                 }
                 if (interactor.getPinHealth() == PinHealth.UNREADABLE) startRecovery()
-                else if (interactor.isPinCorrect(code)) authSuccess() else {
+                else if (interactor.isPinCorrect(code)) pinVerified(code) else {
                     mismatch()
                     showRetryDelay(interactor.getPinRetryDelayMillis())
                 }
             } catch (failure: CancellationException) { throw failure }
             catch (_: Exception) { recoveryFailed() }
             finally { busy = false }
+        }
+    }
+
+    /**
+     * After the right PIN on an unlock: asks again about biometrics if the phone's biometrics changed,
+     * and seals the PIN for wallets upgraded from versions that kept biometric unlock unsealed.
+     */
+    private suspend fun pinVerified(code: String) {
+        if (biometricAllowed && fingerPrintAvailable && biometricVault.wasInvalidated()) {
+            pendingBiometricPin = code
+            _biometricSwitchDialogLiveData.value = Event(true)
+            return
+        }
+        if (biometricAllowed && fingerPrintAvailable && interactor.isBiometricEnabled() && !biometricVault.isEnrolled()) {
+            sealQuietly(code)
+        }
+        authSuccess()
+    }
+
+    private suspend fun resealOrClearVault(code: String) {
+        if (fingerPrintAvailable && interactor.isBiometricEnabled()) sealQuietly(code)
+        else withContext(vaultDispatcher) { biometricVault.clear() }
+    }
+
+    /** A failed seal only leaves biometric unlock unavailable; the PIN keeps working. */
+    private suspend fun sealQuietly(code: String): Boolean = withContext(vaultDispatcher) {
+        try {
+            biometricVault.enroll(code)
+            true
+        } catch (failure: CancellationException) {
+            throw failure
+        } catch (_: Exception) {
+            biometricVault.clear()
+            false
+        }
+    }
+
+    private fun canUseBiometricUnlock(): Boolean = biometricAllowed && fingerPrintAvailable && biometricVault.isEnrolled()
+
+    /** The cipher for the unlock prompt's CryptoObject, or null when biometric unlock cannot run. */
+    fun biometricUnlockCipher(): Cipher? {
+        if (!biometricAllowed || currentState != ScreenState.Checking || busy || !fingerPrintAvailable) return null
+        return when (val prepared = biometricVault.prepareUnlock()) {
+            is BiometricPinVault.UnlockCipher.Ready -> prepared.cipher
+            BiometricPinVault.UnlockCipher.Invalidated -> {
+                _showFingerPrintEvent.value = Event(false)
+                _fingerPrintErrorEvent.value = Event(resourceManager.getString(R.string.pincode_biometrics_changed))
+                viewModelScope.launch { interactor.setBiometricOff() }
+                null
+            }
+            BiometricPinVault.UnlockCipher.Unavailable -> null
         }
     }
 
@@ -260,7 +366,8 @@ class PinCodeViewModel @Inject constructor(
             try {
                 if (challenge != null && !pinRecovery.isActive(checkNotNull(challenge))) recoveryFailed()
                 else if (currentState == ScreenState.Recovering && challenge?.let(pinRecovery::isAuthorized) == true) showPinCreation()
-                else if (currentState == ScreenState.Checking && interactor.getPinHealth() == PinHealth.HEALTHY && interactor.isBiometricEnabled()) {
+                else if (currentState == ScreenState.Checking && interactor.getPinHealth() == PinHealth.HEALTHY &&
+                    interactor.isBiometricEnabled() && canUseBiometricUnlock()) {
                     _startFingerprintScannerEventLiveData.value = Event(Unit)
                 }
             } catch (failure: CancellationException) { throw failure }
@@ -270,6 +377,7 @@ class PinCodeViewModel @Inject constructor(
 
     /** Temporary PIN confirmation material never survives a stopped screen. */
     fun screenStopped() {
+        pendingBiometricPin = null
         if (currentState is ScreenState.Confirmation) {
             if (busy) currentState = ScreenState.Confirmation("") else showPinCreation()
         }
@@ -277,15 +385,30 @@ class PinCodeViewModel @Inject constructor(
 
     fun onAuthenticationError(errString: String) { _fingerPrintErrorEvent.value = Event(errString) }
 
-    fun biometryAuthenticationSucceeded() {
-        if (currentState != ScreenState.Checking || busy) return
+    /**
+     * The unlock prompt succeeded with [cipher] as its CryptoObject. Unlocking needs the PIN that
+     * cipher unseals to match the stored PIN; a biometric alone never unlocks.
+     */
+    fun biometryAuthenticationSucceeded(cipher: Cipher?) {
+        if (currentState != ScreenState.Checking || busy || !biometricAllowed) return
         busy = true
         viewModelScope.launch {
             try {
-                if (interactor.getPinHealth() == PinHealth.HEALTHY && interactor.isBiometricEnabled()) {
-                    interactor.registerBiometricUnlock()
-                    authSuccess()
-                } else if (interactor.getPinHealth() == PinHealth.UNREADABLE) startRecovery()
+                if (interactor.getPinHealth() == PinHealth.UNREADABLE) {
+                    startRecovery()
+                    return@launch
+                }
+                val pin = cipher?.let { withContext(vaultDispatcher) { biometricVault.decryptPin(it) } }
+                when {
+                    pin == null -> _fingerPrintErrorEvent.value = Event(resourceManager.getString(R.string.pincode_fingerprint_error))
+                    interactor.isBiometricEnabled() && interactor.verifyBiometricVaultPin(pin) -> authSuccess()
+                    else -> {
+                        // Sealed before a PIN change made elsewhere: it is resealed after the next PIN entry.
+                        withContext(vaultDispatcher) { biometricVault.clear() }
+                        _showFingerPrintEvent.value = Event(false)
+                        _fingerPrintErrorEvent.value = Event(resourceManager.getString(R.string.pincode_enter_pin_code))
+                    }
+                }
             } catch (failure: CancellationException) { throw failure }
             catch (_: Exception) { recoveryFailed() }
             finally { busy = false }
@@ -299,7 +422,10 @@ class PinCodeViewModel @Inject constructor(
     fun fingerprintScannerAvailable(authReady: Boolean) { fingerPrintAvailable = authReady }
 
     private fun authSuccess() {
+        pendingBiometricPin = null
         WalletViewOnlyAccess.pinResetCompleted()
+        // Every route here proved the PIN (or its sealed biometric), so dApp requests may proceed.
+        WalletSessionLock.unlock()
         when (pinCodeAction) {
             is PinCodeAction.Create -> router.openAfterPinCode(pinCodeAction.delayedNavigation)
             is PinCodeAction.Check -> if (pinCodeAction.delayedNavigation == null) router.back()
@@ -316,14 +442,28 @@ class PinCodeViewModel @Inject constructor(
     }
 
     fun acceptAuthWithBiometry() {
-        viewModelScope.launch { interactor.setBiometricOn(); authSuccess() }
+        val pin = pendingBiometricPin
+        pendingBiometricPin = null
+        viewModelScope.launch {
+            biometricVault.acknowledgeInvalidation()
+            // Without the PIN at hand (the screen stopped meanwhile) the next PIN entry seals it.
+            if (pin == null || sealQuietly(pin)) interactor.setBiometricOn() else interactor.setBiometricOff()
+            authSuccess()
+        }
     }
 
     fun declineAuthWithBiometry() {
-        viewModelScope.launch { interactor.setBiometricOff(); authSuccess() }
+        pendingBiometricPin = null
+        viewModelScope.launch {
+            biometricVault.acknowledgeInvalidation()
+            withContext(vaultDispatcher) { biometricVault.clear() }
+            interactor.setBiometricOff()
+            authSuccess()
+        }
     }
 
     override fun onCleared() {
+        pendingBiometricPin = null
         biometricPromptGate.cancel()
         challenge?.let(pinRecovery::cancel)
         challenge = null

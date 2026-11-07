@@ -21,6 +21,7 @@ import jp.co.soramitsu.tonconnect.api.model.BridgeMethod
 import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
 import jp.co.soramitsu.tonconnect.api.model.TonDappConnection
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -40,6 +41,7 @@ class RootViewModelTonConnectTest {
     private val ton = mockk<TonConnectInteractor>(relaxed = true)
 
     @Before fun setUp() {
+        WalletSessionLock.unlock()
         mockkObject(WCDelegate)
         every { WCDelegate.registerDelegatesIfReady() } returns Result.success(Unit)
         every { WCDelegate.refreshConnections() } returns Unit
@@ -48,6 +50,7 @@ class RootViewModelTonConnectTest {
     }
 
     @After fun tearDown() {
+        WalletSessionLock.lock()
         store.clear()
         unmockkObject(WCDelegate)
     }
@@ -84,6 +87,23 @@ class RootViewModelTonConnectTest {
 
         coVerify(exactly = 1) { ton.respondDappError(EVENT, BridgeError.UNKNOWN) }
         coVerify(exactly = 0) { ton.sendBlockchainMessage(any(), any()) }
+    }
+
+    @Test fun `a request that arrives while the wallet is locked waits for the PIN`() {
+        coEvery { ton.prepareSignRequest(EVENT.message.params, WALLET_ID) } returns SIGN_REQUEST
+        coEvery { router.openTonSignRequestWithResult(any(), any(), any()) } returns Result.success("boc" to "hash")
+        WalletSessionLock.lock()
+
+        model()
+
+        coVerify(exactly = 0) { ton.prepareSignRequest(any(), any()) }
+        coVerify(exactly = 0) { router.openTonSignRequestWithResult(any(), any(), any()) }
+
+        WalletSessionLock.unlock()
+
+        coVerify(exactly = 1) {
+            router.openTonSignRequestWithResult(match { it.metaId == WALLET_ID }, BridgeMethod.SEND_TRANSACTION.title, SIGN_REQUEST)
+        }
     }
 
     private fun model() = RootViewModel(initializer, mockk(relaxed = true), router,

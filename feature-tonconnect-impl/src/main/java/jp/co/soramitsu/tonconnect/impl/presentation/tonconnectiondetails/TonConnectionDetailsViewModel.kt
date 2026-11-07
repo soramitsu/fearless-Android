@@ -23,6 +23,7 @@ import jp.co.soramitsu.tonconnect.api.model.AppEntity
 import jp.co.soramitsu.tonconnect.api.model.BridgeError
 import jp.co.soramitsu.tonconnect.api.model.JsonBuilder
 import jp.co.soramitsu.tonconnect.api.model.TONProof
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -138,6 +139,7 @@ class TonConnectionDetailsViewModel @Inject constructor(
     }
 
     override fun onApproveClick() {
+        if (WalletSessionLock.isLocked()) return
         val selectedWalletId = selectedWalletId.value ?: return
         if (isApproving.value) return
         isApproving.value = true

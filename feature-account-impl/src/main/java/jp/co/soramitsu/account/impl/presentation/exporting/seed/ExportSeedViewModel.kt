@@ -87,7 +87,7 @@ class ExportSeedViewModel @Inject constructor(
     }
 
     private fun copy(seed: String) {
-        clipboardManager.addToClipboard(seed)
+        clipboardManager.addSecretToClipboard(seed)
         showMessage(resourceManager.getString(R.string.common_copied))
     }
 }

@@ -26,8 +26,8 @@
   <string name="account_creation_info">The mnemonic is used to recover access to your account. Write it down as you will not be able to recover your account without it!</string>
   <string name="account_custom_secret">Accounts with a changed secret</string>
   <string name="account_delete_confirm">Forget</string>
-  <string name="account_delete_confirmation_description">Make sure you have exported your account before proceeding.</string>
-  <string name="account_delete_confirmation_title">Forget this account?</string>
+  <string name="account_delete_confirmation_description">It leaves the wallet list, but its keys stay on this phone under Wallet recovery › Retained wallet data until you delete them there. Back up the wallet first.</string>
+  <string name="account_delete_confirmation_title">Remove this wallet?</string>
   <string name="account_error_try_another_one">Please try another one.</string>
   <string name="account_export">Export account</string>
   <string name="account_export_action">Export</string>
@@ -769,6 +769,11 @@
   <string name="pincode_enter_pin_code">Enter the pin code</string>
   <string name="pincode_fingerprint_error">You are not authorized. Try another finger.</string>
   <string name="pincode_fingerprint_switch_dialog_title">Use biometrics to authorize</string>
+  <string name="pincode_biometrics_changed">Fingerprints or face data on this phone changed, so biometric unlock is off. Enter your PIN.</string>
+  <string name="pincode_biometrics_changed_offer">A fingerprint or face was added or changed on this phone. Turn biometric unlock back on only if you made that change.</string>
+  <string name="accessibility_reader_warning_title">Another app can read this screen</string>
+  <string name="accessibility_reader_warning_message">%1$s has accessibility access and can read what this screen shows. If you do not trust it, turn its access off in Settings › Accessibility first.</string>
+  <string name="accessibility_open_settings">Open settings</string>
   <string name="pincode_setup_top_title">Setup pin code</string>
   <string name="pincode_title_create">Set your pin code</string>
   <string name="pincode_touch_fingerprint_scanner">Touch the fingerprint scanner</string>
@@ -1549,8 +1554,7 @@
     <string name="wallet_archive_delete_final">Final confirmation: permanently delete this retained record? This cannot be undone. Other wallets and retained records are kept.</string>
     <string name="wallet_archive_restore_confirm">Restore this address as a separate wallet? The original record stays retained. A saved recovery phrase may still need verification.</string>
     <string name="wallet_archive_continue_delete">Continue to final confirmation</string>
-    <string name="wallet_archive_export_warning">This may contain private keys and incomplete recovery material. Anyone who receives it may control your funds. Share it only with a destination you trust.</string>
-    <string name="wallet_archive_share">Share stored data</string>
+    <string name="wallet_archive_export_warning">This may contain private keys and incomplete recovery material. Anyone who sees it may control your funds. Copy clears after one minute; paste it only somewhere private.</string>
     <string name="wallet_archive_restored_name">Restored wallet</string>
     <string name="wallet_archive_purged">Retained record deleted</string>
 

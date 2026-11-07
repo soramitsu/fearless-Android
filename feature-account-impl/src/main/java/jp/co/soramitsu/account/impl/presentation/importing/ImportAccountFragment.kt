@@ -73,7 +73,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
     // Every import mode shows a recovery phrase, raw seed or keystore JSON as it is entered, so
     // none of them may reach a screen capture, including during the PIN round trip of a recovery.
-    private val secureScreen = SecureScreenGuard(this)
+    private val secureScreen = SecureScreenGuard(this, warnAboutScreenReaders = true)
 
     override val viewModel: ImportAccountViewModel by viewModels()
 
@@ -83,9 +83,9 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentImportAccountBinding.inflate(inflater, container, false)
-        if (viewModel.isRebinding) {
-            binding.root.excludeRecoveryInputFromPersistence()
-        }
+        // Phrases, seeds, JSON passwords and ///password paths stay out of saved state, autofill
+        // and keyboard learning on every import, not only when rebinding a wallet.
+        binding.root.excludeRecoveryInputFromPersistence()
         return binding.root
     }
 
@@ -189,7 +189,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
     private fun buildSourceTypesViews(blockchainType: WalletEcosystem) = viewModel.sourceTypes.map {
         val view = createSourceView(it, blockchainType)
-        if (viewModel.isRebinding) view.excludeRecoveryInputFromPersistence()
+        view.excludeRecoveryInputFromPersistence()
 
         view.observeSource(it, blockchainType, viewLifecycleOwner)
         view.observeCommon(viewModel, viewLifecycleOwner)

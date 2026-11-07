@@ -26,8 +26,8 @@
   <string name="account_creation_info">Mnemonic digunakan untuk memulihkan akses ke akun. Catatlah, kami tidak akan dapat memulihkan akun Anda tanpa mnemonic !</string>
   <string name="account_custom_secret">Akun dengan rahasia yang diubah</string>
   <string name="account_delete_confirm">Lupa</string>
-  <string name="account_delete_confirmation_description">Pastikan Anda telah mengekspor akun Anda sebelum melanjutkan.</string>
-  <string name="account_delete_confirmation_title">Lupa akun?</string>
+  <string name="account_delete_confirmation_description">Dompet hilang dari daftar, tetapi kuncinya tetap di ponsel ini di Pemulihan dompet › Data dompet yang disimpan sampai Anda menghapusnya di sana. Cadangkan dompet terlebih dahulu.</string>
+  <string name="account_delete_confirmation_title">Hapus dompet ini?</string>
   <string name="account_error_try_another_one">Silakan, coba yang lain.</string>
   <string name="account_export">Ekspor akun</string>
   <string name="account_export_action">Ekspor</string>
@@ -669,6 +669,11 @@
   <string name="pincode_enter_pin_code">Masukkan PIN</string>
   <string name="pincode_fingerprint_error">Anda tidak diizinkan. Cobalah dengan jari yang lain.</string>
   <string name="pincode_fingerprint_switch_dialog_title">Gunakan biometrik untuk memberi otorisasi</string>
+  <string name="pincode_biometrics_changed">Sidik jari atau data wajah di ponsel ini berubah, jadi buka kunci biometrik dimatikan. Masukkan PIN Anda.</string>
+  <string name="pincode_biometrics_changed_offer">Sidik jari atau wajah telah ditambahkan atau diubah di ponsel ini. Aktifkan lagi buka kunci biometrik hanya jika Anda yang mengubahnya.</string>
+  <string name="accessibility_reader_warning_title">Aplikasi lain dapat membaca layar ini</string>
+  <string name="accessibility_reader_warning_message">%1$s memiliki akses aksesibilitas dan dapat membaca isi layar ini. Jika Anda tidak memercayainya, matikan aksesnya terlebih dahulu di Setelan › Aksesibilitas.</string>
+  <string name="accessibility_open_settings">Buka setelan</string>
   <string name="pincode_setup_top_title">Pengaturan kode pin</string>
   <string name="pincode_title_create">Setel kode PIN anda</string>
   <string name="pincode_touch_fingerprint_scanner">Sentuh sensor sidik jari</string>
@@ -1552,8 +1557,7 @@
     <string name="wallet_archive_delete_final">Konfirmasi terakhir: hapus catatan tersimpan ini secara permanen? Tindakan ini tidak dapat dibatalkan. Dompet dan catatan lain tetap disimpan.</string>
     <string name="wallet_archive_restore_confirm">Pulihkan alamat ini sebagai dompet terpisah? Catatan asli tetap disimpan. Frasa pemulihan tersimpan mungkin masih perlu diverifikasi.</string>
     <string name="wallet_archive_continue_delete">Lanjutkan ke konfirmasi terakhir</string>
-    <string name="wallet_archive_export_warning">Data ini mungkin berisi kunci pribadi dan materi pemulihan yang tidak lengkap. Penerimanya mungkin dapat mengendalikan dana Anda. Bagikan hanya ke tujuan yang Anda percayai.</string>
-    <string name="wallet_archive_share">Bagikan data tersimpan</string>
+    <string name="wallet_archive_export_warning">Data ini mungkin berisi kunci pribadi dan materi pemulihan yang tidak lengkap. Siapa pun yang melihatnya mungkin dapat mengendalikan dana Anda. Salinan dihapus setelah satu menit; tempel hanya di tempat pribadi.</string>
     <string name="wallet_archive_restored_name">Dompet yang dipulihkan</string>
     <string name="wallet_archive_purged">Catatan tersimpan dihapus</string>
 

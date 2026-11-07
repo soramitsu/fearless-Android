@@ -26,8 +26,8 @@
   <string name="account_creation_info">Anımsatıcı, hesabınıza erişimi kurtarmak için kullanılır. Bir yere yazın, o olmadan hesabınız kurtarılamaz!</string>
   <string name="account_custom_secret">Gizli bilgisi değiştirilmiş hesaplar</string>
   <string name="account_delete_confirm">Unut</string>
-  <string name="account_delete_confirmation_description">Devam etmeden önce hesabınızı dışa aktardığınızdan emin olun.</string>
-  <string name="account_delete_confirmation_title">Hesabı unuttunuz mu?</string>
+  <string name="account_delete_confirmation_description">Cüzdan listeden çıkar, ancak anahtarları siz orada silene kadar bu telefonda Cüzdan kurtarma › Korunan cüzdan verileri altında kalır. Önce cüzdanı yedekleyin.</string>
+  <string name="account_delete_confirmation_title">Bu cüzdan kaldırılsın mı?</string>
   <string name="account_error_try_another_one">Lütfen başka bir tane deneyin.</string>
   <string name="account_export">Hesabı dışa aktar</string>
   <string name="account_export_action">Dışa aktar</string>
@@ -703,6 +703,11 @@
   <string name="pincode_enter_pin_code">PIN kodunu girin</string>
   <string name="pincode_fingerprint_error">Yetki verilmedi. Başka bir parmak deneyin</string>
   <string name="pincode_fingerprint_switch_dialog_title">Yetkilendirme için biyometrik kullan</string>
+  <string name="pincode_biometrics_changed">Bu telefondaki parmak izi veya yüz verileri değişti, bu nedenle biyometrik kilit açma kapatıldı. PIN kodunuzu girin.</string>
+  <string name="pincode_biometrics_changed_offer">Bu telefonda bir parmak izi veya yüz eklendi ya da değiştirildi. Biyometrik kilit açmayı yalnızca bu değişikliği siz yaptıysanız yeniden açın.</string>
+  <string name="accessibility_reader_warning_title">Başka bir uygulama bu ekranı okuyabilir</string>
+  <string name="accessibility_reader_warning_message">%1$s erişilebilirlik iznine sahip ve bu ekranda gösterilenleri okuyabilir. Güvenmiyorsanız önce Ayarlar › Erişilebilirlik bölümünden iznini kapatın.</string>
+  <string name="accessibility_open_settings">Ayarları aç</string>
   <string name="pincode_setup_top_title">Pin kodu ayarlayın</string>
   <string name="pincode_title_create">PIN kodunuzu ayarlayın.</string>
   <string name="pincode_touch_fingerprint_scanner">Parmak izi tarayıcısına dokunun</string>
@@ -1522,8 +1527,7 @@
     <string name="wallet_archive_delete_final">Son onay: Saklanan bu kayıt kalıcı olarak silinsin mi? Bu işlem geri alınamaz. Diğer cüzdanlar ve kayıtlar korunur.</string>
     <string name="wallet_archive_restore_confirm">Bu adres ayrı bir cüzdan olarak geri yüklensin mi? Özgün kayıt korunur. Kayıtlı kurtarma ifadesinin hâlâ doğrulanması gerekebilir.</string>
     <string name="wallet_archive_continue_delete">Son onaya geç</string>
-    <string name="wallet_archive_export_warning">Bu veriler özel anahtarlar ve eksik kurtarma bilgileri içerebilir. Verileri alan kişi paranızı kontrol edebilir. Yalnızca güvendiğiniz bir hedefle paylaşın.</string>
-    <string name="wallet_archive_share">Saklanan verileri paylaş</string>
+    <string name="wallet_archive_export_warning">Bu veriler özel anahtarlar ve eksik kurtarma bilgileri içerebilir. Verileri gören kişi paranızı kontrol edebilir. Kopya bir dakika sonra silinir; yalnızca özel bir yere yapıştırın.</string>
     <string name="wallet_archive_restored_name">Geri yüklenen cüzdan</string>
     <string name="wallet_archive_purged">Saklanan kayıt silindi</string>
 

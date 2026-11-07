@@ -26,8 +26,8 @@
   <string name="account_creation_info">助记词用于恢复您的账户访问权限。请将其记录下来，否则将无法恢复您的账户！</string>
   <string name="account_custom_secret">更改了密钥的账户</string>
   <string name="account_delete_confirm">忘记</string>
-  <string name="account_delete_confirmation_description">确保在继续之前已经导出了您的账户。</string>
-  <string name="account_delete_confirmation_title">忘记这个账户？</string>
+  <string name="account_delete_confirmation_description">钱包会从列表中消失，但其密钥仍保存在此手机的“钱包恢复”›“已保留的钱包数据”中，直到您在那里删除。请先备份钱包。</string>
+  <string name="account_delete_confirmation_title">移除此钱包？</string>
   <string name="account_error_try_another_one">请尝试另一个。</string>
   <string name="account_export">导出账户</string>
   <string name="account_export_action">导出</string>
@@ -699,6 +699,11 @@
   <string name="pincode_enter_pin_code">输入PIN码</string>
   <string name="pincode_fingerprint_error">您未经授权。请尝试其他手指。</string>
   <string name="pincode_fingerprint_switch_dialog_title">使用生物识别认证</string>
+  <string name="pincode_biometrics_changed">此手机上的指纹或面部数据已更改，因此已关闭生物识别解锁。请输入 PIN 码。</string>
+  <string name="pincode_biometrics_changed_offer">此手机上新增或更改了指纹或面部。仅当是您本人做出此更改时，才重新开启生物识别解锁。</string>
+  <string name="accessibility_reader_warning_title">其他应用可以读取此屏幕</string>
+  <string name="accessibility_reader_warning_message">%1$s 拥有无障碍权限，可以读取此屏幕显示的内容。如果您不信任它，请先在“设置”›“无障碍”中关闭其权限。</string>
+  <string name="accessibility_open_settings">打开设置</string>
   <string name="pincode_setup_top_title">设置PIN码</string>
   <string name="pincode_title_create">设置您的PIN码</string>
   <string name="pincode_touch_fingerprint_scanner">触摸指纹扫描器</string>
@@ -1511,8 +1516,7 @@
     <string name="wallet_archive_delete_final">最后确认：永久删除此保留记录？此操作无法撤销。其他钱包和保留记录将保持不变。</string>
     <string name="wallet_archive_restore_confirm">将此地址恢复为单独的钱包？原始记录将保留。已存的恢复助记词可能仍需验证。</string>
     <string name="wallet_archive_continue_delete">继续到最后确认</string>
-    <string name="wallet_archive_export_warning">这些数据可能包含私钥和不完整的恢复材料。接收者可能控制您的资金。请仅分享至您信任的目标。</string>
-    <string name="wallet_archive_share">分享存储数据</string>
+    <string name="wallet_archive_export_warning">这些数据可能包含私钥和不完整的恢复材料。看到它的人可能控制您的资金。复制内容将在一分钟后清除；请只粘贴到私密的地方。</string>
     <string name="wallet_archive_restored_name">已恢复的钱包</string>
     <string name="wallet_archive_purged">已删除保留记录</string>
 

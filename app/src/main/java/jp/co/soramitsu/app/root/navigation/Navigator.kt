@@ -61,6 +61,7 @@ import jp.co.soramitsu.app.root.presentation.stories.StoryFragment
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.navigation.DelayedNavigation
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.utils.postToUiThread
@@ -856,6 +857,8 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
     }
 
     override fun openWalletConnectSessionProposal(pairingTopic: String?) {
+        // Never over the PIN screen: RootViewModel holds dApp requests until the wallet is unlocked.
+        if (WalletSessionLock.isLocked()) return
         if (navController?.currentDestination?.id == R.id.sessionProposalFragment) return
 
         val bundle = SessionProposalFragment.getBundle(pairingTopic)
@@ -864,6 +867,7 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
     }
 
     override fun openWalletConnectSessionRequest(sessionRequestTopic: String) {
+        if (WalletSessionLock.isLocked()) return
         if (navController?.currentDestination?.id == R.id.sessionRequestFragment) return
 
         val bundle = WalletConnectSignMessageFragment.getBundle(sessionRequestTopic)
@@ -1000,6 +1004,7 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
     }
 
     override fun openRequestPreview(topic: String, requestId: Long) {
+        if (WalletSessionLock.isLocked()) return
         val bundle = RequestPreviewFragment.getBundle(topic, requestId)
         navigateInMainTabOrRoot(R.id.requestPreviewFragment, bundle)
     }
@@ -1399,7 +1404,8 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         val action = if (createMode) {
             PinCodeAction.Create(delayedNavigation)
         } else {
-            PinCodeAction.Check(delayedNavigation, ToolbarConfiguration(pinCodeTitleRes, true))
+            // Exports and recovery screens take the PIN itself; a fingerprint cannot stand in for it.
+            PinCodeAction.Check(delayedNavigation, ToolbarConfiguration(pinCodeTitleRes, true), allowBiometric = false)
         }
 
         val extras = PincodeFragment.getPinCodeBundle(action)
@@ -1408,12 +1414,14 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
     }
 
     override fun openPincodeCheck() {
+        WalletSessionLock.lock()
         val action = PinCodeAction.Check(null, ToolbarConfiguration())
         val bundle = PincodeFragment.getPinCodeBundle(action)
         navController?.navigate(R.id.open_pincode_check, bundle)
     }
 
     override fun openNavGraph() {
+        WalletSessionLock.lock()
         val action = PinCodeAction.Check(null, ToolbarConfiguration())
         val bundle = PincodeFragment.getPinCodeBundle(action)
         navController?.navigate(R.id.root_nav_graph, bundle)
@@ -1788,6 +1796,7 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         method: String,
         signRequest: TonConnectSignRequest
     ): Result<Pair<String, String>> {
+        if (WalletSessionLock.isLocked()) return Result.failure(IllegalStateException("The wallet is locked"))
         val bundle = TonSignRequestFragment.getBundle(dapp, method, signRequest)
 
         val result = openAndWaitResult<Result<Pair<String, String>>>(

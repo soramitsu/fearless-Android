@@ -29,6 +29,7 @@ import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
 import jp.co.soramitsu.tonconnect.impl.presentation.featureToggleStore
 import jp.co.soramitsu.tonconnect.impl.presentation.pauseTonSigning
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -80,6 +81,7 @@ class TonSignRequestPortfolioAdoptionTest {
 
     @Before
     fun setup() {
+        WalletSessionLock.unlock()
         Dispatchers.setMain(dispatcher)
         every { resources.getString(any()) } answers { "text-${firstArg<Int>()}" }
         every { resources.getQuantityString(any(), any(), *anyVararg()) } returns "hidden"
@@ -94,6 +96,7 @@ class TonSignRequestPortfolioAdoptionTest {
 
     @After
     fun tearDown() {
+        WalletSessionLock.lock()
         viewModels.forEach { it.coroutineContext.cancel() }
         Dispatchers.resetMain()
     }

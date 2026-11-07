@@ -9,6 +9,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.impl.data.biometric.BiometricPinVault
 import jp.co.soramitsu.account.impl.domain.recovery.WalletPinRecovery
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
@@ -49,6 +50,7 @@ class PinCodeLockViewModelTest {
         mapOf(PincodeFragment.KEY_PINCODE_ACTION to PinCodeAction.Check(delayed, ToolbarConfiguration(backVisible = true)))
     )
     private val stores = mutableListOf<ViewModelStore>()
+    private val vault = mockk<BiometricPinVault>(relaxed = true)
 
     @Before fun setup() {
         Dispatchers.setMain(dispatcher)
@@ -62,7 +64,8 @@ class PinCodeLockViewModelTest {
     }
 
     private fun model(): PinCodeViewModel =
-        PinCodeViewModel(interactor, router, vibrator, resources, saved, mockk<WalletPinRecovery>(relaxed = true)).also {
+        PinCodeViewModel(interactor, router, vibrator, resources, saved, mockk<WalletPinRecovery>(relaxed = true), vault).also {
+            it.vaultDispatcher = dispatcher
             stores += ViewModelStore().apply { put("pin", it) }
             it.startAuth()
         }
