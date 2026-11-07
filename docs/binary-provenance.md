@@ -25,59 +25,64 @@ strict release audit:
 
 ## Current Findings
 
-### Reproducible From Vendored Source
+### Built From Source During Every Build
 
-`libsodium.so` is shipped for Android ABIs under `app/src/main/jniLibs`.
-The ISC-licensed libsodium 1.0.19 source from
-`https://github.com/jedisct1/libsodium` is vendored under
-`third_party/libsodium`, and
-`scripts/build-libsodium.sh` rebuilds the checked-in binaries with the Android
-16 KB page-size linker flags.
+`libsr25519java.so` holds every sr25519 key operation of the app (Polkadot,
+Kusama and SORA accounts). No prebuilt copy is committed. The Gradle task
+`:runtime-utils:buildSr25519AndroidLibraries` builds it for all four ABIs from
+the app-owned Rust crate `runtime-utils/native/sr25519` (imported from
+`soramitsu/fearless-utils-Android`, path `sr25519-java`) by running
+`scripts/build-sr25519.py`, and every variant packages that output.
 
-Current checksums:
+- crate: schnorrkel 0.11.5 (curve25519-dalek 4.1.3), jni 0.22.4, zeroize 1.9.1,
+  with every transitive crate locked in `Cargo.lock` and built with `--locked`
+- toolchain: `rustc 1.99.1 (58cf8f9c3 2026-10-13)`, pinned by
+  `runtime-utils/native/sr25519/rust-toolchain.toml`
+- `cargo-ndk 4.1.2`, Android NDK `30.0.16248370` (r30, pinned as `ndkVersion` in
+  `runtime-utils/build.gradle`), Android API 26
+- linker flags `-Wl,-z,common-page-size=4096` and `-Wl,-z,max-page-size=16384`
+  for 16 KB LOAD alignment on every ABI
+- reproducibility: one codegen unit, fat LTO, stripped symbols, a cleaned build
+  environment, `--remap-path-prefix` for the cargo home, the Rust toolchain, the
+  crate and the cargo target directory, and a fixed `SOURCE_DATE_EPOCH`
 
-| File | SHA-256 |
-| --- | --- |
-| `app/src/main/jniLibs/arm64-v8a/libsodium.so` | `939ba2865a93abe39c4d6a29802419b36b1bfd0b320396eeaccd4d660468a664` |
-| `app/src/main/jniLibs/armeabi-v7a/libsodium.so` | `8bcd304a813f3d814793c8553cd6a8814b64b2c188d66e8462f82053d7855343` |
-| `app/src/main/jniLibs/x86/libsodium.so` | `a6cd7f654ff400d080b16b3e794971b2c2b2cbc12bf0cee444f7e2ea950839ae` |
-| `app/src/main/jniLibs/x86_64/libsodium.so` | `a8b52ce229d18338b9f0b0f4d2396078582c9742d771367394b8e9b3cbabb81c` |
-
-### Reproducible From Open Source
-
-The Android-owned `runtime-utils` module was imported from `fearless-utils-Android` at
-`3d22dad159ca5304d199acd08c5a622dea3c1577`. The existing native
-`libsr25519java.so` artifact was built from the older commit below. Its
-`sr25519-java` source tree is identical at both commits
-(`f9e9aeba0594f909705e5b54b538dbd1b5cadc78`); this does not replace
-the artifact's recorded build provenance.
-
-`libsr25519java.so` is built from the open-source
-`soramitsu/fearless-utils-Android` repository:
-
-- source repository: `https://github.com/soramitsu/fearless-utils-Android`
-- source commit: `7500809f33243ee47ecb2ec8563fc284ac4de0d6`
-- original source path: `sr25519-java`; app-owned source: `runtime-utils/native/sr25519`
-- app-owned rebuild entry point: `scripts/build-sr25519.sh`
-- Android NDK: `28.0.12674087`
-- linker flags: `-Wl,-z,common-page-size=4096` and
-  `-Wl,-z,max-page-size=16384` from the source repo `.cargo/config.toml`
-
-The checked-in binaries expose both legacy `fearless_utils` JNI names and the
-`shared_utils` JNI names used by the wallet app. Rebuild and copy them with:
+`runtime-utils/native/sr25519/reproducible-build.json` records the reviewed
+SHA-256 of each ABI and the exact JNI export list. Every build checks each
+library's 16 KB LOAD alignment and exports with the NDK's `llvm-readelf` and
+fails on any SHA-256 mismatch (`-Psr25519.allowHashMismatch=true` downgrades
+that to a warning for local debug builds only; release graphs refuse it).
+`scripts/verify-android-aab-identity.sh` requires the same values inside the
+AAB.
 
 ```
-./scripts/build-sr25519.sh
+./gradlew :runtime-utils:buildSr25519AndroidLibraries
+./gradlew :runtime-utils:verifySr25519ReproducibleBuild   # two clean builds, byte-identical
+python3 scripts/build-sr25519.py --reproducibility-check   # the same without Gradle
+./gradlew :runtime-utils:recordSr25519NativeHashes         # after an intended source change
 ```
 
-Current checksums:
+Reviewed checksums:
 
-| File | SHA-256 |
+| ABI | SHA-256 |
 | --- | --- |
-| `app/src/main/jniLibs/arm64-v8a/libsr25519java.so` | `a37f031de78b841dab6a8c69900a64fe427d53d2a4f77d8f3c059caab5849c12` |
-| `app/src/main/jniLibs/armeabi-v7a/libsr25519java.so` | `d217b2511bf2c7f90ea29879d5ecad86c62d95a3ee2dd412fbb0f6d804e5f3de` |
-| `app/src/main/jniLibs/x86/libsr25519java.so` | `56f26fe8e7e55026cf36be6c22a62037389d4f59cc8ee35d6bb295b5dc5441aa` |
-| `app/src/main/jniLibs/x86_64/libsr25519java.so` | `b024dcc2ebf236f21d329e3d637a6fdd39746ad1dc0e0ccc99143279617946dc` |
+| arm64-v8a | `cca739ef44e0d3f93e7b21cfe08cde8f3820e5fc493be21e5b0e1474196a209e` |
+| armeabi-v7a | `7e2701966ee9f17922900cf1bf6eb46507492c2bdac66bc0a47e2079f13f0f4d` |
+| x86 | `f3a4cadfe6493cfc19ca107c2325e85013ff414931e6464244f529be19dcb974` |
+| x86_64 | `2e9e7d68a9d0b31356f6c69f5c5867a59d829411671113686706ed2695bd98be` |
+
+Host builds of the same crate back the JVM unit tests
+(`Sr25519NativeTest`, `HostSr25519KeypairDerivationTest`). The library shipped
+up to Android 4.3.1 was a prebuilt schnorrkel 0.9.1 binary (source commit
+`7500809f33243ee47ecb2ec8563fc284ac4de0d6`, curve25519-dalek 2.1.3 with
+RUSTSEC-2024-0344); `scripts/verify-sr25519-legacy-compatibility.sh` rebuilds
+it from Git history and checks that both produce identical keys and derivations
+and accept each other's signatures.
+
+### Removed
+
+`libsodium.so` (four ABIs), its vendored libsodium 1.0.19 source under
+`third_party/libsodium` and `scripts/build-libsodium.sh` were removed in 4.3.2:
+no code, manifest or dependency loaded the library.
 
 ### Standard Build Wrapper
 
@@ -120,8 +125,7 @@ The third-party `polkaj-scale-0.2.3.jar` is imported byte-for-byte from the revi
 `fearless-utils/libs/polkaj-scale-0.2.3.jar`. It remains a third-party SCALE utility,
 not an independently published internal Android library. Its bytes are bound by
 both the runtime source manifest and the strict binary audit; the application
-owns the consuming Gradle module. This consolidation did not rebuild the JAR or
-any native `.so` file.
+owns the consuming Gradle module. This consolidation did not rebuild the JAR.
 
 | File | SHA-256 |
 | --- | --- |

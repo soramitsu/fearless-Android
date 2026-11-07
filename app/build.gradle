@@ -607,7 +607,9 @@ android {
             // Force native libs to be extracted at install time so 4 KB-aligned binaries run on 16 KB page devices.
             useLegacyPackaging true
             excludes += ["**/armeabi/**"]
-            pickFirsts += ["**/libsr25519java.so", "**/libtoolChecker.so", "**/libsodium.so"]
+            // libsr25519java.so comes from :runtime-utils, built from source and already
+            // stripped; package the exact bytes listed in its reproducible-build.json.
+            keepDebugSymbols += ["**/libsr25519java.so"]
         }
     }
 }
