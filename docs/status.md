@@ -26,9 +26,12 @@ code use BouncyCastle 1.85 or code in this repository:
   outputs recorded from EdDSA-Java, SpongyCastle and the jar
   (`runtime-utils/src/test/resources/legacy-crypto`, generator
   `tools/upgrade-fixtures/android/LegacyCryptoFixtures.java`); differential tests
-  against ton-kotlin; polkadot-js and 4.2.0 JSON backups. `CryptoLibraryUsageGuardTest`
+  against ton-kotlin; JSON backups from polkadot-js, Fearless Android 4.2.0, the
+  Fearless iOS test keystores and keyring entries written by Fearless Wallet for the web
+  1.3.1 to 2.7.1, each opening to the key its writer recorded. `CryptoLibraryUsageGuardTest`
   keeps web3j's process-RNG replacement (`Keys.createEcKeyPair`, `WalletUtils`,
-  `Wallet.create`) and the retired libraries out of production sources.
+  `Wallet.create`), ton-kotlin's key, ADNL and wallet-contract code, and the retired
+  libraries out of production sources.
 
 ## Production release 4.3.1 (233): Asset Hub staking — 30 October 2026
 

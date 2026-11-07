@@ -6,17 +6,25 @@ import jp.co.soramitsu.fearless_utils.encrypt.CryptoTestVectors
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecodingException.IncorrectPasswordException
+import jp.co.soramitsu.fearless_utils.encrypt.json.coders.content.checksumCoder.Pkcs8ChecksumCoder
+import jp.co.soramitsu.fearless_utils.encrypt.json.coders.type.TypeCoderFactory
+import jp.co.soramitsu.fearless_utils.encrypt.json.coders.type.decode
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.nullableString
 import jp.co.soramitsu.fearless_utils.encrypt.objects
 import jp.co.soramitsu.fearless_utils.encrypt.string
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
+import jp.co.soramitsu.fearless_utils.hash.Hasher.keccak256
+import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
+import org.bouncycastle.crypto.ec.CustomNamedCurves
 import org.bouncycastle.util.encoders.Base64
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
 
 /**
@@ -58,6 +66,57 @@ class JsonBackupCompatibilityTest {
                 assertEquals(name, wrong.string("error"), failure?.javaClass?.name?.substringAfter("fearless_utils."))
             }
         }
+    }
+
+    @Test
+    fun `opens backups written by Fearless iOS and by Fearless Wallet for the web`() {
+        val backups = CryptoTestVectors.json("crypto/json-backups-cross-platform.json").objects("backups")
+        assertEquals(15, backups.size)
+        val wrongPasswordWriters = mutableSetOf<String>()
+        backups.forEach { backup ->
+            val name = backup.string("input")
+            val json = backup.string("json")
+            val password = backup.string("password")
+            val error = backup.nullableString("error")
+            if (error != null) {
+                val failure = runCatching { decoder.decode(json, password) }.exceptionOrNull()
+                assertEquals(name, error, failure?.javaClass?.name?.substringAfter("fearless_utils."))
+                return@forEach
+            }
+            val document = JsonParser.parseString(json).asJsonObject
+            val encoded = document.string("encoded")
+            // Canonical Base64: the input on which BouncyCastle and SpongyCastle 1.58 decode alike (tests below).
+            assertEquals(name, encoded, Base64.toBase64String(Base64.decode(encoded)))
+            val encoding = document.getAsJsonObject("encoding")
+            val content = encoding.getAsJsonArray("content").map { it.asString }
+            val publicKey = if (content[1] == "sr25519") {
+                // sr25519 keys need the native library, so take the public key from the decrypted PKCS8 secret.
+                val type = encoding.getAsJsonArray("type").map { it.asString }
+                val pkcs8 = requireNotNull(TypeCoderFactory.getDecoder(type)).decode(Base64.decode(encoded), password.encodeToByteArray())
+                Pkcs8ChecksumCoder.decode(requireNotNull(pkcs8) { name })[1]
+            } else {
+                decoder.decode(json, password).keypair.publicKey
+            }
+
+            // The key opened here is the key its writer recorded for the account.
+            val address = document.string("address")
+            when (content[1]) {
+                "sr25519", "ed25519" -> assertArrayEquals(name, SS58Encoder.decode(address), publicKey)
+                "ecdsa" -> {
+                    assertArrayEquals(name, SS58Encoder.decode(backup.nullableString("ss58Address") ?: address), publicKey.blake2b256())
+                    if (address.startsWith("0x")) assertEquals(name, address, publicKey.toHexString(withPrefix = true))
+                }
+                "ethereum" -> {
+                    assertEquals(name, (backup.nullableString("ethereumAddress") ?: address).lowercase(), ethereumAddress(publicKey))
+                    if (address.length == COMPRESSED_KEY_HEX_LENGTH) assertEquals(name, address, publicKey.toHexString(withPrefix = true))
+                }
+                else -> fail("$name: unexpected key type ${content[1]}")
+            }
+            if (wrongPasswordWriters.add(backup.string("writtenBy"))) {
+                assertThrows(name, IncorrectPasswordException::class.java) { decoder.decode(json, "$password-wrong") }
+            }
+        }
+        assertEquals(5, wrongPasswordWriters.size)
     }
 
     @Test
@@ -133,5 +192,15 @@ class JsonBackupCompatibilityTest {
         val truncated = document.deepCopy().apply { addProperty("encoded", encoded.trimEnd('=').dropLast(1)) }
         val failure = runCatching { decoder.decode(truncated.toString(), backup.string("password")) }.exceptionOrNull()
         assertTrue(failure.toString(), failure is JsonSeedDecodingException)
+    }
+
+    private fun ethereumAddress(compressedPublicKey: ByteArray): String {
+        val point = CustomNamedCurves.getByName("secp256k1").curve.decodePoint(compressedPublicKey).getEncoded(false)
+        return point.copyOfRange(1, point.size).keccak256().takeLast(ETHEREUM_ADDRESS_SIZE).toByteArray().toHexString(withPrefix = true)
+    }
+
+    private companion object {
+        const val COMPRESSED_KEY_HEX_LENGTH = 68
+        const val ETHEREUM_ADDRESS_SIZE = 20
     }
 }
