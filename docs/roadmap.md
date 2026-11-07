@@ -15,7 +15,7 @@ different Substrate call signed than the one shown.
   with the V14 runtime. Networks without the extension sign as before. Pendulum and AvN list the extension
   but were built without a hash (they answer Mode::Enabled with `CannotLookup`), so they are compiled-in
   exemptions (`MetadataHashExemptions`) and sign Mode::Disabled.
-- The hash matches the Rust crate byte for byte on the V15 metadata of all 26 catalog chains with the
+- The hash matches the Rust crate byte for byte on the V15 metadata of all 27 catalog chains with the
   extension (`runtime-utils/src/test/resources/metadata-hash`); signed transfers match py-scale-codec;
   `LiveMetadataHashValidateTest` (opt-in) checks live runtimes answer `Invalid(Payment)`.
 - Remote configuration is used only when `remote-config/remote-config-manifest.json`, signed with Ed25519,
