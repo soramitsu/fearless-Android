@@ -9,6 +9,8 @@ import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.WalletRecoveryKind
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretArchive
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretScope
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretLockedException
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import jp.co.soramitsu.common.model.WalletEcosystem
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +28,13 @@ class WalletRecoveryInventory @Inject constructor(
     data class Wallet(val id: Long, val name: String, val items: List<Item>, val advisories: List<Advisory>, val readFailed: Boolean)
     data class State(val wallets: List<Wallet>, val archivedCount: Int?, val loading: Boolean = false, val readFailed: Boolean = false)
 
-    fun observe() = combine(accounts.lightMetaAccountsFlow(), preferences.walletSecretQuarantineVersion) { wallets, _ ->
+    // Items come from key names. Advisories need validated reads of sealed secrets, so while the
+    // wallet is locked they are left out (not counted as failures) and come back after the PIN.
+    fun observe() = combine(
+        accounts.lightMetaAccountsFlow(),
+        preferences.walletSecretQuarantineVersion,
+        WalletSessionLock.locked
+    ) { wallets, _, _ ->
         val rows = wallets.map { wallet ->
             var failed = false
             val items = try {
@@ -47,6 +55,8 @@ class WalletRecoveryInventory @Inject constructor(
                         }
                     } catch (failure: CancellationException) {
                         throw failure
+                    } catch (_: WalletSecretLockedException) {
+                        // Sealed and locked: judged after the PIN.
                     } catch (_: Exception) {
                         failed = true
                     }
@@ -62,6 +72,8 @@ class WalletRecoveryInventory @Inject constructor(
                         if (assessment is RecoveryAssessment.Unverified) add(Advisory(scope, false, chainId))
                     } catch (failure: CancellationException) {
                         throw failure
+                    } catch (_: WalletSecretLockedException) {
+                        // Sealed and locked: judged after the PIN.
                     } catch (_: Exception) {
                         failed = true
                     }
