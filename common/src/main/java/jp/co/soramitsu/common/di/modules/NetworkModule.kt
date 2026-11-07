@@ -14,6 +14,11 @@ import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerApi
+import jp.co.soramitsu.common.data.network.config.signed.RemoteConfigInterceptor
+import jp.co.soramitsu.common.data.network.config.signed.RemoteConfigManifestFetcher
+import jp.co.soramitsu.common.data.network.config.signed.RemoteConfigSnapshot
+import jp.co.soramitsu.common.data.network.config.signed.RemoteConfigStore
+import jp.co.soramitsu.common.data.network.config.signed.RemoteConfigVerifier
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerClient
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinTransactionHistorySync
 import jp.co.soramitsu.common.data.network.bitcoin.RetrofitBitcoinIndexerClient
@@ -75,6 +80,7 @@ import javax.inject.Named
 import javax.inject.Singleton
 
 private const val HTTP_CACHE = "http_cache"
+private const val REMOTE_CONFIG_STORE = "remote-config-verified"
 private const val NOMIS_CACHE = "nomis_cache"
 private const val CACHE_SIZE = 50L * 1024L * 1024L // 50 MiB
 private const val TIMEOUT_SECONDS = 60L
@@ -168,10 +174,27 @@ class NetworkModule {
         )
     }
 
+    /** Remote configuration is used only as its signed manifest lists it; see RemoteConfigVerifier. */
+    @Provides
+    @Singleton
+    fun provideRemoteConfigVerifier(context: Context): RemoteConfigVerifier {
+        val manifestClient = OkHttpClient.Builder()
+            .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .build()
+        val fetcher = RemoteConfigManifestFetcher(manifestClient)
+        return RemoteConfigVerifier(
+            fetchManifest = fetcher::fetch,
+            store = RemoteConfigStore(File(context.filesDir, REMOTE_CONFIG_STORE)),
+            snapshot = RemoteConfigSnapshot { path -> runCatching { context.assets.open(path) }.getOrNull() }
+        )
+    }
+
     @Provides
     @Singleton
     fun provideOkHttpClient(
-        context: Context
+        context: Context,
+        remoteConfigVerifier: RemoteConfigVerifier
     ): OkHttpClient {
         val builder = OkHttpClient.Builder()
             .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -179,6 +202,7 @@ class NetworkModule {
             .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .cache(Cache(File(context.cacheDir, HTTP_CACHE), CACHE_SIZE))
             .retryOnConnectionFailure(true)
+            .addInterceptor(RemoteConfigInterceptor(remoteConfigVerifier))
 
         if (BuildConfig.DEBUG) {
 //            builder.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
@@ -362,13 +386,15 @@ class NetworkModule {
     @Provides
     @Singleton
     @Named("tonApiHttpClient")
-    fun provideTonApiHttpClient(context: Context): OkHttpClient {
+    fun provideTonApiHttpClient(context: Context, remoteConfigVerifier: RemoteConfigVerifier): OkHttpClient {
         val builder = OkHttpClient.Builder()
             .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .cache(Cache(File(context.cacheDir, HTTP_CACHE), CACHE_SIZE))
             .retryOnConnectionFailure(true)
+            // The dApp directory (DAPPS_URL) is read through this client.
+            .addInterceptor(RemoteConfigInterceptor(remoteConfigVerifier))
             .addInterceptor { chain ->
                 val request = chain.request()
 

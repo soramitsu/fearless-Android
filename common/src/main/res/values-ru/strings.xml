@@ -855,6 +855,8 @@
   <string name="referral_email_acala">Я согласен получать электронную почту от Acala</string>
   <string name="relay_moved_to_asset_hub_message">После миграции на Asset Hub в 2025 году стейкинг, пулы номинаций, вестинг и взносы в краудлоуны этой сети обрабатываются в Polkadot Asset Hub или Kusama Asset Hub, и эта версия Fearless не может управлять ими там. Релейная цепь взяла бы комиссию, а затем отклонила бы это действие, поэтому ничего не было подписано или отправлено. Ваш аккаунт там имеет тот же адрес и отображается в этом кошельке.</string>
   <string name="relay_moved_to_asset_hub_title">Перенесено в Asset Hub</string>
+  <string name="network_metadata_unverified_message">Ничего не подписано: кошельку не удалось проверить метаданные этой сети. Повторите попытку позже.</string>
+  <string name="network_metadata_unverified_title">Не удалось проверить сеть</string>
   <string name="remove_backup_extension_error_message">Резервная копия была создана расширением для браузера Fearless Wallet. Мобильное приложение не может удалить ее из-за отсутствия учетных данных</string>
   <string name="rename_account_description">Пример: Сбережения, инвестиции, краудлоуны, стейкинг. Данное имя будет отображаться только для вас и храниться только на вашем мобильном устройстве.</string>
   <string name="replace_account">Заменить аккаунт</string>

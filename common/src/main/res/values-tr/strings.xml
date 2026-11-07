@@ -837,6 +837,8 @@
   <string name="referral_email_acala">Acala\'dan eposta almayı kabul ediyorum</string>
   <string name="relay_moved_to_asset_hub_message">2025 Asset Hub geçişinden bu yana bu ağdaki staking, adaylık havuzları, vesting ve crowdloan katkıları Polkadot Asset Hub veya Kusama Asset Hub üzerinde işleniyor ve Fearless\'ın bu sürümü bunları orada yönetemiyor. Relay chain bu işlem için ücreti alır ve ardından işlemi reddeder; bu yüzden hiçbir şey imzalanmadı veya gönderilmedi. Oradaki hesabınız aynı adrese sahiptir ve bu cüzdanda gösterilir.</string>
   <string name="relay_moved_to_asset_hub_title">Asset Hub\'a taşındı</string>
+  <string name="network_metadata_unverified_message">Hiçbir şey imzalanmadı: cüzdan bu ağın meta verilerini doğrulayamadı. Daha sonra tekrar deneyin.</string>
+  <string name="network_metadata_unverified_title">Ağ doğrulanamadı</string>
   <string name="remove_backup_extension_error_message">Yedekleme, Fearless Wallet tarayıcı uzantısı tarafından oluşturuldu. Kimlik bilgileri eksikliği nedeniyle mobil uygulama bunu kaldıramıyor</string>
   <string name="rename_account_description">Örnek: Tasarruflar, Yatırımlar, Kitlesel Krediler, Staking. Bu takma ad yalnızca size gösterilecek ve mobil cihazınızda yerel olarak saklanacaktır.</string>
   <string name="replace_account">Hesabı değiştir</string>

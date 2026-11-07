@@ -10,6 +10,9 @@ ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location('owned_config', ROOT / 'scripts/verify-owned-remote-config.py')
 VERIFY = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(VERIFY)
+SIGNING = VERIFY.SIGNING
+# A synthetic test key; the production key never leaves ~/.fearless-release.
+TEST_SEED = bytes(range(32))
 
 
 class OwnedConfigTest(unittest.TestCase):
@@ -18,10 +21,28 @@ class OwnedConfigTest(unittest.TestCase):
         self.root = Path(self.tmp.name)
         (self.root / 'config').mkdir()
         (self.root / 'remote-config').mkdir()
+        self.key = self.root / 'signing.key'
+        self.key.write_bytes(TEST_SEED)
+        self.key.chmod(0o600)
+        public = SIGNING.ED25519.public_key(TEST_SEED)
+        (self.root / 'config/remote-config-signing-key.json').write_text(json.dumps(
+            {'algorithm': 'ed25519', 'publicKey': public.hex(), 'keyId': SIGNING.key_id(public)}))
+        self.trust(public.hex(), SIGNING.key_id(public))
+        self.bundle([])
         self.entries = []
         self.put('icon.svg', b'<svg/>')
         self.put('chains.json', json.dumps({'icon': VERIFY.PREFIX + 'icon.svg'}).encode())
         self.save()
+
+    def trust(self, public_hex, key_id):
+        path = self.root / VERIFY.TRUST_SOURCE
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text('const val REMOTE_CONFIG_PUBLIC_KEY_HEX = "' + public_hex + '"\nconst val KEY_ID = "' + key_id + '"\n')
+
+    def bundle(self, paths):
+        path = self.root / VERIFY.SNAPSHOT_GRADLE
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text('def remoteConfigSnapshotFiles = [\n' + ''.join("    '" + p + "',\n" for p in paths) + ']\n')
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -34,6 +55,7 @@ class OwnedConfigTest(unittest.TestCase):
 
     def save(self):
         (self.root / 'config/remote-config-imports.json').write_text(json.dumps({'schemaVersion': 1, 'ownership': 'Android application', 'sources': self.entries, 'changes': []}))
+        SIGNING.sign(self.root, self.key)
 
     def rejected(self):
         with self.assertRaises((ValueError, OSError)):
@@ -198,6 +220,60 @@ class OwnedConfigTest(unittest.TestCase):
             chains = json.loads((ROOT / 'remote-config' / path).read_text())
             switched = sorted((chain['name'], asset['symbol']) for chain in chains for asset in chain.get('assets') or [] if asset.get('staking') == VERIFY.HUB_STAKING)
             self.assertEqual([('Kusama AssetHub', 'ksm'), ('Polkadot AssetHub', 'dot')], switched, path)
+
+    def test_signed_manifest_lists_configuration_but_not_images(self):
+        manifest = SIGNING.verify(self.root)
+        self.assertEqual({'chains.json'}, set(manifest['files']))
+
+    def test_unsigned_configuration_change(self):
+        self.put('chains.json', b'[]')
+        (self.root / 'config/remote-config-imports.json').write_text(json.dumps({'schemaVersion': 1, 'ownership': 'Android application', 'sources': self.entries, 'changes': []}))
+        self.rejected()
+        SIGNING.sign(self.root, self.key)
+        self.assertEqual(2, VERIFY.verify(self.root))
+
+    def test_tampered_signature(self):
+        path = self.root / 'remote-config' / SIGNING.MANIFEST
+        envelope = json.loads(path.read_text())
+        envelope['signature'] = ('0' if envelope['signature'][0] != '0' else '1') + envelope['signature'][1:]
+        path.write_text(json.dumps(envelope))
+        self.rejected()
+
+    def test_missing_signed_manifest(self):
+        (self.root / 'remote-config' / SIGNING.MANIFEST).unlink()
+        self.rejected()
+
+    def test_app_embeds_another_key(self):
+        self.trust('ab' * 32, 'ab' * 8)
+        self.rejected()
+
+    def test_manifest_signed_by_another_key(self):
+        other = self.root / 'other.key'
+        other.write_bytes(bytes(32))
+        other.chmod(0o600)
+        public = SIGNING.ED25519.public_key(bytes(32))
+        (self.root / 'config/remote-config-signing-key.json').write_text(json.dumps(
+            {'algorithm': 'ed25519', 'publicKey': public.hex(), 'keyId': SIGNING.key_id(public)}))
+        self.rejected()
+
+    def test_fetched_configuration_needs_a_bundled_snapshot(self):
+        (self.root / 'build.gradle').write_text('url = "' + VERIFY.PREFIX + 'chains.json"')
+        self.rejected()
+        self.bundle(['chains.json'])
+        self.assertEqual(2, VERIFY.verify(self.root))
+
+    def test_snapshot_cannot_bundle_unsigned_files(self):
+        self.bundle(['icon.svg'])
+        self.rejected()
+
+    def test_manifest_url_is_a_known_consumer(self):
+        (self.root / 'build.gradle').write_text('url = "' + VERIFY.PREFIX + SIGNING.MANIFEST + '"')
+        self.assertEqual(2, VERIFY.verify(self.root))
+
+    def test_repository_bundles_every_fetched_configuration(self):
+        signed = set(SIGNING.verify(ROOT)['files'])
+        self.assertTrue(VERIFY.bundled_snapshot(ROOT) <= signed)
+        self.assertIn('production/chains/v13/chains.json', VERIFY.bundled_snapshot(ROOT))
 
     def test_imported_repository(self):
         self.assertGreater(VERIFY.verify(ROOT), 600)

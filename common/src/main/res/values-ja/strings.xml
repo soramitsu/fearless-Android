@@ -832,6 +832,8 @@
   <string name="referral_email_acala">アカラ(Acala)からのメール受信に同意する</string>
   <string name="relay_moved_to_asset_hub_message">2025年のAsset Hub移行以降、このネットワークのステーキング、ノミネーションプール、ベスティング、クラウドローンへの拠出はPolkadot Asset HubまたはKusama Asset Hubで扱われます。このバージョンのFearlessでは、そこでの操作には対応していません。リレーチェーンではこの操作の手数料が請求されたうえで拒否されるため、何も署名・送信していません。Asset Hub上のアカウントは同じアドレスで、このウォレットに表示されます。</string>
   <string name="relay_moved_to_asset_hub_title">Asset Hubに移行しました</string>
+  <string name="network_metadata_unverified_message">このネットワークのメタデータを確認できなかったため、何も署名していません。しばらくしてからもう一度お試しください。</string>
+  <string name="network_metadata_unverified_title">ネットワークを確認できません</string>
   <string name="remove_backup_extension_error_message">バックアップは、フィアレス・ウォレット・ブラウザ拡張機能によって作成されました。モバイル・アプリケーションでは、認証情報が不足しているため削除できません</string>
   <string name="rename_account_description">例：貯蓄、投資、クラウドローン、ステーキング。このニックネームはあなたにのみ表示され、あなたのデバイスの中に保存されます</string>
   <string name="replace_account">アカウントを置き換える</string>

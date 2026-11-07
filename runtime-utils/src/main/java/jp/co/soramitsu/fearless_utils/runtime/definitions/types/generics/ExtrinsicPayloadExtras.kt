@@ -24,8 +24,10 @@ private const val _ASSET_TX_PAYMENT = "ChargeAssetTxPayment"
 private const val _APP_ID = "CheckAppId"
 private const val _CHECK_METADATA_HASH = "CheckMetadataHash"
 
-// CheckMetadataHash: Mode::Disabled (0) in extras, Option::None (0) in additional. Must be written in pairs.
+// CheckMetadataHash: Mode::Disabled (0) in extras, Option::None (0) in additional. Must be written in pairs, and
+// Mode::Enabled (1) only together with Some(hash) (see MetadataHashAdditional).
 private val METADATA_HASH_DISABLED = BigInteger.ZERO
+private const val METADATA_HASH_SIZE = 32
 private val DEFAULT_APP_ID = BigInteger.ZERO
 
 object SignedExtras : ExtrinsicPayloadExtras(
@@ -62,7 +64,7 @@ object AdditionalExtras : ExtrinsicPayloadExtras(
         _GENESIS to H256,
         _SPEC_VERSION to u32,
         _TX_VERSION to u32,
-        _CHECK_METADATA_HASH to u8
+        _CHECK_METADATA_HASH to MetadataHashAdditional
     ),
     defaultValues = mapOf(
         _CHECK_METADATA_HASH to METADATA_HASH_DISABLED
@@ -74,6 +76,39 @@ object AdditionalExtras : ExtrinsicPayloadExtras(
     const val SPEC_VERSION = _SPEC_VERSION
     const val TX_VERSION = _TX_VERSION
     const val CHECK_METADATA_HASH = _CHECK_METADATA_HASH
+}
+
+/**
+ * CheckMetadataHash's signed-only data, `Option<[u8; 32]>`: None while the mode is Disabled (given as 0 or null, read
+ * back as 0), or the 32-byte RFC 78 metadata hash while it is Enabled (given and read back as that hash).
+ */
+object MetadataHashAdditional : Type<Any?>("CheckMetadataHash.AdditionalSigned") {
+    private const val NONE = 0
+    private const val SOME = 1
+
+    override val isFullyResolved: Boolean = true
+
+    override fun decode(scaleCodecReader: ScaleCodecReader, runtime: RuntimeSnapshot): Any = when (scaleCodecReader.readByte().toInt()) {
+        NONE -> METADATA_HASH_DISABLED
+        SOME -> scaleCodecReader.readByteArray(METADATA_HASH_SIZE)
+        else -> throw EncodeDecodeException("Invalid CheckMetadataHash signed data")
+    }
+
+    override fun encode(scaleCodecWriter: ScaleCodecWriter, runtime: RuntimeSnapshot, value: Any?) {
+        if (value is ByteArray) {
+            scaleCodecWriter.writeByte(SOME)
+            scaleCodecWriter.directWrite(value, 0, METADATA_HASH_SIZE)
+        } else {
+            scaleCodecWriter.writeByte(NONE)
+        }
+    }
+
+    override fun isValidInstance(instance: Any?): Boolean = when (instance) {
+        null -> true
+        is BigInteger -> instance.signum() == 0
+        is ByteArray -> instance.size == METADATA_HASH_SIZE
+        else -> false
+    }
 }
 
 open class ExtrinsicPayloadExtras(

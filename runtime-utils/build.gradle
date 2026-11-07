@@ -32,6 +32,8 @@ dependencies {
     implementation libs.gson
     implementation "org.web3j:crypto:4.6.0-android"
     implementation "org.lz4:lz4-java:1.7.1"
+    // BLAKE3 for the RFC 78 metadata hash (runtime/metadata/hash).
+    implementation libs.bouncycastle
     implementation libs.coroutines.core
     implementation libs.kotlinx.serialization.json
     testImplementation libs.junit

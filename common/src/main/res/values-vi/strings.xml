@@ -872,6 +872,8 @@
   <string name="referral_email_acala">Tôi đồng ý nhận email từ Acala</string>
   <string name="relay_moved_to_asset_hub_message">Kể từ đợt chuyển đổi Asset Hub năm 2025, staking, nhóm nomination, vesting và đóng góp crowdloan trên mạng này được xử lý trên Polkadot Asset Hub hoặc Kusama Asset Hub, và phiên bản Fearless này không thể quản lý chúng ở đó. Relay chain sẽ thu phí rồi từ chối thao tác này, vì vậy không có gì được ký hay gửi đi. Tài khoản của bạn ở đó có cùng địa chỉ và được hiển thị trong ví này.</string>
   <string name="relay_moved_to_asset_hub_title">Đã chuyển sang Asset Hub</string>
+  <string name="network_metadata_unverified_message">Chưa có gì được ký: ví không thể xác minh siêu dữ liệu của mạng này. Vui lòng thử lại sau.</string>
+  <string name="network_metadata_unverified_title">Không thể xác minh mạng</string>
   <string name="remove_backup_extension_error_message">Bản sao lưu được tạo bởi tiện ích mở rộng trình duyệt Fearless Wallet. Ứng dụng dành cho thiết bị di động không thể xóa vì thiếu thông tin xác thực</string>
   <string name="rename_account_description">Ví dụ: Tiết kiệm, Đầu tư, Crowdloans, Staking. Biệt danh (nickname) này sẽ chỉ được hiển thị cho bạn và được lưu trữ cục bộ trên thiết bị di động của bạn.</string>
   <string name="replace_account">Thay thế tài khoản</string>

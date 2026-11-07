@@ -79,7 +79,10 @@ Emergency veto template (publish only the keys you need to turn off; do not publ
 
 To lift a veto, publish the same key with `true`; removing the key keeps the veto on devices that
 already saw it. Any edit of the file also updates its `ownedSha256` in
-`config/remote-config-imports.json` and adds a `changes` line (`verify-owned-remote-config.py`).
+`config/remote-config-imports.json` and adds a `changes` line (`verify-owned-remote-config.py`), and
+is signed into `remote-config/remote-config-manifest.json` (`scripts/sign-remote-config.py sign`):
+4.3.2+ apps ignore an unsigned change and keep the last verified switches
+(docs/security/remote-config-signing.md).
 The iOS app reads its own `feature_toggle` in `fearless-iOS` and the extension reads
 `web_config.json` `actions.*`; a veto for them is published there.
 

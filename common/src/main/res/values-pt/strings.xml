@@ -783,6 +783,8 @@
   <string name="referral_email_acala">Aceito receber correio eletrónico da Acala</string>
   <string name="relay_moved_to_asset_hub_message">Desde a migração para o Asset Hub em 2025, staking, pools de nomeação, vesting e contribuições de crowdloan desta rede são processados no Polkadot Asset Hub ou no Kusama Asset Hub, e esta versão do Fearless não consegue gerenciá-los lá. A relay chain cobraria a taxa e depois rejeitaria esta ação, por isso nada foi assinado nem enviado. Sua conta lá tem o mesmo endereço e aparece nesta carteira.</string>
   <string name="relay_moved_to_asset_hub_title">Movido para o Asset Hub</string>
+  <string name="network_metadata_unverified_message">Nada foi assinado: a carteira não conseguiu verificar os metadados desta rede. Tente novamente mais tarde.</string>
+  <string name="network_metadata_unverified_title">Não foi possível verificar a rede</string>
   <string name="remove_backup_extension_error_message">O backup foi criado pela extensão do navegador Fearless Wallet. O aplicativo móvel não pode removê-lo devido à falta de credenciais</string>
   <string name="rename_account_description">Exemplo: Poupanças, Investimentos, Crowdloans, Staking. Este nome será exibido apenas para você e armazenado localmente em seu dispositivo móvel.</string>
   <string name="replace_account">Substituir conta</string>

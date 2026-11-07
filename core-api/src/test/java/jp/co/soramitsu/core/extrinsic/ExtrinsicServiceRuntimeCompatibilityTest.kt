@@ -262,7 +262,7 @@ class ExtrinsicServiceRuntimeCompatibilityTest {
         val runtime = runtime(signedExtensions, modules.toList(), ethereum)
         private val registry = mock<IChainRegistry>()
         val mortality = mock<MortalityConstructor>()
-        val factory = ExtrinsicBuilderFactory(rpc, registry, mortality)
+        val factory = ExtrinsicBuilderFactory(rpc, registry, mortality, fixtureSigningRuntimes(registry))
         val service = ExtrinsicService(rpc, provider, factory)
 
         init {
@@ -345,4 +345,9 @@ class ExtrinsicServiceRuntimeCompatibilityTest {
             )
         }
     }
+}
+
+// These fixtures pin Mode::Disabled encodings; the metadata hash path has its own tests.
+private fun fixtureSigningRuntimes(registry: IChainRegistry) = SigningRuntimeSource { chain, _ ->
+    SigningRuntime.MetadataHashExempt(registry.getRuntime(chain.id), "test fixture signs Mode::Disabled")
 }

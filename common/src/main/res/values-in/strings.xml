@@ -801,6 +801,8 @@
   <string name="referral_email_acala">Saya setuju untuk menerima email dari acala</string>
   <string name="relay_moved_to_asset_hub_message">Sejak migrasi Asset Hub tahun 2025, staking, kumpulan nominasi, vesting, dan kontribusi pinjaman massal di jaringan ini ditangani di Polkadot Asset Hub atau Kusama Asset Hub, dan versi Fearless ini tidak dapat mengelolanya di sana. Relay chain akan menagih biaya lalu menolak tindakan ini, jadi tidak ada yang ditandatangani atau dikirim. Akun Anda di sana memiliki alamat yang sama dan ditampilkan di dompet ini.</string>
   <string name="relay_moved_to_asset_hub_title">Dipindahkan ke Asset Hub</string>
+  <string name="network_metadata_unverified_message">Tidak ada yang ditandatangani: dompet tidak dapat memverifikasi metadata jaringan ini. Coba lagi nanti.</string>
+  <string name="network_metadata_unverified_title">Jaringan tidak dapat diverifikasi</string>
   <string name="remove_backup_extension_error_message">Cadangannya dibuat oleh ekstensi browser Fearless Wallet. Aplikasi seluler tidak dapat menghapusnya karena kurangnya kredensial</string>
   <string name="rename_account_description">Contoh: Tabungan, Investasi, Pinjaman massal , Staking. Nama panggilan ini hanya akan ditampilkan kepada Anda dan disimpan secara lokal di perangkat seluler Anda.</string>
   <string name="replace_account">Gantikan akun</string>
