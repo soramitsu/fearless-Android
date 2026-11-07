@@ -10,8 +10,8 @@ import org.bouncycastle.util.encoders.Hex
 
 /**
  * The device factor of the PIN wrap: a secret mixed into the PIN's slow hash
- * so that guessing the PIN needs this device's storage, not only a copy of the
- * keyring records.
+ * so that guessing the PIN needs the device's master key, which a copy of the
+ * keyring records or the app's files does not have.
  */
 interface WalletKeyringDeviceFactor {
 
