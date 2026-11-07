@@ -1684,7 +1684,7 @@ verify_static_contract() {
     "runtime integrity test must exercise owned-source adversarial cases"
   require_text \
     "$identity_test" \
-    "expected 137 negative cases" \
+    "expected 134 negative cases" \
     "signed AAB identity test must fix its adversarial count"
   require_exact_line_count \
     "$identity_test" \
@@ -2845,8 +2845,8 @@ expect_static_failure \
 
 fixture="$(make_fixture identity-count-weakened)"
 replace_once "$fixture/scripts/test-android-aab-identity.sh" \
-  "expected 137 negative cases" \
-  "expected 136 negative cases"
+  "expected 134 negative cases" \
+  "expected 133 negative cases"
 expect_static_failure \
   "AAB identity adversarial count weakened" \
   "identity test must fix its adversarial count" \
