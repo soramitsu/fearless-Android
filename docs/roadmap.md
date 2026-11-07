@@ -12,7 +12,7 @@ compared as plaintext. 4.3.2 (lane `pin-envelope`):
   never the PIN, TON Connect, WalletConnect or journals) get an inner envelope,
   `fse1:` + AES-256-GCM under a random key SK, inside the unchanged outer layer.
 - SK records live in plain preferences (`wallet_secret_keyring_v1:`): a PIN wrap
-  (Argon2id 32 MiB, 3 passes, mixed with HMAC under a non-exportable Keystore
+  (Argon2id 32 MiB, 2 passes, mixed with HMAC under a non-exportable Keystore
   key) and one backup wrap per wallet root. Opening the PIN wrap is the PIN
   check; the legacy `pin_code` is deleted once every secret is sealed.
 - The first unlock creates the keyring; sealing runs after every unlock, one key

@@ -7,8 +7,9 @@ import org.bouncycastle.crypto.params.Argon2Parameters
  * The PIN's slow hash in the PIN wrap: Argon2id (BouncyCastle), stored with
  * the record so it can be tuned for new wraps without breaking old ones.
  *
- * 32 MiB, 3 passes, 1 lane: about 0.2 s per guess on a desktop JVM core,
- * which is roughly 0.6 to 1 s on a mid-range phone, within the 32 MiB budget.
+ * 32 MiB, 2 passes, 1 lane. Measured with 3 passes: 0.37-0.50 s per PIN check
+ * on an arm64 API 34 emulator on an Apple-silicon host. 2 passes keeps a
+ * mid-range phone, roughly 2-3 times slower per core, near 0.5-1 s.
  */
 data class WalletPinKdfParameters(
     val algorithm: Int = ARGON2ID_V13,
@@ -27,7 +28,7 @@ data class WalletPinKdfParameters(
     companion object {
         const val ARGON2ID_V13 = 1
         const val DEFAULT_MEMORY_KIB = 32 * 1024
-        const val DEFAULT_ITERATIONS = 3
+        const val DEFAULT_ITERATIONS = 2
         const val DEFAULT_PARALLELISM = 1
         const val MIN_MEMORY_KIB = 8
         const val MAX_MEMORY_KIB = 64 * 1024

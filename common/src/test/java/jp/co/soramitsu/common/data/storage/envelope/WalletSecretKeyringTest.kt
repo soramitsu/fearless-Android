@@ -161,7 +161,7 @@ class WalletSecretKeyringTest {
         val parameters = WalletPinKdfParameters.DEFAULT
         assertTrue(parameters.isAcceptable)
         assertTrue(parameters.memoryKiB <= 32 * 1024)
-        assertEquals(3, parameters.iterations)
+        assertEquals(2, parameters.iterations)
         assertFalse(WalletPinKdfParameters(memoryKiB = 128 * 1024).isAcceptable)
         assertFalse(WalletPinKdfParameters(iterations = 0).isAcceptable)
         assertFalse(WalletPinKdfParameters(algorithm = 2).isAcceptable)
