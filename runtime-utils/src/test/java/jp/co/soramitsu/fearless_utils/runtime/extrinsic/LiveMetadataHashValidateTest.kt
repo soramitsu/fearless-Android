@@ -69,8 +69,8 @@ class LiveMetadataHashValidateTest {
     }
 
     private fun validate(chain: LiveChain): String {
-        val metadataBytes = FrameMetadataV15.unwrapVersionedResult(rpc(chain.rpc, "state_call", "Metadata_metadata_at_version", "0x0f000000").fromHex())
-            ?: error("no V15 metadata")
+        val versioned = rpc(chain.rpc, "state_call", "Metadata_metadata_at_version", "0x0f000000") as String
+        val metadataBytes = FrameMetadataV15.unwrapVersionedResult(versioned.fromHex()) ?: error("no V15 metadata")
         val metadata = FrameMetadataV15.decode(metadataBytes)
         val properties = rpc(chain.rpc, "system_properties") as Map<*, *>
         val decimals = ((properties["tokenDecimals"] as? List<*>)?.first() ?: properties["tokenDecimals"]) as Number
