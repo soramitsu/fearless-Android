@@ -47,6 +47,8 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.coroutines.core)
     implementation(libs.lifecycle.process)
+    // Reads the encrypted preferences the removed Reown SDK left behind, once, to carry its sessions over.
+    implementation(libs.security.crypto)
 
     implementation(libs.zxing.core)
     implementation(libs.zxing.embedded)

@@ -117,9 +117,15 @@ it.
   The old SDK's `WalletConnectAndroidCore.db`, `WalletConnectV2.db`,
   `WalletConnectV2_notify.db`, `wc_key_store`, `db_key_store` and Keystore keys
   `wc_keystore_key` and `_wc_db_key_` are deleted only when the import reports
-  IMPORTED or NOTHING_TO_IMPORT. The default binding (no importer) reports
-  NOT_ATTEMPTED and keeps them; until an importer is bound, dApps connected
-  before must be connected again. Wallet data is never touched.
+  IMPORTED or NOTHING_TO_IMPORT. `ReownLegacyWalletConnectImport` (bound in
+  `ReownLegacyImportModule`) carries every keyed Reown session and pairing over
+  with its symmetric key, and the relay identity, so connected dApps keep
+  working. It runs no Reown or SQLCipher code: the SQLCipher 4 databases are
+  decrypted in Kotlin and read in memory (`docs/walletconnect-reown-migration.md`).
+  It reports FAILED, which keeps every legacy file, when it could not read, save
+  or read back everything, when it left a live record out over the client's
+  limits, or when the starter's 60 s timeout cancelled it. It makes three attempts
+  per app version. Wallet data is never touched.
 - Removed with the SDK: Firebase Cloud Messaging and its Firebase/datatransport
   components, the `POST_NOTIFICATIONS`, `WAKE_LOCK` and C2DM permissions, SQLCipher
   (`libsqlcipher.so`), kethereum, multibase and Scarlet from JitPack. The AAB
