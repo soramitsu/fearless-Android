@@ -11,6 +11,7 @@ import io.mockk.unmockkObject
 import io.mockk.verify
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_tonconnect_impl.R
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
@@ -19,7 +20,6 @@ import jp.co.soramitsu.tonconnect.api.model.AppEntity
 import jp.co.soramitsu.tonconnect.api.model.JsonBuilder
 import jp.co.soramitsu.tonconnect.impl.presentation.featureToggleStore
 import jp.co.soramitsu.tonconnect.impl.presentation.pauseTonSigning
-import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel

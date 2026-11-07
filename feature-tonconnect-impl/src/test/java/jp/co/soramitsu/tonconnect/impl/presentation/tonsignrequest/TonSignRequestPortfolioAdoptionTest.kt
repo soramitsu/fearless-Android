@@ -16,6 +16,7 @@ import jp.co.soramitsu.account.api.domain.model.PortfolioBalance
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.compose.component.SigningSummaryViewState
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.models.Ecosystem
@@ -29,7 +30,6 @@ import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
 import jp.co.soramitsu.tonconnect.impl.presentation.featureToggleStore
 import jp.co.soramitsu.tonconnect.impl.presentation.pauseTonSigning
-import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
