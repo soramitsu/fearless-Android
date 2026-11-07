@@ -1,6 +1,12 @@
 package jp.co.soramitsu.common.data.storage.pin
 
+import java.security.SecureRandom
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.common.data.storage.envelope.FakeKeyringHardwareKey
+import jp.co.soramitsu.common.data.storage.envelope.TEST_KDF
+import jp.co.soramitsu.common.data.storage.envelope.WalletPinAuthority
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretKeyring
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSealer
 import jp.co.soramitsu.common.data.storage.encrypt.WalletMasterKeyAttestation
 import jp.co.soramitsu.testshared.HashMapEncryptedPreferences
 import org.junit.Assert.assertEquals
@@ -13,7 +19,15 @@ class WalletEmergencyAuthenticatorTest {
     private var sinceBoot = 1_000_000L
     private val wallClock = 1_800_000_000_000L
     private val clock = PinAttemptClock(wallClock = { wallClock }, sinceBoot = { sinceBoot })
-    private val authenticator = WalletEmergencyAuthenticator(preferences, encryptedPreferences, clock)
+    private val authenticator = authenticatorFor(encryptedPreferences)
+
+    /** Sealing compiled off: no keyring is ever created, so the legacy PIN is what is checked. */
+    private fun authenticatorFor(storage: EncryptedPreferences): WalletEmergencyAuthenticator {
+        val keyringPreferences = InMemoryPreferences()
+        val keyring = WalletSecretKeyring(keyringPreferences, FakeKeyringHardwareKey(), SecureRandom(), TEST_KDF)
+        val sealer = WalletSecretSealer(keyringPreferences, keyring, SecureRandom(), compiledSwitch = false)
+        return WalletEmergencyAuthenticator(preferences, WalletPinAuthority(storage, keyring, sealer), clock)
+    }
 
     @Test
     fun `the wallet PIN unlocks without the wallet database`() {
@@ -77,7 +91,7 @@ class WalletEmergencyAuthenticatorTest {
                 return encryptedPreferences.getDecryptedString(field)
             }
         }
-        val observedAuthenticator = WalletEmergencyAuthenticator(preferences, observed, clock)
+        val observedAuthenticator = authenticatorFor(observed)
         repeat(5) { observedAuthenticator.authenticate("000000") }
         assertEquals(5, reads.size)
 
@@ -115,12 +129,12 @@ class WalletEmergencyAuthenticatorTest {
             override fun getDecryptedString(field: String): String? = throw ClassCastException("test wrong type")
         }
         assertEquals(WalletEmergencyAuthentication.Unavailable,
-            WalletEmergencyAuthenticator(preferences, wrongType, clock).authenticate(PIN))
+            authenticatorFor(wrongType).authenticate(PIN))
         val providerFailure = object : jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences by encryptedPreferences {
             override fun getDecryptedString(field: String): String? = throw jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageUnavailableException("test provider failure")
         }
         org.junit.Assert.assertThrows(jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageUnavailableException::class.java) {
-            WalletEmergencyAuthenticator(preferences, providerFailure, clock).authenticate(PIN)
+            authenticatorFor(providerFailure).authenticate(PIN)
         }
     }
 

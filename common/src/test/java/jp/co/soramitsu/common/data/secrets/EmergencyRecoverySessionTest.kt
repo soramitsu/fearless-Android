@@ -36,7 +36,8 @@ class EmergencyRecoverySessionTest {
             whenever(shared.all).thenAnswer { onInventory(); LinkedHashMap(values) }
             whenever(shared.getString(any(), anyOrNull())).thenAnswer { values[it.getArgument<String>(0)] }
             whenever(encryption.decrypt(any())).thenAnswer { onDecrypt(); PLAIN }
-            whenever(authenticator.authenticate(PIN)).thenAnswer { onAuthentication(); authentication }
+            // No keyring in this fixture, so an accepted PIN brings no wallet key with it.
+            whenever(authenticator.authenticateWithKey(PIN)).thenAnswer { onAuthentication(); authentication to null }
             val reader = WalletEmergencyRecoveryReader(EncryptedPreferencesImpl(PreferencesImpl(shared), encryption))
             session = WalletEmergencyRecoverySession(authenticator, reader)
         }
@@ -156,7 +157,7 @@ class EmergencyRecoverySessionTest {
         assertThrows(CancellationException::class.java) {
             runBlocking { cancel("public cancelled control"); fixture.session.unlock(PIN) }
         }
-        verify(fixture.authenticator, never()).authenticate(any())
+        verify(fixture.authenticator, never()).authenticateWithKey(any())
         fixture.assertNoKeyDecryption()
         fixture.assertNoWrites()
     }
