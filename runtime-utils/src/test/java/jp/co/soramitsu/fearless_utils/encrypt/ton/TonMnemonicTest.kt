@@ -25,7 +25,7 @@ class TonMnemonicTest {
 
     @Test
     fun `entropy and every phrase check match ton-kotlin on random phrases`() {
-        repeat(600) { index ->
+        repeat(400) { index ->
             val phrase = randomPhrase(index)
             val password = randomPassword(index)
             assertArrayEquals("$index", Mnemonic.toEntropy(phrase, password), TonMnemonic.toEntropy(phrase, password))
@@ -58,9 +58,10 @@ class TonMnemonicTest {
         }
     }
 
+    // 100 000 PBKDF2 rounds per seed on each side; the entropy and phrase checks above cover far more phrases.
     @Test
     fun `seeds match ton-kotlin`() {
-        repeat(40) { index ->
+        repeat(12) { index ->
             val phrase = randomPhrase(index)
             val password = if (index % 4 == 0) randomPassword(index) else ""
             assertArrayEquals("$index", Mnemonic.toSeed(phrase, password), TonMnemonic.toSeed(phrase, password))

@@ -275,7 +275,7 @@
       "src/test/java/jp/co/soramitsu/fearless_utils/encrypt/qr/QrSharingTest.kt": "3aef059a642e6efd9c46aee3e47ce8539efbd5c2e09bf7c3792d51aebbedff21",
       "src/test/java/jp/co/soramitsu/fearless_utils/encrypt/seed/Bip39SeedVectorsTest.kt": "6c4bada1fdbaf5aa25b0cc107909340adce0aef4a11579319bca5f639fadf608",
       "src/test/java/jp/co/soramitsu/fearless_utils/encrypt/ton/TonEd25519Test.kt": "af34e5befc136ef32ffa2d821252a2276bef5c4950020ba1b490638ac9fc3850",
-      "src/test/java/jp/co/soramitsu/fearless_utils/encrypt/ton/TonMnemonicTest.kt": "79594026c5f6e58a465746d7d522baeec0457c358d3d1d719d6db3e321bc87e9",
+      "src/test/java/jp/co/soramitsu/fearless_utils/encrypt/ton/TonMnemonicTest.kt": "8e30546f70f0dbc4814021f0f2340cfcd52c8ca408e300c9b802af35dd2bfb8d",
       "src/test/java/jp/co/soramitsu/fearless_utils/extensions/KotlinExtensionsTest.kt": "b54103e6a8685562f23e6fe8fb32f98c4aa10357776c3e20a8bce310ff73d5d9",
       "src/test/java/jp/co/soramitsu/fearless_utils/extensions/SnakeToCamelCaseTest.kt": "b26136e05d1f37ac51376cc42f6d38897f5f2f5bad2285a5a8b445dc04277116",
       "src/test/java/jp/co/soramitsu/fearless_utils/extensions/SplitByteArrayTest.kt": "e224d86d8e38e00dd4950def1b049fde9635c79d8cea02a56ef2500ca31639be",
