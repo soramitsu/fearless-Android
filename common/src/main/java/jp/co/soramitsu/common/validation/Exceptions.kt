@@ -4,6 +4,7 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.base.errors.ValidationWarning
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.core.extrinsic.MetadataHashUnavailableException
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.CallMovedToAssetHubException
 
 class StakeInsufficientBalanceException(resourceManager: ResourceManager) : ValidationException(
@@ -133,6 +134,14 @@ class FeeCalculationFailedException(resourceManager: ResourceManager) : Validati
 )
 
 fun Throwable.isCallMovedToAssetHub(): Boolean = generateSequence(this) { it.cause }.any { it is CallMovedToAssetHubException }
+
+/** The network checks the metadata hash and it could not be computed, so nothing was signed (MetadataHashUnavailableException). */
+class MetadataHashUnverifiedException(resourceManager: ResourceManager) : ValidationException(
+    resourceManager.getString(R.string.network_metadata_unverified_title),
+    resourceManager.getString(R.string.network_metadata_unverified_message)
+)
+
+fun Throwable.isMetadataHashUnavailable(): Boolean = generateSequence(this) { it.cause }.any { it is MetadataHashUnavailableException }
 
 /** A failed fee estimation as the user reads it: why a call that moved to Asset Hub can't be sent, otherwise the generic fee error. */
 fun Throwable.toFeeError(resourceManager: ResourceManager): ValidationException = when {

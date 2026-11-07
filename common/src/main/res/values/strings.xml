@@ -901,6 +901,8 @@
   <string name="referral_email_acala">I agree to receive email from Acala</string>
   <string name="relay_moved_to_asset_hub_message">Since the 2025 Asset Hub migration, staking, nomination pools, vesting and crowdloan contributions on this network are handled on Polkadot Asset Hub or Kusama Asset Hub, and this version of Fearless can\'t manage them there. The relay chain would charge the fee and then reject this action, so nothing was signed or sent. Your account there has the same address and is shown in this wallet.</string>
   <string name="relay_moved_to_asset_hub_title">Moved to Asset Hub</string>
+  <string name="network_metadata_unverified_message">Nothing was signed: the wallet could not verify this network\'s metadata. Try again later.</string>
+  <string name="network_metadata_unverified_title">Couldn\'t verify the network</string>
   <string name="remove_backup_extension_error_message">The backup\'s been created by the Fearless Wallet browser extension. The mobile application can\'t remove it because of lack of credentials</string>
   <string name="rename_account_description">Example: Savings, Investments, Crowdloans, Staking. This nickname will only be displayed to you and stored locally on your mobile device.</string>
   <string name="replace_account">Replace account</string>

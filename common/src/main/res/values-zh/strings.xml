@@ -827,6 +827,8 @@
   <string name="referral_email_acala">我同意接收来自Acala的电子邮件</string>
   <string name="relay_moved_to_asset_hub_message">自 2025 年 Asset Hub 迁移以来，此网络的质押、提名池、归属释放和众贷贡献都在 Polkadot Asset Hub 或 Kusama Asset Hub 上处理，此版本的 Fearless 无法在那里管理它们。中继链会先收取手续费再拒绝此操作，因此没有签名或发送任何内容。您在那里的账户地址相同，并显示在此钱包中。</string>
   <string name="relay_moved_to_asset_hub_title">已迁移至 Asset Hub</string>
+  <string name="network_metadata_unverified_message">未签署任何内容：钱包无法验证此网络的元数据。请稍后重试。</string>
+  <string name="network_metadata_unverified_title">无法验证网络</string>
   <string name="remove_backup_extension_error_message">由Fearless Wallet浏览器扩展程序创建了备份。移动应用无法删除它，因为缺乏凭据。</string>
   <string name="rename_account_description">示例：储蓄、投资、众贷、质押。此昵称将仅为您显示并本地存储在您的移动设备上。</string>
   <string name="replace_account">更换账户</string>
