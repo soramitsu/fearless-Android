@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd -P)"
 VERIFY="$ROOT_DIR/scripts/verify-gradle-dependency-provenance.sh"
 EXPECTED_WRAPPER_SHA256='8fad3d78296ca518113f3d29016617c7f9367dc005f932bd9d93bf45ba46072b'
 EXPECTED_POSITIVE_COUNT=2
-EXPECTED_NEGATIVE_COUNT=65
+EXPECTED_NEGATIVE_COUNT=66
 
 test_tmp_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
 mkdir -p "$test_tmp_root"
@@ -775,6 +775,20 @@ rm "$fixture/buildscript-gradle.lockfile.bak"
 expect_failure \
   "missing reviewed Kotlin serialization classpath root" \
   "root buildscript lock omits reviewed classpath roots: org.jetbrains.kotlin:kotlin-serialization:2.1.10=classpath" \
+  "$fixture"
+
+fixture="$(make_fixture buildscript-firebase-plugin-reintroduced)"
+python3 - "$fixture/buildscript-gradle.lockfile" <<'PY'
+import sys
+path = sys.argv[1]
+lines = open(path, encoding="utf-8").read().splitlines()
+header, entries, footer = lines[:3], lines[3:-1], lines[-1:]
+entries = sorted(entries + ["com.google.gms:google-services:4.4.1=classpath"])
+open(path, "w", encoding="utf-8").write("\n".join(header + entries + footer) + "\n")
+PY
+expect_failure \
+  "reintroduced Google Services build plugin" \
+  "root buildscript lock contains removed Firebase build plugins: com.google.gms:google-services:4.4.1=classpath" \
   "$fixture"
 
 fixture="$(make_fixture buildscript-strict-mode-removed)"
