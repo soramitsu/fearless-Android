@@ -2,6 +2,28 @@
 
 # Status Summary
 
+## 4.3.2 metadata hash and signed remote configuration — 7 November 2026
+
+Fixes the 2026-11-07 audit finding that a hostile RPC node or a changed remote configuration could get a
+different Substrate call signed than the one shown.
+
+- Own transactions on a network whose runtime lists `CheckMetadataHash` are signed with Mode::Enabled and
+  the RFC 78 metadata hash (`runtime-utils/.../metadata/hash`, ported from merkleized-metadata 0.5.1,
+  MIT OR Apache-2.0). The transaction is built from the V15 metadata the hash is computed from
+  (`MetadataHashSigningRuntimeSource`); if the hash cannot be computed nothing is signed
+  (`MetadataHashUnavailableException`, shown as "Couldn't verify the network"). Fees are still estimated
+  with the V14 runtime. Networks without the extension sign as before. Pendulum and AvN list the extension
+  but were built without a hash (they answer Mode::Enabled with `CannotLookup`), so they are compiled-in
+  exemptions (`MetadataHashExemptions`) and sign Mode::Disabled.
+- The hash matches the Rust crate byte for byte on the V15 metadata of all 26 catalog chains with the
+  extension (`runtime-utils/src/test/resources/metadata-hash`); signed transfers match py-scale-codec;
+  `LiveMetadataHashValidateTest` (opt-in) checks live runtimes answer `Invalid(Payment)`.
+- Remote configuration is used only when `remote-config/remote-config-manifest.json`, signed with Ed25519,
+  lists its SHA-256; otherwise the last verified copy or the snapshot bundled into the APK is used.
+  Signing: `scripts/sign-remote-config.py` (docs/security/remote-config-signing.md). Every configuration
+  change must be signed before it reaches 4.3.2+ clients.
+- dApp (WalletConnect) Polkadot payloads are signed exactly as the dApp sent them, mode and hash included.
+
 ## Production release 4.3.1 (233): Asset Hub staking — 30 October 2026
 
 4.3.1 brings back Polkadot and Kusama staking, which 4.3.0 could not offer because
