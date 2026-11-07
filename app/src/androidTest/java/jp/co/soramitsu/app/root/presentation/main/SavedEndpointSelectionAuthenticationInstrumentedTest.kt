@@ -45,6 +45,8 @@ import jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.account.impl.presentation.recovery.SavedEndpointsFragment
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.InitializationStep
+import jp.co.soramitsu.common.data.storage.envelope.PinVerification
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSealingSwitch
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.app.root.presentation.WalletRootActivity
 import jp.co.soramitsu.app.root.presentation.RootViewModel
@@ -133,7 +135,7 @@ class SavedEndpointSelectionAuthenticationInstrumentedTest {
             var expectedSql = initial.getJSONObject("sql")
             baselinePreferences = initial.getJSONObject("preferences")
             assertEquals(PinHealth.HEALTHY, runBlocking(Dispatchers.IO) { graph.accountRepository().getPinHealth() })
-            assertEquals(PUBLIC_PIN, runBlocking(Dispatchers.IO) { graph.accountRepository().getPinCode() })
+            assertEquals(PinVerification.CORRECT, runBlocking(Dispatchers.IO) { graph.accountRepository().verifyPinCode(PUBLIC_PIN) })
             val title = text(R.string.saved_endpoints_title)
             compose.waitUntil(15_000) { compose.onAllNodesWithText(title).fetchSemanticsNodes().size == 1 }
             compose.onNodeWithText(title).performScrollTo().assertIsDisplayed().performClick()
@@ -311,9 +313,12 @@ class SavedEndpointSelectionAuthenticationInstrumentedTest {
                 "VALUES(?,?,?,?,?,0,0,?)", arrayOf<Any?>(ROW_ID, INITIAL_REVISION, "solana-mainnet", endpoint, PUBLIC_NAME, ORIGIN_ID))
             database.setTransactionSuccessful()
         } finally { database.endTransaction() }
+        // These fixtures pin the 4.3.1 PIN layout (`pin_code`); the 4.3.2 keyring has its own device tests.
+        check(context.getSharedPreferences(SHARED_PREFERENCES_FILE, Context.MODE_PRIVATE).edit()
+            .putBoolean(WalletSecretSealingSwitch.REMOTE_VETO_KEY, false).commit())
         graph.accountRepository().savePinCode(PUBLIC_PIN)
         assertEquals(PinHealth.HEALTHY, graph.accountRepository().getPinHealth())
-        assertEquals(PUBLIC_PIN, graph.accountRepository().getPinCode())
+        assertEquals(PinVerification.CORRECT, graph.accountRepository().verifyPinCode(PUBLIC_PIN))
         check(context.getSharedPreferences(MARKER, Context.MODE_PRIVATE).edit().putString("fixture", "selection-auth-public-v1")
             .putString("nonce", nonce).putInt("uid", Process.myUid()).putString("serial", serial)
             .putString("avd", avd).putString("sourceCommit", sourceCommit).commit())

@@ -34,6 +34,8 @@ import jp.co.soramitsu.app.root.domain.WalletDatabaseStartupResult
 import jp.co.soramitsu.app.root.presentation.WalletRootActivity
 import jp.co.soramitsu.app.root.presentation.WalletStartupActivity
 import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
+import jp.co.soramitsu.common.data.storage.envelope.PinVerification
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSealingSwitch
 import jp.co.soramitsu.common.di.modules.SHARED_PREFERENCES_FILE
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import kotlinx.coroutines.Dispatchers
@@ -236,9 +238,12 @@ class SavedEndpointInspectionAuthenticationInstrumentedTest {
             database.setTransactionSuccessful()
         } finally { database.endTransaction() }
         assertFixtureArchive()
+        // These fixtures pin the 4.3.1 PIN layout (`pin_code`); the 4.3.2 keyring has its own device tests.
+        check(context.getSharedPreferences(SHARED_PREFERENCES_FILE, Context.MODE_PRIVATE).edit()
+            .putBoolean(WalletSecretSealingSwitch.REMOTE_VETO_KEY, false).commit())
         graph.accountRepository().savePinCode(PUBLIC_PIN)
         assertEquals(PinHealth.HEALTHY, graph.accountRepository().getPinHealth())
-        assertEquals(PUBLIC_PIN, graph.accountRepository().getPinCode())
+        assertEquals(PinVerification.CORRECT, graph.accountRepository().verifyPinCode(PUBLIC_PIN))
         check(marker.edit().putString("fixture", FIXTURE).putString("nonce", nonce)
             .putInt("uid", Process.myUid()).putString("serial", OWNED_SERIAL).putString("avd", OWNED_AVD)
             .putString("sourceCommit", sourceCommit).commit())

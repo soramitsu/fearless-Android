@@ -1,6 +1,7 @@
 package jp.co.soramitsu.account.impl.data.repository
 
 import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
+import jp.co.soramitsu.common.data.storage.envelope.PinVerification
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -481,8 +482,8 @@ class AccountRepositoryImpl(
         return accountDataSource.savePinCode(code)
     }
 
-    override suspend fun getPinCode(): String? {
-        return accountDataSource.getPinCode()
+    override suspend fun verifyPinCode(code: String): PinVerification {
+        return accountDataSource.verifyPinCode(code)
     }
 
     override suspend fun generateMnemonic(length: Mnemonic.Length): List<String> {

@@ -50,6 +50,7 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretAccessGuard
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore
+import jp.co.soramitsu.common.data.storage.envelope.WalletPinAuthority
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
@@ -250,19 +251,19 @@ class AccountFeatureModule {
     @Provides
     fun provideAccountDataSource(
         preferences: Preferences,
-        encryptedPreferences: EncryptedPreferences,
         jsonMapper: Gson,
         secretStoreV1: SecretStoreV1,
         metaAccountDao: MetaAccountDao,
-        chainsRepository: ChainsRepository
+        chainsRepository: ChainsRepository,
+        pinAuthority: WalletPinAuthority
     ): AccountDataSource {
         return AccountDataSourceImpl(
             preferences,
-            encryptedPreferences,
             jsonMapper,
             metaAccountDao,
             secretStoreV1,
-            chainsRepository
+            chainsRepository,
+            pinAuthority
         )
     }
 

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.account.api.domain.interfaces
 
 import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
+import jp.co.soramitsu.common.data.storage.envelope.PinVerification
 
 import jp.co.soramitsu.account.api.domain.model.Account
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
@@ -113,7 +114,8 @@ interface AccountRepository {
 
     suspend fun savePinCode(code: String)
 
-    suspend fun getPinCode(): String?
+    /** Checks [code] against the PIN wrap (or the legacy PIN); CORRECT leaves SK open for this session. */
+    suspend fun verifyPinCode(code: String): PinVerification
 
     suspend fun generateMnemonic(length: Mnemonic.Length): List<String>
 
