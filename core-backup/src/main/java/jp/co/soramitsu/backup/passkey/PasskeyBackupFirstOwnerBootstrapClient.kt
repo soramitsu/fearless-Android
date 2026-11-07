@@ -37,7 +37,7 @@ class PasskeyBackupFirstOwnerBootstrapClient(
     private val walletAuthorizer: PasskeyBackupFirstOwnerWalletAuthorizer,
     private val tokenProvider: GoogleDriveAccessTokenProvider,
     private val ceremonyExecutor: PasskeyBackupCeremonyExecutor,
-    private val integrityRequester: PasskeyBackupPlayIntegrityBootstrapRequester,
+    private val attestationProvider: PasskeyBackupBootstrapAttestationProvider,
     private val ownerHead: PasskeyBackupOwnerHeadHttpClient,
     private val transport: GoogleDriveHttpTransport = OkHttpGoogleDriveHttpTransport(OkHttpClient()),
     baseUrl: String = PasskeyBackupReleaseConfig.CHALLENGE_SERVICE_BASE_URL,
@@ -88,7 +88,8 @@ class PasskeyBackupFirstOwnerBootstrapClient(
             )
             requireFresh(challenge.expiresAt, CHALLENGE_MAX_AHEAD_SECONDS)
             requireSelectedAccount(selected.subject, accountName)
-            val attestation = integrityRequester.requestToken(binding)
+            PasskeyBackupReleaseConfig.requireEnabled(isReleaseEnabled)
+            val attestation = attestationProvider.attest(binding)
             require(attestation.requestHash == binding.requestHash) { "Bootstrap app attestation changed" }
             requireSelectedAccount(selected.subject, accountName)
             requireFresh(challenge.expiresAt, CHALLENGE_MAX_AHEAD_SECONDS)
@@ -136,7 +137,7 @@ class PasskeyBackupFirstOwnerBootstrapClient(
         challenge: PasskeyBackupFirstOwnerChallenge,
         credential: JsonObject,
         proof: PasskeyBackupFirstOwnerSignedProof,
-        attestation: PasskeyBackupPlayIntegrityBootstrapToken
+        attestation: PasskeyBackupBootstrapAttestation
     ): PasskeyBackupOwnerSession {
         val response = post(
             COMPLETE_PATH,

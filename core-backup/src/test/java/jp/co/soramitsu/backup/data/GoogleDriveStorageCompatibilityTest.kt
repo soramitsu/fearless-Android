@@ -1,259 +1,177 @@
 package jp.co.soramitsu.backup.data
 
-import android.accounts.Account
-import android.accounts.AccountManager
-import android.content.Context
 import android.content.Intent
-import android.text.TextUtils
-import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
-import com.google.android.gms.auth.GoogleAuthUtil
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.android.gms.auth.api.signin.GoogleSignInClient
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.tasks.OnCompleteListener
-import com.google.android.gms.tasks.Task
-import com.google.api.client.googleapis.json.GoogleJsonResponseException
-import com.google.api.client.testing.http.MockHttpTransport
-import com.google.api.client.testing.http.MockLowLevelHttpRequest
-import com.google.api.client.testing.http.MockLowLevelHttpResponse
-import com.google.api.services.drive.DriveScopes
+import jp.co.soramitsu.backup.BackupService
 import jp.co.soramitsu.backup.domain.exceptions.UnauthorizedException
-import kotlinx.coroutines.CoroutineScope
+import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
+import jp.co.soramitsu.backup.oauth.GoogleDriveAuthorization
+import jp.co.soramitsu.backup.oauth.GoogleOAuthConfig
+import jp.co.soramitsu.backup.oauth.GoogleOAuthPrompt
+import jp.co.soramitsu.backup.oauth.GoogleOAuthSession
+import jp.co.soramitsu.backup.oauth.GoogleOAuthTokenClient
+import jp.co.soramitsu.backup.oauth.InMemoryTokenStore
+import jp.co.soramitsu.backup.oauth.tokenResponse
+import jp.co.soramitsu.backup.passkey.GoogleDriveHttpRequest
+import jp.co.soramitsu.backup.passkey.GoogleDriveHttpResponse
+import jp.co.soramitsu.backup.passkey.GoogleDriveHttpTransport
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertSame
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
 import org.junit.Test
-import org.mockito.Mockito.mockStatic
 import org.mockito.kotlin.any
-import org.mockito.kotlin.doAnswer
-import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 
-/** Actual storage, generated Drive requests and OAuth credential handlers; only platform services and HTTP are fixtures. */
-@Suppress("DEPRECATION")
+/** The actual storage, OAuth session and Drive requests together; only Google's servers are fakes. */
 class GoogleDriveStorageCompatibilityTest {
-    @Test
-    fun `backup upload list download and delete retain app data scope and bearer authorization`() =
-        withAndroidFramework {
-            val context = mock<Context>()
-            val accountManager = mock<AccountManager>()
-            val account = mock<Account>()
-            Account::class.java.getField("name").set(account, "fixture@example.invalid")
-            val signedIn = mock<GoogleSignInAccount> {
-                on { this.account } doReturn account
-                on { isExpired } doReturn false
-            }
-            val transport = BackupTransport()
-            org.mockito.kotlin.whenever(context.applicationContext).thenReturn(context)
-            mockStatic(AccountManager::class.java).use { accounts ->
-                mockStatic(GoogleSignIn::class.java).use { signIn ->
-                    mockStatic(GoogleAuthUtil::class.java).use { auth ->
-                        accounts.`when`<AccountManager> { AccountManager.get(context) }.thenReturn(accountManager)
-                        signIn.`when`<GoogleSignInAccount> { GoogleSignIn.getLastSignedInAccount(context) }.thenReturn(signedIn)
-                        auth.`when`<String> {
-                            GoogleAuthUtil.getToken(context, "fixture@example.invalid", "oauth2: ${DriveScopes.DRIVE_APPDATA}")
-                        }.thenReturn("synthetic-access-token")
-                        val storage = GoogleDriveStorage(context, "", transport)
-                        val content = """{"wallet":"synthetic encrypted backup"}"""
 
-                        assertEquals("backup-1", storage.saveFile("fixture.json", "Fixture", content))
-                        assertEquals("backup-1", storage.getListOfFileHeads().single().fileId)
-                        assertEquals(content, storage.getFileContent("backup-1"))
-                        storage.deleteFile("backup-1")
-                        assertTrue(storage.getListOfFileHeads().isEmpty())
-                        assertTrue(transport.requests > 5)
-                        assertTrue(transport.authorizations.all { it == "Bearer synthetic-access-token" })
-                        auth.verify({
-                            GoogleAuthUtil.getToken(context, "fixture@example.invalid", "oauth2: ${DriveScopes.DRIVE_APPDATA}")
-                        }, org.mockito.Mockito.atLeastOnce())
-                    }
-                }
-            }
+    private val config = GoogleOAuthConfig.create("")
+    private val drive = FakeDrive()
+    private val oauthRequests = mutableListOf<GoogleDriveHttpRequest>()
+    private val transport = object : GoogleDriveHttpTransport {
+        override suspend fun execute(request: GoogleDriveHttpRequest): GoogleDriveHttpResponse {
+            if (!request.url.startsWith("https://oauth2.googleapis.com/")) return drive.execute(request)
+            oauthRequests += request
+            return tokenResponse(accessToken = "ya29.synthetic", refreshToken = null)
         }
+    }
+    private val store = InMemoryTokenStore()
+    private val authorization = GoogleDriveAuthorization(
+        config,
+        GoogleOAuthTokenClient(config, transport),
+        store,
+        ioDispatcher = Dispatchers.Unconfined
+    )
+    private val signInIntent = mock<Intent>()
+    private val prompts = mutableListOf<GoogleOAuthPrompt>()
+    private val storage = GoogleDriveStorage(
+        authorization,
+        GoogleDriveFiles(GoogleDriveApi(transport, authorization)) { null }
+    ) { prompt ->
+        prompts += prompt
+        signInIntent
+    }
+
+    private fun signedIn() {
+        store.value = GoogleOAuthSession(config.clientId, "1//synthetic-refresh", setOf(GoogleOAuthConfig.DRIVE_APPDATA_SCOPE), 1L).encode()
+    }
 
     @Test
-    fun `existing unexpired Google session needs no sign in launch`() = withAndroidFramework {
-        val context = mock<Context> { on { applicationContext } doReturn it }
+    fun `backup upload list download and delete use the stored session's bearer`() = runBlocking {
+        signedIn()
+        val content = """{"wallet":"synthetic encrypted backup"}"""
+
+        val fileId = storage.saveFile("fixture.json", "Fixture", content)
+        assertEquals(fileId, storage.getListOfFileHeads().single().fileId)
+        assertEquals(content, storage.getFileContent(fileId))
+        storage.deleteFile(fileId)
+
+        assertTrue(storage.getListOfFileHeads().isEmpty())
+        assertTrue(drive.requests.size > 5)
+        assertTrue(drive.requests.all { it.headers["Authorization"] == "Bearer ya29.synthetic" })
+        // One refresh served every request.
+        assertEquals(1, oauthRequests.size)
+    }
+
+    @Test
+    fun `an existing session needs no sign-in screen`() = runBlocking {
+        signedIn()
         val launcher = mock<ActivityResultLauncher<Intent>>()
-        val account = mock<GoogleSignInAccount> { on { isExpired } doReturn false }
-        mockStatic(GoogleSignIn::class.java).use { signIn ->
-            signIn.`when`<GoogleSignInAccount> { GoogleSignIn.getLastSignedInAccount(context) }.thenReturn(account)
-            assertTrue(GoogleDriveStorage(context, "", BackupTransport()).signIn(launcher))
-            verify(launcher, never()).launch(any())
-        }
+
+        assertTrue(storage.signIn(launcher))
+
+        verify(launcher, never()).launch(any())
+        assertTrue(oauthRequests.isEmpty())
     }
 
     @Test
-    fun `silent sign in succeeds without opening consent`() = withAndroidFramework {
-        val context = mock<Context> { on { applicationContext } doReturn it }
+    fun `without a session the browser sign-in opens with the account chooser`() = runBlocking {
         val launcher = mock<ActivityResultLauncher<Intent>>()
-        val task = completedTask(success = true)
-        val client = mock<GoogleSignInClient> { on { silentSignIn() } doReturn task }
-        mockStatic(GoogleSignIn::class.java).use { signIn ->
-            signIn.`when`<GoogleSignInClient> {
-                GoogleSignIn.getClient(org.mockito.kotlin.eq(context), any<GoogleSignInOptions>())
-            }.thenReturn(client)
-            assertTrue(GoogleDriveStorage(context, "", BackupTransport()).signIn(launcher))
-            verify(launcher, never()).launch(any())
-        }
+
+        assertFalse(storage.signIn(launcher))
+
+        verify(launcher).launch(signInIntent)
+        assertEquals(listOf(GoogleOAuthPrompt.SELECT_ACCOUNT), prompts)
     }
 
     @Test
-    fun `failed or cancelled silent sign in launches the native sign in intent`() = withAndroidFramework {
-        for (cancelled in listOf(false, true)) {
-            val context = mock<Context> { on { applicationContext } doReturn it }
-            val intent = mock<Intent>()
-            val launcher = mock<ActivityResultLauncher<Intent>>()
-            val task = completedTask(success = false, cancelled = cancelled)
-            val client = mock<GoogleSignInClient> {
-                on { silentSignIn() } doReturn task
-                on { signInIntent } doReturn intent
-            }
-            mockStatic(GoogleSignIn::class.java).use { signIn ->
-                signIn.`when`<GoogleSignInClient> {
-                    GoogleSignIn.getClient(org.mockito.kotlin.eq(context), any<GoogleSignInOptions>())
-                }.thenReturn(client)
-                assertFalse(GoogleDriveStorage(context, "", BackupTransport()).signIn(launcher))
-                verify(launcher).launch(intent)
-            }
+    fun `a launcher whose screen is gone still reports not signed in`() = runBlocking {
+        val launcher = mock<ActivityResultLauncher<Intent>> {
+            on { launch(any()) } doThrow IllegalStateException("unregistered")
         }
+
+        assertFalse(storage.signIn(launcher))
     }
 
     @Test
-    fun `failed silent authorization blocks backup HTTP instead of reporting success`() = withAndroidFramework {
-        val context = mock<Context> { on { applicationContext } doReturn it }
-        val failure = IllegalStateException("synthetic sign-in failure")
-        val task = completedTask(success = false, failure = failure)
-        val client = mock<GoogleSignInClient> { on { silentSignIn() } doReturn task }
-        val transport = BackupTransport()
-        mockStatic(GoogleSignIn::class.java).use { signIn ->
-            signIn.`when`<GoogleSignInClient> {
-                GoogleSignIn.getClient(org.mockito.kotlin.eq(context), any<GoogleSignInOptions>())
-            }.thenReturn(client)
-            try {
-                GoogleDriveStorage(context, "", transport).saveFile("fixture.json", "Fixture", "{}")
-                fail("unauthorized backup must fail")
-            } catch (error: UnauthorizedException) {
-                assertSame(failure, error.cause)
-            }
-            assertEquals(0, transport.requests)
-        }
+    fun `failed authorization blocks backup HTTP instead of reporting success`() = runBlocking {
+        val failure = runCatching { storage.saveFile("fixture.json", "Fixture", "{}") }.exceptionOrNull()
+
+        assertTrue(failure is UnauthorizedException)
+        assertTrue(drive.requests.isEmpty())
+        assertTrue(oauthRequests.isEmpty())
     }
 
     @Test
-    fun `expired bearer token is cleared and retried once while repeated unauthorized response fails`() =
-        withAndroidFramework {
-            for (refreshSucceeds in listOf(true, false)) {
-                val context = mock<Context>()
-                org.mockito.kotlin.whenever(context.applicationContext).thenReturn(context)
-                val accountManager = mock<AccountManager>()
-                val account = mock<Account>()
-                Account::class.java.getField("name").set(account, "fixture@example.invalid")
-                val signedIn = mock<GoogleSignInAccount> {
-                    on { this.account } doReturn account
-                    on { isExpired } doReturn false
-                }
-                val authorizations = mutableListOf<String?>()
-                val transport = object : MockHttpTransport() {
-                    override fun buildRequest(method: String, url: String) = object : MockLowLevelHttpRequest(url) {
-                        override fun execute(): MockLowLevelHttpResponse {
-                            authorizations += getFirstHeaderValue("Authorization")
-                            val accepted = refreshSucceeds && authorizations.size == 2
-                            return MockLowLevelHttpResponse().setContentType("application/json")
-                                .setStatusCode(if (accepted) 200 else 401)
-                                .setContent(if (accepted) """{"files":[]}""" else """{"error":{"code":401,"message":"invalid token"}}""")
-                        }
-                    }
-                }
-                mockStatic(AccountManager::class.java).use { accounts ->
-                    mockStatic(GoogleSignIn::class.java).use { signIn ->
-                        mockStatic(GoogleAuthUtil::class.java).use { auth ->
-                            accounts.`when`<AccountManager> { AccountManager.get(context) }.thenReturn(accountManager)
-                            signIn.`when`<GoogleSignInAccount> { GoogleSignIn.getLastSignedInAccount(context) }.thenReturn(signedIn)
-                            auth.`when`<String> {
-                                GoogleAuthUtil.getToken(context, "fixture@example.invalid", "oauth2: ${DriveScopes.DRIVE_APPDATA}")
-                            }.thenReturn("expired-synthetic-token", "fresh-synthetic-token")
-                            val storage = GoogleDriveStorage(context, "", transport)
-                            if (refreshSucceeds) {
-                                assertTrue(storage.getListOfFileHeads().isEmpty())
-                            } else {
-                                try {
-                                    storage.getListOfFileHeads()
-                                    fail("a repeated unauthorized response must fail")
-                                } catch (error: GoogleJsonResponseException) {
-                                    assertEquals(401, error.statusCode)
-                                }
-                            }
-                            assertEquals(listOf("Bearer expired-synthetic-token", "Bearer fresh-synthetic-token"), authorizations)
-                            auth.verify { GoogleAuthUtil.clearToken(context, "expired-synthetic-token") }
-                        }
-                    }
-                }
-            }
-        }
+    fun `logout forgets the session here without contacting Google`() = runBlocking {
+        signedIn()
 
-    // Google Play Services initializes these Android primitives before its mocked account APIs.
-    // Keep every static mock on the IO thread used by the actual storage adapter.
-    private fun withAndroidFramework(block: suspend CoroutineScope.() -> Unit) = runBlocking(Dispatchers.IO) {
-        mockStatic(Log::class.java).use {
-            mockStatic(TextUtils::class.java).use { text ->
-                text.`when`<Boolean> { TextUtils.isEmpty(org.mockito.kotlin.anyOrNull()) }
-                    .thenAnswer { invocation -> invocation.getArgument<CharSequence?>(0).isNullOrEmpty() }
-                block()
-            }
-        }
+        storage.logout()
+
+        assertNull(store.value)
+        assertTrue(oauthRequests.isEmpty())
+        assertTrue(drive.requests.isEmpty())
     }
 
-    private fun completedTask(
-        success: Boolean,
-        cancelled: Boolean = false,
-        failure: Exception? = null
-    ): Task<GoogleSignInAccount> {
-        val task = mock<Task<GoogleSignInAccount>>()
-        org.mockito.kotlin.whenever(task.isSuccessful).thenReturn(success)
-        org.mockito.kotlin.whenever(task.isCanceled).thenReturn(cancelled)
-        org.mockito.kotlin.whenever(task.exception).thenReturn(failure)
-        doAnswer { invocation ->
-            invocation.getArgument<OnCompleteListener<GoogleSignInAccount>>(0).onComplete(task)
-            task
-        }.`when`(task).addOnCompleteListener(any())
-        return task
+    @Test
+    fun `backups other apps and versions left in Drive are listed as before`() = runBlocking {
+        signedIn()
+        // 4.2.0 Android and iOS: app backups named by address in the backupFolder folder.
+        drive.add(StoredDriveFile("folder-420", "backupFolder", FOLDER, listOf("appDataFolder")))
+        drive.add(
+            StoredDriveFile(
+                "android-420", "5Gaddress.json", "text/json", listOf("folder-420"), "Old wallet",
+                modifiedTime = "2025-01-01T00:00:00.000Z"
+            )
+        )
+        drive.add(
+            StoredDriveFile(
+                "ios-1", "0xethaddress.json", "application/json", listOf("folder-420"), "iPhone wallet",
+                modifiedTime = "2025-06-01T00:00:00.000Z"
+            )
+        )
+        // Chrome extension: polkadot-js JSON in the app data root, described by address[/eth file id].
+        drive.add(StoredDriveFile("ext-sub", "Extension wallet.json", "application/json", listOf("appDataFolder"), "5Gext/ext-eth"))
+        drive.add(StoredDriveFile("ext-eth", "Extension wallet eth.json", "application/json", listOf("appDataFolder"), "0xext"))
+        // Passkey backups are not wallets.
+        drive.add(StoredDriveFile("passkey-1", "fearless-passkey-backup-k.bin", "application/octet-stream", listOf("appDataFolder")))
+        val service = BackupService.create(authorization, transport) { null }
+
+        assertEquals(
+            listOf(BackupAccountMeta("Old wallet", "5Gaddress", "android-420"), BackupAccountMeta("iPhone wallet", "0xethaddress", "ios-1")),
+            service.getBackupAccounts()
+        )
+        assertEquals(listOf(BackupAccountMeta("Extension wallet", "5Gext", "ext-sub")), service.getWebBackupAccounts())
+
+        // A new backup lands beside them, in the same folder and with the same metadata shape.
+        val fileId = storage.saveFile("5Gaddress.json", "Old wallet", "{}")
+        val written = drive.files.getValue(fileId)
+        assertEquals(listOf("folder-420"), written.parents)
+        assertEquals("text/json", written.mimeType)
+        assertEquals("5Gaddress.json", written.name)
+        assertEquals("Old wallet", written.description)
+        assertEquals(1, drive.files.values.count { it.name == "backupFolder" })
+        val copies = service.getBackupCopies().filter { copy -> copy.address == "5Gaddress" }
+        assertEquals(listOf(fileId, "android-420"), copies.map { copy -> copy.fileId })
     }
 
-    private class BackupTransport : MockHttpTransport() {
-        var requests = 0
-        val authorizations = mutableListOf<String?>()
-        private var stored: String? = null
-
-        override fun buildRequest(method: String, url: String) = object : MockLowLevelHttpRequest(url) {
-            override fun execute(): MockLowLevelHttpResponse {
-                requests++
-                authorizations += getFirstHeaderValue("Authorization")
-                val response = MockLowLevelHttpResponse().setContentType("application/json")
-                return when {
-                    url.contains("uploadType=resumable") -> response.addHeader("Location", "https://www.googleapis.com/upload/drive/v3/files?upload_id=fixture")
-                    url.contains("upload_id=fixture") -> {
-                        stored = contentAsString
-                        response.setContent("""{"id":"backup-1"}""")
-                    }
-                    method == "DELETE" -> {
-                        stored = null
-                        response.setStatusCode(204)
-                    }
-                    url.contains("/download/") -> response.setContent(stored ?: error("backup missing"))
-                    url.contains("backupFolder") -> response.setContent("""{"files":[{"id":"folder-1"}]}""")
-                    stored != null -> response.setContent("""{"files":[{"id":"backup-1","name":"fixture.json","description":"Fixture"}]}""")
-                    else -> response.setContent("""{"files":[]}""")
-                }
-            }
-        }
+    private companion object {
+        const val FOLDER = "application/vnd.google-apps.folder"
     }
 }
