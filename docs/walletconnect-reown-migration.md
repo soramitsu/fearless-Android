@@ -65,12 +65,24 @@ Long.MAX_VALUE. As a result:
 - merging never replaces a topic the state already has, so a repeat can neither duplicate a session nor
   mix up keys.
 
+The state is read back right after the write, as the client's next start will load it. The import counts
+only when the marker and every pairing, session and key are there. Otherwise it reports `NOT_SAVED`, puts
+the previous state back as far as the storage allows (so no marker stays that was not read back with
+everything), and the SDK's files stay.
+
+**The starter's timeout.** `importInto` reads the SDK's data off the caller's coroutine. A caller that stops
+waiting, such as the starter at its 60 s timeout, is released at once, even when a Keystore call hangs.
+From then on the import writes nothing, so the client the starter goes on to start has its state to itself.
+A write already under way is finished first, up to 2 s. The outcome is `CANCELLED`, and the SDK's files stay.
+
 **Failure policy.** On any failure, every SDK file stays where it is. WalletConnect still starts without
 the old sessions, and the outcome is logged as counts and codes. A later start tries again:
 - each attempt is counted before the SDK's data is read, so an import that crashes the app still uses one
   up and cannot become a crash loop;
 - after three attempts it waits for the next app version;
-- an attempt that failed only on the client's own storage is given back.
+- an attempt that failed only because the client's storage could not be written is given back. One whose
+  save did not read back, or that was cancelled, is not, so a storage or device that keeps failing cannot
+  make every start repeat the work.
 
 The worst case is that the user reconnects their dApps.
 

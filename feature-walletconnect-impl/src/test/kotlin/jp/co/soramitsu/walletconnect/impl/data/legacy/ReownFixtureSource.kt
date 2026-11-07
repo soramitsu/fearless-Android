@@ -13,7 +13,9 @@ internal class ReownFixtureSource(
         ReownLegacySnapshotReader.SIGN_DATABASE to LegacyDatabaseFiles(bytes("reown-sign.db")),
         ReownLegacySnapshotReader.CORE_DATABASE to LegacyDatabaseFiles(bytes("reown-core.db"))
     ),
-    var failure: Throwable? = null
+    var failure: Throwable? = null,
+    /** Runs before the key chain is read, e.g. to hold the import there as a hung Keystore call would. */
+    var beforeRead: () -> Unit = {}
 ) : ReownLegacySource {
     val handedOutPassphrases = mutableListOf<ByteArray>()
     var keyChainReads = 0
@@ -22,6 +24,7 @@ internal class ReownFixtureSource(
 
     override fun readKeyChain(): Map<String, String> {
         keyChainReads += 1
+        beforeRead()
         failure?.let { throw it }
         return keyChain
     }

@@ -11,6 +11,7 @@ import jp.co.soramitsu.walletconnect.impl.protocol.WcStoredSession
 import jp.co.soramitsu.walletconnect.impl.protocol.WcStoredSessionNamespace
 import jp.co.soramitsu.walletconnect.impl.protocol.WcStoredState
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -19,6 +20,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.IOException
 import java.security.GeneralSecurityException
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
 class ReownSessionImporterTest {
 
@@ -27,7 +32,7 @@ class ReownSessionImporterTest {
     private val source = ReownFixtureSource()
     private val attempts = MemoryImportAttempts()
     private val storage = WcMemoryStorage()
-    private val logs = mutableListOf<String>()
+    private val logs = CopyOnWriteArrayList<String>()
 
     private fun importer(from: ReownLegacySource = source) =
         ReownSessionImporter(source = from, attempts = attempts, nowSeconds = { now }, log = { logs += it })
@@ -170,6 +175,113 @@ class ReownSessionImporterTest {
 
         assertEquals(ReownImportResult.Failed(ReownImportFailure.STORAGE_UNAVAILABLE), result)
         assertEquals(0, attempts.value)
+    }
+
+    @Test
+    fun `a save that does not read back with everything is not counted as done, and a later start imports again`() {
+        val forgetful = object : WalletConnectStateStorage {
+            override fun read(): String? = null
+
+            override fun write(json: String) = Unit // accepted, but never kept
+
+            override fun clear() = Unit
+        }
+        val lossy = object : WalletConnectStateStorage {
+            var json: String? = null
+
+            override fun read(): String? = json
+
+            override fun write(json: String) {
+                val state = WcStoredStateJson.decodeOrEmpty(json)
+                this.json = WcStoredStateJson.encode(state.copy(sessions = state.sessions.drop(1)))
+            }
+
+            override fun clear() = Unit
+        }
+
+        listOf(forgetful, lossy).forEach { broken ->
+            val result = runBlocking { importer().importInto(broken) }
+            assertEquals(ReownImportResult.Failed(ReownImportFailure.NOT_SAVED), result)
+            assertFalse(result.allowsCleanup)
+        }
+
+        // No mark may stay behind without everything it vouches for, or a later start would allow the cleanup.
+        assertNull(ReownImportMarker.read(WcStoredStateJson.decodeOrEmpty(lossy.json)))
+        assertEquals(2, attempts.value)
+        assertTrue(runBlocking { importer().importInto(storage) } is ReownImportResult.Imported)
+    }
+
+    @Test
+    fun `a caller that stops waiting is released at once, and the import then writes nothing`() {
+        val release = CountDownLatch(1)
+        val done = CountDownLatch(1)
+        val hung = ReownFixtureSource(beforeRead = { release.await() })
+        val importer = ReownSessionImporter(hung, attempts, { now }, log = { line ->
+            logs += line
+            done.countDown()
+        })
+
+        val started = System.nanoTime()
+        val result = runBlocking { withTimeoutOrNull(200) { importer.importInto(storage) } }
+        val waitedMillis = (System.nanoTime() - started) / 1_000_000
+        release.countDown()
+
+        assertNull(result)
+        assertTrue("the caller waited $waitedMillis ms", waitedMillis < 10_000)
+        assertTrue(done.await(60, TimeUnit.SECONDS))
+        assertTrue(logs.single(), logs.single().startsWith("Reown import failed: CANCELLED"))
+        assertNull(storage.json)
+        assertEquals(0, storage.writes)
+        assertTrue(hung.hasLegacyData())
+    }
+
+    @Test
+    fun `closing the gate stops writes that have not started and waits for one under way`() {
+        val gate = ReownImportWriteGate()
+        val writing = CountDownLatch(1)
+        val finish = CountDownLatch(1)
+        val closed = CountDownLatch(1)
+        val writer = thread {
+            gate.ifOpen {
+                writing.countDown()
+                finish.await()
+                "written"
+            }
+        }
+        assertTrue(writing.await(10, TimeUnit.SECONDS))
+
+        thread {
+            gate.close()
+            closed.countDown()
+        }
+        assertFalse(closed.await(300, TimeUnit.MILLISECONDS))
+        finish.countDown()
+        assertTrue(closed.await(10, TimeUnit.SECONDS))
+        writer.join()
+
+        assertNull(gate.ifOpen { "too late" })
+    }
+
+    @Test
+    fun `closing the gate is never held longer than its wait by a write that hangs`() {
+        val gate = ReownImportWriteGate(closeWaitMillis = 100)
+        val writing = CountDownLatch(1)
+        val finish = CountDownLatch(1)
+        thread(isDaemon = true) {
+            gate.ifOpen {
+                writing.countDown()
+                finish.await()
+                "written"
+            }
+        }
+        assertTrue(writing.await(10, TimeUnit.SECONDS))
+
+        val started = System.nanoTime()
+        gate.close()
+        val heldMillis = (System.nanoTime() - started) / 1_000_000
+        finish.countDown()
+
+        assertTrue("close() was held $heldMillis ms", heldMillis < 5_000)
     }
 
     @Test

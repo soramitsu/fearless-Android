@@ -3,8 +3,14 @@ package jp.co.soramitsu.walletconnect.impl.data.legacy
 import android.content.SharedPreferences
 import jp.co.soramitsu.walletconnect.impl.protocol.WalletConnectStateStorage
 import jp.co.soramitsu.walletconnect.impl.protocol.WcStoredState
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /** What the removed Reown SDK left on the device, read without changing any of it. */
 internal interface ReownLegacySource {
@@ -39,6 +45,12 @@ internal interface ReownImportAttempts {
 internal enum class ReownImportFailure {
     /** The client's storage could not be read or written now (for example the wallet key is unavailable); retried. */
     STORAGE_UNAVAILABLE,
+
+    /** The state was written but did not read back with the mark and every record and key; retried on a later start. */
+    NOT_SAVED,
+
+    /** The caller stopped waiting (its timeout) before the import could write; nothing was written. */
+    CANCELLED,
 
     /** The SDK's data could not be read or decrypted; retried on later starts, up to the attempt limit. */
     LEGACY_UNREADABLE,
@@ -100,6 +112,8 @@ internal object ReownImportMarker {
  * the SDK's is written, renamed or deleted here.
  * - The import and its [ReownImportMarker] are one atomic write of the client's state, and merging never
  *   replaces a topic the state has, so it is idempotent and safe against the app being killed at any point.
+ * - What was written is read back as the client will load it; only when the mark and every record with
+ *   its key are there does the import count as done.
  * - Cleanup may follow only when everything usable is saved ([ReownImportResult.allowsCleanup]).
  * - It never throws for what it reads: on any failure the SDK's files stay, WalletConnect starts without
  *   the old sessions, the outcome is logged as codes, and a later start tries again, [MAX_ATTEMPTS] times
@@ -111,15 +125,31 @@ internal class ReownSessionImporter(
     private val nowSeconds: () -> Long,
     private val log: (String) -> Unit = {},
     private val decoder: SqlCipherDatabaseDecoder = SqlCipherDatabaseDecoder(),
-    private val reader: ReownLegacySnapshotReader = ReownLegacySnapshotReader()
+    private val reader: ReownLegacySnapshotReader = ReownLegacySnapshotReader(),
+    private val background: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 ) {
 
-    /** Imports into [storage], the client's own storage; call before the client starts. */
-    suspend fun importInto(storage: WalletConnectStateStorage): ReownImportResult = withContext(Dispatchers.IO) {
-        importBlocking(storage).also { log(describe(it)) }
+    /**
+     * Imports into [storage], the client's own storage; call before the client starts. The SDK's data is
+     * read off the caller's coroutine, so a caller that stops waiting (its timeout) is released at once,
+     * even while a Keystore call hangs. From then on nothing is written: the import may finish reading, but
+     * it leaves the client's state alone, and a write already under way is finished before the caller goes on.
+     */
+    suspend fun importInto(storage: WalletConnectStateStorage): ReownImportResult {
+        val gate = ReownImportWriteGate()
+        val work = background.async { importBlocking(storage, gate).also { log(describe(it)) } }
+        return try {
+            work.await()
+        } catch (cancelled: CancellationException) {
+            gate.close()
+            throw cancelled
+        }
     }
 
-    internal fun importBlocking(storage: WalletConnectStateStorage): ReownImportResult {
+    internal fun importBlocking(
+        storage: WalletConnectStateStorage,
+        gate: ReownImportWriteGate = ReownImportWriteGate()
+    ): ReownImportResult {
         val current = readState(storage)
         val marker = current?.let(ReownImportMarker::read)
         return when {
@@ -127,17 +157,48 @@ internal class ReownSessionImporter(
             marker != null -> ReownImportResult.AlreadyImported(keepsLegacyFiles = marker)
             !source.hasLegacyData() -> ReownImportResult.NothingToImport
             attempts.count() >= MAX_ATTEMPTS -> ReownImportResult.Failed(ReownImportFailure.GAVE_UP)
-            else -> attempt(storage, current)
+            else -> attempt(storage, current, gate)
         }
     }
 
-    private fun attempt(storage: WalletConnectStateStorage, current: WcStoredState): ReownImportResult {
+    private fun attempt(
+        storage: WalletConnectStateStorage,
+        current: WcStoredState,
+        gate: ReownImportWriteGate
+    ): ReownImportResult {
         attempts.record()
         val snapshot = readSnapshotOrNull() ?: return ReownImportResult.Failed(ReownImportFailure.LEGACY_UNREADABLE)
         val (merged, summary) = ReownLegacyStateImport.merge(current, snapshot, nowSeconds())
-        val saved = write(storage, ReownImportMarker.mark(merged, keepLegacyFiles = !summary.isComplete))
-        if (!saved) attempts.refund()
-        return if (saved) ReownImportResult.Imported(summary) else ReownImportResult.Failed(ReownImportFailure.STORAGE_UNAVAILABLE)
+        val marked = ReownImportMarker.mark(merged, keepLegacyFiles = !summary.isComplete)
+        // A caller that stopped waiting may have started the client already; its state is then left alone.
+        return gate.ifOpen { save(storage, SaveRequest(marked, current, summary)) }
+            ?: ReownImportResult.Failed(ReownImportFailure.CANCELLED)
+    }
+
+    private class SaveRequest(val state: WcStoredState, val previous: WcStoredState, val summary: ReownImportSummary)
+
+    // One write of the whole state, then a read as the client's next start will load it. A mark that did not
+    // read back with everything must not stay: the state from before is put back, as far as the storage lets.
+    private fun save(storage: WalletConnectStateStorage, request: SaveRequest): ReownImportResult = when {
+        !write(storage, request.state) -> {
+            attempts.refund()
+            ReownImportResult.Failed(ReownImportFailure.STORAGE_UNAVAILABLE)
+        }
+        !holdsEverything(readState(storage), request.state) -> {
+            write(storage, request.previous)
+            ReownImportResult.Failed(ReownImportFailure.NOT_SAVED)
+        }
+        else -> ReownImportResult.Imported(request.summary)
+    }
+
+    // Whether [loaded] has the import's mark and every pairing, session and key of [written], and the same identity.
+    private fun holdsEverything(loaded: WcStoredState?, written: WcStoredState): Boolean {
+        if (loaded == null || ReownImportMarker.read(loaded) != ReownImportMarker.read(written)) return false
+        val sessionKeys = loaded.sessions.associate { it.topic to it.symKey }
+        val pairingKeys = loaded.pairings.associate { it.topic to it.symKey }
+        return loaded.clientSeed == written.clientSeed &&
+            written.sessions.all { sessionKeys[it.topic] == it.symKey } &&
+            written.pairings.all { pairingKeys[it.topic] == it.symKey }
     }
 
     // Any failure here leaves the SDK's data as it was; the exception itself is dropped because Keystore,
@@ -202,6 +263,36 @@ internal class ReownSessionImporter(
 
     companion object {
         const val MAX_ATTEMPTS = 3
+    }
+}
+
+/**
+ * Lets the import write only while its caller still waits. Once [close]d, no write starts. Closing while a
+ * write is under way waits for it, up to [closeWaitMillis], so the caller does not start the client in the
+ * middle of the import's write, yet is never held for long, even by a write stuck in the Keystore. Should the
+ * wait run out, the import's records may be overwritten by the client; the SDK's files then stay (the caller
+ * gave up, so it does not clean up) and a later start imports them again.
+ */
+internal class ReownImportWriteGate(private val closeWaitMillis: Long = CLOSE_WAIT_MILLIS) {
+    private val lock = ReentrantLock()
+
+    @Volatile
+    private var open = true
+
+    fun close() {
+        open = false
+        try {
+            if (lock.tryLock(closeWaitMillis, TimeUnit.MILLISECONDS)) lock.unlock()
+        } catch (interrupted: InterruptedException) {
+            Thread.currentThread().interrupt()
+        }
+    }
+
+    /** Runs [write] and returns its result while the gate is open; null, without running it, once closed. */
+    fun <T : Any> ifOpen(write: () -> T): T? = lock.withLock { if (open) write() else null }
+
+    companion object {
+        const val CLOSE_WAIT_MILLIS = 2_000L
     }
 }
 
