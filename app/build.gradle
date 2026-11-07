@@ -450,8 +450,12 @@ android {
         }
     }
     lint {
-        disable 'Instantiatable'
-        fatal 'CredentialDependency', 'TrustAllX509TrustManager'
+        // CredentialDependency asks for credentials-play-services-auth, the closed-source Google Play
+        // services provider for Credential Manager on Android 13 and older. 4.3.2 ships no Play services:
+        // Google Drive signs in through the browser, and Credential Manager is used only by passkey backup,
+        // which stays compiled off; enabled, it would rely on the platform provider (Android 14+).
+        disable 'Instantiatable', 'CredentialDependency'
+        fatal 'TrustAllX509TrustManager'
         checkReleaseBuilds true
         abortOnError true
     }
