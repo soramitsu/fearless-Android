@@ -11,7 +11,9 @@ import java.io.File
  * - web3j's Keys.createEcKeyPair(), WalletUtils, Bip44WalletUtils and Wallet.create reach SecureRandomUtils, whose
  *   class initializer installs LinuxSecureRandom as the process-wide SecureRandom provider on Android.
  * - Key material stays out of ton-kotlin and curve25519-kotlin: TON phrases, keys and signatures go through
- *   jp.co.soramitsu.fearless_utils.encrypt.ton (BouncyCastle).
+ *   jp.co.soramitsu.fearless_utils.encrypt.ton (BouncyCastle). The app does not package curve25519-kotlin, so
+ *   every ton-kotlin path into it is listed here: its three org.ton.crypto Ed25519 classes, the org.ton.api key
+ *   types that wrap them, ADNL and the lite client, and the ton-kotlin wallet contracts.
  * - SpongyCastle and EdDSA-Java left the build in 4.3.2.
  */
 class CryptoLibraryUsageGuardTest {
@@ -24,11 +26,13 @@ class CryptoLibraryUsageGuardTest {
         Regex("""\bLinuxSecureRandom\b""") to "web3j LinuxSecureRandom replaces the process RNG",
         Regex("""\borg\.web3j\.crypto\.Wallet\b""") to "web3j Wallet.create reaches SecureRandomUtils",
         Regex("""\borg\.ton\.mnemonic\b""") to "TON phrases go through TonMnemonic",
-        Regex("""\borg\.ton\.api\.pk\b""") to "TON private keys go through TonEd25519",
-        Regex("""\borg\.ton\.api\.pub\.PublicKeyEd25519\b""") to "TON public keys are plain bytes",
-        Regex("""\borg\.ton\.crypto\.(Ed25519|EncryptorEd25519|DecryptorEd25519|SecureRandom)\b""") to "TON keys go through TonEd25519",
-        Regex("""\borg\.ton\.contract\.wallet\.WalletV[0-9]R[0-9]Contract\b""") to "ton-kotlin wallet contracts sign with ton-kotlin keys",
-        Regex("""\bio\.github\.andreypfau\.curve25519\b""") to "curve25519-kotlin is not used for keys",
+        Regex("""\borg\.ton\.api\b""") to "TON keys go through TonEd25519; ton-kotlin's key types need curve25519-kotlin",
+        Regex("""\borg\.ton\.(adnl|lite\.client)\b""") to "ADNL and the lite client need curve25519-kotlin",
+        Regex("""\borg\.ton\.crypto\.(?:(?:Ed25519|EncryptorEd25519|DecryptorEd25519|SecureRandom)\b|\*)""") to
+            "TON keys go through TonEd25519",
+        Regex("""\borg\.ton\.contract\.wallet\.(?:(?:WalletContract|WalletContractKt|WalletV[0-9]R[0-9]Contract|transfer)\b|\*)""") to
+            "ton-kotlin wallet contracts sign with ton-kotlin keys",
+        Regex("""\bio\.github\.andreypfau\.curve25519\b""") to "curve25519-kotlin is not packaged in the app",
         Regex("""\borg\.spongycastle\b""") to "SpongyCastle was removed",
         Regex("""\bnet\.i2p\.crypto\b""") to "EdDSA-Java was removed"
     )
@@ -56,11 +60,19 @@ class CryptoLibraryUsageGuardTest {
         val samples = listOf(
             "Keys.createEcKeyPair()", "WalletUtils.generateNewWalletFile(p, d)", "Bip44WalletUtils.generateBip44Wallet(p, d)",
             "import org.web3j.crypto.Wallet", "org.ton.mnemonic.Mnemonic.toSeed(words)", "import org.ton.api.pk.PrivateKeyEd25519",
-            "org.ton.crypto.Ed25519.sign(k, m)", "import io.github.andreypfau.curve25519.ed25519.Ed25519",
+            "import org.ton.api.pub.PublicKey", "import org.ton.api.adnl.AdnlNode", "import org.ton.lite.client.LiteClient",
+            "import org.ton.adnl.connection.AdnlClient", "org.ton.crypto.Ed25519.sign(k, m)", "import org.ton.crypto.*",
+            "import org.ton.contract.wallet.WalletV4R2Contract", "import org.ton.contract.wallet.WalletContract",
+            "import org.ton.contract.wallet.transfer", "import org.ton.contract.wallet.*",
+            "import io.github.andreypfau.curve25519.ed25519.Ed25519",
             "import org.spongycastle.util.encoders.Hex", "import net.i2p.crypto.eddsa.EdDSAEngine"
         )
         samples.forEach { sample -> assertTrue(sample, forbidden.any { (pattern, _) -> pattern.containsMatchIn(sample) }) }
-        listOf("import org.web3j.crypto.WalletFile", "Keys.toChecksumAddress(a)", "import org.ton.cell.Cell").forEach { allowed ->
+        listOf(
+            "import org.web3j.crypto.WalletFile", "Keys.toChecksumAddress(a)", "import org.ton.cell.Cell", "import org.ton.crypto.hex",
+            "import org.ton.contract.wallet.WalletTransferBuilder", "import org.ton.contract.wallet.MessageData",
+            "import org.ton.block.AddrStd"
+        ).forEach { allowed ->
             assertTrue(allowed, forbidden.none { (pattern, _) -> pattern.containsMatchIn(allowed) })
         }
     }
