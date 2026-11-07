@@ -2,6 +2,7 @@ package jp.co.soramitsu.walletconnect.impl.data.legacy
 
 import jp.co.soramitsu.walletconnect.impl.data.legacy.LegacyFixtures.bytes
 import jp.co.soramitsu.walletconnect.impl.data.legacy.LegacyFixtures.section
+import jp.co.soramitsu.walletconnect.impl.protocol.WalletConnectStateStorage
 import jp.co.soramitsu.walletconnect.impl.protocol.WcLimits
 import jp.co.soramitsu.walletconnect.impl.protocol.WcMemoryStorage
 import jp.co.soramitsu.walletconnect.impl.protocol.WcStoredMetadata
@@ -21,39 +22,62 @@ import java.security.GeneralSecurityException
 
 class ReownSessionImporterTest {
 
-    private val now = section("reown")["now"].asLong
+    private val reown = section("reown")
+    private val now = reown["now"].asLong
     private val source = ReownFixtureSource()
-    private val ledger = MemoryImportLedger()
+    private val attempts = MemoryImportAttempts()
     private val storage = WcMemoryStorage()
+    private val logs = mutableListOf<String>()
 
-    private fun importer() = ReownSessionImporter(source = source, ledger = ledger, nowSeconds = { now })
+    private fun importer(from: ReownLegacySource = source) =
+        ReownSessionImporter(source = from, attempts = attempts, nowSeconds = { now }, log = { logs += it })
+
+    private fun storedState() = WcStoredStateJson.decodeOrEmpty(storage.json)
 
     @Test
-    fun `the first start imports what the SDK kept and lets the cleanup run`() {
+    fun `the first start imports what the SDK kept and its mark in one write, and lets the cleanup run`() {
         val result = runBlocking { importer().importInto(storage) }
 
         val summary = (result as ReownImportResult.Imported).summary
         assertEquals(listOf(4, 1, 2), listOf(summary.sessions, summary.expiredSessions, summary.pairings))
         assertTrue(summary.identity)
         assertTrue(result.allowsCleanup)
-        assertTrue(ledger.isDone)
-        assertFalse(ledger.keepsLegacyFiles)
-        val state = WcStoredStateJson.decodeOrEmpty(storage.json)
-        assertEquals(4, state.sessions.size)
         assertEquals(1, storage.writes)
+        val state = storedState()
+        assertEquals(4, state.sessions.size)
+        assertEquals(false, ReownImportMarker.read(state))
     }
 
     @Test
-    fun `later starts do nothing`() {
+    fun `an app killed after the import was saved does not import again, and the cleanup still runs`() {
         runBlocking { importer().importInto(storage) }
-        val stored = storage.json
+        val saved = storage.json
+        val reads = source.keyChainReads
 
+        // The app dies here, before LegacyWalletConnectSdkCleanup ran; the SDK's files are all still there.
         val again = runBlocking { importer().importInto(storage) }
 
         assertEquals(ReownImportResult.AlreadyImported(keepsLegacyFiles = false), again)
         assertTrue(again.allowsCleanup)
-        assertEquals(stored, storage.json)
+        assertEquals(saved, storage.json)
         assertEquals(1, storage.writes)
+        assertEquals(reads, source.keyChainReads)
+    }
+
+    @Test
+    fun `an app killed before the import was saved imports again without duplicates or mixed-up keys`() {
+        // What a first run may have left without its mark: the same sessions, one of them with a key of the client's own.
+        val (partial, _) = ReownLegacyStateImport.merge(WcStoredState(), snapshotOf(source), now)
+        val own = partial.sessions.first().copy(symKey = "11".repeat(32))
+        storage.json = WcStoredStateJson.encode(partial.copy(sessions = listOf(own) + partial.sessions.drop(1)))
+
+        val result = runBlocking { importer().importInto(storage) }
+
+        assertTrue(result is ReownImportResult.Imported)
+        val state = storedState()
+        assertEquals(partial.sessions.map { it.topic }, state.sessions.map { it.topic })
+        assertEquals(own, state.sessions.first())
+        assertEquals(false, ReownImportMarker.read(state))
     }
 
     @Test
@@ -64,26 +88,40 @@ class ReownSessionImporterTest {
 
         assertEquals(ReownImportResult.NothingToImport, result)
         assertTrue(result.allowsCleanup)
-        assertTrue(ledger.isDone)
         assertNull(storage.json)
+        assertEquals(0, attempts.value)
     }
 
     @Test
-    fun `unreadable SDK data fails, keeps the cleanup off, and gives up after three attempts`() {
+    fun `unreadable SDK data fails without writing, keeps the cleanup off, and stops after three attempts`() {
         source.failure = GeneralSecurityException("keystore says no")
 
-        repeat(ReownSessionImporter.MAX_FAILED_ATTEMPTS) {
+        repeat(ReownSessionImporter.MAX_ATTEMPTS) {
             val result = runBlocking { importer().importInto(storage) }
             assertEquals(ReownImportResult.Failed(ReownImportFailure.LEGACY_UNREADABLE), result)
             assertFalse(result.allowsCleanup)
         }
         source.failure = null
+        val reads = source.keyChainReads
         val final = runBlocking { importer().importInto(storage) }
 
         assertEquals(ReownImportResult.Failed(ReownImportFailure.GAVE_UP), final)
         assertFalse(final.allowsCleanup)
-        assertFalse(ledger.isDone)
+        assertEquals(reads, source.keyChainReads)
         assertNull(storage.json)
+        assertTrue(source.hasLegacyData())
+    }
+
+    @Test
+    fun `an import that crashes the app still uses up an attempt, so it cannot become a crash loop`() {
+        source.failure = OutOfMemoryError("simulated crash while reading")
+
+        repeat(ReownSessionImporter.MAX_ATTEMPTS) {
+            assertThrows(OutOfMemoryError::class.java) { importer().importBlocking(storage) }
+        }
+
+        assertEquals(ReownImportResult.Failed(ReownImportFailure.GAVE_UP), importer().importBlocking(storage))
+        assertEquals(ReownSessionImporter.MAX_ATTEMPTS, source.keyChainReads)
     }
 
     @Test
@@ -96,25 +134,41 @@ class ReownSessionImporterTest {
         )
         cases.forEach { breakIt ->
             val broken = ReownFixtureSource().apply(breakIt)
-            val result = runBlocking { ReownSessionImporter(broken, MemoryImportLedger(), { now }).importInto(storage) }
+            val result = runBlocking { ReownSessionImporter(broken, MemoryImportAttempts(), { now }).importInto(storage) }
             assertEquals(ReownImportResult.Failed(ReownImportFailure.LEGACY_UNREADABLE), result)
         }
         assertNull(storage.json)
     }
 
     @Test
-    fun `client storage that cannot be used now is retried without using up an attempt`() {
+    fun `client storage that cannot be read now is retried later without using up an attempt`() {
         storage.unreadable = true
 
         val result = runBlocking { importer().importInto(storage) }
 
         assertEquals(ReownImportResult.Failed(ReownImportFailure.STORAGE_UNAVAILABLE), result)
         assertFalse(result.allowsCleanup)
-        assertEquals(0, ledger.failedAttempts)
-        assertFalse(ledger.isDone)
+        assertEquals(0, attempts.value)
+        assertEquals(0, source.keyChainReads)
 
         storage.unreadable = false
         assertTrue(runBlocking { importer().importInto(storage) } is ReownImportResult.Imported)
+    }
+
+    @Test
+    fun `a save that fails gives the attempt back and saves nothing`() {
+        val failing = object : WalletConnectStateStorage {
+            override fun read(): String? = null
+
+            override fun write(json: String) = throw IllegalStateException("WalletConnect state could not be stored")
+
+            override fun clear() = Unit
+        }
+
+        val result = runBlocking { importer().importInto(failing) }
+
+        assertEquals(ReownImportResult.Failed(ReownImportFailure.STORAGE_UNAVAILABLE), result)
+        assertEquals(0, attempts.value)
     }
 
     @Test
@@ -124,7 +178,7 @@ class ReownSessionImporterTest {
 
         runBlocking { importer().importInto(storage) }
 
-        val state = WcStoredStateJson.decodeOrEmpty(storage.json)
+        val state = storedState()
         assertEquals(own, state.pairings.first())
         assertEquals(3, state.pairings.size)
         assertEquals("ef".repeat(32), state.clientSeed)
@@ -153,7 +207,7 @@ class ReownSessionImporterTest {
 
         assertTrue(result is ReownImportResult.Imported)
         assertFalse(result.allowsCleanup)
-        assertTrue(ledger.isDone && ledger.keepsLegacyFiles)
+        assertEquals(true, ReownImportMarker.read(storedState()))
         val later = runBlocking { importer().importInto(storage) }
         assertEquals(ReownImportResult.AlreadyImported(keepsLegacyFiles = true), later)
         assertFalse(later.allowsCleanup)
@@ -165,6 +219,20 @@ class ReownSessionImporterTest {
 
         assertTrue(source.handedOutPassphrases.isNotEmpty())
         assertTrue(source.handedOutPassphrases.all { key -> key.all { it.toInt() == 0 } })
+    }
+
+    @Test
+    fun `every outcome is logged as counts and codes, never a topic or key`() {
+        runBlocking { importer().importInto(storage) }
+        runBlocking { importer().importInto(storage) }
+        source.failure = GeneralSecurityException("keystore says no")
+        runBlocking { importer().importInto(WcMemoryStorage()) }
+
+        assertTrue(logs[0], logs[0].startsWith("Reown import: 4 sessions (1 expired), 2 pairings, identity true"))
+        assertTrue(logs[1], logs[1].startsWith("Reown import: done earlier"))
+        assertTrue(logs[2], logs[2].startsWith("Reown import failed: LEGACY_UNREADABLE"))
+        val secrets = ReownFixtureSource.fixtureKeyChain().flatMap { (tag, value) -> listOf(tag, value) }.filter { it.length >= 32 }
+        assertTrue(logs.none { line -> secrets.any { it.take(16) in line } || "keystore" in line })
     }
 
     @Test
@@ -185,5 +253,17 @@ class ReownSessionImporterTest {
         listOf(byteArrayOf(0, 0), byteArrayOf(0, 0, 0, 99) + iv, byteArrayOf(0, 0, 0, 12) + iv).forEach { bad ->
             assertThrows(LegacyDatabaseException::class.java) { unwrapDatabasePassphrase(bad) { _, _ -> ByteArray(0) } }
         }
+    }
+
+    private fun snapshotOf(fixture: ReownFixtureSource): ReownLegacySnapshot {
+        val decoder = SqlCipherDatabaseDecoder()
+        val key = requireNotNull(fixture.passphrase())
+        return ReownLegacySnapshotReader().read(
+            ReownLegacySources(
+                keyChain = fixture.keyChain,
+                signDatabase = SqliteDatabaseImage(decoder.decode(fixture.databases.getValue(ReownLegacySnapshotReader.SIGN_DATABASE), key)),
+                coreDatabase = SqliteDatabaseImage(decoder.decode(fixture.databases.getValue(ReownLegacySnapshotReader.CORE_DATABASE), key))
+            )
+        )
     }
 }

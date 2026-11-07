@@ -13,13 +13,15 @@ internal class ReownFixtureSource(
         ReownLegacySnapshotReader.SIGN_DATABASE to LegacyDatabaseFiles(bytes("reown-sign.db")),
         ReownLegacySnapshotReader.CORE_DATABASE to LegacyDatabaseFiles(bytes("reown-core.db"))
     ),
-    var failure: Exception? = null
+    var failure: Throwable? = null
 ) : ReownLegacySource {
     val handedOutPassphrases = mutableListOf<ByteArray>()
+    var keyChainReads = 0
 
     override fun hasLegacyData(): Boolean = hasData
 
     override fun readKeyChain(): Map<String, String> {
+        keyChainReads += 1
         failure?.let { throw it }
         return keyChain
     }
@@ -34,18 +36,15 @@ internal class ReownFixtureSource(
     }
 }
 
-/** A ledger in memory. */
-internal class MemoryImportLedger(
-    override var isDone: Boolean = false,
-    override var keepsLegacyFiles: Boolean = false,
-    override var failedAttempts: Int = 0
-) : ReownImportLedger {
-    override fun markDone(keepLegacyFiles: Boolean) {
-        isDone = true
-        keepsLegacyFiles = keepLegacyFiles
+/** Attempts in memory. */
+internal class MemoryImportAttempts(var value: Int = 0) : ReownImportAttempts {
+    override fun count(): Int = value
+
+    override fun record() {
+        value += 1
     }
 
-    override fun recordFailedAttempt() {
-        failedAttempts += 1
+    override fun refund() {
+        value = (value - 1).coerceAtLeast(0)
     }
 }

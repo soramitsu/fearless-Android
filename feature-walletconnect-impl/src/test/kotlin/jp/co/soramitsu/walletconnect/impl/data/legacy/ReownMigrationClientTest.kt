@@ -126,7 +126,7 @@ class ReownMigrationClientTest {
 
     private fun migratedClient(): WalletConnectClient {
         val imported = runBlocking {
-            ReownSessionImporter(ReownFixtureSource(), MemoryImportLedger(), nowSeconds = { now }).importInto(storage)
+            ReownSessionImporter(ReownFixtureSource(), MemoryImportAttempts(), nowSeconds = { now }).importInto(storage)
         }
         check(imported is ReownImportResult.Imported) { "import failed: $imported" }
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default).also { scopes += it }

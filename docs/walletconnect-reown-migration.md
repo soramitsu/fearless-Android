@@ -57,16 +57,28 @@ file format:
 - **Logs and results** carry only fixed codes (`ReownSkipReason`, `ReownImportFailure`), never a topic,
   key, payload or exception text.
 
-On any failure, the starter leaves every SDK file where it is and the app starts normally:
-- an unreadable or damaged legacy store counts as an attempt; after three attempts the importer stops
-  trying;
-- client storage that is unavailable is retried without counting.
+**Crash safety.** The import and its marker are one atomic write of the client's state. The marker
+sits among the state's `handled` entries and is never pruned, because its "forget after" time is
+Long.MAX_VALUE. As a result:
+- an app killed before that write imports again from nothing;
+- an app killed after it never imports twice;
+- merging never replaces a topic the state already has, so a repeat can neither duplicate a session nor
+  mix up keys.
 
-The worst case is that the user reconnects their dApps. `LegacyWalletConnectSdkCleanup` deletes the
-SDK's files only after an import was saved, or found nothing to import. If a live session or pairing had
-to be left out over a limit, the import is incomplete: the ledger remembers it, and the files are never
-deleted. Records that cannot be used at all are not counted as left out: a missing key, a key that does
-not match its topic, or no namespaces.
+**Failure policy.** On any failure, every SDK file stays where it is. WalletConnect still starts without
+the old sessions, and the outcome is logged as counts and codes. A later start tries again:
+- each attempt is counted before the SDK's data is read, so an import that crashes the app still uses one
+  up and cannot become a crash loop;
+- after three attempts it waits for the next app version;
+- an attempt that failed only on the client's own storage is given back.
+
+The worst case is that the user reconnects their dApps.
+
+**When cleanup runs.** `LegacyWalletConnectSdkCleanup` deletes the SDK's files only after the import was
+saved, or when there was nothing to import. If a live session or pairing had to be left out over a limit,
+the import is incomplete: the marker records it, and the files are never deleted. Records that cannot be
+used at all are not counted as left out: a missing key, a key that does not match its topic, or no
+namespaces.
 
 ## Tests
 
@@ -76,8 +88,12 @@ not match its topic, or no namespaces.
   - a transaction cut off mid-write;
   - committed and uncommitted WAL frames;
   - a plain database covering every record and b-tree shape.
-- **Unit tests** check the decoder and reader against the rows SQLCipher itself returns, the import
-  rules, the importer's failure handling, and the end-to-end path. In the end-to-end test,
+- **Unit tests** check:
+  - the decoder and reader against the rows SQLCipher itself returns;
+  - the import rules;
+  - the importer at each point the app can be killed, and its failure handling;
+  - that the marker survives the client's own writes;
+  - the end-to-end path. In the end-to-end test,
   `ReownMigrationClientTest` starts the in-repo client on imported state and answers dApp requests over
   the migrated sessions. It also checks that a session which expired while the app was off is reported
   once a listener exists.
