@@ -48,11 +48,12 @@ import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypair
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
+import jp.co.soramitsu.fearless_utils.encrypt.ton.TonEd25519
+import jp.co.soramitsu.fearless_utils.encrypt.ton.TonMnemonic
 import jp.co.soramitsu.fearless_utils.scale.toHexString
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.withLock
-import org.ton.api.pk.PrivateKeyEd25519
 
 /**
  * Generates collision-resistant identifiers for durable wallet mutations.
@@ -1253,15 +1254,18 @@ class WalletSecretMutationCoordinator private constructor(
             MnemonicCreator.fromWords(mnemonicText).words == mnemonicText
         }.getOrDefault(false)
         val validTonMnemonic = runCatching {
-            org.ton.mnemonic.Mnemonic.isValid(mnemonicWords)
+            TonMnemonic.isValid(mnemonicWords)
         }.getOrDefault(false)
         requireSecretBinding(validBip39Mnemonic || validTonMnemonic) {
             "A TON mnemonic is invalid"
         }
-        val mnemonicSeed = org.ton.mnemonic.Mnemonic.toSeed(mnemonicWords)
-        val derivedPrivateKey = PrivateKeyEd25519(mnemonicSeed)
-        val matchesNative = derivedPrivateKey.key.toByteArray().contentEquals(privateKey) &&
-            derivedPrivateKey.publicKey().key.toByteArray().contentEquals(publicKey)
+        val derivedPrivateKey = TonMnemonic.toSeed(mnemonicWords)
+        val matchesNative = try {
+            derivedPrivateKey.contentEquals(privateKey) &&
+                TonEd25519.publicKey(derivedPrivateKey).contentEquals(publicKey)
+        } finally {
+            derivedPrivateKey.fill(0)
+        }
         // A password wallet's universal TON key derives with its BIP39 passphrase.
         requireSecretBinding(
             matchesNative || validBip39Mnemonic && (listOf("") + universalPassphrases).distinct().any { passphrase ->

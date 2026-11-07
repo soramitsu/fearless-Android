@@ -817,6 +817,19 @@ tasks.register("verifyInternalAppSharingConfiguration") {
     }
 }
 
+// TON phrases, keys, signatures and comment key agreement run on BouncyCastle in runtime-utils
+// (TonMnemonic, TonEd25519). No app path reaches ton-kotlin's Ed25519 code, so its single-maintainer
+// curve library is not packaged. Unit and device test classpaths keep it: ton-kotlin is the reference
+// implementation the TON differential tests compare against.
+configurations.matching { configuration ->
+    configuration.name.endsWith('RuntimeClasspath') &&
+            !configuration.name.contains('UnitTest') &&
+            !configuration.name.contains('AndroidTest')
+}.configureEach {
+    exclude group: 'io.github.andreypfau', module: 'curve25519-kotlin'
+    exclude group: 'io.github.andreypfau', module: 'curve25519-kotlin-jvm'
+}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':core-db')

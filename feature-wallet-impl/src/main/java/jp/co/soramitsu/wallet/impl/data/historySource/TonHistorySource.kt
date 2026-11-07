@@ -14,7 +14,6 @@ import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import kotlin.math.abs
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
-import org.ton.api.pub.PublicKeyEd25519
 
 class TonHistorySource(
     private val tonRemoteSource: TonRemoteSource,
@@ -30,8 +29,7 @@ class TonHistorySource(
         chainAsset: Asset,
         accountAddress: String
     ): CursorPage<Operation> {
-        val tonPublicKey = PublicKeyEd25519(accountId)
-        val contract = V4R2WalletContract(tonPublicKey)
+        val contract = V4R2WalletContract(accountId)
         val (beforeLt, beforeHash) = if (cursor.isNullOrBlank()) {
             null to null
         } else {

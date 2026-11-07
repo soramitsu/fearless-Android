@@ -30,7 +30,7 @@ expect_failure() {
 expect_failure "release without strict provenance" "$AUDIT" --release
 
 cp "$ROOT_DIR/docs/binary-provenance.md" "$tmp_dir/provenance.md"
-sed -i.bak '/^| `runtime-utils\/libs\/polkaj-scale-0.2.3.jar` |/d' "$tmp_dir/provenance.md"
+sed -i.bak '/^| `gradle\/wrapper\/gradle-wrapper.jar` |/d' "$tmp_dir/provenance.md"
 expect_failure "undocumented allowlisted binary" env \
   PUBLIC_ARTIFACT_PROVENANCE_DOC="$tmp_dir/provenance.md" \
   "$AUDIT" --strict-provenance
@@ -38,6 +38,12 @@ expect_failure "undocumented allowlisted binary" env \
 cp "$ROOT_DIR/docs/binary-provenance.md" "$tmp_dir/provenance.md"
 printf '%s\n' '| `app/src/main/jniLibs/obsolete/libstale.so` | `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa` |' >> "$tmp_dir/provenance.md"
 expect_failure "stale extra provenance row" env \
+  PUBLIC_ARTIFACT_PROVENANCE_DOC="$tmp_dir/provenance.md" \
+  "$AUDIT" --strict-provenance
+
+cp "$ROOT_DIR/docs/binary-provenance.md" "$tmp_dir/provenance.md"
+printf '%s\n' '| `runtime-utils/libs/polkaj-scale-0.2.3.jar` | `bea0f3904fef83497b9e5802f36408663a4aba462bf63ded38b89a5f22befa4d` |' >> "$tmp_dir/provenance.md"
+expect_failure "retired polkaj-scale jar row" env \
   PUBLIC_ARTIFACT_PROVENANCE_DOC="$tmp_dir/provenance.md" \
   "$AUDIT" --strict-provenance
 

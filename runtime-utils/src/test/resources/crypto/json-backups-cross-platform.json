@@ -1,0 +1,102 @@
+{
+  "source": "Fearless iOS fearlessTests/KeystoreDefinition/Resources at bb9c50d297a130d9b6d0fed6ff4790dbbe126cc3 (passwords from fearlessTests/Constants.swift) and keyring entries written by Fearless Wallet for the web 1.3.1, 2.0.1, 2.6.3 and 2.7.1, from fearless-wallet-web tests/fixtures/upgrade at 1d511890fb703ad7454505ad6cc185dd0967b7ad (synthetic secrets only). Both repositories are Apache-2.0.",
+  "backups": [
+    {
+      "input": "fearless-iOS fearlessTests/KeystoreDefinition/Resources/validSrKeystore.json",
+      "writtenBy": "Fearless iOS test keystore",
+      "password": "test5",
+      "json": "{\"address\":\"FMN7zMySGxiWrDuPDkf1jrGoF9szj9igADV8V9pXUwbzDwB\",\"encoded\":\"iBuxjCbMpKPvEGfDOuoT0ysF97PrHUqD6doj9Zcf//QAgAAAAQAAAAgAAADcNAYEnNvLMxu1THSwps04uYmmYeutsA3yCWS70y+LRXyu8VUhCMtkY/30HOqnvvkm/dgR9s5ZFn/n+arKQ9RgtigWqNStt4JxQdb+bwuc/SRXuIO4JEf2dRZOsNtQusf+9zQwrWqLmQpX6EBHVS5E3RPxRBw0qRPygKe0i/T+dRPQntcU0AYhuGRswWE8TREY5gcynPJpx2l1OnGT\",\"encoding\":{\"content\":[\"pkcs8\",\"sr25519\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"meta\":{\"genesisHash\":\"0xb0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe\",\"name\":\"Test5\",\"tags\":[],\"whenCreated\":1596785222977}}"
+    },
+    {
+      "input": "fearless-iOS fearlessTests/KeystoreDefinition/Resources/validEd25519Keystore.json",
+      "writtenBy": "Fearless iOS test keystore",
+      "password": "test2",
+      "json": "{\"address\":\"HWbiVou2cbE5BsJU57Tz7xjF6b5KPNKfnBSjPStdoSbYX3p\",\"encoded\":\"Sxmafgjn8zpTe94Us5wfnvlef2YhQgqhf2U23BIBPzgAgAAAAQAAAAgAAAC0jvnClRWY5+nJgDYIkE7w4o2xdqPAsqfvvOaZGYxyo0gWpnci0cFvPENZmZjuacGboN6glyX4AYai1DnTlkPD2q7dV0TY9ZLlAidtOooH7/5Q4BYafEj3Y/+du4fjirR19y1uxbJ3YHBWtD0WT+HxYXuEv/zW4RofWvQyrKxmEnkQkcMMW/Q3u9niDqIilKG/JWH4mvuH/Mkbfm/J\",\"encoding\":{\"content\":[\"pkcs8\",\"ed25519\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"meta\":{\"genesisHash\":\"0xb0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe\",\"name\":\"Test2\",\"tags\":[],\"whenCreated\":1596701856609}}\n"
+    },
+    {
+      "input": "fearless-iOS fearlessTests/KeystoreDefinition/Resources/validEcdsaKeystore.json",
+      "writtenBy": "Fearless iOS test keystore",
+      "password": "test3",
+      "json": "{\"address\":\"DtmzyPuecAogZwDHT4rmBKGR7u4tLT1TtrjjvbQUaDJEhiF\",\"encoded\":\"MjwvHCGVITtL6stXsfpUn+tGzw2DFb4gHuxBSgl+BNEAgAAAAQAAAAgAAABhMQNTZZexGvhqb4FY3uauPM0AHnBufATBqebPgAzgRt+/mP1htYdQLd+x7td9F+kuN5eImcxqTyBkMD6MEuwmdkBfEmlAhv+uXdpOQscBq4gQlrbNGoKNGm+mk2+PrNmuaDx8sewqsaoMvteWM5k0m71BVYVjGojnaIHekAo=\",\"encoding\":{\"content\":[\"pkcs8\",\"ecdsa\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"meta\":{\"genesisHash\":\"0xb0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe\",\"name\":\"Test3\",\"tags\":[],\"whenCreated\":1596702445636}}\n"
+    },
+    {
+      "input": "fearless-iOS fearlessTests/KeystoreDefinition/Resources/validEthereumKeystore.json",
+      "writtenBy": "Fearless iOS test keystore",
+      "password": "123",
+      "json": "{\"address\":\"0xc05f06441ee3cfe181b0ae127df57d9365af67b0\",\"encoded\":\"WwzGtlmN\\/lZ4A\\/qXXa48LFaspomD7HjmSJyyHySUs68AgAAAAQAAAAgAAAA7i73BB9jHs6TggaNskyMHQ8hkfFpsv6b9DYZKYNMZ\\/3YdBi32en9f9HIqXfEYqedvY58jMP9uf+i3WRDsbB\\/REeRik5e0rCEsj7FKwNFLPl5r7NB95WpbNOhE6l6X9cs8woeiOWCuJyU5WI8Ii2Gx4oGroJZgXKdqHt4AiAg=\",\"encoding\":{\"content\":[\"pkcs8\",\"ethereum\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"meta\":{\"isHardware\":false,\"name\":\"1\",\"tags\":[],\"whenCreated\":1649746690}}\n"
+    },
+    {
+      "input": "fearless-iOS fearlessTests/KeystoreDefinition/Resources/invalidKeystore.json",
+      "writtenBy": "Fearless iOS test keystore",
+      "password": "test5",
+      "json": "{\"address\":\"FMN7zMySGxiWrDuPDkf1jrGoF9szj9igADV8V9pXUwbzDwB\",\"encoding\":{\"content\":[\"pkcs8\",\"sr25519\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"meta\":{\"genesisHash\":\"0xb0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe\",\"name\":\"Test5\",\"tags\":[],\"whenCreated\":1596785222977}}\n",
+      "error": "encrypt.json.JsonSeedDecodingException$InvalidJsonException"
+    },
+    {
+      "input": "fearless-wallet-web tests/fixtures/upgrade/1.3.1/S7-per-account-passwords.json fw:account:0x625e25364c7b68e0a83065ccb40afed43f8fe933e669b24f3d69a57eddb3b715",
+      "writtenBy": "Fearless Wallet 1.3.1",
+      "password": "legacy-pw-A",
+      "json": "{\"address\":\"5EHgWw2Af1pnoc7f1A8bfmM97W3DAYW8xr82RfhLL9oAabAe\",\"encoded\":\"RDnIz+PD9ync0mW+2gu8v1dyqxPPx5PokPt3MLE4hoYAgAAAAQAAAAgAAAApN/skvyOgKk6oLFZ/CRDNqQJTZZZA6hqxp0CmuQ79HS1QXe9igS1zjhTOmknAs2tF4qbUmKtucioyiQ3RD3Msc3l1IQ37jKgReAzCYhlnaPAtyaH/rZFIpIxZdx3xkx7gO/m/PMzIirPMkRqKIhz8YsF4ZuOZuCY/W0jkus9Bn1Z9fdi/7ZzW1GNVHXX04Iao5jgl1caL9dYvgEJ/\",\"encoding\":{\"content\":[\"pkcs8\",\"sr25519\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"meta\":{\"ethereumAddress\":\"0x58A57ed9d8d624cBD12e2C467D34787555bB1b25\",\"isMobile\":false,\"name\":\"Alpha\",\"whenCreated\":1791736959376}}"
+    },
+    {
+      "input": "fearless-wallet-web tests/fixtures/upgrade/1.3.1/S7-per-account-passwords.json fw:account:0xc70ec8094cce52b6574a5a2b7bf0c7d8288d77cc",
+      "writtenBy": "Fearless Wallet 1.3.1",
+      "password": "legacy-pw-C-ethereum",
+      "json": "{\"address\":\"0x02f98ce818e35ba0a094e99eca0845ca19bed0f557161fd4f791e8152cca92696d\",\"encoded\":\"ih2KMzrV0JCHEf7SSAYz1DXgozKtva8WJdjqw4TFRt4AgAAAAQAAAAgAAAB3e1qm3T6AGpuvJu2h7EhAb3gSc5O7EuDX5XcrNJA5w+5CgWNYu7QI6dG1JrFqFRfYVkwFXRJYiBnAnma/asRuC3v8pM3gwGWqjNCLfaTD64F5VHrTSdP2GOWVyTjv8EXbCwqcQuPbEWUGR/bK1TjAnr9TN7BXYKZOJ5EVedU=\",\"encoding\":{\"content\":[\"pkcs8\",\"ethereum\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"meta\":{\"genesisHash\":\"\",\"isMasterAccount\":true,\"name\":\"Charlie\",\"whenCreated\":1700000000000}}",
+      "ethereumAddress": "0xc70ec8094cce52b6574a5a2b7bf0c7d8288d77cc"
+    },
+    {
+      "input": "fearless-wallet-web tests/fixtures/upgrade/2.0.1/S7b-per-account-passwords.json fw:account:0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d",
+      "writtenBy": "Fearless Wallet 2.0.1",
+      "password": "legacy-pw-D",
+      "json": "{\"address\":\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",\"encoded\":\"HJjsr1CuQT+bK1EobIfHaJyxsFeXVbcK5VsLZwm9iKIAgAAAAQAAAAgAAACc+KK8K8Xmt9YBf8Sa7YfbOjQ16Vt0jf5pSIc0bmCZQNyJ3T7opdLx2+J3NTM0MxCOhGDUiP/MBdhFgLsuY121Th3p7dD0WLreuxKStFqItx0xhFIeBXFuO+55wVfqqxzIfmnuAqERIOWfUzRFNWwoTx+908VwirI1TZtkTkF3+/yTVYY1g0jomW+oy7MpTk/3M/WrJ5xLy2/j/V44\",\"encoding\":{\"content\":[\"pkcs8\",\"sr25519\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"meta\":{\"ethereumAddress\":\"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266\",\"isMobile\":false,\"name\":\"Delta\",\"whenCreated\":1791737086606}}"
+    },
+    {
+      "input": "fearless-wallet-web tests/fixtures/upgrade/2.0.1/S7b-per-account-passwords.json fw:account:0x3061750d3df69ef7b8d4407cb7f3f879fd9d2398",
+      "writtenBy": "Fearless Wallet 2.0.1",
+      "password": "legacy-pw-E",
+      "json": "{\"address\":\"0x02b3ee5cacdd13b9d0fad6897d18bb210687b38f0ba92e679f3673d2261e49af44\",\"encoded\":\"cETQpSEMUT8I+SvRvKLSXxFJ3sjeYPQ6Pm6tQm7ulr8AgAAAAQAAAAgAAAAtty01fYDpxuB9OPvwSBndz4aYJD59hFNK6kM1cAcrpSVbjS7xYFQEVywIiVMpXRuJY6F4mYlvyjBg6tstQ5dNc4/3nyo0ipd/of8k02UcIgDKFaYu8oParOoFE55/cgLez65PwRA9JuIEokDY6kzoWr84CY/5OancyWno+f4=\",\"encoding\":{\"content\":[\"pkcs8\",\"ethereum\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"meta\":{\"genesisHash\":\"\",\"isMasterAccount\":true,\"name\":\"Echo\",\"whenCreated\":1700000000000}}",
+      "ethereumAddress": "0x3061750d3df69ef7b8d4407cb7f3f879fd9d2398"
+    },
+    {
+      "input": "fearless-wallet-web tests/fixtures/upgrade/2.6.3/S1-per-account-passwords.json fw:account:0x5294e5a4859a235bed10b8a38cf5e832f1a2b560c36533a36200fc4cba1ad171",
+      "writtenBy": "Fearless Wallet 2.6.3",
+      "password": "Bravo-pässwort-🔑",
+      "json": "{\"address\":\"5Dvz1qwrSmKZkD82LgS7mrsgJSQMExLp3eZHHwfm7MqKs3nd\",\"encoded\":\"yMMuJ3AO+NzNpyRalDCKsnHsN+vQFsrpGTm1IeKKeLgAgAAAAQAAAAgAAABKYJAZykBiMEgdMqYYUF57PUU6GgCT7HFBfkAFUuhtl6S589azqooHJdpxIO00FXDhLfUPGOz4SbgPAvB6vtNe8aokhDChc/TacfhBrD2Xc+XMRbCt8EZg14WrVbXpQR9abmp/yOfHjmB3VuiMrK9UHYmwnoKBJNReI2kIgkL45azG2iuLaPXuU7xqz7ZnLMBQjWOwAiGIKjrTOv+O\",\"encoding\":{\"content\":[\"pkcs8\",\"sr25519\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"meta\":{\"ethereumAddress\":\"0x2f826cb22E80a2c40f149Ecb92b2Fa5ecBf67170\",\"isMobile\":false,\"name\":\"Bravo\",\"whenCreated\":1791736019255}}"
+    },
+    {
+      "input": "fearless-wallet-web tests/fixtures/upgrade/2.6.3/S1-per-account-passwords.json fw:account:0x58a57ed9d8d624cbd12e2c467d34787555bb1b25",
+      "writtenBy": "Fearless Wallet 2.6.3",
+      "password": "legacy-pw-A",
+      "json": "{\"address\":\"0x03a70d1ef368ad99e90d509496e9888ee7404e4f4d360376bf521d769cf0c4de46\",\"encoded\":\"ZAVJiiRTeAHeUnV3LAAXqAhRzWbHsIpopzfatKIdFgkAgAAAAQAAAAgAAADf9KBzv+w0aBflzQpvxafR1jhrD82zgkVhB2w9lTC3dQ2DMzJ1rb5aM9hkydsTQPhT34TkES61sEWfTYTBO7xm7r7QzybY6PgDEEASMgodxLUK854P7D83yx0p/6rulOSs/tPdZEqxpiWBk3Vqaqy0dEo7A+rtLh5CT8C+4lE=\",\"encoding\":{\"content\":[\"pkcs8\",\"ethereum\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"meta\":{\"ethereumAddress\":\"\",\"isMobile\":false,\"name\":\"Alpha\",\"whenCreated\":1791736018885}}",
+      "ethereumAddress": "0x58a57ed9d8d624cbd12e2c467d34787555bb1b25"
+    },
+    {
+      "input": "fearless-wallet-web tests/fixtures/upgrade/s3-2.6.3-ecdsa-per-account-passwords.json fw:account:0x5450c161417116657e6968dc2c108227d25a0d9be367d84c8591d4687288ad62",
+      "writtenBy": "Fearless Wallet 2.6.3",
+      "password": "legacy-ecdsa-A",
+      "json": "{\"address\":\"0x035c080d535720870caab8d33acdbc59f4cede44fe599980289a1c01fcec2a4112\",\"encoded\":\"6iRz+/O+elw7aYJhP5o2FUqbZZs3Wt3tB1MBjSvuIXwAgAAAAQAAAAgAAAChbk8h+d5BsdkQRt73BgA7LDHcHtrMchh98zNNBot9a2OswuY5RoFcPNvgyGS8owYNhYCuofJky6+I5cTScgc1q/km28Kq3lllRcbGGA2ixQ7Hkq/sfV1Csl/SOdrrJ1Sy2fXbD+vKtTupi24S/TJR3Cyf+qRhag31IHdtRUk=\",\"encoding\":{\"content\":[\"pkcs8\",\"ecdsa\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"meta\":{\"ethereumAddress\":\"0x9858EfFD232B4033E47d90003D41EC34EcaEda94\",\"isMobile\":false,\"name\":\"Vault\",\"whenCreated\":1791682624032}}",
+      "ss58Address": "5DyFsM2F6kLfdKM5XuGS5r8784cziF5w9nhdPPHks1JYWu2N"
+    },
+    {
+      "input": "fearless-wallet-web tests/fixtures/upgrade/s3-2.6.3-ecdsa-per-account-passwords.json fw:account:0xe9c8a32e49389e94853ef77bfcae6abbf47b2849870df2f62006efdd304c9c4e",
+      "writtenBy": "Fearless Wallet 2.6.3",
+      "password": "legacy-ecdsa-B",
+      "json": "{\"address\":\"0x029880b9309f4eb50e731d563c26a5b8faf3e787d48b33648c544b512267b18069\",\"encoded\":\"p4udEfr+s43Qvcnzv/562zuABKl8/JA6jbYWHhcc/98AgAAAAQAAAAgAAAAUPlxof3V9pdiTCcyz0Wfitq7WKfP8Q3Ka773ee0sj4MTJp0sXcnPmmWUNVYtIehwgJ17mVCmGvl5rtReKkVM1HRiMY4+WCGgxFlHPHIJhiVEdSOYtRh7AA7SKwmgoqyPZVJX8+99ayTBNi3I/POsNWk59IGZR07+jUZdbtWQ=\",\"encoding\":{\"content\":[\"pkcs8\",\"ecdsa\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"meta\":{\"ethereumAddress\":\"0x58A57ed9d8d624cBD12e2C467D34787555bB1b25\",\"isMobile\":false,\"name\":\"Spare\",\"whenCreated\":1791682624320}}",
+      "ss58Address": "5HMEcggbsk6ViNdeCgEPg5W4GitPNxkwVMLPmJFmZBmnaQn3"
+    },
+    {
+      "input": "fearless-wallet-web tests/fixtures/upgrade/2.7.1/S5-master-password.json fw:account:0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d",
+      "writtenBy": "Fearless Wallet 2.7.1",
+      "password": "Pässwörd-日本語-🔐",
+      "json": "{\"address\":\"5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY\",\"encoded\":\"HTkza+dASk3Dms0jTv58gAdbxet/8lVw+VQ4bb7ZPWUAgAAAAQAAAAgAAABb13q2lrGYUIo9lX4MuihvPkvyH2x/stCaJdFN6Bc574+XIWmqNER9WfdY0V2QmV23r7AGLfL6JCbaJ8+5d4vzKTPZ77YCM62/fY+S3aJTt35lvRCbweu+GxD8f6X616eGSg9H3ALHz1YnTHJzx49o+2C/2H+lQ7771qE86S8HWx2/PRRpi+k1GLuaGjKbcIb5yK7/+Lh9byIQENwh\",\"encoding\":{\"content\":[\"pkcs8\",\"sr25519\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"meta\":{\"ethereumAddress\":\"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266\",\"genesisHash\":\"\",\"isMasterAccount\":false,\"isMasterPassword\":true,\"isMobile\":false,\"name\":\"Raw seed\",\"whenCreated\":1791736784003}}"
+    },
+    {
+      "input": "fearless-wallet-web tests/fixtures/upgrade/2.7.1/S5-master-password.json fw:account:0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+      "writtenBy": "Fearless Wallet 2.7.1",
+      "password": "Pässwörd-日本語-🔐",
+      "json": "{\"address\":\"0x038318535b54105d4a7aae60c08fc45f9687181b4fdfc625bd1a753fa7397fed75\",\"encoded\":\"0evvKLByzGBkqJ1F36n3QXsfCsyJlFZGNhPNh3V3aIQAgAAAAQAAAAgAAAB3WskTFNpncxD81OZZDb4xhcBv/pr0hio0K23bCk7dg955GoRv/ZhLx9v/TYzOlXlAoCl8YAgaIfImRZZa+AkGsHtbXBZfvfaY5wJyIRuQBgO4W2fN2fvnwnDJbdrhA0V0ULjs3SDW1elv7aJe6WUYd6egmKe9JiWQdW02MWs=\",\"encoding\":{\"content\":[\"pkcs8\",\"ethereum\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"meta\":{\"ethereumAddress\":\"\",\"genesisHash\":\"\",\"isMasterAccount\":false,\"isMasterPassword\":true,\"isMobile\":false,\"name\":\"Raw seed\",\"whenCreated\":1791736783895}}",
+      "ethereumAddress": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+    }
+  ]
+}

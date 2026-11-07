@@ -12,6 +12,7 @@ import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.coredb.model.ConnectionSource
 import jp.co.soramitsu.coredb.model.TonConnectionLocal
 import jp.co.soramitsu.fearless_utils.encrypt.json.copyBytes
+import jp.co.soramitsu.fearless_utils.encrypt.ton.TonEd25519
 import jp.co.soramitsu.fearless_utils.encrypt.xsalsa20poly1305.Keys
 import jp.co.soramitsu.fearless_utils.encrypt.xsalsa20poly1305.SecretBox
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
@@ -61,7 +62,6 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
-import org.ton.api.pk.PrivateKeyEd25519
 import org.ton.bitstring.BitString
 import org.ton.block.AddrNone
 import org.ton.block.AddrStd
@@ -206,14 +206,18 @@ class TonConnectInteractorImpl(
 
         val chain = getChain()
         val keypair = keypairProvider.getKeypairFor(chain, wallet.tonPublicKey!!)
-        val privateKey = PrivateKeyEd25519.of(keypair.privateKey)
+        val privateKey = TonEd25519.privateKeyOf(keypair.privateKey)
 
-        return TONProof.sign(
-            address = AddrStd(wallet.tonPublicKey!!.tonAccountId(chain.isTestNet)),
-            secretKey = privateKey,
-            payload = proofPayload,
-            domain = TonConnectUrlValidator.host(app.url) ?: error("Invalid dApp URL")
-        )
+        return try {
+            TONProof.sign(
+                address = AddrStd(wallet.tonPublicKey!!.tonAccountId(chain.isTestNet)),
+                privateKey = privateKey,
+                payload = proofPayload,
+                domain = TonConnectUrlValidator.host(app.url) ?: error("Invalid dApp URL")
+            )
+        } finally {
+            privateKey.fill(0)
+        }
     }
 
     override suspend fun readManifest(url: String): AppEntity {
@@ -409,8 +413,7 @@ class TonConnectInteractorImpl(
         val seqNo = seqnoDeferred.await()
         val unsignedBody = TonConnectTransfers.unsignedBody(contract.walletId, seqNo, validUntil, transfers)
         val keypair = keyPairRepository.getKeypairFor(chain, tonPublicKey)
-        val privateKey = PrivateKeyEd25519(keypair.privateKey)
-        val hash = privateKey.sign(unsignedBody.hash().toByteArray())
+        val hash = TonEd25519.sign(keypair.privateKey, unsignedBody.hash().toByteArray())
         val signature = BitString(hash)
         val signedBody = CellBuilder.createCell {
             storeBits(signature)

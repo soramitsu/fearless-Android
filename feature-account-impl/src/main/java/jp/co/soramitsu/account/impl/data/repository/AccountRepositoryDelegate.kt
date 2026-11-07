@@ -21,9 +21,10 @@ import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFa
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
+import jp.co.soramitsu.fearless_utils.encrypt.ton.TonEd25519
+import jp.co.soramitsu.fearless_utils.encrypt.ton.TonMnemonic
 import jp.co.soramitsu.fearless_utils.scale.toHexString
 import org.bouncycastle.util.encoders.Hex
-import org.ton.api.pk.PrivateKeyEd25519
 
 class AccountRepositoryDelegate(
     private val substrateOrEvmAccountRepository: SubstrateOrEvmAccountRepository,
@@ -213,9 +214,8 @@ class TonAccountRepository(
     private val walletSecretMutationCoordinator: WalletSecretMutationCoordinator
 ) {
     suspend fun create(payload: AddAccountPayload.Ton): Long {
-        val tonSeed = org.ton.mnemonic.Mnemonic.toSeed(payload.mnemonic.split(" "))
-        val tonPrivateKey = PrivateKeyEd25519(tonSeed)
-        val tonPublicKey = tonPrivateKey.publicKey()
+        val tonPrivateKey = TonMnemonic.toSeed(payload.mnemonic.split(" "))
+        val tonPublicKey = TonEd25519.publicKey(tonPrivateKey)
 
         val metaAccount = MetaAccountLocal(
             substratePublicKey = null,
@@ -223,7 +223,7 @@ class TonAccountRepository(
             substrateCryptoType = null,
             ethereumPublicKey = null,
             ethereumAddress = null,
-            tonPublicKey = tonPublicKey.key.toByteArray(),
+            tonPublicKey = tonPublicKey.copyOf(),
             name = payload.accountName,
             isSelected = true,
             position = 0,
@@ -235,8 +235,8 @@ class TonAccountRepository(
         val tonSecrets = TonSecrets(
             seed = payload.mnemonic.encodeToByteArray(),
             tonKeypair = Keypair(
-                tonPublicKey.key.toByteArray(),
-                tonPrivateKey.key.toByteArray()
+                tonPublicKey.copyOf(),
+                tonPrivateKey.copyOf()
             )
         )
 

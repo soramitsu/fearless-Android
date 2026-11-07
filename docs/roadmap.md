@@ -98,6 +98,18 @@ it.
   by dependency constraints in the root `build.gradle`; every other release
   library resolves exactly as in 233.
 
+## 4.3.2 lane: key-path cryptography in this repository — 7 November 2026
+
+Done on `claude/432-crypto-libs`: SpongyCastle and EdDSA-Java out of runtime-utils,
+TON keys on in-repo BouncyCastle code, polkaj-scale built from source,
+curve25519-kotlin no longer packaged. Still open:
+
+- SpongyCastle and kethereum leave with the Reown SDK (separate lane).
+- ton-kotlin hashes cells and BOCs with kotlinx-crypto (same single maintainer as
+  curve25519-kotlin); cells are in scope to stay for 4.3.2.
+- sr25519 JSON backups are checked only up to the decrypted PKCS8 secret in unit
+  tests; the keypair itself needs the native library (device tests).
+
 ## Production release 4.3.1 (233): Asset Hub staking — 30 October 2026
 
 4.3.1 brings back Polkadot and Kusama staking, which 4.3.0 could not offer because
