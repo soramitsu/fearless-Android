@@ -4,6 +4,7 @@ import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
 import jp.co.soramitsu.common.data.storage.PinPreferenceSnapshot
+import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferenceSnapshot
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
 import jp.co.soramitsu.common.data.storage.encrypt.PinResetSnapshot
@@ -31,7 +32,9 @@ enum class PinVerification {
  * A keyring whose PIN wrap can never open again while no stored value is
  * sealed holds nothing: it is disposable. The PIN is then checked and
  * recovered as before the keyring existed, and a correct PIN starts a new SK,
- * so there is never a lockout while values are unsealed.
+ * so there is never a lockout while values are unsealed. A value that cannot
+ * be read now counts as sealed once SK has begun sealing, so a new SK never
+ * strands a value that reads again when its device key returns.
  */
 @Singleton
 class WalletPinAuthority @Inject constructor(
@@ -205,18 +208,39 @@ class WalletPinAuthority @Inject constructor(
     /**
      * A keyring whose PIN wrap can never open while no stored value is sealed
      * (under any SK): it holds nothing, so nothing is lost by starting a new SK.
+     *
+     * A value the device key cannot read now may be sealed, and may read again
+     * once that key returns, so it rules disposal out unless SK never began
+     * sealing. Starting a new SK over it would strand it for good: only the
+     * current SK is ever opened.
      */
-    private fun isKeyringDisposable(): Boolean =
-        keyring.exists() && keyring.pinWrapState() == WalletSecretKeyring.PinWrapState.UNUSABLE && !anyValueSealed()
+    private fun isKeyringDisposable(): Boolean {
+        if (!keyring.exists() || keyring.pinWrapState() != WalletSecretKeyring.PinWrapState.UNUSABLE) return false
+        val scan = scanSealableValues()
+        return !scan.anySealed && (!scan.anyUnreadable || !keyring.mayHoldSealedValues())
+    }
 
-    private fun anyValueSealed(): Boolean {
-        var sealed = false
+    private class SealableScan(var anySealed: Boolean = false, var anyUnreadable: Boolean = false)
+
+    private fun scanSealableValues(): SealableScan {
+        val scan = SealableScan()
         encryptedPreferences.forEachKeyWithPrefixes(WalletSecretSealPolicy.SCANNED_PREFIXES, MAX_SCANNED_KEY_BYTES) { key ->
-            if (!sealed && WalletSecretSealPolicy.isSealable(key)) {
-                sealed = WalletSecretEnvelope.isSealed(encryptedPreferences.getDecryptedStringSnapshot(key)?.plaintext)
+            if (scan.anySealed || !WalletSecretSealPolicy.isSealable(key)) return@forEachKeyWithPrefixes
+            val snapshot = sealableSnapshotOrNull(key) ?: return@forEachKeyWithPrefixes
+            when {
+                WalletSecretEnvelope.isSealed(snapshot.plaintext) -> scan.anySealed = true
+                // Empty (the device key cannot read it now) or oversized: it may hold a sealed value.
+                !snapshot.hasDecryptedValue -> scan.anyUnreadable = true
             }
         }
-        return sealed
+        return scan
+    }
+
+    /** A stored value that is not a string is never a sealed value. */
+    private fun sealableSnapshotOrNull(key: String): EncryptedPreferenceSnapshot? = try {
+        encryptedPreferences.getDecryptedStringSnapshot(key)
+    } catch (_: ClassCastException) {
+        null
     }
 
     /** The PIN wrap cannot open: the legacy PIN answers while the keyring is disposable, and a new SK follows. */

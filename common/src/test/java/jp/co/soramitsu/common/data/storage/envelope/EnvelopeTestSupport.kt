@@ -207,4 +207,20 @@ internal class EnvelopeStorageHarness(
     fun corruptFactor() {
         factorValues().keys.forEach { shared.values[it] = "v2:corrupt" }
     }
+
+    /**
+     * The device key that wrote every stored value is gone, as after a fresh
+     * secure-storage slot: nothing under it reads until [restoreDeviceLayer].
+     * Plain keyring records are not under the device key and stay readable.
+     */
+    fun hideDeviceLayer() = rewriteDeviceLayer(from = "v2:test:", to = "v2:gone:")
+
+    /** The device key is back: every value it wrote reads again. */
+    fun restoreDeviceLayer() = rewriteDeviceLayer(from = "v2:gone:", to = "v2:test:")
+
+    private fun rewriteDeviceLayer(from: String, to: String) {
+        shared.values.entries
+            .filter { (it.value as? String)?.startsWith(from) == true }
+            .forEach { it.setValue(to + (it.value as String).removePrefix(from)) }
+    }
 }
