@@ -104,3 +104,13 @@ as expected rejections now require acceptance:
 Older libraries (fearless-utils 1.0.96-1.0.109, earlier shared-features) come
 from the TM-A2 binary oracle; add their files in the same layout and list them
 in `CryptoGoldenVectors.LIBRARIES`.
+
+## Legacy crypto library outputs (4.3.2)
+
+`LegacyCryptoFixtures.java` runs the libraries 4.3.1 and earlier shipped and
+records what they computed, so that the BouncyCastle and in-repo code that
+replaced them is held to the same bytes after they left the build:
+EdDSA-Java 0.3.0 (Ed25519 keys, signatures, verify verdicts), SpongyCastle 1.58
+(BIP39 PBKDF2, Base64) and `polkaj-scale-0.2.3.jar` (the transcript of
+`PolkajScaleExercise`). It checks the SHA-256 of each jar before it runs; the
+command is in its header. Output: `runtime-utils/src/test/resources/legacy-crypto`.
