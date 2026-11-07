@@ -12,7 +12,6 @@ import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.junit.MockitoJUnitRunner
@@ -53,9 +52,15 @@ class JsonSeedEncoderTest {
     }
 
     @Test
-    @Ignore("sr25519 is not supported in unit tests")
     fun `should encode sr25519`() {
+        Sr25519HostLibrary.assumeAvailable()
         performTest(MultiChainEncryption.Substrate(EncryptionType.SR25519))
+    }
+
+    @Test
+    fun `should encode a derived sr25519 account with its own secret`() {
+        Sr25519HostLibrary.assumeAvailable()
+        performDerivedTest(EncryptionType.SR25519)
     }
 
     private fun performTest(multiChainEncryption: MultiChainEncryption) {
