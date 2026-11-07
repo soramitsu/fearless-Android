@@ -48,7 +48,8 @@ internal object ReownLegacyStateImport {
         val pairingPeers = snapshot.pairings.associate { it.topic to it.peer }
         val sessions = importSessions(current, snapshot.sessions, pairingPeers, nowSeconds, skipped)
         val pairings = importPairings(current, snapshot.pairings, nowSeconds, skipped)
-        val importedSeed = snapshot.clientSeed?.takeIf { current.clientSeed == null && WcEncoding.isHex(it, WcClientIdentity.SEED_LENGTH) }
+        val legacySeed = snapshot.clientSeed?.takeIf { WcEncoding.isHex(it, WcClientIdentity.SEED_LENGTH) }
+        val importedSeed = legacySeed.takeIf { current.clientSeed == null }
         val merged = current.copy(
             clientSeed = current.clientSeed ?: importedSeed,
             sessions = current.sessions + sessions,
@@ -73,8 +74,8 @@ internal object ReownLegacyStateImport {
     ): List<WcStoredSession> {
         val known = current.sessions.map { it.topic }.toSet()
         val room = (WcLimits.MAX_SESSIONS - current.sessions.size).coerceAtLeast(0)
-        val (kept, leftOut) = legacy.filter { it.topic !in known }.sortedByDescending { it.expiry }.let { it.take(room) to it.drop(room) }
-        leftOut.forEach { skipped += if (it.expiry > nowSeconds) ReownSkipReason.LIMIT_REACHED else ReownSkipReason.SESSION_EXPIRED }
+        val (kept, leftOut) = legacy.filter { it.topic !in known }.splitByRoom(room) { it.expiry }
+        leftOut.forEach { skipped += leftOutReason(it.expiry, nowSeconds, ReownSkipReason.SESSION_EXPIRED) }
         return kept.map { session ->
             WcStoredSession(
                 topic = session.topic,
@@ -103,8 +104,8 @@ internal object ReownLegacyStateImport {
     ): List<WcStoredPairing> {
         val known = current.pairings.map { it.topic }.toSet()
         val room = (WcLimits.MAX_PAIRINGS - current.pairings.size).coerceAtLeast(0)
-        val (kept, leftOut) = legacy.filter { it.topic !in known }.sortedByDescending { it.expiry }.let { it.take(room) to it.drop(room) }
-        leftOut.forEach { skipped += if (it.expiry > nowSeconds) ReownSkipReason.LIMIT_REACHED else ReownSkipReason.PAIRING_EXPIRED }
+        val (kept, leftOut) = legacy.filter { it.topic !in known }.splitByRoom(room) { it.expiry }
+        leftOut.forEach { skipped += leftOutReason(it.expiry, nowSeconds, ReownSkipReason.PAIRING_EXPIRED) }
         return kept.map { pairing ->
             WcStoredPairing(
                 topic = pairing.topic,
@@ -116,6 +117,17 @@ internal object ReownLegacyStateImport {
             )
         }
     }
+
+    // The records that fit in [room], newest expiry first, and those left over.
+    private fun <T> List<T>.splitByRoom(room: Int, expiry: (T) -> Long): Pair<List<T>, List<T>> =
+        sortedByDescending(expiry).let { it.take(room) to it.drop(room) }
+
+    // A live record left out over a limit makes the import incomplete; an expired one does not.
+    private fun leftOutReason(
+        expiry: Long,
+        nowSeconds: Long,
+        expired: ReownSkipReason
+    ): ReownSkipReason = if (expiry > nowSeconds) ReownSkipReason.LIMIT_REACHED else expired
 
     // The same bounds the client puts on metadata a dApp sends; a session without any keeps working, unnamed.
     private fun storedMetadata(metadata: ReownLegacyMetadata?): WcStoredMetadata = WcStoredMetadata(

@@ -126,8 +126,10 @@ class SqlCipherDatabaseDecoderTest {
 
     @Test
     fun `empty and short files are refused`() {
-        assertThrows(LegacyDatabaseException::class.java) { decoder.decode(LegacyDatabaseFiles(ByteArray(0)), passphrase("reown")) }
-        assertThrows(LegacyDatabaseException::class.java) { decoder.decode(LegacyDatabaseFiles(ByteArray(600)), passphrase("reown")) }
+        val key = passphrase("reown")
+        listOf(ByteArray(0), ByteArray(600)).forEach { file ->
+            assertThrows(LegacyDatabaseException::class.java) { decoder.decode(LegacyDatabaseFiles(file), key) }
+        }
     }
 
     @Test
@@ -159,13 +161,13 @@ class SqlCipherDatabaseDecoderTest {
 
     @Test
     fun `the page size of a plain header is read, with 1 meaning 65536`() {
-        val header = SQLITE_HEADER.copyOf(100)
+        val header = sqliteHeader.copyOf(100)
         header[16] = 0x10
         header[17] = 0
         assertEquals(4096, plainPageSize(header))
         header[16] = 0
         header[17] = 1
-        assertEquals(65536, plainPageSize(header))
+        assertEquals(65_536, plainPageSize(header))
         header[17] = 3
         assertThrows(LegacyDatabaseException::class.java) { plainPageSize(header) }
     }
@@ -179,7 +181,18 @@ class SqlCipherDatabaseDecoderTest {
         assertEquals(255, data.uint8(4))
         assertTrue(data.startsWith(byteArrayOf(0x34, 0x56), offset = 1))
         assertFalse(data.startsWith(byteArrayOf(0x34), offset = 0))
-        assertEquals(4096, SQLITE_HEADER.copyOf(100).also { it[16] = 0x10 }.sqlitePageSize())
+        assertEquals(4096, sqliteHeader.copyOf(100).also { it[16] = 0x10 }.sqlitePageSize())
+    }
+
+    @Test
+    fun `byte helpers keep the sign of 32-bit values, not of bytes, and stop at the end of the data`() {
+        val data = byteArrayOf(0xff.toByte(), 0xff.toByte(), 0xff.toByte(), 0xfe.toByte())
+
+        assertEquals(-2, data.int32(0))
+        assertEquals(65_535, data.uint16(0))
+        assertEquals(254, data.uint8(3))
+        assertThrows(IndexOutOfBoundsException::class.java) { data.int32(1) }
+        assertThrows(IndexOutOfBoundsException::class.java) { data.uint16(3) }
     }
 
     @Test

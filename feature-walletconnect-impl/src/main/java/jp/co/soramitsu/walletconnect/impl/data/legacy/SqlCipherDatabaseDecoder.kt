@@ -1,5 +1,7 @@
 package jp.co.soramitsu.walletconnect.impl.data.legacy
 
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.security.MessageDigest
 import javax.crypto.Cipher
 import javax.crypto.Mac
@@ -37,7 +39,7 @@ internal class SqlCipherDatabaseDecoder(private val kdfIterations: Int = DEFAULT
      */
     fun decode(files: LegacyDatabaseFiles, passphrase: ByteArray): ByteArray {
         val database = files.database
-        if (database.startsWith(SQLITE_HEADER)) {
+        if (database.startsWith(sqliteHeader)) {
             val pageSize = plainPageSize(database)
             return applyWal(applyHotJournal(database, files.journal, pageSize), files.wal, pageSize)
         }
@@ -85,7 +87,7 @@ internal class SqlCipherDatabaseDecoder(private val kdfIterations: Int = DEFAULT
             cipher.init(Cipher.DECRYPT_MODE, key, IvParameterSpec(encrypted, page.ivStart, IV_SIZE))
             cipher.doFinal(encrypted, page.dataStart, page.ivStart - page.dataStart, plain, page.dataStart)
         }
-        if (plain.isNotEmpty()) SQLITE_HEADER.copyInto(plain, 0)
+        if (plain.isNotEmpty()) sqliteHeader.copyInto(plain, 0)
         return plain
     }
 
@@ -116,7 +118,7 @@ internal class SqlCipherDatabaseDecoder(private val kdfIterations: Int = DEFAULT
         private const val HMAC_SHA512 = "HmacSHA512"
 
         // SQLCipher 4's default first; the others only in case the SDK ever set cipher_page_size.
-        private val ENCRYPTED_PAGE_SIZES = listOf(4096, 1024, 2048, 8192, 16384, 32768, 65536)
+        private val ENCRYPTED_PAGE_SIZES = listOf(4096, 1024, 2048, 8192, 16_384, 32_768, 65_536)
     }
 }
 
@@ -148,7 +150,7 @@ internal fun pbkdf2HmacSha512(
     return output.copyOf(length)
 }
 
-internal val SQLITE_HEADER = "SQLite format 3\u0000".toByteArray(Charsets.US_ASCII)
+internal val sqliteHeader = "SQLite format 3\u0000".toByteArray(Charsets.US_ASCII)
 
 private val JOURNAL_MAGIC = byteArrayOf(
     0xd9.toByte(),
@@ -165,19 +167,21 @@ private const val JOURNAL_HEADER_FIELDS = 28
 private const val JOURNAL_ALL_RECORDS = -1
 private const val JOURNAL_CHECKSUM_STRIDE = 200
 private const val MIN_SECTOR_SIZE = 512
-private const val MAX_PAGE_SIZE = 65536
+private const val MAX_PAGE_SIZE = 65_536
+private const val SQLITE_PAGE_SIZE_OFFSET = 16
 private const val WAL_MAGIC_LITTLE_ENDIAN = 0x377f0682
 private const val WAL_MAGIC_BIG_ENDIAN = 0x377f0683
 private const val WAL_HEADER_SIZE = 32
 private const val WAL_HEADER_CHECKSUMMED = 24
 private const val WAL_FRAME_HEADER_SIZE = 24
 private const val WAL_FRAME_HEADER_CHECKSUMMED = 8
+private const val WAL_CHECKSUM_STEP = 2 * Int.SIZE_BYTES
 
 /** The page size a plain SQLite header declares. */
 internal fun plainPageSize(image: ByteArray): Int {
     if (image.size < SQLITE_HEADER_SIZE) throw LegacyDatabaseException("The database header is cut short")
     val size = image.sqlitePageSize()
-    if (size < MIN_SECTOR_SIZE || size > MAX_PAGE_SIZE || size and (size - 1) != 0) {
+    if (size < MIN_SECTOR_SIZE || size > MAX_PAGE_SIZE || size.countOneBits() != 1) {
         throw LegacyDatabaseException("Bad page size $size")
     }
     return size
@@ -201,7 +205,7 @@ private class JournalSegment(
             val present = offset >= 0 && offset + JOURNAL_HEADER_FIELDS <= journal.size && journal.startsWith(JOURNAL_MAGIC, offset)
             if (!present) return null
             val sectorSize = journal.int32(offset + JournalField.SECTOR_SIZE)
-            val validSector = sectorSize in MIN_SECTOR_SIZE..MAX_PAGE_SIZE && sectorSize and (sectorSize - 1) == 0
+            val validSector = sectorSize in MIN_SECTOR_SIZE..MAX_PAGE_SIZE && sectorSize.countOneBits() == 1
             if (!validSector || journal.int32(offset + JournalField.PAGE_SIZE) != pageSize) return null
             val recordSize = journalRecordSize(pageSize)
             val declared = journal.int32(offset + JournalField.RECORDS)
@@ -325,7 +329,8 @@ private class WalHeader(
         if (!saltsMatch || wal.int32(offset) <= 0) return null
         val afterHeader = wal.walChecksum(offset, WAL_FRAME_HEADER_CHECKSUMMED, bigEndianWords, previous)
         val sum = wal.walChecksum(offset + WAL_FRAME_HEADER_SIZE, pageSize, bigEndianWords, afterHeader)
-        return sum.takeIf { it.first == wal.int32(offset + FRAME_CHECKSUM_1) && it.second == wal.int32(offset + FRAME_CHECKSUM_2) }
+        val stored = wal.int32(offset + FRAME_CHECKSUM_1) to wal.int32(offset + FRAME_CHECKSUM_2)
+        return sum.takeIf { it == stored }
     }
 
     companion object {
@@ -366,22 +371,25 @@ private fun ByteArray.journalChecksum(
     var sum = nonce
     var index = pageSize - JOURNAL_CHECKSUM_STRIDE
     while (index > 0) {
-        sum += this[offset + index].toInt() and 0xff
+        sum += uint8(offset + index)
         index -= JOURNAL_CHECKSUM_STRIDE
     }
     return sum
 }
 
+// SQLite's WAL checksum: two running sums over pairs of 32-bit words, in the byte order the log's magic gives.
 private fun ByteArray.walChecksum(
     offset: Int,
     length: Int,
     bigEndianWords: Boolean,
     start: Pair<Int, Int>
 ): Pair<Int, Int> {
+    val order = if (bigEndianWords) ByteOrder.BIG_ENDIAN else ByteOrder.LITTLE_ENDIAN
+    val words = ByteBuffer.wrap(this, offset, length).order(order)
     var (s0, s1) = start
-    for (index in offset until offset + length step 8) {
-        s0 += (if (bigEndianWords) int32(index) else int32LittleEndian(index)) + s1
-        s1 += (if (bigEndianWords) int32(index + 4) else int32LittleEndian(index + 4)) + s0
+    while (words.remaining() >= WAL_CHECKSUM_STEP) {
+        s0 += words.int + s1
+        s1 += words.int + s0
     }
     return s0 to s1
 }
@@ -396,24 +404,18 @@ private fun ByteArray.xorInPlace(other: ByteArray) {
 internal fun ByteArray.startsWith(prefix: ByteArray, offset: Int = 0): Boolean =
     size >= offset + prefix.size && prefix.indices.all { this[offset + it] == prefix[it] }
 
-internal fun ByteArray.int32(offset: Int): Int =
-    (this[offset].toInt() and 0xff shl 24) or (this[offset + 1].toInt() and 0xff shl 16) or
-        (this[offset + 2].toInt() and 0xff shl 8) or (this[offset + 3].toInt() and 0xff)
+/** The big-endian 32-bit integer at [offset], as SQLite stores them. */
+internal fun ByteArray.int32(offset: Int): Int = ByteBuffer.wrap(this, offset, Int.SIZE_BYTES).int
 
-private fun ByteArray.int32LittleEndian(offset: Int): Int =
-    (this[offset + 3].toInt() and 0xff shl 24) or (this[offset + 2].toInt() and 0xff shl 16) or
-        (this[offset + 1].toInt() and 0xff shl 8) or (this[offset].toInt() and 0xff)
+internal fun ByteArray.uint16(offset: Int): Int = uint8(offset) shl Byte.SIZE_BITS or uint8(offset + 1)
 
-internal fun ByteArray.uint16(offset: Int): Int =
-    (this[offset].toInt() and 0xff shl 8) or (this[offset + 1].toInt() and 0xff)
-
-internal fun ByteArray.uint8(offset: Int): Int = this[offset].toInt() and 0xff
+internal fun ByteArray.uint8(offset: Int): Int = this[offset].toUByte().toInt()
 
 // The header stores 65536 as 1 because it does not fit in two bytes.
-internal fun ByteArray.sqlitePageSize(): Int = uint16(16).let { if (it == 1) 65536 else it }
+internal fun ByteArray.sqlitePageSize(): Int =
+    uint16(SQLITE_PAGE_SIZE_OFFSET).let { if (it == 1) MAX_PAGE_SIZE else it }
 
-private fun Int.toBigEndianBytes() =
-    byteArrayOf((this ushr 24).toByte(), (this ushr 16).toByte(), (this ushr 8).toByte(), toByte())
+private fun Int.toBigEndianBytes(): ByteArray = ByteBuffer.allocate(Int.SIZE_BYTES).putInt(this).array()
 
-private fun Int.toLittleEndianBytes() =
-    byteArrayOf(toByte(), (this ushr 8).toByte(), (this ushr 16).toByte(), (this ushr 24).toByte())
+private fun Int.toLittleEndianBytes(): ByteArray =
+    ByteBuffer.allocate(Int.SIZE_BYTES).order(ByteOrder.LITTLE_ENDIAN).putInt(this).array()

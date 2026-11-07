@@ -7,8 +7,8 @@ import jp.co.soramitsu.walletconnect.impl.protocol.WalletConnectClient
 import jp.co.soramitsu.walletconnect.impl.protocol.WalletConnectClientConfig
 import jp.co.soramitsu.walletconnect.impl.protocol.WcClientIdentity
 import jp.co.soramitsu.walletconnect.impl.protocol.WcJsonRpc
-import jp.co.soramitsu.walletconnect.impl.protocol.WcMethods
 import jp.co.soramitsu.walletconnect.impl.protocol.WcMemoryStorage
+import jp.co.soramitsu.walletconnect.impl.protocol.WcMethods
 import jp.co.soramitsu.walletconnect.impl.protocol.WcTestAttestor
 import jp.co.soramitsu.walletconnect.impl.protocol.WcTestClock
 import jp.co.soramitsu.walletconnect.impl.protocol.WcTestDapp
@@ -64,7 +64,7 @@ class ReownMigrationClientTest {
         eventually { topic in relay.subscriptions }
         val requestId = 1_794_000_000_999_001L
         dapp.send(topic, symKey("alpha"), personalSign(requestId))
-        eventually { events.any { event -> event is WalletConnectEvent.SessionRequest && event.request.request.id == requestId } }
+        eventually { events.any { it is WalletConnectEvent.SessionRequest && it.request.request.id == requestId } }
         runBlocking { client.respond(topic, requestId, JsonPrimitive("0xsignature")) }
 
         val answer = dapp.all(topic, symKey("alpha")).last() as WcJsonRpc.Result

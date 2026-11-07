@@ -19,7 +19,6 @@ class ReownLegacyStateImportTest {
     private val reown = section("reown")
     private val now = reown["now"].asLong
     private val sessions = reown.getAsJsonArray("sessions").map { it.asJsonObject }.associateBy { it["name"].asString }
-    private fun topic(name: String) = sessions.getValue(name)["topic"].asString
 
     private val snapshot by lazy {
         val decoder = SqlCipherDatabaseDecoder()
@@ -31,6 +30,8 @@ class ReownLegacyStateImportTest {
             )
         )
     }
+
+    private fun topic(name: String) = sessions.getValue(name)["topic"].asString
 
     @Test
     fun `every usable session comes over with its keys, live ones first`() {
@@ -96,7 +97,8 @@ class ReownLegacyStateImportTest {
         val alpha = snapshot.sessions.first { it.topic == topic("alpha") }
         val expired = snapshot.sessions.first { it.topic == topic("expired") }
         val existing = (1 until WcLimits.MAX_SESSIONS).map { index -> storedSession(index.toString().padStart(64, '0')) }
-        fun crafted(vararg legacy: ReownLegacySession) = snapshot.copy(sessions = legacy.toList(), pairings = emptyList(), skipped = emptyList())
+        fun crafted(vararg legacy: ReownLegacySession) =
+            snapshot.copy(sessions = legacy.toList(), pairings = emptyList(), skipped = emptyList())
 
         val (full, overLimit) = ReownLegacyStateImport.merge(WcStoredState(sessions = existing), crafted(alpha, alpha.copy(topic = "e".repeat(64))), now)
         assertEquals(WcLimits.MAX_SESSIONS, full.sessions.size)

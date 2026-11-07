@@ -282,10 +282,16 @@ internal fun String?.toList(): List<String>? = when {
 
 internal fun sha256Hex(hex: String): String = MessageDigest.getInstance("SHA-256").digest(hex.hexToBytes()).toHex()
 
-internal fun String.isKeyHex(): Boolean = length == 64 && all { it in '0'..'9' || it in 'a'..'f' || it in 'A'..'F' }
+internal fun String.isKeyHex(): Boolean = length == KEY_HEX_LENGTH && all { it.isHexDigit() }
+
+private fun Char.isHexDigit() = this in '0'..'9' || this in 'a'..'f' || this in 'A'..'F'
 
 internal fun String.hexToBytes(): ByteArray =
-    ByteArray(length / 2) { index -> substring(2 * index, 2 * index + 2).toInt(16).toByte() }
+    ByteArray(length / 2) { index -> substring(2 * index, 2 * index + 2).toInt(HEX_RADIX).toByte() }
+
+// A 32-byte key or topic, written as hex.
+private const val KEY_HEX_LENGTH = 64
+private const val HEX_RADIX = 16
 
 internal fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it) }
 

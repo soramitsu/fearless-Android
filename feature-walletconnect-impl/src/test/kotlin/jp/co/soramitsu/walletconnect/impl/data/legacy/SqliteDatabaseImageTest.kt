@@ -3,12 +3,14 @@ package jp.co.soramitsu.walletconnect.impl.data.legacy
 import jp.co.soramitsu.walletconnect.impl.data.legacy.LegacyFixtures.assertRowsMatch
 import jp.co.soramitsu.walletconnect.impl.data.legacy.LegacyFixtures.bytes
 import jp.co.soramitsu.walletconnect.impl.data.legacy.LegacyFixtures.section
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.nio.ByteBuffer
 
 class SqliteDatabaseImageTest {
 
@@ -86,11 +88,26 @@ class SqliteDatabaseImageTest {
         assertEquals(9, nine.varint(0).length)
         assertThrows(LegacyDatabaseException::class.java) { byteArrayOf(0x81.toByte()).varint(0) }
 
-        assertEquals(listOf(0, 1, 2, 3, 4, 6, 8, 8, 0, 0, 0, 0, 5, 5), listOf(0L, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13, 22, 23).map { it.serialTypeLength() })
-        assertThrows(LegacyDatabaseException::class.java) { 10L.serialTypeLength() }
+        val types = listOf(0L, 1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 13, 22, 23)
+        assertEquals(listOf(0, 1, 2, 3, 4, 6, 8, 8, 0, 0, 0, 0, 5, 5), types.map { it.serialTypeLength() })
+        listOf(-1L, 10L, 11L).forEach { reserved ->
+            assertThrows(LegacyDatabaseException::class.java) { reserved.serialTypeLength() }
+        }
         assertEquals(-2L, byteArrayOf(0xff.toByte(), 0xfe.toByte()).serialValue(2, 0, 2))
         assertEquals("hi", "hi".toByteArray().serialValue(17, 0, 2))
         assertNull(ByteArray(0).serialValue(0, 0, 0))
+    }
+
+    @Test
+    fun `fixed-width values decode as SQLite writes them`() {
+        val float = ByteBuffer.allocate(Double.SIZE_BYTES).putDouble(1.5).array()
+
+        assertEquals(1.5, float.serialValue(7, 0, 8))
+        assertEquals(0L, ByteArray(0).serialValue(8, 0, 0))
+        assertEquals(1L, ByteArray(0).serialValue(9, 0, 0))
+        assertEquals(0x0102030405L, byteArrayOf(0, 1, 2, 3, 4, 5).serialValue(5, 0, 6))
+        assertEquals(Long.MIN_VALUE, ByteArray(8).also { it[0] = 0x80.toByte() }.serialValue(6, 0, 8))
+        assertArrayEquals(byteArrayOf(1, 2), byteArrayOf(1, 2).serialValue(16, 0, 2) as ByteArray)
     }
 
     @Test

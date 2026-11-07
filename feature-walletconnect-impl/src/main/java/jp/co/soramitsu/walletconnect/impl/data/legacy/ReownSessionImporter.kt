@@ -84,7 +84,8 @@ internal object ReownImportMarker {
     private const val NEVER = Long.MAX_VALUE
 
     /** Null when the import has not happened; otherwise whether the SDK's files must stay. */
-    fun read(state: WcStoredState): Boolean? = if (IMPORTED in state.handled) KEEP_LEGACY_FILES in state.handled else null
+    fun read(state: WcStoredState): Boolean? =
+        if (IMPORTED in state.handled) KEEP_LEGACY_FILES in state.handled else null
 
     fun mark(state: WcStoredState, keepLegacyFiles: Boolean): WcStoredState {
         val marks = mapOf(IMPORTED to NEVER) + if (keepLegacyFiles) mapOf(KEEP_LEGACY_FILES to NEVER) else emptyMap()

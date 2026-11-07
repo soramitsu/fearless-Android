@@ -126,10 +126,11 @@ class ReownSessionImporterTest {
 
     @Test
     fun `databases whose key is gone, damaged or wrong are never guessed at`() {
+        val cutShort = LegacyDatabaseFiles(bytes("reown-sign.db").copyOf(5000))
         val cases = listOf<ReownFixtureSource.() -> Unit>(
             { passphrase = { null } },
             { passphrase = { ByteArray(32) { 7 } } },
-            { databases = databases + (ReownLegacySnapshotReader.SIGN_DATABASE to LegacyDatabaseFiles(bytes("reown-sign.db").copyOf(5000))) },
+            { databases = databases + (ReownLegacySnapshotReader.SIGN_DATABASE to cutShort) },
             { failure = IOException("disk") }
         )
         cases.forEach { breakIt ->
@@ -160,7 +161,7 @@ class ReownSessionImporterTest {
         val failing = object : WalletConnectStateStorage {
             override fun read(): String? = null
 
-            override fun write(json: String) = throw IllegalStateException("WalletConnect state could not be stored")
+            override fun write(json: String) = error("WalletConnect state could not be stored")
 
             override fun clear() = Unit
         }
@@ -231,7 +232,9 @@ class ReownSessionImporterTest {
         assertTrue(logs[0], logs[0].startsWith("Reown import: 4 sessions (1 expired), 2 pairings, identity true"))
         assertTrue(logs[1], logs[1].startsWith("Reown import: done earlier"))
         assertTrue(logs[2], logs[2].startsWith("Reown import failed: LEGACY_UNREADABLE"))
-        val secrets = ReownFixtureSource.fixtureKeyChain().flatMap { (tag, value) -> listOf(tag, value) }.filter { it.length >= 32 }
+        val secrets = ReownFixtureSource.fixtureKeyChain()
+            .flatMap { (tag, value) -> listOf(tag, value) }
+            .filter { it.length >= 32 }
         assertTrue(logs.none { line -> secrets.any { it.take(16) in line } || "keystore" in line })
     }
 

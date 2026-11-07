@@ -40,7 +40,7 @@ internal class SqliteDatabaseImage(private val bytes: ByteArray) {
     private val pageCount: Int = bytes.size / pageSize
 
     init {
-        if (!bytes.startsWith(SQLITE_HEADER)) throw LegacyDatabaseException("Not an SQLite database")
+        if (!bytes.startsWith(sqliteHeader)) throw LegacyDatabaseException("Not an SQLite database")
         if (usableSize < MIN_USABLE_SIZE) throw LegacyDatabaseException("Too little usable space per page")
         val encoding = bytes.int32(TEXT_ENCODING_OFFSET)
         if (encoding != 0 && encoding != UTF8_ENCODING) throw LegacyDatabaseException("Text encoding $encoding is not UTF-8")
@@ -195,23 +195,22 @@ internal class Varint(val value: Long, val length: Int)
 // SQLite varints: big-endian groups of 7 bits with a continuation bit; the ninth byte carries 8 bits.
 internal fun ByteArray.varint(offset: Int): Varint {
     var value = 0L
-    for (index in 0 until 8) {
+    for (index in 0 until VARINT_GROUPED_BYTES) {
         if (offset + index >= size) throw LegacyDatabaseException("Varint cut short")
-        val byte = this[offset + index].toInt() and 0xff
-        value = (value shl 7) or (byte and 0x7f).toLong()
-        if (byte and 0x80 == 0) return Varint(value, index + 1)
+        val byte = uint8(offset + index)
+        value = value shl VARINT_GROUP_BITS or (byte and VARINT_GROUP_MASK).toLong()
+        if (byte and VARINT_CONTINUATION == 0) return Varint(value, index + 1)
     }
-    if (offset + 8 >= size) throw LegacyDatabaseException("Varint cut short")
-    return Varint((value shl 8) or (this[offset + 8].toLong() and 0xff), 9)
+    val last = offset + VARINT_GROUPED_BYTES
+    if (last >= size) throw LegacyDatabaseException("Varint cut short")
+    return Varint(value shl Byte.SIZE_BITS or uint8(last).toLong(), VARINT_GROUPED_BYTES + 1)
 }
 
-// The number of body bytes a record value of this serial type takes.
+// The number of body bytes a record value of this serial type takes: fixed for types 0 to 9, then BLOBs
+// (even types) and text (odd types) of (type - 12) / 2 bytes. Types 10 and 11 are reserved.
 internal fun Long.serialTypeLength(): Int = when {
-    this in 0L..4L -> toInt()
-    this == 5L -> 6
-    this == 6L || this == 7L -> 8
-    this == 8L || this == 9L -> 0
-    this >= 12L -> ((this - 12 - this % 2) / 2).toInt()
+    this >= FIRST_VARIABLE_SERIAL_TYPE -> ((this - FIRST_VARIABLE_SERIAL_TYPE) / 2).toInt()
+    this >= 0 && this < FIXED_SERIAL_TYPE_LENGTHS.size -> FIXED_SERIAL_TYPE_LENGTHS[toInt()]
     else -> throw LegacyDatabaseException("Reserved serial type $this")
 }
 
@@ -220,18 +219,18 @@ internal fun ByteArray.serialValue(
     offset: Int,
     length: Int
 ): Any? = when {
-    type == 0L -> null
-    type in 1L..6L -> signedBigEndian(offset, length)
-    type == 7L -> Double.fromBits(signedBigEndian(offset, 8))
-    type == 8L -> 0L
-    type == 9L -> 1L
+    type == SERIAL_NULL -> null
+    type in 1L..SERIAL_LARGEST_INTEGER -> signedBigEndian(offset, length)
+    type == SERIAL_FLOAT -> Double.fromBits(signedBigEndian(offset, Long.SIZE_BYTES))
+    type == SERIAL_ZERO -> 0L
+    type == SERIAL_ONE -> 1L
     type % 2 == 0L -> copyOfRange(offset, offset + length)
     else -> String(this, offset, length, Charsets.UTF_8)
 }
 
 private fun ByteArray.signedBigEndian(offset: Int, length: Int): Long {
     var value = this[offset].toLong() // sign-extends the first byte
-    for (index in 1 until length) value = (value shl 8) or (this[offset + index].toLong() and 0xff)
+    for (index in 1 until length) value = value shl Byte.SIZE_BITS or uint8(offset + index).toLong()
     return value
 }
 
@@ -355,9 +354,12 @@ private fun Char.isWordPart() = isLetterOrDigit() || this == '_' || this == '.'
 private fun String.endOfQuoted(start: Int): Int {
     val quote = closingQuote(this[start])
     var close = indexOf(quote, start + 1)
-    while (close >= 0 && close + 1 < length && this[close + 1] == quote && quote != ']') close = indexOf(quote, close + 2)
+    while (close >= 0 && isDoubledQuote(close, quote)) close = indexOf(quote, close + 2)
     return if (close < 0) length else close + 1
 }
+
+// Brackets cannot be doubled: ']' always closes a bracketed name.
+private fun String.isDoubledQuote(index: Int, quote: Char) = quote != ']' && getOrNull(index + 1) == quote
 
 private fun String.endOfWord(start: Int): Int = (start until length).firstOrNull { !this[it].isWordPart() } ?: length
 
@@ -372,6 +374,19 @@ private val COLUMN_CONSTRAINT_STARTS = setOf(
     "CONSTRAINT", "PRIMARY", "NOT", "NULL", "UNIQUE", "CHECK", "DEFAULT", "COLLATE", "REFERENCES", "GENERATED", "AS", "("
 )
 private val WITHOUT_ROWID = Regex("\\)\\s*WITHOUT\\s+ROWID", RegexOption.IGNORE_CASE)
+
+// Body bytes of serial types 0 to 9: NULL, five integer widths, a 64-bit integer, a float, then 0 and 1.
+private val FIXED_SERIAL_TYPE_LENGTHS = intArrayOf(0, 1, 2, 3, 4, 6, 8, 8, 0, 0)
+private const val FIRST_VARIABLE_SERIAL_TYPE = 12L
+private const val SERIAL_NULL = 0L
+private const val SERIAL_LARGEST_INTEGER = 6L
+private const val SERIAL_FLOAT = 7L
+private const val SERIAL_ZERO = 8L
+private const val SERIAL_ONE = 9L
+private const val VARINT_GROUPED_BYTES = 8
+private const val VARINT_GROUP_BITS = 7
+private const val VARINT_GROUP_MASK = 0x7f
+private const val VARINT_CONTINUATION = 0x80
 
 private const val RESERVED_BYTES_OFFSET = 20
 private const val TEXT_ENCODING_OFFSET = 56

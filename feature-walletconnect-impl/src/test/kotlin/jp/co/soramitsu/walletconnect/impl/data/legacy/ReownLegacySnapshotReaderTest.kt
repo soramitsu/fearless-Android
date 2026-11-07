@@ -11,7 +11,8 @@ import org.junit.Test
 class ReownLegacySnapshotReaderTest {
 
     private val reown = section("reown")
-    private val keyChain: Map<String, String> = reown.getAsJsonObject("keychain").entrySet().associate { it.key to it.value.asString }
+    private val keyChain: Map<String, String> =
+        reown.getAsJsonObject("keychain").entrySet().associate { it.key to it.value.asString }
     private val sessions = reown.getAsJsonArray("sessions").map { it.asJsonObject }.associateBy { it["name"].asString }
     private val pairings = reown.getAsJsonArray("pairings").map { it.asJsonObject }.associateBy { it["name"].asString }
 
@@ -23,6 +24,8 @@ class ReownLegacySnapshotReaderTest {
             coreDatabase = SqliteDatabaseImage(decoder.decode(LegacyDatabaseFiles(bytes("reown-core.db")), passphrase("reown")))
         )
     }
+
+    private fun topic(session: String) = sessions.getValue(session)["topic"].asString
 
     @Test
     fun `sessions come back with their keys, namespaces and dApp metadata`() {
@@ -64,7 +67,7 @@ class ReownLegacySnapshotReaderTest {
 
     @Test
     fun `a session without a stored peer key takes it from the key agreement, and unset chains stay null`() {
-        val beta = ReownLegacySnapshotReader().read(sources).sessions.single { it.topic == sessions.getValue("beta")["topic"].asString }
+        val beta = ReownLegacySnapshotReader().read(sources).sessions.single { it.topic == topic("beta") }
 
         assertEquals(sessions.getValue("beta")["peer"].asString, beta.peerPublicKey)
         assertTrue(beta.acknowledged)
@@ -81,8 +84,9 @@ class ReownLegacySnapshotReaderTest {
 
         assertTrue(sessions.getValue("keyless")["topic"].asString !in snapshot.sessions.map { it.topic })
         assertEquals(listOf(ReownSkipReason.SESSION_INCOMPLETE), snapshot.skipped)
-        assertEquals(sessions.getValue("expired")["expiry"].asLong, snapshot.sessions.single { it.topic == sessions.getValue("expired")["topic"].asString }.expiry)
-        assertEquals(false, snapshot.sessions.single { it.topic == sessions.getValue("unsettled")["topic"].asString }.acknowledged)
+        val expired = snapshot.sessions.single { it.topic == topic("expired") }
+        assertEquals(sessions.getValue("expired")["expiry"].asLong, expired.expiry)
+        assertEquals(false, snapshot.sessions.single { it.topic == topic("unsettled") }.acknowledged)
     }
 
     @Test
