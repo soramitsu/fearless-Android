@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 """Validate Android-owned configuration inventory, URL closure and provenance."""
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 import re
 import sys
 from urllib.parse import unquote, urlsplit
+
+_SIGNING_SPEC = importlib.util.spec_from_file_location('sign_remote_config', Path(__file__).resolve().parent / 'sign-remote-config.py')
+SIGNING = importlib.util.module_from_spec(_SIGNING_SPEC)
+_SIGNING_SPEC.loader.exec_module(SIGNING)
 
 PREFIX = 'https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/'
 LEGACY = ('shared-features-utils', 'raw.githubusercontent.com/soramitsu/fearless-utils/', 'cdn.jsdelivr.net/gh/soramitsu/fearless-utils@')
@@ -22,6 +27,10 @@ STAKING_HUBS = {
     '67f9723393ef76214df0118c34bbbd3dbebc8ed46a10973a8c969d48fe7598c9': ('e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e', 'a3868e1b-922e-42d4-b73e-b41712f0843c'),
 }
 HUB_STAKING = 'assetHub'
+# The signed manifest is published next to the files it lists; it is checked by its signature, not by provenance.
+SIGNED_MANIFEST = SIGNING.MANIFEST
+TRUST_SOURCE = 'common/src/main/java/jp/co/soramitsu/common/data/network/config/signed/RemoteConfigTrust.kt'
+SNAPSHOT_GRADLE = 'common/build.gradle'
 PROVENANCE_ASSETS = {
     'runtime/src/main/assets/canonical-asset-groups.v1.json',
     'runtime/src/main/assets/default-visible-at-zero.v1.json',
@@ -85,7 +94,29 @@ def verify_staking_routes(relative, document):
                 raise ValueError('Relay-era staking value on a migrated staking network: ' + relative)
 
 
-def verify_consumers(root, listed):
+def bundled_snapshot(root):
+    # The files bundled into the APK as the fallback for configuration that does not verify (common/build.gradle).
+    text = safe_path(root, SNAPSHOT_GRADLE).read_text()
+    match = re.search(r"def remoteConfigSnapshotFiles = \[(.*?)\]", text, re.S)
+    if not match:
+        raise ValueError('Missing remoteConfigSnapshotFiles in ' + SNAPSHOT_GRADLE)
+    return set(re.findall(r"'([^']+)'", match.group(1)))
+
+
+def verify_signed_manifest(root):
+    """The published manifest is signed by the configured key, lists every configuration file at its current digest,
+    and the app embeds the same public key."""
+    manifest = SIGNING.verify(root)
+    public = SIGNING.configured_public_key(root)
+    trust = safe_path(root, TRUST_SOURCE).read_text()
+    embedded = re.findall(r'REMOTE_CONFIG_PUBLIC_KEY_HEX = "([0-9a-f]{64})"', trust)
+    key_ids = re.findall(r'KEY_ID = "([0-9a-f]{16})"', trust)
+    if embedded != [public.hex()] or key_ids != [SIGNING.key_id(public)]:
+        raise ValueError('The app does not embed the configured remote-config public key')
+    return manifest
+
+
+def verify_consumers(root, listed, signed=frozenset(), bundled=frozenset()):
     paths = set()
     for pattern in ('*.gradle', '*/build.gradle', '*/build.gradle.kts', '*/src/main/**/*.kt', '*/src/main/**/*.java', '*/src/main/assets/**/*.json'):
         paths.update(path for path in root.glob(pattern) if path.is_file())
@@ -106,8 +137,11 @@ def verify_consumers(root, listed):
                 raise ValueError('Legacy runtime consumer URL in ' + str(path) + ': ' + value)
         for value in re.findall(re.escape(PREFIX) + r"[^\s\"'\\<>]+", text):
             suffix = unquote(value[len(PREFIX):])
-            if suffix not in listed:
+            if suffix not in listed and suffix != SIGNED_MANIFEST:
                 raise ValueError('Unlisted consumer URL in ' + str(path) + ': ' + value)
+            # A configuration file the app fetches needs a bundled fallback for when it does not verify.
+            if suffix in signed and suffix not in bundled:
+                raise ValueError('Configuration URL without a bundled snapshot in ' + str(path) + ': ' + value)
 
 
 def verify(root):
@@ -153,9 +187,14 @@ def verify(root):
             raise ValueError('Config inventory contains a symlink')
         if path.is_file():
             actual.add(path.relative_to(directory).as_posix())
+    actual.discard(SIGNED_MANIFEST)
     if expected != actual:
         raise ValueError('Config inventory differs from manifest')
-    verify_consumers(root, listed)
+    signed = set(verify_signed_manifest(root)['files'])
+    bundled = bundled_snapshot(root)
+    if not bundled <= signed:
+        raise ValueError('Bundled snapshot names an unsigned file: ' + ', '.join(sorted(bundled - signed)))
+    verify_consumers(root, listed, signed, bundled)
     return len(actual)
 
 

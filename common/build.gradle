@@ -224,3 +224,85 @@ dependencies {
 
     api project(':core-chain')
 }
+
+// The remote configuration the app falls back to when a fetched file does not match the signed manifest
+// (RemoteConfigVerifier): the files it fetches, bundled from this repository's remote-config, each pinned to its
+// reviewed ownedSha256 in config/remote-config-imports.json, with the signed manifest of the same commit.
+// scripts/test-owned-remote-config.py checks that every configuration URL the app fetches is bundled here.
+def remoteConfigSnapshotFiles = [
+        'production/chains/v13/chains.json',
+        'development/chains/v13/chains_dev_prod.json',
+        'production/chains/all_chains_types_android.json',
+        'production/chains/default_v13_types.json',
+        'production/polkaswapSettings.json',
+        'production/appConfigs/feature_toggle',
+        'development/appConfigs/dapps.json',
+        'production/fiat/fiats.json',
+        'development/fiat/fiats.json',
+        'development/appVersionSupport/android_app_support.json',
+        'development/appVersionSupport/android_app_support_dev.json',
+        'production/appConfigs/onboarding/mobile v2.json',
+        'development/appConfigs/onboarding/mobile v2.json',
+        'production/scamDetection/Polkadot_Hot_Wallet_Attributions.csv',
+        'production/chains/xn.json',
+        'production/crowdloan/polkadot.json',
+        'production/crowdloan/westend.json',
+        'production/type_registry/bifrost.json'
+]
+
+abstract class BundleRemoteConfigSnapshotTask extends DefaultTask {
+    @Input
+    abstract ListProperty<String> getPaths()
+
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    abstract ConfigurableFileCollection getSources()
+
+    @Internal
+    abstract DirectoryProperty getConfigDirectory()
+
+    @InputFile
+    @PathSensitive(PathSensitivity.NONE)
+    abstract RegularFileProperty getImportsFile()
+
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDirectory()
+
+    @TaskAction
+    void bundle() {
+        def output = outputDirectory.get().asFile
+        output.deleteDir()
+        def root = new File(output, 'remote-config-snapshot')
+        def configDir = configDirectory.get().asFile
+        def pins = new groovy.json.JsonSlurper().parse(importsFile.get().asFile).sources.collectEntries { [(it.path): it.ownedSha256] }
+        def index = new TreeMap<String, String>()
+        paths.get().each { path ->
+            def bytes = new File(configDir, path).bytes
+            def digest = java.security.MessageDigest.getInstance('SHA-256').digest(bytes).encodeHex().toString()
+            if (pins[path] != digest) {
+                throw new GradleException("remote-config/${path} differs from its ownedSha256 in config/remote-config-imports.json")
+            }
+            def target = new File(root, "files/${path}")
+            target.parentFile.mkdirs()
+            target.bytes = bytes
+            index[path] = digest
+        }
+        new File(root, 'remote-config-manifest.json').bytes = new File(configDir, 'remote-config-manifest.json').bytes
+        new File(root, 'index.json').text = groovy.json.JsonOutput.toJson([files: index])
+    }
+}
+
+def bundleRemoteConfigSnapshot = tasks.register('bundleRemoteConfigSnapshot', BundleRemoteConfigSnapshotTask) {
+    def configDir = rootProject.layout.projectDirectory.dir('remote-config')
+    paths.set(remoteConfigSnapshotFiles)
+    sources.from(remoteConfigSnapshotFiles.collect { configDir.file(it) } + configDir.file('remote-config-manifest.json'))
+    configDirectory.set(configDir)
+    importsFile.set(rootProject.layout.projectDirectory.file('config/remote-config-imports.json'))
+    outputDirectory.set(layout.buildDirectory.dir('generated/remote-config-snapshot'))
+}
+
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        variant.sources.assets?.addGeneratedSourceDirectory(bundleRemoteConfigSnapshot) { it.outputDirectory }
+    }
+}

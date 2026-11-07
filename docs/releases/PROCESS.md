@@ -250,6 +250,7 @@ bash scripts/verify-android-runtime-sources.sh
 python3 scripts/test-android-runtime-source-pins.py
 python3 scripts/verify-owned-remote-config.py
 python3 scripts/test-owned-remote-config.py
+python3 scripts/test-remote-config-signing.py
 ```
 
 The legacy `ensure-fearless-utils.sh` receipt fields identify original imports;

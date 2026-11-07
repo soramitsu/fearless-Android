@@ -119,6 +119,10 @@ procedure.
 - Run `python3 scripts/test-owned-remote-config.py` and
   `python3 scripts/verify-owned-remote-config.py`; publish the reviewed config and
   asset closure to public master before shipping the new consumer URLs.
+- After any `remote-config/` change, sign the manifest with
+  `python3 scripts/sign-remote-config.py sign` and run
+  `python3 scripts/test-remote-config-signing.py` (docs/security/remote-config-signing.md).
+  Publish the signed manifest on master before releasing a build that verifies it.
 - Run `bash scripts/test-public-dependency-upstream-delta-export.sh` and export the
   ownership/provenance receipt with `scripts/export-public-dependency-upstream-delta.sh --output build/reports/public-dependency-upstream-delta`.
 - For release artifact hardening, run
