@@ -96,10 +96,6 @@
 # Keep generic signatures and annotations that reflection-based libraries read.
 -keepattributes Signature,RuntimeVisibleAnnotations,AnnotationDefault
 
-# The app itself uses no Google Play services (Drive backup has its own OAuth and REST client).
-# Reown's firebase-messaging still brings some; drop this with it.
--dontwarn com.google.android.gms.**
-
 # This is generated automatically by the Android Gradle plugin.
 -dontwarn org.slf4j.impl.StaticLoggerBinder
 -dontwarn org.slf4j.impl.StaticMDCBinder
