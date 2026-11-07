@@ -30,7 +30,7 @@ import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptionUtil
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore
-import jp.co.soramitsu.common.data.storage.envelope.AndroidKeystoreWalletKeyringHardwareKey
+import jp.co.soramitsu.common.data.storage.envelope.MasterKeyBoundKeyringFactor
 import jp.co.soramitsu.common.data.storage.envelope.WalletSecretKeyring
 import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSealer
 import jp.co.soramitsu.common.domain.NetworkStateService
@@ -127,8 +127,9 @@ class CommonModule {
 
     @Provides
     @Singleton
-    fun provideWalletSecretKeyring(preferences: Preferences): WalletSecretKeyring {
-        return WalletSecretKeyring(preferences, AndroidKeystoreWalletKeyringHardwareKey())
+    fun provideWalletSecretKeyring(preferences: Preferences, encryptionUtil: EncryptionUtil): WalletSecretKeyring {
+        // The PIN wrap's device factor lives under the existing device key: no new Keystore key.
+        return WalletSecretKeyring(preferences, MasterKeyBoundKeyringFactor(preferences, encryptionUtil))
     }
 
     @Provides

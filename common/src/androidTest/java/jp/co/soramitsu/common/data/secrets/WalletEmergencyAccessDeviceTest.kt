@@ -15,7 +15,7 @@ import jp.co.soramitsu.common.data.storage.encrypt.EncryptionUtil
 import jp.co.soramitsu.common.data.storage.encrypt.WalletMasterKeyAttestation
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
 import jp.co.soramitsu.common.data.storage.encrypt.quarantineEncryptedStringSnapshotDurably
-import jp.co.soramitsu.common.data.storage.envelope.AndroidKeystoreWalletKeyringHardwareKey
+import jp.co.soramitsu.common.data.storage.envelope.MasterKeyBoundKeyringFactor
 import jp.co.soramitsu.common.data.storage.envelope.WalletPinAuthority
 import jp.co.soramitsu.common.data.storage.envelope.WalletSecretKeyring
 import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSealer
@@ -81,7 +81,7 @@ class WalletEmergencyAccessDeviceTest {
             .putString(UNREADABLE_KEY, "v2:" + Base64.encodeToString(ByteArray(48) { 7 }, Base64.NO_WRAP))
             .commit()
         // A 4.3.1 device: no keyring yet, so the PIN is checked against the legacy `pin_code`.
-        val keyring = WalletSecretKeyring(walletPreferences, AndroidKeystoreWalletKeyringHardwareKey())
+        val keyring = WalletSecretKeyring(walletPreferences, MasterKeyBoundKeyringFactor(walletPreferences, EncryptionUtil(context)))
         val authority = WalletPinAuthority(encryptedPreferences, keyring, WalletSecretSealer(walletPreferences, keyring))
         val authenticator = WalletEmergencyAuthenticator(walletPreferences, authority)
 

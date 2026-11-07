@@ -5,8 +5,8 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import jp.co.soramitsu.common.data.storage.InitialValueProducer
 import jp.co.soramitsu.common.data.storage.Preferences
-import jp.co.soramitsu.common.data.storage.envelope.WalletKeyringHardwareKey
-import jp.co.soramitsu.common.data.storage.envelope.WalletKeyringHardwareKeyLostException
+import jp.co.soramitsu.common.data.storage.envelope.WalletKeyringDeviceFactor
+import jp.co.soramitsu.common.data.storage.envelope.WalletKeyringDeviceFactorLostException
 import jp.co.soramitsu.core.model.Language
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -48,8 +48,8 @@ class InMemoryKeyringPreferences : Preferences {
     override fun booleanFlow(field: String, initialValue: Boolean): Flow<Boolean> = flowOf(getBoolean(field, initialValue))
 }
 
-/** An in-memory K_hw for tests: an HMAC key per alias that [loseAll] can take away. */
-class InMemoryKeyringHardwareKey : WalletKeyringHardwareKey {
+/** An in-memory PIN-wrap device factor for tests: an HMAC key per alias that [loseAll] can take away. */
+class InMemoryKeyringDeviceFactor : WalletKeyringDeviceFactor {
     private val keys = mutableMapOf<String, ByteArray>()
     private var next = 0
 
@@ -60,7 +60,7 @@ class InMemoryKeyringHardwareKey : WalletKeyringHardwareKey {
     }
 
     override fun hmac(alias: String, data: ByteArray): ByteArray {
-        val key = keys[alias] ?: throw WalletKeyringHardwareKeyLostException("missing")
+        val key = keys[alias] ?: throw WalletKeyringDeviceFactorLostException("missing")
         return Mac.getInstance("HmacSHA256").run {
             init(SecretKeySpec(key, "HmacSHA256"))
             doFinal(data)

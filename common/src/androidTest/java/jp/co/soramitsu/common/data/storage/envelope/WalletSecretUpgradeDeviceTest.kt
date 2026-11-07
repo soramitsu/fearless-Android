@@ -26,14 +26,14 @@ import org.junit.runner.RunWith
 
 /**
  * 4.3.1 storage on a real device: the Keystore-wrapped device key, the legacy `pin_code` and raw
- * wallet secrets. The first 4.3.2 unlock creates the keyring with a real Keystore HMAC key, seals
- * every secret and retires the PIN; a restarted process (new objects over the same files and
- * Keystore) unlocks with the PIN wrap, and emergency export still reveals every secret.
+ * wallet secrets. The first 4.3.2 unlock creates the keyring, whose PIN-wrap factor is kept under
+ * the same device key, seals every secret and retires the PIN; a restarted process (new objects
+ * over the same files and Keystore) unlocks with the PIN wrap, and emergency export still reveals
+ * every secret. The factor stays out of the emergency listing, and no Keystore key is added.
  */
 @RunWith(AndroidJUnit4::class)
 class WalletSecretUpgradeDeviceTest {
     private lateinit var context: Context
-    private val hardwareAliases = mutableListOf<String>()
 
     private val legacySecrets = linkedMapOf(
         "7:ETHEREUM_SECRETS" to "0x" + "00" + Hex.toHexString(ByteArray(32) { 3 }),
@@ -58,17 +58,14 @@ class WalletSecretUpgradeDeviceTest {
         context.getSharedPreferences(SHARED_PREFERENCES_FILE, Context.MODE_PRIVATE).edit().clear().commit()
         context.getSharedPreferences("key_alias", Context.MODE_PRIVATE).edit().clear().commit()
         val store = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
-        (hardwareAliases + listOf("key_alias", "key_alias_v2")).forEach { if (store.containsAlias(it)) store.deleteEntry(it) }
+        listOf("key_alias", "key_alias_v2").forEach { if (store.containsAlias(it)) store.deleteEntry(it) }
     }
 
     private inner class Process {
         val preferences = PreferencesImpl(context.getSharedPreferences(SHARED_PREFERENCES_FILE, Context.MODE_PRIVATE))
         val encryption = EncryptionUtil(context)
-        private val keystore = AndroidKeystoreWalletKeyringHardwareKey()
-        private val hardware = object : WalletKeyringHardwareKey by keystore {
-            override fun create(): String = keystore.create().also(hardwareAliases::add)
-        }
-        val keyring = WalletSecretKeyring(preferences, hardware)
+        // The production factor: kept under the same device key as every wallet secret.
+        val keyring = WalletSecretKeyring(preferences, MasterKeyBoundKeyringFactor(preferences, encryption))
         val sealer = WalletSecretSealer(preferences, keyring, SecureRandom())
         val storage = EncryptedPreferencesImpl(preferences, encryption, sealer)
         val authority = WalletPinAuthority(storage, keyring, sealer)
@@ -85,9 +82,14 @@ class WalletSecretUpgradeDeviceTest {
         legacy.savePinCodeDurably(PIN)
         legacySecrets.forEach(legacy::putEncryptedString)
 
+        val keystoreBefore = keystoreAliases()
         val first = Process()
         assertEquals(PinHealth.HEALTHY, first.authority.health())
         assertEquals(PinVerification.CORRECT, first.authority.verify(PIN))
+        // The keyring added no Keystore key: its PIN-wrap factor lives under the device key.
+        assertEquals(keystoreBefore, keystoreAliases())
+        val factors = factorValues()
+        assertEquals(1, factors.size)
         val report = first.migration.run()
         assertEquals(legacySecrets.size, report.sealed)
         assertTrue(report.legacyPinRetired)
@@ -121,7 +123,19 @@ class WalletSecretUpgradeDeviceTest {
         }
         checkNotNull(sk).close()
         assertFalse(WalletSecretSession.isOpen())
+
+        // The factor is never sealed, moved or listed as a wallet key.
+        assertEquals(factors, factorValues())
+        val listed = reader.listPage().keys.map { it.storageKey }
+        assertTrue(listed.containsAll(legacySecrets.keys))
+        assertTrue(listed.none { it.startsWith(MasterKeyBoundKeyringFactor.ALIAS_PREFIX) })
     }
+
+    private fun factorValues(): Map<String, Any?> = context.getSharedPreferences(SHARED_PREFERENCES_FILE, Context.MODE_PRIVATE).all
+        .filterKeys { it.startsWith(MasterKeyBoundKeyringFactor.ALIAS_PREFIX) }
+
+    private fun keystoreAliases(): Set<String> =
+        KeyStore.getInstance("AndroidKeyStore").apply { load(null) }.aliases().toList().toSet()
 
     private companion object {
         const val PIN = "203948"

@@ -14,7 +14,7 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretArchive
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretScope
-import jp.co.soramitsu.common.data.storage.envelope.WalletKeyringHardwareKey
+import jp.co.soramitsu.common.data.storage.envelope.WalletKeyringDeviceFactor
 import jp.co.soramitsu.common.data.storage.envelope.WalletPinAuthority
 import jp.co.soramitsu.common.data.storage.envelope.WalletSecretKeyring
 import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSealer
@@ -50,7 +50,7 @@ class WalletPinRecoveryTest {
     private val verifier = WalletIdentityVerifier(JsonSeedDecoder(Gson()))
     // Sealing compiled off: no keyring exists, so these cover the legacy (4.3.1) PIN record.
     private val keyringPreferences = jp.co.soramitsu.testshared.InMemoryKeyringPreferences()
-    private val keyring = WalletSecretKeyring(keyringPreferences, UnavailableHardwareKey, java.security.SecureRandom())
+    private val keyring = WalletSecretKeyring(keyringPreferences, UnavailableDeviceFactor, java.security.SecureRandom())
     private fun authorityFor(encrypted: jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences) =
         WalletPinAuthority(encrypted, keyring, WalletSecretSealer(keyringPreferences, keyring, java.security.SecureRandom(), compiledSwitch = false))
     private fun service(
@@ -250,8 +250,8 @@ class WalletPinRecoveryTest {
         override fun acknowledgeInvalidation() = Unit
     }
 
-    /** No keyring is ever created here, so the hardware key is never reached. */
-    private object UnavailableHardwareKey : WalletKeyringHardwareKey {
+    /** No keyring is ever created here, so the device factor is never reached. */
+    private object UnavailableDeviceFactor : WalletKeyringDeviceFactor {
         override fun create(): String = error("No keyring in legacy recovery tests")
         override fun hmac(alias: String, data: ByteArray): ByteArray = error("No keyring in legacy recovery tests")
         override fun exists(alias: String): Boolean = false

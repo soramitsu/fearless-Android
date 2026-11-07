@@ -31,7 +31,7 @@ import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.testshared.HashMapEncryptedPreferences
-import jp.co.soramitsu.testshared.InMemoryKeyringHardwareKey
+import jp.co.soramitsu.testshared.InMemoryKeyringDeviceFactor
 import jp.co.soramitsu.testshared.InMemoryKeyringPreferences
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -48,8 +48,8 @@ import org.junit.Test
 class WalletPinRecoveryKeyringTest {
     private val storage = HashMapEncryptedPreferences()
     private val keyringPreferences = InMemoryKeyringPreferences()
-    private val hardware = InMemoryKeyringHardwareKey()
-    private val keyring = WalletSecretKeyring(keyringPreferences, hardware, SecureRandom(), FAST_KDF)
+    private val factor = InMemoryKeyringDeviceFactor()
+    private val keyring = WalletSecretKeyring(keyringPreferences, factor, SecureRandom(), FAST_KDF)
     private val authority = WalletPinAuthority(storage, keyring, WalletSecretSealer(keyringPreferences, keyring, SecureRandom(), true))
     private val preferences = mockk<Preferences>(relaxed = true)
     private val accounts = mockk<AccountRepository> {
@@ -125,8 +125,8 @@ class WalletPinRecoveryKeyringTest {
     }
 
     @Test
-    fun `a lost hardware key is recovered by the backup proof`() = runTest {
-        hardware.loseAll()
+    fun `a lost device factor after sealing is recovered by the backup proof`() = runTest {
+        factor.loseAll()
         assertEquals(PinHealth.UNREADABLE, authority.health())
         val id = service.begin()
         service.verifyWallet(id, target, ImportMode.RawSeed, PRIVATE_KEY)

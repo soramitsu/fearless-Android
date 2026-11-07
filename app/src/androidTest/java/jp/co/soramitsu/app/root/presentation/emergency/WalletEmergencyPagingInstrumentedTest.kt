@@ -38,7 +38,7 @@ import jp.co.soramitsu.common.data.storage.PreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptionUtil
-import jp.co.soramitsu.common.data.storage.envelope.AndroidKeystoreWalletKeyringHardwareKey
+import jp.co.soramitsu.common.data.storage.envelope.MasterKeyBoundKeyringFactor
 import jp.co.soramitsu.common.data.storage.envelope.WalletPinAuthority
 import jp.co.soramitsu.common.data.storage.envelope.WalletSecretKeyring
 import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSealer
@@ -329,7 +329,7 @@ class WalletEmergencyPagingInstrumentedTest {
             observer = ObservedEncryptedPreferences(encrypted)
             reader = WalletEmergencyRecoveryReader(observer)
             // No keyring in this fixture: the PIN is checked against the legacy `pin_code`, as on 4.3.1.
-            val keyring = WalletSecretKeyring(PreferencesImpl(raw), AndroidKeystoreWalletKeyringHardwareKey())
+            val keyring = WalletSecretKeyring(PreferencesImpl(raw), MasterKeyBoundKeyringFactor(PreferencesImpl(raw), encryption))
             authenticator = WalletEmergencyAuthenticator(
                 PreferencesImpl(raw),
                 WalletPinAuthority(observer, keyring, WalletSecretSealer(PreferencesImpl(raw), keyring))

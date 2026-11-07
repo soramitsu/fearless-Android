@@ -13,8 +13,8 @@ import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.Sr25519Keypair
 import jp.co.soramitsu.fearless_utils.scale.toHexString
 
-/** An in-memory K_hw. [lose] simulates a Keystore entry that is gone. */
-internal class FakeKeyringHardwareKey : WalletKeyringHardwareKey {
+/** An in-memory device factor for keyring-only tests. [loseAll] simulates factors that are gone. */
+internal class FakeKeyringDeviceFactor : WalletKeyringDeviceFactor {
     private val keys = mutableMapOf<String, ByteArray>()
     private var next = 0
     var creations = 0
@@ -28,7 +28,7 @@ internal class FakeKeyringHardwareKey : WalletKeyringHardwareKey {
     }
 
     override fun hmac(alias: String, data: ByteArray): ByteArray {
-        val key = keys[alias] ?: throw WalletKeyringHardwareKeyLostException("missing")
+        val key = keys[alias] ?: throw WalletKeyringDeviceFactorLostException("missing")
         return Mac.getInstance("HmacSHA256").run {
             init(SecretKeySpec(key, "HmacSHA256"))
             doFinal(data)
@@ -150,14 +150,15 @@ internal class SimulatedProcessDeath : RuntimeException("Simulated process death
 
 internal class EnvelopeStorageHarness(
     compiledSealing: Boolean = true,
-    val shared: MapSharedPreferences = MapSharedPreferences(),
-    /** The Keystore survives a process restart. */
-    val hardware: FakeKeyringHardwareKey = FakeKeyringHardwareKey()
+    /** Storage survives a process restart, and with it the factor kept under the device key. */
+    val shared: MapSharedPreferences = MapSharedPreferences()
 ) {
     val preferences = jp.co.soramitsu.common.data.storage.PreferencesImpl(shared)
     val crypto: jp.co.soramitsu.common.data.storage.encrypt.EncryptionUtil =
         org.mockito.kotlin.mock()
-    val keyring = WalletSecretKeyring(preferences, hardware, SecureRandom(), TEST_KDF)
+    /** The production factor, under the test device-key transform. */
+    val factor = MasterKeyBoundKeyringFactor(preferences, crypto)
+    val keyring = WalletSecretKeyring(preferences, factor, SecureRandom(), TEST_KDF)
     val sealer = WalletSecretSealer(preferences, keyring, SecureRandom(), compiledSealing)
     val storage = jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferencesImpl(preferences, crypto, sealer)
     val authority = WalletPinAuthority(storage, keyring, sealer)
@@ -184,5 +185,19 @@ internal class EnvelopeStorageHarness(
     /** Stores [plaintext] as an older build did, without any envelope. */
     fun putLegacy(key: String, plaintext: String) {
         shared.values[key] = "v2:test:$plaintext"
+    }
+
+    /** The stored PIN-wrap factors, by alias, exactly as kept. */
+    fun factorValues(): Map<String, Any?> =
+        shared.values.filterKeys { it.startsWith(MasterKeyBoundKeyringFactor.ALIAS_PREFIX) }
+
+    /** Every factor is gone, as if its value had been removed from storage. */
+    fun loseFactor() {
+        factorValues().keys.forEach(shared.values::remove)
+    }
+
+    /** Every factor no longer authenticates under the device key. */
+    fun corruptFactor() {
+        factorValues().keys.forEach { shared.values[it] = "v2:corrupt" }
     }
 }

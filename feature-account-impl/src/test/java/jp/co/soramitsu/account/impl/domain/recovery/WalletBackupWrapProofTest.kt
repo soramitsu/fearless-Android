@@ -14,7 +14,7 @@ import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
-import jp.co.soramitsu.testshared.InMemoryKeyringHardwareKey
+import jp.co.soramitsu.testshared.InMemoryKeyringDeviceFactor
 import jp.co.soramitsu.testshared.InMemoryKeyringPreferences
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert.assertArrayEquals
@@ -37,7 +37,7 @@ class WalletBackupWrapProofTest {
     /** Stores [stored] as the root of [activeKey], wraps SK for it, then opens SK with each proof. */
     private fun assertEveryProofOpensTheWrap(activeKey: String, stored: VerifiedWalletSecret, proofs: List<VerifiedWalletSecret>) {
         val preferences = InMemoryKeyringPreferences()
-        val keyring = WalletSecretKeyring(preferences, InMemoryKeyringHardwareKey(), SecureRandom(), FAST_KDF)
+        val keyring = WalletSecretKeyring(preferences, InMemoryKeyringDeviceFactor(), SecureRandom(), FAST_KDF)
         val created = keyring.create("123456")
         val target = checkNotNull(WalletSecretSealPolicy.classify(activeKey))
         WalletSecretSealer(preferences, keyring, SecureRandom(), true).ensureBackupWraps(target, stored.encoded, created)

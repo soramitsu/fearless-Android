@@ -14,7 +14,7 @@ import jp.co.soramitsu.common.data.storage.envelope.WalletSecretKeyring
 import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSealer
 import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSession
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
-import jp.co.soramitsu.testshared.InMemoryKeyringHardwareKey
+import jp.co.soramitsu.testshared.InMemoryKeyringDeviceFactor
 import jp.co.soramitsu.testshared.InMemoryKeyringPreferences
 import java.security.SecureRandom
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -55,7 +55,7 @@ class AccountDataSourcePinTest {
     @Test
     fun `with sealing on, a first PIN opens the wallet key and writes no legacy PIN`() = runTest {
         val keyringPreferences = InMemoryKeyringPreferences()
-        val keyring = WalletSecretKeyring(keyringPreferences, InMemoryKeyringHardwareKey(), SecureRandom(), FAST_KDF)
+        val keyring = WalletSecretKeyring(keyringPreferences, InMemoryKeyringDeviceFactor(), SecureRandom(), FAST_KDF)
         val authority = WalletPinAuthority(storage, keyring, WalletSecretSealer(keyringPreferences, keyring, SecureRandom(), true))
         val source = source(storage, authority)
         try {
@@ -74,7 +74,7 @@ class AccountDataSourcePinTest {
 
     private fun legacyAuthority(encrypted: EncryptedPreferences): WalletPinAuthority {
         val keyringPreferences = InMemoryKeyringPreferences()
-        val keyring = WalletSecretKeyring(keyringPreferences, InMemoryKeyringHardwareKey(), SecureRandom(), FAST_KDF)
+        val keyring = WalletSecretKeyring(keyringPreferences, InMemoryKeyringDeviceFactor(), SecureRandom(), FAST_KDF)
         return WalletPinAuthority(encrypted, keyring, WalletSecretSealer(keyringPreferences, keyring, SecureRandom(), false))
     }
 

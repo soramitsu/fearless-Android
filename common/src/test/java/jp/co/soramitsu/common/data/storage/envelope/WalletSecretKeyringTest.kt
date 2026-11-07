@@ -14,8 +14,8 @@ import org.junit.Test
 class WalletSecretKeyringTest {
 
     private val preferences = InMemoryPreferences()
-    private val hardware = FakeKeyringHardwareKey()
-    private val keyring = WalletSecretKeyring(preferences, hardware, SecureRandom(), TEST_KDF)
+    private val factor = FakeKeyringDeviceFactor()
+    private val keyring = WalletSecretKeyring(preferences, factor, SecureRandom(), TEST_KDF)
 
     @Test
     fun `a new keyring opens only with its PIN`() {
@@ -70,29 +70,29 @@ class WalletSecretKeyringTest {
     }
 
     @Test
-    fun `a lost hardware key makes the PIN wrap unusable, never a wrong PIN`() {
+    fun `a lost device factor makes the PIN wrap unusable, never a wrong PIN`() {
         keyring.create(PIN)
-        hardware.loseAll()
+        factor.loseAll()
         assertEquals(WalletSecretKeyring.PinWrapState.UNUSABLE, keyring.pinWrapState())
         assertSame(WalletSecretKeyring.PinOpening.Unusable, keyring.openWithPin(PIN))
         assertSame(WalletSecretKeyring.PinOpening.Unusable, keyring.openWithPin("000000"))
     }
 
     @Test
-    fun `a backup wrap recovers SK and a new PIN wrap gets a new hardware key`() {
+    fun `a backup wrap recovers SK and a new PIN wrap gets a new device factor`() {
         val created = keyring.create(PIN)
         val root = SyntheticSecrets.bytes(42)
         keyring.addBackupWrap(created, root)
         assertTrue(keyring.hasBackupWrap(created.keyId, root))
-        hardware.loseAll()
+        factor.loseAll()
 
         assertNull(keyring.openWithBackup(listOf(SyntheticSecrets.bytes(43))))
         val recovered = checkNotNull(keyring.openWithBackup(listOf(SyntheticSecrets.bytes(43), root)))
         assertArrayEquals(created.key, recovered.key)
-        val creationsBefore = hardware.creations
+        val creationsBefore = factor.creations
         keyring.replacePin(recovered, "246810", expectedRecord = keyring.pinRecord())
 
-        assertEquals(creationsBefore + 1, hardware.creations)
+        assertEquals(creationsBefore + 1, factor.creations)
         assertEquals(WalletSecretKeyring.PinWrapState.USABLE, keyring.pinWrapState())
         val opened = keyring.openWithPin("246810") as WalletSecretKeyring.PinOpening.Opened
         assertArrayEquals(created.key, opened.key.key)
@@ -141,11 +141,11 @@ class WalletSecretKeyringTest {
 
     @Test
     fun `a creation that cannot be verified leaves no keyring behind`() {
-        val failing = object : WalletKeyringHardwareKey by hardware {
+        val failing = object : WalletKeyringDeviceFactor by factor {
             var calls = 0
             override fun hmac(alias: String, data: ByteArray): ByteArray {
                 calls++
-                val mac = hardware.hmac(alias, data)
+                val mac = factor.hmac(alias, data)
                 if (calls > 1) mac[0] = (mac[0].toInt() xor 1).toByte()
                 return mac
             }

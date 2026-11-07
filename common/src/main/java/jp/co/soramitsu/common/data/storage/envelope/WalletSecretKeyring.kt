@@ -17,21 +17,26 @@ import org.bouncycastle.util.encoders.Hex
 /**
  * The records that hold SK, in plain preferences outside the device key, so a
  * fresh device-key slot can still read them. Each SK is named by its 16-byte
- * id; its records are never removed.
+ * id; its records are never removed. [CURRENT_KEY] names the SK in use.
  *
  * - The PIN wrap: SK under KEK = HKDF-SHA256(Argon2id(PIN, salt) ‖
- *   HMAC-SHA256(K_hw, salt)). Opening it is the PIN check. A PIN change
- *   replaces only this record; SK and every sealed value stay as they are.
+ *   HMAC-SHA256(D, salt)), where D is the [WalletKeyringDeviceFactor] kept
+ *   under the device key. Opening it is the PIN check. A PIN change replaces
+ *   only this record; SK and every sealed value stay as they are.
  * - Backup wraps, one per wallet root: SK under KEK = HKDF-SHA256 of the
  *   root's canonical private key ([WalletRootKeyKind.canonical]). Proving any
  *   one backup opens SK, as PIN recovery by backup works today.
+ *
+ * Guessing the PIN needs D, which a copy of the app's files without the device
+ * key does not have. Code running as the app can unwrap the device key and
+ * guess offline at the Argon2id cost per guess, so a longer PIN is stronger.
  *
  * There is no biometric wrap: the biometric vault unseals the PIN, and the PIN
  * wrap gives SK.
  */
 class WalletSecretKeyring(
     private val preferences: Preferences,
-    private val hardwareKey: WalletKeyringHardwareKey,
+    private val deviceFactor: WalletKeyringDeviceFactor,
     private val random: SecureRandom = SecureRandom(),
     private val newWrapKdf: WalletPinKdfParameters = WalletPinKdfParameters.DEFAULT
 ) {
@@ -52,10 +57,10 @@ class WalletSecretKeyring(
         /** No keyring: the PIN is still the legacy `pin_code` preference, or none was set. */
         ABSENT,
 
-        /** A well-formed PIN wrap whose hardware key the Keystore still has. */
+        /** A well-formed PIN wrap whose device factor still authenticates. */
         USABLE,
 
-        /** A keyring whose PIN wrap can never open: malformed, or its hardware key is gone. */
+        /** A keyring whose PIN wrap can never open: malformed, or its device factor is gone or corrupt. */
         UNUSABLE
     }
 
@@ -72,10 +77,11 @@ class WalletSecretKeyring(
     /** The exact stored PIN wrap, for PIN-reset snapshots; it is not secret on its own. */
     fun pinRecord(): String? = currentKeyId()?.let { preferences.getString(pinKey(it)) }
 
+    /** An unavailable device key propagates: that is "try again", never an unusable wrap. */
     fun pinWrapState(): PinWrapState {
         if (!exists()) return PinWrapState.ABSENT
         val record = pinRecord()?.let(::parsePinWrapOrNull) ?: return PinWrapState.UNUSABLE
-        return if (hardwareKey.exists(record.alias)) PinWrapState.USABLE else PinWrapState.UNUSABLE
+        return if (deviceFactorUsable(record.alias)) PinWrapState.USABLE else PinWrapState.UNUSABLE
     }
 
     /** Opening the PIN wrap is the PIN check. Costs one Argon2id run. */
@@ -86,7 +92,7 @@ class WalletSecretKeyring(
         if (!record.keyIdMatches(keyId)) return PinOpening.Unusable
         val kek = try {
             pinKek(pin, record)
-        } catch (_: WalletKeyringHardwareKeyLostException) {
+        } catch (_: WalletKeyringDeviceFactorLostException) {
             return PinOpening.Unusable
         }
         return try {
@@ -106,25 +112,48 @@ class WalletSecretKeyring(
 
     /**
      * Creates SK and its PIN wrap for a keyring that does not exist yet, then
-     * reads the stored wrap back and opens it through the Keystore again. A wrap
+     * reads the stored wrap back and opens it through the device factor again. A wrap
      * that does not open is removed before anything was sealed with it.
      */
     @Synchronized
     fun create(pin: String): OpenedKey {
         check(!exists()) { "A wallet keyring already exists" }
+        return newGeneration(pin, previousCurrent = null)
+    }
+
+    /**
+     * Starts a new SK for a keyring whose PIN wrap can never open again, under
+     * [pin], which the caller has just proved another way (the legacy PIN).
+     * Only for a keyring that holds nothing yet: the caller has checked that
+     * no stored value is sealed. The old SK's records stay where they are.
+     */
+    @Synchronized
+    fun replaceUnusable(pin: String, expectedKeyId: ByteArray): OpenedKey {
+        val current = checkNotNull(currentKeyId()) { "There is no wallet keyring" }
+        check(MessageDigest.isEqual(current, expectedKeyId)) { "The wallet keyring changed meanwhile" }
+        check(pinWrapState() == PinWrapState.UNUSABLE) { "The PIN wrap still opens; it is never replaced" }
+        return newGeneration(pin, previousCurrent = preferences.getString(CURRENT_KEY))
+    }
+
+    private fun newGeneration(pin: String, previousCurrent: String?): OpenedKey {
         val keyId = ByteArray(KEY_ID_BYTES).also(random::nextBytes)
         val key = ByteArray(KEY_BYTES).also(random::nextBytes)
         try {
-            val alias = hardwareKey.create()
-            val record = newPinWrap(keyId, key, pin, alias)
-            val values = mapOf(CURRENT_KEY to Hex.toHexString(keyId), pinKey(keyId) to record)
+            val alias = deviceFactor.create()
+            val values = try {
+                mapOf(CURRENT_KEY to Hex.toHexString(keyId), pinKey(keyId) to newPinWrap(keyId, key, pin, alias))
+            } catch (failure: Exception) {
+                removeUnreferencedFactor(alias)
+                throw failure
+            }
             try {
                 check(preferences.replaceStringsDurably(values, emptySet())) { "The keyring was not stored durably" }
                 check(values.all { (name, value) -> preferences.getString(name) == value }) { "The keyring read-back differs" }
                 verifyPinWrap(keyId, key, pin)
             } catch (failure: Exception) {
                 // Nothing was sealed with this SK yet; take back exactly what was written.
-                rollBack(values)
+                rollBack(values, previousCurrent)
+                removeUnreferencedFactor(alias)
                 throw failure
             }
             return OpenedKey(keyId, key)
@@ -136,7 +165,7 @@ class WalletSecretKeyring(
     /**
      * Rewraps the open SK with [newPin]. Only the PIN wrap changes; sealed
      * values are untouched. [expectedRecord] binds the change to the wrap the
-     * caller authorized against. A hardware key that is gone is replaced.
+     * caller authorized against. A device factor that is gone or corrupt is replaced.
      */
     @Synchronized
     fun replacePin(opened: OpenedKey, newPin: String, expectedRecord: String?) {
@@ -148,16 +177,27 @@ class WalletSecretKeyring(
             throw IllegalStateException("The PIN changed while its replacement was prepared")
         }
         val previousAlias = previous?.let(::parsePinWrapOrNull)?.alias
-        val alias = previousAlias?.takeIf(::hardwareKeyUsable) ?: hardwareKey.create()
-        val record = newPinWrap(keyId, opened.key, newPin, alias)
-        check(preferences.replaceStringsDurably(mapOf(name to record), emptySet())) { "The PIN wrap was not stored durably" }
+        val reused = previousAlias?.takeIf(::deviceFactorUsable)
+        val alias = reused ?: deviceFactor.create()
+        val record = try {
+            newPinWrap(keyId, opened.key, newPin, alias)
+        } catch (failure: Exception) {
+            if (reused == null) removeUnreferencedFactor(alias)
+            throw failure
+        }
         try {
+            check(preferences.replaceStringsDurably(mapOf(name to record), emptySet())) { "The PIN wrap was not stored durably" }
             check(preferences.getString(name) == record) { "The PIN wrap read-back differs" }
             verifyPinWrap(keyId, opened.key, newPin)
         } catch (failure: Exception) {
-            if (previous != null && preferences.getString(name) == record) {
-                preferences.replaceStringsDurably(mapOf(name to previous), emptySet())
+            if (preferences.getString(name) == record) {
+                if (previous != null) {
+                    preferences.replaceStringsDurably(mapOf(name to previous), emptySet())
+                } else {
+                    preferences.replaceStringsDurably(emptyMap(), setOf(name))
+                }
             }
+            if (reused == null && preferences.getString(name) != record) removeUnreferencedFactor(alias)
             throw failure
         }
     }
@@ -227,10 +267,22 @@ class WalletSecretKeyring(
         return null
     }
 
-    private fun hardwareKeyUsable(alias: String): Boolean = try {
-        hardwareKey.exists(alias)
-    } catch (_: Exception) {
-        false
+    /** Whether the factor is stored and still authenticates; an unavailable device key propagates. */
+    private fun deviceFactorUsable(alias: String): Boolean {
+        if (!deviceFactor.exists(alias)) return false
+        return try {
+            deviceFactor.hmac(alias, FACTOR_PROBE).fill(0)
+            true
+        } catch (_: WalletKeyringDeviceFactorLostException) {
+            false
+        }
+    }
+
+    /** Removes a factor this call created that no stored PIN wrap names. */
+    private fun removeUnreferencedFactor(alias: String) {
+        if (!alias.startsWith(MasterKeyBoundKeyringFactor.ALIAS_PREFIX) || !preferences.contains(alias)) return
+        val referenced = currentKeyId()?.let { preferences.getString(pinKey(it)) }?.let(::parsePinWrapOrNull)?.alias == alias
+        if (!referenced) preferences.replaceStringsDurably(emptyMap(), setOf(alias))
     }
 
     private fun verifyPinWrap(keyId: ByteArray, key: ByteArray, pin: String) {
@@ -247,9 +299,15 @@ class WalletSecretKeyring(
         }
     }
 
-    private fun rollBack(values: Map<String, String>) {
+    /** Takes back what a failed generation wrote; a replaced keyring gets its previous current id back. */
+    private fun rollBack(values: Map<String, String>, previousCurrent: String?) {
         val written = values.filter { (name, value) -> preferences.getString(name) == value }.keys
-        if (written.isNotEmpty()) preferences.replaceStringsDurably(emptyMap(), written)
+        if (written.isEmpty()) return
+        if (previousCurrent != null && CURRENT_KEY in written) {
+            preferences.replaceStringsDurably(mapOf(CURRENT_KEY to previousCurrent), written - CURRENT_KEY)
+        } else {
+            preferences.replaceStringsDurably(emptyMap(), written)
+        }
     }
 
     private fun newPinWrap(keyId: ByteArray, key: ByteArray, pin: String, alias: String): String {
@@ -264,8 +322,14 @@ class WalletSecretKeyring(
     }
 
     private fun pinKek(pin: String, header: PinWrapHeader): ByteArray {
-        val stretched = WalletPinKdf.derive(pin, header.salt, header.kdf)
-        val bound = hardwareKey.hmac(header.alias, header.salt)
+        // The factor first: a lost or unreadable factor costs no Argon2id run.
+        val bound = deviceFactor.hmac(header.alias, header.salt)
+        val stretched = try {
+            WalletPinKdf.derive(pin, header.salt, header.kdf)
+        } catch (failure: Exception) {
+            bound.fill(0)
+            throw failure
+        }
         val ikm = stretched + bound
         try {
             return hkdf(ikm, PIN_WRAP_SALT, header.keyIdCopy())
@@ -445,6 +509,7 @@ class WalletSecretKeyring(
         private val PIN_WRAP_SALT = "fearless-wallet-sk-pin-wrap:v1".toByteArray(Charsets.US_ASCII)
         private val BACKUP_WRAP_SALT = "fearless-wallet-sk-backup-wrap:v1".toByteArray(Charsets.US_ASCII)
         private val ROOT_ID_DOMAIN = "fearless-wallet-sk-root:v1".toByteArray(Charsets.US_ASCII)
+        private val FACTOR_PROBE = "fearless-wallet-sk-factor-probe:v1".toByteArray(Charsets.US_ASCII)
 
         private val encoder = Base64.getUrlEncoder().withoutPadding()
         private val decoder = Base64.getUrlDecoder()

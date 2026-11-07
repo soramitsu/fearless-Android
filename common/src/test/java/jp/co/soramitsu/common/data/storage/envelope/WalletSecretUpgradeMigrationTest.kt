@@ -183,20 +183,19 @@ class WalletSecretUpgradeMigrationTest {
                 resetEnvelopeGlobals()
                 WalletSecureStorageHealth.resetForTest()
                 val shared = legacyStorage()
-                val hardware = FakeKeyringHardwareKey()
                 shared.commitsBeforeDeath = commit - 1
                 shared.fatalCommitApplied = applied
-                val first = EnvelopeStorageHarness(shared = shared, hardware = hardware)
+                val first = EnvelopeStorageHarness(shared = shared)
                 runCatching {
                     first.authority.verify(PIN)
                     runBlocking { first.migration.run() }
                 }
                 val died = shared.dead
-                // A new process: storage and the Keystore survive, nothing in memory does.
+                // A new process: storage (and with it the PIN-wrap factor) survives, nothing in memory does.
                 resetEnvelopeGlobals()
                 WalletSecureStorageHealth.resetForTest()
                 shared.commitsBeforeDeath = null
-                val second = EnvelopeStorageHarness(shared = shared, hardware = hardware)
+                val second = EnvelopeStorageHarness(shared = shared)
                 assertEquals("commit $commit", PinHealth.HEALTHY, second.authority.health())
                 assertEquals("commit $commit", PinVerification.CORRECT, second.authority.verify(PIN))
                 val report = runBlocking { second.migration.run() }

@@ -2,7 +2,7 @@ package jp.co.soramitsu.common.data.storage.pin
 
 import java.security.SecureRandom
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
-import jp.co.soramitsu.common.data.storage.envelope.FakeKeyringHardwareKey
+import jp.co.soramitsu.common.data.storage.envelope.FakeKeyringDeviceFactor
 import jp.co.soramitsu.common.data.storage.envelope.TEST_KDF
 import jp.co.soramitsu.common.data.storage.envelope.WalletPinAuthority
 import jp.co.soramitsu.common.data.storage.envelope.WalletSecretKeyring
@@ -24,7 +24,7 @@ class WalletEmergencyAuthenticatorTest {
     /** Sealing compiled off: no keyring is ever created, so the legacy PIN is what is checked. */
     private fun authenticatorFor(storage: EncryptedPreferences): WalletEmergencyAuthenticator {
         val keyringPreferences = InMemoryPreferences()
-        val keyring = WalletSecretKeyring(keyringPreferences, FakeKeyringHardwareKey(), SecureRandom(), TEST_KDF)
+        val keyring = WalletSecretKeyring(keyringPreferences, FakeKeyringDeviceFactor(), SecureRandom(), TEST_KDF)
         val sealer = WalletSecretSealer(keyringPreferences, keyring, SecureRandom(), compiledSwitch = false)
         return WalletEmergencyAuthenticator(preferences, WalletPinAuthority(storage, keyring, sealer), clock)
     }
