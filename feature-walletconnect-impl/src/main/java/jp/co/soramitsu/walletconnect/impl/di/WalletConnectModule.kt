@@ -12,6 +12,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptionUtil
+import jp.co.soramitsu.core.extrinsic.SigningRuntimeSource
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -87,13 +88,15 @@ class WalletConnectModule {
         chainRegistry: ChainRegistry,
         ethereumConnectionPool: EthereumConnectionPool,
         featureToggles: ProductFeatureToggleStore,
-        walletConnectClient: WalletConnectClient
+        walletConnectClient: WalletConnectClient,
+        signingRuntimeSource: SigningRuntimeSource
     ): WalletConnectInteractor = WalletConnectInteractorImpl(
         chainsRepository = chainsRepository,
         ethereumSource = ethereumSource,
         accountRepository = accountRepository,
         keypairProvider = keypairProvider,
         runtimeSource = chainRegistryRuntimeSource(chainRegistry),
+        signingRuntimeOf = { chain, version -> signingRuntimeSource.signingRuntime(chain, version) },
         transactionSender = PoolEvmTransactionSender(ethereumConnectionPool),
         featureToggles = featureToggles,
         sessionClient = ClientSessionClient(walletConnectClient, sessionScope)

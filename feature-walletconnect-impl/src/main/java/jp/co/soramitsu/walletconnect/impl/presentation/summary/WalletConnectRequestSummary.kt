@@ -2,19 +2,23 @@ package jp.co.soramitsu.walletconnect.impl.presentation.summary
 
 import co.jp.soramitsu.walletconnect.model.WalletConnectRequest
 import jp.co.soramitsu.common.utils.readableUtf8Text
+import jp.co.soramitsu.core.extrinsic.SigningRuntime
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersion
 import jp.co.soramitsu.runtime.ext.addressOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.walletconnect.impl.presentation.CrossChainCall
 import jp.co.soramitsu.walletconnect.impl.presentation.PolkadotCrossChainCalls
 import jp.co.soramitsu.walletconnect.impl.presentation.PolkadotRefusal
 import jp.co.soramitsu.walletconnect.impl.presentation.PolkadotSignPayload
+import jp.co.soramitsu.walletconnect.impl.presentation.PolkadotSigningRuntimes
 import jp.co.soramitsu.walletconnect.impl.presentation.PolkadotTransaction
 import jp.co.soramitsu.walletconnect.impl.presentation.PolkadotTransactionRefusedException
 import jp.co.soramitsu.walletconnect.impl.presentation.WalletConnectEvmTransaction
 import jp.co.soramitsu.walletconnect.impl.presentation.WalletConnectMethod
 import jp.co.soramitsu.walletconnect.impl.presentation.message
+import jp.co.soramitsu.walletconnect.impl.presentation.noSigningRuntime
 import jp.co.soramitsu.walletconnect.impl.presentation.polkadotMessageBytes
 import java.math.BigInteger
 import java.util.concurrent.CancellationException
@@ -78,8 +82,11 @@ internal sealed interface WalletConnectRequestSummary {
 internal class WalletConnectRequestDecoder(
     /** The catalog, to name the networks cross-chain calls send to. */
     private val chainsOf: suspend () -> List<Chain> = { emptyList() },
-    private val runtimeOf: suspend (Chain) -> RuntimeSnapshot?
+    /** For payloads that commit to a metadata hash; without one they wait, as for a runtime that is not loaded. */
+    signingRuntimeOf: suspend (Chain, RuntimeVersion) -> SigningRuntime = noSigningRuntime,
+    runtimeOf: suspend (Chain) -> RuntimeSnapshot?
 ) {
+    private val polkadotRuntimes = PolkadotSigningRuntimes(runtimeOf, signingRuntimeOf)
 
     suspend fun summary(chain: Chain, request: WalletConnectRequest): WalletConnectRequestSummary {
         val method = WalletConnectMethod.values().firstOrNull { it.method == request.request.method }
@@ -121,7 +128,17 @@ internal class WalletConnectRequestDecoder(
 
     private suspend fun polkadotTransaction(chain: Chain, message: String): WalletConnectRequestSummary {
         val payload = PolkadotSignPayload.parse(message)
-        val runtime = runtimeOf(chain)
+        // The runtime the signer reads it with; a payload whose metadata hash is not this network's is refused here too.
+        val runtime = try {
+            polkadotRuntimes.runtimeFor(chain, payload)
+        } catch (refused: PolkadotTransactionRefusedException) {
+            return WalletConnectRequestSummary.PolkadotTransaction(
+                call = null,
+                tip = payload.tip,
+                isImmortal = payload.isImmortal,
+                refusal = refused.refusal
+            )
+        }
         val call = runtime?.let { PolkadotCallDecoder(it) { accountId -> chain.addressOf(accountId) }.decode(payload.method) }
         val decodedCall = runtime?.let { PolkadotTransaction.decodeCall(payload.method, it) }
         val chains = chainsOf()

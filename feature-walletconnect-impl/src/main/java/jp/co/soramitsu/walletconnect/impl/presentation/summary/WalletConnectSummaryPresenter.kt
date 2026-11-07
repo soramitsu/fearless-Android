@@ -242,6 +242,7 @@ internal class WalletConnectSummaryPresenter(
         PolkadotRefusal.OtherNetwork -> string(R.string.signing_refused_other_network)
         PolkadotRefusal.NeverExpires -> string(R.string.signing_refused_never_expires)
         PolkadotRefusal.OtherRuntime -> string(R.string.signing_refused_other_runtime)
+        PolkadotRefusal.OtherMetadata -> string(R.string.signing_refused_other_metadata)
         PolkadotRefusal.UnsupportedFormat -> string(R.string.signing_refused_format)
         PolkadotRefusal.UndecodableCall -> string(R.string.signing_refused_undecoded_call)
         PolkadotRefusal.RetiredDestination -> {

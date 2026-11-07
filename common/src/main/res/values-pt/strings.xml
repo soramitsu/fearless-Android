@@ -878,6 +878,7 @@
   <string name="signing_refused_never_expires">O Fearless não assina esta transação: ela nunca expira, então o dApp poderia enviá-la a qualquer momento depois.</string>
   <string name="signing_refused_other_network">O Fearless não assina esta transação: ela é para uma rede diferente da que o dApp indicou.</string>
   <string name="signing_refused_other_runtime">O Fearless não assina esta transação: ela foi criada para outra versão do runtime desta rede. Peça ao dApp para criá-la novamente.</string>
+  <string name="signing_refused_other_metadata">O Fearless não assina esta transação: o dApp a criou para metadados de rede diferentes dos que o Fearless verificou. Peça ao dApp para criá-la novamente.</string>
   <string name="signing_refused_paused">O Fearless pausou a assinatura de dApps nesta rede para sua segurança. Nada foi assinado. Tente novamente mais tarde.</string>
   <string name="signing_refused_relay_reserve">O Fearless não assina esta transferência: desde a migração para o Asset Hub, a relay chain não é mais a reserva do seu token, então esta transferência de reserva perderia os fundos. Envie a partir do Asset Hub.</string>
   <string name="signing_refused_undecoded_call">O Fearless não assina esta transação: a chamada não pode ser decodificada com o runtime desta rede, então não pode ser mostrada a você.</string>

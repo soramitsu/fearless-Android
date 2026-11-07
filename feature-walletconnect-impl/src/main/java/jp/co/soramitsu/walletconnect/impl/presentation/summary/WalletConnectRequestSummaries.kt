@@ -4,6 +4,7 @@ import co.jp.soramitsu.walletconnect.model.WalletConnectRequest
 import jp.co.soramitsu.common.compose.component.SigningSummaryViewState
 import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.core.extrinsic.SigningRuntimeSource
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.walletconnect.impl.presentation.chainRegistryRuntimeSource
@@ -21,13 +22,16 @@ class WalletConnectRequestSummaries internal constructor(
     constructor(
         chainRegistry: ChainRegistry,
         resourceManager: ResourceManager,
-        featureToggles: ProductFeatureToggleStore
+        featureToggles: ProductFeatureToggleStore,
+        signingRuntimeSource: SigningRuntimeSource
     ) : this(
         // The signer reads the same runtime. A chain that is not connected has none yet: its calls are then
         // shown as raw data and signing waits until the runtime is loaded.
-        WalletConnectRequestDecoder(chainsOf = {
-            chainRegistry.getChains()
-        }, runtimeOf = chainRegistryRuntimeSource(chainRegistry)),
+        WalletConnectRequestDecoder(
+            chainsOf = { chainRegistry.getChains() },
+            runtimeOf = chainRegistryRuntimeSource(chainRegistry),
+            signingRuntimeOf = { chain, version -> signingRuntimeSource.signingRuntime(chain, version) }
+        ),
         WalletConnectSummaryPresenter(resourceManager),
         featureToggles
     )

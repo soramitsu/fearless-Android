@@ -1,5 +1,7 @@
 package jp.co.soramitsu.walletconnect.impl.presentation.summary
 
+import jp.co.soramitsu.core.extrinsic.SigningRuntime
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.walletconnect.impl.presentation.KUSAMA_GENESIS
 import jp.co.soramitsu.walletconnect.impl.presentation.ParityRuntimes
 import jp.co.soramitsu.walletconnect.impl.presentation.ParityRuntimes.cases
@@ -46,6 +48,35 @@ class PolkadotTransactionSummaryTest {
             PolkadotRefusal.UndecodableCall,
             summary(withRuntime, payload { put("method", JsonPrimitive("0xff00")) }).refusal
         )
+    }
+
+    @Test
+    fun `a payload committing to our metadata hash is decoded and signable`() {
+        val hash = ByteArray(32) { 0x22 }
+        val decoder = WalletConnectRequestDecoder(
+            signingRuntimeOf = { _, _ -> SigningRuntime.WithMetadataHash(runtime, hash) }
+        ) { runtime }
+
+        val summary = summary(decoder, payload { enableMetadataHash(hash) })
+
+        assertNull(summary.refusal)
+        assertEquals("Balances.transfer_keep_alive", summary.call?.name)
+    }
+
+    @Test
+    fun `a payload committing to another metadata hash is refused before the user can sign`() {
+        val decoder = WalletConnectRequestDecoder(
+            signingRuntimeOf = { _, _ -> SigningRuntime.WithMetadataHash(runtime, ByteArray(32) { 0x22 }) }
+        ) { runtime }
+
+        val summary = summary(decoder, payload { enableMetadataHash(ByteArray(32) { 0x33 }) })
+
+        assertEquals(PolkadotRefusal.OtherMetadata, summary.refusal)
+    }
+
+    private fun MutableMap<String, kotlinx.serialization.json.JsonElement>.enableMetadataHash(hash: ByteArray) {
+        put("mode", JsonPrimitive(1))
+        put("metadataHash", JsonPrimitive(hash.toHexString(withPrefix = true)))
     }
 
     private fun payload(

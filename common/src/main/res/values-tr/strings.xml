@@ -938,6 +938,7 @@
   <string name="signing_refused_never_expires">Fearless bu işlemi imzalamaz: işlemin süresi hiç dolmaz, bu yüzden dApp onu daha sonra herhangi bir zamanda gönderebilir.</string>
   <string name="signing_refused_other_network">Fearless bu işlemi imzalamaz: işlem, dApp\'in belirttiği ağdan farklı bir ağ içindir.</string>
   <string name="signing_refused_other_runtime">Fearless bu işlemi imzalamaz: işlem bu ağın başka bir çalışma zamanı sürümü için oluşturulmuş. dApp\'ten işlemi yeniden oluşturmasını isteyin.</string>
+  <string name="signing_refused_other_metadata">Fearless bu işlemi imzalamaz: dApp işlemi, Fearless\'in doğruladığından farklı ağ meta verileri için oluşturmuş. dApp\'ten işlemi yeniden oluşturmasını isteyin.</string>
   <string name="signing_refused_paused">Fearless, güvenliğiniz için bu ağda dApp imzalamayı duraklattı. Hiçbir şey imzalanmadı. Daha sonra tekrar deneyin.</string>
   <string name="signing_refused_relay_reserve">Fearless bu transferi imzalamaz: Asset Hub geçişinden beri relay zinciri kendi tokeninin rezervi değildir, bu yüzden bu rezerv transferi fonları kaybettirir. Bunun yerine Asset Hub\'dan gönderin.</string>
   <string name="signing_refused_undecoded_call">Fearless bu işlemi imzalamaz: çağrısı bu ağın çalışma zamanıyla çözülemediği için size gösterilemiyor.</string>

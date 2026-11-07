@@ -1,14 +1,18 @@
 package jp.co.soramitsu.walletconnect.impl.presentation
 
 import io.emeraldpay.polkaj.scale.ScaleCodecReader
+import jp.co.soramitsu.core.extrinsic.MetadataHashUnavailableException
+import jp.co.soramitsu.core.extrinsic.SigningRuntime
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.SignatureWrapper
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.GenericCall
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.toByteArray
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersion
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlinx.coroutines.withTimeoutOrNull
+import java.security.MessageDigest
 
 /**
  * The runtime a Substrate network's WalletConnect transactions are decoded and encoded with. Null when it is not
@@ -23,6 +27,63 @@ internal fun chainRegistryRuntimeSource(chainRegistry: ChainRegistry): PolkadotR
     withTimeoutOrNull(RUNTIME_TIMEOUT_MILLIS) { chainRegistry.awaitRuntimeProvider(chain.id).get() }
 }
 
+/** No signing runtime: payloads that commit to a metadata hash wait, as for a runtime that is not loaded. */
+internal val noSigningRuntime: suspend (Chain, RuntimeVersion) -> SigningRuntime = { _, _ ->
+    throw MetadataHashUnavailableException("No signing runtime is available")
+}
+
+/**
+ * The runtime a dApp's transaction is read and signed with.
+ *
+ * A payload with CheckMetadataHash Mode::Enabled commits to a metadata hash. Its call is then read with the runtime
+ * built from the V15 metadata that this wallet hashed itself ([signingRuntimeOf]), and it is signed only when the
+ * dApp's hash is that hash: the call shown is then the call the chain checks, whatever metadata a node served. A
+ * payload with Mode::Disabled commits to no metadata and is read with the network's current runtime, as before.
+ * Null when the runtime or the hash is not available now: signing then waits, as for a runtime that is still loading.
+ */
+internal class PolkadotSigningRuntimes(
+    private val runtimeOf: PolkadotRuntimeSource,
+    private val signingRuntimeOf: suspend (Chain, RuntimeVersion) -> SigningRuntime
+) {
+    suspend fun runtimeFor(chain: Chain, payload: PolkadotSignPayload): RuntimeSnapshot? {
+        val current = runtimeOf(chain)
+        val dappHash = payload.format.metadataHash
+        return when {
+            current == null -> null
+            payload.format.metadataHashMode != METADATA_HASH_ENABLED || dappHash == null -> current
+            // Another runtime version is refused by the payload check with this runtime; no hash is computed for it.
+            !isCurrentVersion(current, payload) -> current
+            else -> verifiedSigningRuntime(chain, payload, dappHash)
+        }
+    }
+
+    private fun isCurrentVersion(runtime: RuntimeSnapshot, payload: PolkadotSignPayload): Boolean {
+        val (specVersion, transactionVersion) = runtime.runtimeVersion() ?: return false
+        return payload.specVersion == specVersion && payload.transactionVersion == transactionVersion
+    }
+
+    private suspend fun verifiedSigningRuntime(
+        chain: Chain,
+        payload: PolkadotSignPayload,
+        dappHash: ByteArray
+    ): RuntimeSnapshot? {
+        val signing = try {
+            signingRuntimeOf(chain, RuntimeVersion(payload.specVersion.toInt(), payload.transactionVersion.toInt()))
+        } catch (ignored: MetadataHashUnavailableException) {
+            // The hash cannot be computed now: like a runtime that is still loading, signing waits.
+            null
+        } ?: return null
+        val ours = (signing as? SigningRuntime.WithMetadataHash)?.metadataHash
+            ?: refuseTransaction(PolkadotRefusal.UnsupportedFormat, "metadata hash")
+        requireTransaction(MessageDigest.isEqual(ours, dappHash), PolkadotRefusal.OtherMetadata)
+        return signing.runtime
+    }
+
+    private companion object {
+        const val METADATA_HASH_ENABLED = 1
+    }
+}
+
 /** The network's runtime is not loaded yet. Unlike a refusal, the request stays pending and signing can be retried. */
 internal class PolkadotRuntimeUnavailableException : IllegalStateException("The network's runtime is not available")
 
@@ -31,6 +92,7 @@ internal enum class PolkadotRefusal(val reason: String) {
     OtherNetwork("The transaction is for another network"),
     NeverExpires("The transaction never expires"),
     OtherRuntime("The transaction was built for another runtime version"),
+    OtherMetadata("The transaction commits to another metadata hash than the network's"),
     UnsupportedFormat("The transaction format of this network is not supported"),
     UndecodableCall("The call cannot be decoded with the network's runtime"),
     RetiredDestination("The cross-chain transfer would not arrive")

@@ -958,6 +958,7 @@
   <string name="signing_refused_never_expires">Fearless не подписывает эту транзакцию: у неё нет срока действия, и dApp сможет отправить её в любой момент позже.</string>
   <string name="signing_refused_other_network">Fearless не подписывает эту транзакцию: она предназначена для другой сети, а не для той, которую указало dApp.</string>
   <string name="signing_refused_other_runtime">Fearless не подписывает эту транзакцию: она создана для другой версии среды выполнения этой сети. Попросите dApp создать её заново.</string>
+  <string name="signing_refused_other_metadata">Fearless не подписывает эту транзакцию: dApp создал её для других метаданных сети, чем проверил Fearless. Попросите dApp создать её заново.</string>
   <string name="signing_refused_paused">Fearless приостановил подписание для dApp в этой сети ради вашей безопасности. Ничего не подписано. Попробуйте позже.</string>
   <string name="signing_refused_relay_reserve">Fearless не подписывает этот перевод: после миграции на Asset Hub релейная цепь больше не является резервом своего токена, и этот резервный перевод приведёт к потере средств. Отправляйте с Asset Hub.</string>
   <string name="signing_refused_undecoded_call">Fearless не подписывает эту транзакцию: её вызов не удаётся декодировать средой выполнения этой сети, поэтому его нельзя вам показать.</string>

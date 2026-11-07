@@ -932,6 +932,7 @@
   <string name="signing_refused_never_expires">Fearlessはこのトランザクションに署名しません。有効期限がないため、dAppが後からいつでも送信できてしまいます。</string>
   <string name="signing_refused_other_network">Fearlessはこのトランザクションに署名しません。dAppが指定したネットワークとは別のネットワーク向けです。</string>
   <string name="signing_refused_other_runtime">Fearlessはこのトランザクションに署名しません。このネットワークの別のランタイムバージョン向けに作成されています。dAppに作り直すよう依頼してください。</string>
+  <string name="signing_refused_other_metadata">Fearlessはこのトランザクションに署名しません。dAppが、Fearlessが確認したものとは異なるネットワークメタデータ向けに作成しています。dAppに作り直すよう依頼してください。</string>
   <string name="signing_refused_paused">安全のため、FearlessはこのネットワークでのdAppの署名を一時停止しています。何も署名されていません。しばらくしてからもう一度お試しください。</string>
   <string name="signing_refused_relay_reserve">Fearlessはこの送金に署名しません。Asset Hub移行以降、リレーチェーンはそのトークンのリザーブではなくなったため、このリザーブ送金では資金が失われます。代わりにAsset Hubから送金してください。</string>
   <string name="signing_refused_undecoded_call">Fearlessはこのトランザクションに署名しません。呼び出しをこのネットワークのランタイムで解読できないため、内容を表示できません。</string>

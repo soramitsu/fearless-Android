@@ -11,6 +11,7 @@ import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.utils.mapValuesNotNull
 import jp.co.soramitsu.core.crypto.mapCryptoTypeToEncryption
+import jp.co.soramitsu.core.extrinsic.SigningRuntime
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.CryptoType
@@ -20,6 +21,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersion
 import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -44,13 +46,17 @@ class WalletConnectInteractorImpl internal constructor(
     private val ethereumSource: EthereumRemoteSource,
     private val accountRepository: AccountRepository,
     private val keypairProvider: KeypairProvider,
-    private val runtimeSource: PolkadotRuntimeSource,
+    runtimeSource: PolkadotRuntimeSource,
+    /** The runtime and metadata hash this wallet computed itself, for payloads that commit to a metadata hash. */
+    signingRuntimeOf: suspend (Chain, RuntimeVersion) -> SigningRuntime = noSigningRuntime,
     private val transactionSender: EvmTransactionSender,
     private val featureToggles: ProductFeatureToggleStore,
     private val sessionClient: WalletConnectSessionClient,
     private val signedRequests: WalletConnectSignedRequests = WalletConnectSignedRequests.processWide,
     private val scope: CoroutineScope = WalletConnectCalls.scope
 ) : WalletConnectInteractor {
+
+    private val polkadotRuntimes = PolkadotSigningRuntimes(runtimeSource, signingRuntimeOf)
 
     @Suppress("MagicNumber")
     val Chain.caip2id: String
@@ -386,7 +392,8 @@ class WalletConnectInteractorImpl internal constructor(
         signPayload.address?.let { payloadAddress ->
             requireRequest(account.isAccount(payloadAddress)) { "The transaction is for another account" }
         }
-        val runtime = runtimeSource(account.chain) ?: throw PolkadotRuntimeUnavailableException()
+        // Mode::Enabled payloads are read with the runtime of the metadata hashed here, and only when the hashes match.
+        val runtime = polkadotRuntimes.runtimeFor(account.chain, signPayload) ?: throw PolkadotRuntimeUnavailableException()
         // Decoded and laid out as the preview showed it; refused before any key is read when it cannot be.
         val payloadBytes = PolkadotTransaction.read(account.chain, signPayload, runtime).signingPayload
 

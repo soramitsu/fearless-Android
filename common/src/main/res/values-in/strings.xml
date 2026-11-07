@@ -897,6 +897,7 @@
   <string name="signing_refused_never_expires">Fearless tidak menandatangani transaksi ini: transaksi ini tidak pernah kedaluwarsa, sehingga dApp dapat mengirimkannya kapan saja nanti.</string>
   <string name="signing_refused_other_network">Fearless tidak menandatangani transaksi ini: transaksi ini untuk jaringan lain, bukan jaringan yang disebutkan dApp.</string>
   <string name="signing_refused_other_runtime">Fearless tidak menandatangani transaksi ini: transaksi ini dibuat untuk versi runtime lain dari jaringan ini. Minta dApp untuk membuatnya lagi.</string>
+  <string name="signing_refused_other_metadata">Fearless tidak menandatangani transaksi ini: dApp membuatnya untuk metadata jaringan yang berbeda dari yang diperiksa Fearless. Minta dApp untuk membuatnya lagi.</string>
   <string name="signing_refused_paused">Fearless menjeda penandatanganan dApp di jaringan ini demi keamanan Anda. Tidak ada yang ditandatangani. Coba lagi nanti.</string>
   <string name="signing_refused_relay_reserve">Fearless tidak menandatangani transfer ini: sejak migrasi Asset Hub, relay chain bukan lagi cadangan tokennya, sehingga transfer cadangan ini akan menghilangkan dana. Kirim dari Asset Hub sebagai gantinya.</string>
   <string name="signing_refused_undecoded_call">Fearless tidak menandatangani transaksi ini: panggilannya tidak dapat didekode dengan runtime jaringan ini, sehingga tidak dapat ditampilkan kepada Anda.</string>

@@ -972,6 +972,7 @@
   <string name="signing_refused_never_expires">Fearless không ký giao dịch này: giao dịch không bao giờ hết hạn, nên dApp có thể gửi nó vào bất kỳ lúc nào sau này.</string>
   <string name="signing_refused_other_network">Fearless không ký giao dịch này: giao dịch dành cho một mạng khác với mạng mà dApp đã chỉ định.</string>
   <string name="signing_refused_other_runtime">Fearless không ký giao dịch này: giao dịch được tạo cho một phiên bản runtime khác của mạng này. Hãy yêu cầu dApp tạo lại.</string>
+  <string name="signing_refused_other_metadata">Fearless không ký giao dịch này: dApp đã tạo giao dịch cho siêu dữ liệu mạng khác với dữ liệu Fearless đã kiểm tra. Hãy yêu cầu dApp tạo lại.</string>
   <string name="signing_refused_paused">Fearless đã tạm dừng ký cho dApp trên mạng này để bảo vệ bạn. Chưa có gì được ký. Hãy thử lại sau.</string>
   <string name="signing_refused_relay_reserve">Fearless không ký giao dịch chuyển này: kể từ khi chuyển sang Asset Hub, relay chain không còn là nơi dự trữ token của nó, nên giao dịch chuyển dự trữ này sẽ làm mất tiền. Hãy gửi từ Asset Hub.</string>
   <string name="signing_refused_undecoded_call">Fearless không ký giao dịch này: không thể giải mã lệnh gọi bằng runtime của mạng này, nên không thể hiển thị cho bạn.</string>
