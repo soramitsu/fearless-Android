@@ -2,27 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
-## 4.3.2 (unreleased)
+## 4.3.2 (234)
 
-- WalletConnect: the closed-source Reown SDK (WalletConnect Community License)
-  is replaced by a WalletConnect v2 wallet written in this repository on
-  BouncyCastle and OkHttp: pairing, session proposals and settlement, requests,
-  ping, update, extend and deletion, over the WalletConnect relay. Firebase
-  Cloud Messaging, Google datatransport, SQLCipher, kethereum and Scarlet leave
-  the app with the SDK.
-- WalletConnect: the connection and signing screens show the site WalletConnect
-  Verify attests instead of the URL a dApp names for itself. They warn when the
-  site is unverified or differs from that URL, and refuse sites Verify lists as
-  scams.
-- WalletConnect: a session offers only the methods Fearless signs. Requests for
-  other methods or chains, expired or oversized requests are answered with an
-  error before they reach the screen. One-click sign-in is declined, so dApps
-  use the regular connection request.
-- Upgrade: the old SDK's databases, preferences and Keystore keys (WalletConnect
-  session keys only) stay on the device. A legacy import hook runs before the
-  client starts; they are deleted only after it imports their sessions or finds
-  nothing to import. Without an importer, dApps connected with 4.3.1 or earlier
-  must be connected again. Wallet data is never touched.
+- Security: biometric unlock is tied to the PIN. The PIN is sealed to an Android
+  Keystore key that only a strong biometric opens and that a newly enrolled
+  fingerprint or face destroys; exports, recovery and PIN changes take the PIN
+  itself. After a biometric change, biometric unlock turns off until the next
+  PIN entry offers it again.
+- Security: the PIN is part of the encryption of every recovery phrase, seed,
+  private key and keystore JSON. Existing wallets are sealed after the first PIN
+  entry on 4.3.2. "Forgot PIN?" restores access with any one wallet backup.
+- Security: a locked wallet signs and approves nothing. WalletConnect and TON
+  Connect requests wait for the PIN and open only once the wallet screens are up;
+  a request held while the app was closed no longer crashes it at start.
+- Security: Polkadot transactions are signed with the network's metadata hash
+  where the network checks it, so a node serving false metadata cannot change the
+  call that is signed; dApp transactions that name a metadata hash are signed only
+  for the network's own hash. Remote configuration is used only when an
+  Ed25519-signed manifest lists it.
+- Security: copied secrets are marked sensitive and cleared after a minute;
+  retained wallet data is no longer shared to other apps as plain text. Secret
+  screens ignore touches through other apps' windows, hide their overlays and, on
+  Android 14+, are hidden from accessibility services that are not screen
+  readers. Derivation paths and import fields stay out of keyboard learning.
+- Backup: backing up an existing wallet to Google Drive asks for the PIN, and new
+  backup passwords must be strong (12+ characters of three kinds, or 16+). Old
+  backups open with their old passwords.
+- Open source only: WalletConnect v2 (with Verify), Google Drive sign-in, TON keys
+  and the sr25519 library are built in this repository. The Reown SDK, Google Play
+  services, Google sign-in, Play Integrity, Firebase, SpongyCastle, EdDSA-Java,
+  curve25519-kotlin, libsodium and the prebuilt polkaj jar are gone: the release
+  has 308 libraries instead of 441, none older than in 4.3.1.
+- Fix: jetton transfers carry a random query_id instead of 0.
+- Upgrade: keys are unchanged; dApps connected with 4.3.1 stay connected; Google
+  Drive needs one new sign-in in the browser.
 
 ## 4.3.1
 

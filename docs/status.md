@@ -2,7 +2,53 @@
 
 # Status Summary
 
-## 4.3.2 metadata hash and signed remote configuration — 7 November 2026
+## Production candidate 4.3.2 (234): key safety and open-source libraries only — 8 November 2026
+
+Fixes every finding of the 2026-11-07 Android key-exposure audit of 4.3.1 (233) and removes every
+closed-source or non-OSI library (owner, 7 November 2026: "don't use any closed source libraries" and "fix
+all issues"). Branch `claude/android-4.3.2-key-safety`, from release/android-4.3.0 at `c9d18c435`. The
+database schema stays 84. Release notes: `docs/releases/4.3.2.md`.
+
+- **Unlocking:** biometric unlock unseals the PIN from an Android Keystore key that only a strong (Class 3)
+  biometric opens and that a newly enrolled biometric destroys; exports, recovery and PIN changes take the
+  PIN itself. `WalletSessionLock` locks at start and after 20 minutes away.
+- **The PIN in the encryption:** every wallet secret gets an inner envelope only the PIN (Argon2id) or a
+  proved wallet backup opens; "Forgot PIN?" restores access with any one backup.
+- **dApps:** a locked wallet signs and approves nothing; dApp requests open only after the PIN screen is
+  gone; Polkadot payloads that commit to a metadata hash are signed only for the network's real hash.
+- **Exposure:** secrets copied to the clipboard are marked sensitive and cleared after a minute; secret
+  screens refuse overlay touches, hide other apps' overlays and stay out of screen readers on Android 14+;
+  derivation paths and import fields stay out of keyboard learning and saved state.
+- **Own transactions** on networks that check it are signed with the RFC 78 metadata hash; remote
+  configuration is used only when an Ed25519-signed manifest lists it.
+- **Open source only:** the Reown WalletConnect SDK, Google Play services, Google sign-in, Play Integrity,
+  Firebase, SpongyCastle, EdDSA-Java, curve25519-kotlin, libsodium and the prebuilt polkaj jar and
+  sr25519 library are gone; WalletConnect v2, Drive OAuth, TON keys and the sr25519 library are built in
+  this repository. The release graph has 308 libraries against 4.3.1's 441, none older and none added.
+- **Upgrade:** keys are unchanged; connected dApps carry over; users sign in to Google Drive once more.
+
+### Unlocking, locking and exposure
+
+- `BiometricPinVault` (`KeystoreBiometricPinVault`) seals the PIN to an RSA-OAEP Keystore key that needs a
+  Class 3 biometric through a `CryptoObject` and is invalidated by a new enrollment. Unlocking needs the PIN
+  it unseals to pass the PIN check, so a biometric added later (for example by someone who knows the screen
+  lock) cannot unlock the wallet. Upgrading wallets are sealed at their next PIN unlock; after a biometric
+  change biometric unlock turns off and the app offers it again after the PIN. `withPinCodeCheckRequired`
+  (exports, recovery, PIN change, Drive backup) never accepts a biometric.
+- `WalletSessionLock` (common) is locked at process start and on re-lock and unlocked only by a passed PIN
+  check. `RootViewModel` holds WalletConnect and TON Connect events until it is unlocked and the request
+  screens can be reached (`RootRouter.awaitDappRoutes`); Navigator refuses dApp routes while locked or
+  unreachable, and the WalletConnect and TON sign and approve actions refuse while locked.
+- `SensitiveClipboard`: copied secrets carry `EXTRA_IS_SENSITIVE` and are cleared after 60 s (seed export,
+  emergency export, retained wallet data, which is no longer shared to other apps as plain text).
+- Secret screens and the backup-password sheets: `FLAG_SECURE`, `filterTouchesWhenObscured`, accessibility
+  data marked sensitive on Android 14+ (older versions name non-system accessibility services before secrets
+  show), and other apps' overlays hidden on Android 12+ (`HIDE_OVERLAY_WINDOWS`).
+- Derivation-path and import inputs: no keyboard learning, suggestions, autofill or saved state.
+  `SharedExportCleanup` deletes JSON exports a share left behind. "Forget this account?" is now "Remove this
+  wallet?" and says where the retained keys stay.
+
+### Metadata hash and signed remote configuration
 
 Fixes the 2026-11-07 audit finding that a hostile RPC node or a changed remote configuration could get a
 different Substrate call signed than the one shown.
@@ -22,9 +68,11 @@ different Substrate call signed than the one shown.
   lists its SHA-256; otherwise the last verified copy or the snapshot bundled into the APK is used.
   Signing: `scripts/sign-remote-config.py` (docs/security/remote-config-signing.md). Every configuration
   change must be signed before it reaches 4.3.2+ clients.
-- dApp (WalletConnect) Polkadot payloads are signed exactly as the dApp sent them, mode and hash included.
+- dApp (WalletConnect) Polkadot payloads keep the mode the dApp chose. One with Mode::Enabled is read with
+  the runtime of the V15 metadata the wallet hashed itself and signed only when its hash is that hash
+  (`PolkadotSigningRuntimes`, refusal `OtherMetadata`); Mode::Disabled payloads are read as before.
 
-## 4.3.2 (in progress): sr25519 library built from source
+### sr25519 library built from source
 
 - `libsr25519java.so`, which holds every sr25519 key (Polkadot, Kusama, SORA),
   is no longer committed. Gradle builds it from `runtime-utils/native/sr25519`
@@ -40,7 +88,7 @@ different Substrate call signed than the one shown.
 - Builds need rustup, cargo-ndk 4.1.2 and NDK `30.0.16248370`; the hosted
   release workflow's isolated SDK provides neither yet.
 
-## 4.3.2 lane `google`: Google Drive backup without Google SDKs — 7 November 2026
+### Google Drive backup without Google SDKs
 
 - Google Drive backup no longer uses Google Play services. The app signs in with its own OAuth 2.0
   authorization-code flow with PKCE (S256) and `state` in the user's browser (never a WebView):
@@ -83,7 +131,7 @@ different Substrate call signed than the one shown.
   audit, the Drive client pin, and the dependency provenance check. The build-log verifier no longer
   checks `WEB_CLIENT_ID_RELEASE`, which the build stopped reading (suite now 3 positive / 26).
 
-## 4.3.2 lane: WalletConnect without the Reown SDK — 7 November 2026
+### WalletConnect without the Reown SDK
 
 The Reown WalletConnect SDK (WalletConnect Community License, not open source) is
 gone. `feature-walletconnect-impl` now holds the wallet side of WalletConnect v2
@@ -137,15 +185,15 @@ it.
   by dependency constraints in the root `build.gradle`; every other release
   library resolves exactly as in 233.
 
-## 4.3.2 lane: key-path cryptography in this repository — 7 November 2026
+### Key-path cryptography in this repository
 
 Branch `claude/432-crypto-libs` (not released). Key derivation and signing in the JVM
 code use BouncyCastle 1.85 or code in this repository:
 
 - BIP39 seeds (PBKDF2-HMAC-SHA512 with the NFKD passphrase), JSON backup Base64, Hex
   and secp256k1 point decoding moved from SpongyCastle 1.58 to BouncyCastle, and
-  SpongyCastle's JCE provider is no longer registered. SpongyCastle still reaches the
-  app through kethereum (Reown SDK) until that SDK is removed.
+  SpongyCastle's JCE provider is no longer registered, and with kethereum gone with the Reown
+  SDK, SpongyCastle is no longer in the release graph.
 - Ed25519 keys, signatures and verification moved from EdDSA-Java 0.3.0
   (CVE-2020-36843) to BouncyCastle. Signatures are byte-identical. Verification is
   strict (S < L, canonical points) and returns false for malformed keys instead of
@@ -172,7 +220,7 @@ code use BouncyCastle 1.85 or code in this repository:
   `Wallet.create`), ton-kotlin's key, ADNL and wallet-contract code, and the retired
   libraries out of production sources.
 
-## 4.3.2 (in progress): the PIN inside the encryption of wallet secrets
+### The PIN inside the encryption of wallet secrets
 
 Audit of 4.3.1, 7 November 2026 (Medium): every wallet secret sat under one device
 key that needs no user authentication, and the PIN was stored under that key and

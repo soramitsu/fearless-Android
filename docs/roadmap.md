@@ -2,7 +2,28 @@
 
 # Roadmap & Technical Debt
 
-## 4.3.2 metadata hash and signed remote configuration — 7 November 2026
+## 4.3.2 (234): open items — 8 November 2026
+
+The candidate is described in `docs/status.md` and `docs/releases/4.3.2.md`. Open before or after release:
+
+- **Owner:** back up the remote-configuration signing key (`~/.fearless-release/remote-config-signing-ed25519.key`)
+  and publish the signed `remote-config/remote-config-manifest.json` on master before 4.3.2 reaches users;
+  until then 4.3.2 uses the configuration snapshot bundled into the APK. Uploading the signed AAB to Play is
+  the owner's call.
+- **Devices:** qualify on physical phones (Class 3 biometric unlock and re-enrollment, the PIN keyring's
+  Argon2id time on a mid-range phone, the source-built `libsr25519java.so` on every ABI, Drive sign-in in
+  Chrome, Firefox and Samsung Internet), and run the PIN envelope's API 30/31/36 compatibility matrix.
+  Emulator runs covered API 26 and 34.
+- **Forward compatibility:** every later release must read `fse1:` envelopes and never replace SK while its
+  sealing mark exists and a sealable value is unreadable; no hotfix may ship from a pre-4.3.2 line with a
+  higher versionCode.
+- **Hosted release workflow:** its checksum-locked SDK lacks NDK r30, Rust 1.99.1 and cargo-ndk 4.1.2, so
+  release AABs are built locally (AGENTS.md: no CI release gate).
+- **Limits by design:** Polkadot dApp payloads with Mode::Disabled commit to no metadata, so their call can
+  only be shown as decoded; refusing them would break most dApps. Drive sign-in shares the iOS OAuth client
+  (Google keeps 100 refresh tokens per account and client). Passkey backup needs an open attestation design.
+
+### Metadata hash and signed remote configuration
 
 Fixes the 2026-11-07 audit finding that a hostile RPC node or a changed remote configuration could get a
 different Substrate call signed than the one shown.
@@ -22,9 +43,11 @@ different Substrate call signed than the one shown.
   lists its SHA-256; otherwise the last verified copy or the snapshot bundled into the APK is used.
   Signing: `scripts/sign-remote-config.py` (docs/security/remote-config-signing.md). Every configuration
   change must be signed before it reaches 4.3.2+ clients.
-- dApp (WalletConnect) Polkadot payloads are signed exactly as the dApp sent them, mode and hash included.
+- dApp (WalletConnect) Polkadot payloads keep the mode the dApp chose. One with Mode::Enabled is read with
+  the runtime of the V15 metadata the wallet hashed itself and signed only when its hash is that hash
+  (`PolkadotSigningRuntimes`, refusal `OtherMetadata`); Mode::Disabled payloads are read as before.
 
-## 4.3.2 (in progress): sr25519 from source — open items
+### sr25519 from source
 
 - Add NDK `30.0.16248370`, Rust 1.99.1 (from `rust-toolchain.toml`) and
   cargo-ndk 4.1.2 to the checksum-locked SDK of `android-release.yml`; until
@@ -32,11 +55,8 @@ different Substrate call signed than the one shown.
 - Qualify the source-built `libsr25519java.so` on devices (all four ABIs) before
   release: import, derive, sign and the AndroidTest sr25519 suites.
 
-## 4.3.2 lane `google`: follow-ups — 7 November 2026
+### Google Drive backup without Google SDKs: follow-ups
 
-- Remove Firebase Messaging and its Play services from the release graph with the Reown SDK
-  (WalletConnect lane), then drop `-dontwarn com.google.android.gms.**`, `GoogleApiActivity`, the
-  Firebase components and `c2dm` permission from the AAB identity allowlist.
 - Register an Android OAuth client with custom URI schemes in project 621183184145 if the owner
   wants Android off the iOS client; set `GOOGLE_DRIVE_OAUTH_CLIENT_ID`, the release pin and the
   AAB identity redirect scheme together.
@@ -44,7 +64,7 @@ different Substrate call signed than the one shown.
 - Qualify the browser sign-in on devices (Chrome, Firefox, Samsung Internet; process death while
   the browser is open) and a Drive round trip with 4.3.1, iOS and extension backups.
 
-## 4.3.2 lane: WalletConnect without the Reown SDK — 7 November 2026
+### WalletConnect without the Reown SDK
 
 The Reown WalletConnect SDK (WalletConnect Community License, not open source) is
 gone. `feature-walletconnect-impl` now holds the wallet side of WalletConnect v2
@@ -98,7 +118,7 @@ it.
   by dependency constraints in the root `build.gradle`; every other release
   library resolves exactly as in 233.
 
-## 4.3.2 lane: key-path cryptography in this repository — 7 November 2026
+### Key-path cryptography in this repository
 
 Done on `claude/432-crypto-libs`: SpongyCastle and EdDSA-Java out of runtime-utils,
 TON keys on in-repo BouncyCastle code, polkaj-scale built from source,
@@ -110,7 +130,7 @@ curve25519-kotlin no longer packaged. Still open:
 - sr25519 JSON backups are checked only up to the decrypted PKCS8 secret in unit
   tests; the keypair itself needs the native library (device tests).
 
-## 4.3.2 (in progress): the PIN inside the encryption of wallet secrets
+### The PIN inside the encryption of wallet secrets
 
 Audit of 4.3.1, 7 November 2026 (Medium): every wallet secret sat under one device
 key that needs no user authentication, and the PIN was stored under that key and

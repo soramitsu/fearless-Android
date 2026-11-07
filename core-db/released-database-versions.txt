@@ -50,3 +50,6 @@
 
 # Asset Hub staking returns; the database schema is unchanged.
 4.3.1+233=84
+
+# Key safety and open-source libraries only; the database schema is unchanged.
+4.3.2+234=84
