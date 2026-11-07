@@ -59,12 +59,15 @@ class TonInRepoKeyMaterialTest {
         assertEquals("64-byte key", CommentEncryption.decryptComment(recipientPublic, recipient, hex(payload.copyOfRange(4, payload.size)), senderAddress))
     }
 
+    // 4.3.1 parsed a "0x"-prefixed hex string here, which BigInteger rejects, so every query_id was 0.
     @Test
     fun `wallet query ids are random 64-bit values`() {
         val ids = List(8) { newWalletQueryId() }
         ids.forEach { id -> assertTrue(id.signum() >= 0 && id.bitLength() <= 64) }
         assertNotEquals(1, ids.toSet().size)
         assertTrue(ids.all { it < BigInteger.ONE.shiftLeft(64) })
+        // The jetton transfer body stores it as a uint64.
+        ids.forEach { id -> CellBuilder.createCell { storeUInt(id, 64) } }
     }
 
     // The 4.3.1 V4R2WalletContract address: PublicKeyEd25519.decode, key bytes into the data cell.

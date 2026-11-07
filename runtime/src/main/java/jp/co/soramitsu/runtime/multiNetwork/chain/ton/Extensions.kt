@@ -4,7 +4,6 @@ import android.util.Base64
 import jp.co.soramitsu.common.data.network.ton.AccountStatus
 import jp.co.soramitsu.common.data.network.ton.TonAccountData
 import jp.co.soramitsu.common.utils.Punycode
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import org.ton.bigint.BigInt
 import org.ton.block.AddrStd
 import org.ton.block.Coins
@@ -189,15 +188,20 @@ fun String.isValidTonAddress(): Boolean {
     }
 }
 
+/**
+ * A random unsigned 64-bit query_id for a jetton transfer. Until 4.3.2 this parsed a "0x"-prefixed hex string,
+ * which BigInteger rejects, so every transfer fell back to query_id 0.
+ */
 fun newWalletQueryId(): BigInteger {
     return try {
-        val randomBytes = ByteArray(8).also(java.security.SecureRandom()::nextBytes)
-        val hexString = randomBytes.toHexString(true)
-        BigInteger(hexString, 16)
+        val randomBytes = ByteArray(QUERY_ID_BYTES).also(java.security.SecureRandom()::nextBytes)
+        BigInteger(1, randomBytes)
     } catch (e: Throwable) {
         BigInteger.ZERO
     }
 }
+
+private const val QUERY_ID_BYTES = 8
 
 fun getCommentForwardPayload(
     comment: String?
