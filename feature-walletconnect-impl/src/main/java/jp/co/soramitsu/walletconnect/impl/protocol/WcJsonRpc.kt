@@ -66,7 +66,9 @@ internal object WcJsonRpcCodec {
     }
 
     // A message without a version is read as 2.0; one naming any other version is not JSON-RPC 2.0.
-    private fun JsonObject.hasVersion(): Boolean = this["jsonrpc"].let { it == null || (it as? JsonPrimitive)?.content == VERSION }
+    private fun JsonObject.hasVersion(): Boolean = this["jsonrpc"].let {
+        it == null || (it as? JsonPrimitive)?.content == VERSION
+    }
 
     fun parseObject(text: String): JsonObject? = try {
         json.parseToJsonElement(text) as? JsonObject

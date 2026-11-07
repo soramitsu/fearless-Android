@@ -38,7 +38,6 @@ internal class WcRpcOptions(val tag: Int, val ttlSeconds: Long, val prompt: Bool
 @Suppress("MagicNumber")
 internal object WcRpcOptionsTable {
     private const val FIVE_MINUTES = 300L
-    private const val ONE_HOUR = 3_600L
     private const val ONE_DAY = 86_400L
     private const val THIRTY_SECONDS = 30L
 
@@ -126,8 +125,7 @@ internal object WcLimits {
     fun isName(value: String): Boolean = NAME.matches(value)
 
     /** Display text without control characters, cut to [maxLength]. */
-    fun displayText(value: String, maxLength: Int): String =
-        value.filterNot { it.isISOControl() }.take(maxLength)
+    fun displayText(value: String, maxLength: Int): String = value.filterNot { it.isISOControl() }.take(maxLength)
 }
 
 internal fun JsonObject.string(key: String): String? = (this[key] as? JsonPrimitive)?.takeIf { it.isString }?.content
@@ -136,7 +134,7 @@ internal fun JsonObject.long(key: String): Long? = (this[key] as? JsonPrimitive)
 
 internal fun JsonElement?.stringList(maxSize: Int): List<String>? {
     if (this == null || this is JsonNull) return emptyList()
-    val array = this as? JsonArray ?: return null
-    if (array.size > maxSize) return null
-    return array.map { (it as? JsonPrimitive)?.takeIf { item -> item.isString }?.content ?: return null }
+    val array = (this as? JsonArray)?.takeIf { it.size <= maxSize } ?: return null
+    val strings = array.mapNotNull { (it as? JsonPrimitive)?.takeIf { item -> item.isString }?.content }
+    return strings.takeIf { it.size == array.size }
 }

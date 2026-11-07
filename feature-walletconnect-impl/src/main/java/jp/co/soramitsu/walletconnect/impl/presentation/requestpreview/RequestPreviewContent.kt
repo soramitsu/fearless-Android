@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
+import jp.co.soramitsu.common.compose.component.AttentionMessage
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.GradientIcon
 import jp.co.soramitsu.common.compose.component.GradientIconState
@@ -44,7 +45,11 @@ data class RequestPreviewViewState(
     val wallet: WalletNameItemViewState,
     val loading: Boolean,
     /** What the request signs; null while it is being decoded, when nothing can be signed yet. */
-    val summary: SigningSummaryViewState? = null
+    val summary: SigningSummaryViewState? = null,
+    /** One short warning when the dApp's site is unverified or differs from what it claims. */
+    val originWarning: String? = null,
+    /** Verify lists the dApp as a scam: nothing can be signed. */
+    val isBlocked: Boolean = false
 ) {
     companion object {
         val default = RequestPreviewViewState(
@@ -124,6 +129,11 @@ fun RequestPreviewContent(state: RequestPreviewViewState, callback: RequestPrevi
                     MarginVertical(margin = 16.dp)
                     SigningSummary(state = summary)
                 }
+
+                state.originWarning?.let { warning ->
+                    MarginVertical(margin = 16.dp)
+                    AttentionMessage(message = warning)
+                }
             }
 
             Column(
@@ -139,7 +149,7 @@ fun RequestPreviewContent(state: RequestPreviewViewState, callback: RequestPrevi
                         .fillMaxWidth()
                         .height(48.dp),
                     text = stringResource(id = R.string.common_sign),
-                    enabled = state.summary != null && !state.summary.blocksSigning,
+                    enabled = state.summary != null && !state.summary.blocksSigning && !state.isBlocked,
                     loading = state.loading || state.summary == null,
                     onClick = callback::onSignClick
                 )

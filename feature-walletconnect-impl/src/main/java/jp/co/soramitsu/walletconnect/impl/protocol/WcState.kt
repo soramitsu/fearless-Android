@@ -99,7 +99,8 @@ internal data class WcStoredMetadata(
     fun toModel() = WalletConnectMetadata(name, description, url, icons, redirect)
 
     companion object {
-        fun of(model: WalletConnectMetadata) = WcStoredMetadata(model.name, model.description, model.url, model.icons, model.redirect)
+        fun from(model: WalletConnectMetadata) =
+            WcStoredMetadata(model.name, model.description, model.url, model.icons, model.redirect)
     }
 }
 
@@ -112,7 +113,8 @@ internal data class WcStoredProposalNamespace(
     fun toModel() = WalletConnectProposalNamespace(chains, methods, events)
 
     companion object {
-        fun of(model: WalletConnectProposalNamespace) = WcStoredProposalNamespace(model.chains, model.methods, model.events)
+        fun from(model: WalletConnectProposalNamespace) =
+            WcStoredProposalNamespace(model.chains, model.methods, model.events)
     }
 }
 
@@ -126,7 +128,8 @@ internal data class WcStoredSessionNamespace(
     fun toModel() = WalletConnectSessionNamespace(chains, accounts, methods, events)
 
     companion object {
-        fun of(model: WalletConnectSessionNamespace) = WcStoredSessionNamespace(model.chains, model.accounts, model.methods, model.events)
+        fun from(model: WalletConnectSessionNamespace) =
+            WcStoredSessionNamespace(model.chains, model.accounts, model.methods, model.events)
     }
 }
 
@@ -145,7 +148,8 @@ internal data class WcStoredVerify(
     )
 
     companion object {
-        fun of(model: WalletConnectVerifyContext) = WcStoredVerify(model.validation.name, model.verifiedOrigin, model.claimedUrl, model.isScam)
+        fun from(model: WalletConnectVerifyContext) =
+            WcStoredVerify(model.validation.name, model.verifiedOrigin, model.claimedUrl, model.isScam)
     }
 }
 

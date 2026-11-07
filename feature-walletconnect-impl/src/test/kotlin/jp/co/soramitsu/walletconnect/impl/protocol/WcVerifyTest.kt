@@ -19,7 +19,10 @@ class WcVerifyTest {
     }
     private val key = WcVerifyPublicKey(WcEncoding.unbase64Url(KEY_X), WcEncoding.unbase64Url(KEY_Y), expiresAtSeconds = 1_900_000_000)
     private var fetches = 0
-    private val verifier = WcVerifier({ fetches += 1; key }, clock)
+    private val verifier = WcVerifier({
+        fetches += 1
+    key
+    }, clock)
 
     @Test
     fun `an attested origin equal to the claimed url is valid`() = runBlocking {

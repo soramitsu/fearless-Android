@@ -1,6 +1,7 @@
 package jp.co.soramitsu.walletconnect.impl.presentation
 
-import com.reown.walletkit.client.Wallet
+import co.jp.soramitsu.walletconnect.model.WalletConnectRequest
+import co.jp.soramitsu.walletconnect.model.WalletConnectSession
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.core.models.Ecosystem
@@ -14,20 +15,20 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
  * The pending request with exactly [requestId]. Null when it was answered, expired or the id is
  * ambiguous: a screen bound to one request never falls back to another request of the session.
  */
-internal fun List<Wallet.Model.SessionRequest>.pendingRequest(requestId: Long): Wallet.Model.SessionRequest? =
+internal fun List<WalletConnectRequest>.pendingRequest(requestId: Long): WalletConnectRequest? =
     singleOrNull { it.request.id == requestId }
 
 /** Whether this request still asks for exactly what [displayed] showed the user. */
-internal fun Wallet.Model.SessionRequest.isSameRequestAs(displayed: Wallet.Model.SessionRequest): Boolean =
+internal fun WalletConnectRequest.isSameRequestAs(displayed: WalletConnectRequest): Boolean =
     request.id == displayed.request.id && signedContent() == displayed.signedContent()
 
-private fun Wallet.Model.SessionRequest.signedContent() = listOf(topic, chainId, request.method, request.params)
+private fun WalletConnectRequest.signedContent() = listOf(topic, chainId, request.method, request.params)
 
 /**
  * Addresses the user approved for [caip2ChainId] in this session, taken from the CAIP-10
- * `namespace:reference:address` accounts that Reown stores for it.
+ * `namespace:reference:address` accounts that the session stores for it.
  */
-internal fun Wallet.Model.Session.approvedAddresses(caip2ChainId: String): List<String> {
+internal fun WalletConnectSession.approvedAddresses(caip2ChainId: String): List<String> {
     val chainPrefix = "$caip2ChainId:"
     return namespaces.values.flatMap { it.accounts }
         .filter { it.startsWith(chainPrefix) }
@@ -38,7 +39,7 @@ internal fun Wallet.Model.Session.approvedAddresses(caip2ChainId: String): List<
  * Whether the session approved [accountId] on [caip2ChainId]. Addresses are compared as account ids,
  * so EVM hex case and the SS58 format a dApp chose make no difference.
  */
-internal fun Wallet.Model.Session.approvesAccount(
+internal fun WalletConnectSession.approvesAccount(
     caip2ChainId: String,
     accountId: ByteArray,
     accountIdOf: (String) -> ByteArray

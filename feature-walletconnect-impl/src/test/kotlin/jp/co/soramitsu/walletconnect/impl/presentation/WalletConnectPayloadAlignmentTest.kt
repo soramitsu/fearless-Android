@@ -1,6 +1,5 @@
 package jp.co.soramitsu.walletconnect.impl.presentation
 
-import com.reown.walletkit.client.Wallet
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -93,7 +92,7 @@ class WalletConnectPayloadAlignmentTest {
         val outcome = signTransaction(crafted)
 
         assertTrue(outcome is WalletConnectRequestRejectedException)
-        assertTrue(sessionClient.responses.single() is Wallet.Model.JsonRpcResponse.JsonRpcError)
+        assertTrue(sessionClient.responses.single() is WalletConnectResponse.Error)
         coVerify(exactly = 0) { keypairProvider.getKeypairFor(any(), any()) }
     }
 
@@ -137,7 +136,7 @@ class WalletConnectPayloadAlignmentTest {
 
         runBlocking { interactor().handleSignAction(polkadotChain, TEST_TOPIC, request, { throw it }, { _, _ -> }, {}) }
 
-        val result = (sessionClient.responses.single() as Wallet.Model.JsonRpcResponse.JsonRpcResult).result
+        val result = (sessionClient.responses.single() as WalletConnectResponse.Result).result
         val signature = Json.parseToJsonElement(requireNotNull(result)).jsonObject["signature"]?.jsonPrimitive?.content.orEmpty().fromHex()
         assertFalse(Signer.verifyEd25519(target, signature, keypair.publicKey))
         assertTrue(Signer.verifyEd25519("<Bytes>".encodeToByteArray() + target + "</Bytes>".encodeToByteArray(), signature, keypair.publicKey))

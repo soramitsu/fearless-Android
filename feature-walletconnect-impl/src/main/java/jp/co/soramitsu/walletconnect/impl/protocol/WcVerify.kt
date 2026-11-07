@@ -100,7 +100,11 @@ internal class WcVerifier(
     @Volatile
     private var lastFetchSeconds: Long? = null
 
-    suspend fun resolve(attestation: String?, encryptedMessage: String, claimedUrl: String?): WalletConnectVerifyContext {
+    suspend fun resolve(
+        attestation: String?,
+        encryptedMessage: String,
+        claimedUrl: String?
+    ): WalletConnectVerifyContext {
         val unknown = WalletConnectVerifyContext.unknown(claimedUrl)
         val claims = attestation?.takeIf { it.isNotEmpty() }?.let { verifiedClaims(it) }
             ?.takeIf { it.id == WcCrypto.hashMessage(encryptedMessage) && it.expiresAtSeconds >= clock.nowSeconds() }
@@ -118,11 +122,9 @@ internal class WcVerifier(
 
     private suspend fun verifiedClaims(attestation: String): WcAttestationClaims? {
         val cached = currentKey(forceRefresh = false) ?: return null
-        WcAttestationJwt.verify(attestation, cached)?.let { return it }
-        // The server may have rotated its key since it was cached.
-        val refreshed = currentKey(forceRefresh = true) ?: return null
-        if (refreshed === cached) return null
-        return WcAttestationJwt.verify(attestation, refreshed)
+        // When the cached key does not verify, the server may have rotated its key since it was cached.
+        return WcAttestationJwt.verify(attestation, cached)
+            ?: currentKey(forceRefresh = true)?.takeIf { it !== cached }?.let { WcAttestationJwt.verify(attestation, it) }
     }
 
     private suspend fun currentKey(forceRefresh: Boolean): WcVerifyPublicKey? = keyLock.withLock {
@@ -147,22 +149,25 @@ internal class WcVerifier(
         private const val REFRESH_INTERVAL_SECONDS = 600L
         private const val HTTP_PORT = 80
         private const val HTTPS_PORT = 443
+        private const val NO_PORT = -1
 
         /** `scheme://host[:port]` in lower case with default ports dropped, or null when [url] has no host. */
-        fun normalizeOrigin(url: String): String? = try {
-            val uri = URI(url.trim())
+        fun normalizeOrigin(url: String): String? {
+            val uri = try {
+                URI(url.trim())
+            } catch (ignored: URISyntaxException) {
+                return null
+            }
             val scheme = uri.scheme?.lowercase(Locale.ROOT)
             val host = uri.host?.lowercase(Locale.ROOT)?.trimEnd('.')
-            if (scheme == null || host.isNullOrEmpty()) {
-                null
-            } else {
-                val port = uri.port.takeIf {
-                    it != -1 && !(scheme == "https" && it == HTTPS_PORT) && !(scheme == "http" && it == HTTP_PORT)
-                }
-                if (port == null) "$scheme://$host" else "$scheme://$host:$port"
+            if (scheme == null || host.isNullOrEmpty()) return null
+            val defaultPort = when (scheme) {
+                "https" -> HTTPS_PORT
+                "http" -> HTTP_PORT
+                else -> NO_PORT
             }
-        } catch (ignored: URISyntaxException) {
-            null
+            val port = uri.port.takeIf { it != NO_PORT && it != defaultPort }
+            return if (port == null) "$scheme://$host" else "$scheme://$host:$port"
         }
     }
 }

@@ -110,7 +110,10 @@ internal class WcRelayClient(
         }
     }
 
-    /** Keeps [topics] subscribed on every connection, from now on. */
+    /**
+     * Keeps [topics] subscribed on every connection from the next one on. Called before [start] for
+     * the stored topics; [subscribe] subscribes a topic on the open connection at once.
+     */
     fun watch(topics: Collection<String>) {
         watched.addAll(topics)
         wake.trySend(Unit)
@@ -133,23 +136,40 @@ internal class WcRelayClient(
         }
     }
 
-    suspend fun unsubscribe(topic: String) {
-        watched -= topic
-        val subscriptionId = subscriptionIds.remove(topic)
+    suspend fun unsubscribe(topic: String) = unsubscribe(listOf(topic))
+
+    /** Stops watching [topics]; one `irn_batchUnsubscribe` tells the relay when there are several. */
+    suspend fun unsubscribe(topics: Collection<String>) {
+        if (topics.isEmpty()) return
+        watched.removeAll(topics.toSet())
+        val subscriptions = topics.mapNotNull { topic -> subscriptionIds.remove(topic)?.let { id -> topic to id } }
         val connection = current.value
-        if (connection != null && subscriptionId != null) {
+        if (connection != null && subscriptions.isNotEmpty()) {
             runCatchingNonCancellation {
-                relayRequest(connection, METHOD_UNSUBSCRIBE, buildJsonObject {
-                    put("topic", topic)
-                    put("id", subscriptionId)
-                })
+                if (subscriptions.size == 1) {
+                    relayRequest(connection, METHOD_UNSUBSCRIBE, subscriptionJson(subscriptions.single()))
+                } else {
+                    val batch = buildJsonArray { subscriptions.forEach { add(subscriptionJson(it)) } }
+                    relayRequest(connection, METHOD_BATCH_UNSUBSCRIBE, buildJsonObject { put("subscriptions", batch) })
+                }
             }
         }
         wake.trySend(Unit)
     }
 
+    private fun subscriptionJson(subscription: Pair<String, String>) = buildJsonObject {
+        put("topic", subscription.first)
+        put("id", subscription.second)
+    }
+
     /** Publishes an encoded [message] on [topic]; throws [WcRelayException] when the relay does not accept it. */
-    suspend fun publish(topic: String, message: String, ttlSeconds: Long, tag: Int, prompt: Boolean = false) {
+    suspend fun publish(
+        topic: String,
+        message: String,
+        ttlSeconds: Long,
+        tag: Int,
+        prompt: Boolean = false
+    ) {
         val params = buildJsonObject {
             put("topic", topic)
             put("message", message)
@@ -187,10 +207,9 @@ internal class WcRelayClient(
         if (demand.get() > 0) return true
         if (watched.isEmpty()) return false
         val since = backgroundSince
-        return foreground || (since != null && clock.nowMillis() - since < config.backgroundGraceMillis)
+        return foreground || since != null && clock.nowMillis() - since < config.backgroundGraceMillis
     }
 
-    @Suppress("NestedBlockDepth")
     private suspend fun connectionLoop() {
         var failures = 0
         var urlIndex = 0
@@ -200,37 +219,37 @@ internal class WcRelayClient(
                 continue
             }
             val url = config.relayUrls[urlIndex % config.relayUrls.size]
-            val connection = runCatchingNonCancellation { open(url) }.getOrNull()
-            if (connection == null) {
-                failures += 1
-                urlIndex += 1
-                waitForChange(backoffMillis(failures))
-                continue
-            }
-            val openedAt = clock.nowMillis()
-            try {
-                subscribeOn(connection, watched.toList())
-                current.value = connection
-                _connected.value = true
-                fetchMessages(connection, watched.toList())
-                holdOpen(connection)
-                // A relay that closes right after accepting us is retried with backoff, not in a loop.
-                failures = if (clock.nowMillis() - openedAt < STABLE_CONNECTION_MILLIS) failures + 1 else 0
-            } catch (ignored: WcRelayException) {
-                failures += 1
-                urlIndex += 1
-            } finally {
-                current.value = null
-                _connected.value = false
-                connection.socket?.close()
-                subscriptionIds.clear()
-                failPending()
-            }
+            val outcome = runCatchingNonCancellation { open(url) }.getOrNull()?.let { serve(it) } ?: ConnectionOutcome.FAILED
+            failures = if (outcome == ConnectionOutcome.STABLE) 0 else failures + 1
+            // A relay that cannot be reached or refuses us is left for the next one.
+            if (outcome == ConnectionOutcome.FAILED) urlIndex += 1
             if (failures > 0) waitForChange(backoffMillis(failures))
         }
     }
 
-    /** Waits until the connection closes or is no longer needed, then returns. */
+    // Serves one open connection until it closes or is no longer needed.
+    private suspend fun serve(connection: Connection): ConnectionOutcome {
+        val openedAt = clock.nowMillis()
+        return try {
+            subscribeOn(connection, watched.toList())
+            current.value = connection
+            _connected.value = true
+            fetchMessages(connection, watched.toList())
+            holdOpen(connection)
+            // A relay that closes right after accepting us is retried with backoff, not in a loop.
+            if (clock.nowMillis() - openedAt < STABLE_CONNECTION_MILLIS) ConnectionOutcome.UNSTABLE else ConnectionOutcome.STABLE
+        } catch (ignored: WcRelayException) {
+            ConnectionOutcome.FAILED
+        } finally {
+            current.value = null
+            _connected.value = false
+            connection.socket?.close()
+            subscriptionIds.clear()
+            failPending()
+        }
+    }
+
+    // Waits until the connection closes or is no longer needed, then returns.
     private suspend fun holdOpen(connection: Connection) {
         while (scope.isActive) {
             if (!shouldConnect()) return
@@ -281,13 +300,15 @@ internal class WcRelayClient(
                 val result = relayRequest(connection, METHOD_SUBSCRIBE, buildJsonObject { put("topic", chunk.single()) })
                 rememberSubscription(chunk.single(), (result as? JsonPrimitive)?.takeIf { it.isString }?.content)
             } else {
-                val result = relayRequest(connection, METHOD_BATCH_SUBSCRIBE, buildJsonObject {
-                    put("topics", buildJsonArray { chunk.forEach { add(JsonPrimitive(it)) } })
-                })
+                val result = relayRequest(connection, METHOD_BATCH_SUBSCRIBE, topicsJson(chunk))
                 val returnedIds = (result as? JsonArray)?.map { (it as? JsonPrimitive)?.takeIf { id -> id.isString }?.content }
                 chunk.forEachIndexed { index, topic -> rememberSubscription(topic, returnedIds?.getOrNull(index)) }
             }
         }
+    }
+
+    private fun topicsJson(topics: List<String>) = buildJsonObject {
+        put("topics", buildJsonArray { topics.forEach { add(JsonPrimitive(it)) } })
     }
 
     // The relay names a subscription sha256(topic + clientId) when it does not return the id.
@@ -295,25 +316,28 @@ internal class WcRelayClient(
         subscriptionIds[topic] = returnedId ?: WcCrypto.hashMessage(topic + identity().clientId)
     }
 
-    /** Asks the relay for messages kept for [topics] while nobody was subscribed. Best effort. */
+    // Asks the relay for messages kept for the topics while nobody was subscribed. Best effort.
     private suspend fun fetchMessages(connection: Connection, topics: List<String>) {
-        for (chunk in topics.chunked(BATCH_LIMIT)) {
-            var round = 0
-            var hasMore = true
-            while (hasMore && round < MAX_FETCH_ROUNDS) {
-                round += 1
-                val result = runCatchingNonCancellation {
-                    relayRequest(connection, METHOD_BATCH_FETCH, buildJsonObject {
-                        put("topics", buildJsonArray { chunk.forEach { add(JsonPrimitive(it)) } })
-                    })
-                }.getOrNull() as? JsonObject ?: return
-                (result["messages"] as? JsonArray)?.forEach { item -> (item as? JsonObject)?.let(::deliver) }
-                hasMore = (result["hasMore"] as? JsonPrimitive)?.booleanOrNull == true
-            }
+        topics.chunked(BATCH_LIMIT).forEach { chunk -> fetchChunk(connection, chunk) }
+    }
+
+    private suspend fun fetchChunk(connection: Connection, topics: List<String>) {
+        var round = 0
+        var hasMore = true
+        while (hasMore && round < MAX_FETCH_ROUNDS) {
+            round += 1
+            val result = runCatchingNonCancellation { relayRequest(connection, METHOD_BATCH_FETCH, topicsJson(topics)) }
+                .getOrNull() as? JsonObject ?: return
+            (result["messages"] as? JsonArray)?.forEach { item -> (item as? JsonObject)?.let(::deliver) }
+            hasMore = (result["hasMore"] as? JsonPrimitive)?.booleanOrNull == true
         }
     }
 
-    private suspend fun relayRequest(connection: Connection, method: String, params: JsonElement): JsonElement {
+    private suspend fun relayRequest(
+        connection: Connection,
+        method: String,
+        params: JsonElement
+    ): JsonElement {
         val id = ids.next()
         val response = CompletableDeferred<JsonElement>()
         pending[id] = response
@@ -359,14 +383,13 @@ internal class WcRelayClient(
         }
     }
 
-    /** Queues one delivered message for [onMessage]; false when the inbox is full. */
+    // Queues one delivered message for onMessage; false when the inbox is full.
     private fun deliver(data: JsonObject): Boolean {
-        val topic = (data["topic"] as? JsonPrimitive)?.content
+        val topic = (data["topic"] as? JsonPrimitive)?.content?.takeIf { it in watched }
         val message = (data["message"] as? JsonPrimitive)?.takeIf { it.isString }?.content
-        if (topic == null || message == null || topic !in watched || message.length > MAX_MESSAGE_LENGTH) {
-            // Malformed or for a topic this wallet left: acknowledged and dropped.
-            return true
-        }
+            ?.takeIf { it.length <= MAX_MESSAGE_LENGTH }
+        // Malformed or for a topic this wallet left: acknowledged and dropped.
+        if (topic == null || message == null) return true
         val attestation = (data["attestation"] as? JsonPrimitive)?.takeIf { it.isString }?.content
             ?.takeIf { it.length <= MAX_ATTESTATION_LENGTH }
         val publishedAt = (data["publishedAt"] as? JsonPrimitive)?.longOrNull
@@ -384,6 +407,8 @@ internal class WcRelayClient(
             else -> waiting.completeExceptionally(WcRelayException("Malformed relay response"))
         }
     }
+
+    private enum class ConnectionOutcome { STABLE, UNSTABLE, FAILED }
 
     private inner class Connection : WcRelaySocketListener {
         val opened = CompletableDeferred<Unit>()
@@ -414,6 +439,7 @@ internal class WcRelayClient(
         const val METHOD_SUBSCRIBE = "irn_subscribe"
         const val METHOD_BATCH_SUBSCRIBE = "irn_batchSubscribe"
         const val METHOD_UNSUBSCRIBE = "irn_unsubscribe"
+        const val METHOD_BATCH_UNSUBSCRIBE = "irn_batchUnsubscribe"
         const val METHOD_BATCH_FETCH = "irn_batchFetchMessages"
         const val METHOD_SUBSCRIPTION = "irn_subscription"
 
@@ -429,7 +455,8 @@ internal class WcRelayClient(
         private const val MIN_RECHECK_MILLIS = 10L
         private val BACKOFF_STEPS_MILLIS = longArrayOf(1_000, 2_000, 5_000, 10_000, 30_000, 60_000)
 
-        fun defaultBackoff(attempt: Int): Long = BACKOFF_STEPS_MILLIS[(attempt - 1).coerceIn(0, BACKOFF_STEPS_MILLIS.lastIndex)]
+        fun defaultBackoff(attempt: Int): Long =
+            BACKOFF_STEPS_MILLIS[(attempt - 1).coerceIn(0, BACKOFF_STEPS_MILLIS.lastIndex)]
     }
 }
 

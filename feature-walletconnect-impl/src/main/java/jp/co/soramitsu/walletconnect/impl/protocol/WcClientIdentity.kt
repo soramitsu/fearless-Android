@@ -26,7 +26,12 @@ internal class WcClientIdentity(seed: ByteArray) {
      * The client-auth JWT the relay requires on connect: EdDSA over
      * `base64url(header).base64url(payload)` with `iss` = [clientId], valid for [ttlSeconds].
      */
-    fun signJwt(audience: String, subject: String, issuedAtSeconds: Long, ttlSeconds: Long = JWT_TTL_SECONDS): String {
+    fun signJwt(
+        audience: String,
+        subject: String,
+        issuedAtSeconds: Long,
+        ttlSeconds: Long = JWT_TTL_SECONDS
+    ): String {
         val header = buildJsonObject {
             put("alg", "EdDSA")
             put("typ", "JWT")

@@ -27,27 +27,35 @@ internal class WcPairingUri(
         fun parse(uri: String, nowSeconds: Long): WcPairingUri {
             val text = uri.trim()
             if (text.length > MAX_URI_LENGTH) malformed("The link is too long")
+            val (topic, query) = topicAndQuery(text)
+            val params = parseQuery(query)
+            val symKeyHex = params["symKey"]?.takeIf {
+                WcEncoding.isHex(it, WcCrypto.KEY_LENGTH)
+            } ?: malformed("The link has no valid key")
+            val relayProtocol = params["relay-protocol"] ?: RELAY_PROTOCOL
+            if (relayProtocol != RELAY_PROTOCOL) malformed("Unsupported relay protocol")
+            val relayData = params["relay-data"]
+            if (relayData != null && relayData.length > MAX_RELAY_DATA_LENGTH) malformed("Invalid relay data")
+            val expiryTimestamp = params["expiryTimestamp"]?.let {
+                it.toLongOrNull()?.takeIf { value -> value > 0 } ?: malformed("Invalid expiry")
+            }
+            if (expiryTimestamp != null && expiryTimestamp <= nowSeconds) expired()
+
+            return WcPairingUri(topic, WcEncoding.unhex(symKeyHex), relayProtocol, relayData, expiryTimestamp)
+        }
+
+        // The topic and the query of `wc:{topic}@2?{query}`; v1 and malformed links are refused.
+        private fun topicAndQuery(text: String): Pair<String, String> {
             val scheme = SCHEMES.firstOrNull { text.startsWith(it, ignoreCase = true) } ?: malformed("Not a WalletConnect link")
             val body = text.substring(scheme.length)
-            val queryStart = body.indexOf('?')
-            val path = if (queryStart >= 0) body.substring(0, queryStart) else body
-            val query = if (queryStart >= 0) body.substring(queryStart + 1) else ""
+            val path = body.substringBefore('?')
+            val query = body.substringAfter('?', "")
             val at = path.lastIndexOf('@')
             if (at <= 0) malformed("Not a WalletConnect link")
             val topic = path.substring(0, at).removePrefix("//")
             if (path.substring(at + 1) != VERSION_2) malformed("Only WalletConnect v2 links are supported")
             if (!WcEncoding.isHex(topic, WcCrypto.KEY_LENGTH)) malformed("The link has no valid topic")
-
-            val params = parseQuery(query)
-            val symKeyHex = params["symKey"]?.takeIf { WcEncoding.isHex(it, WcCrypto.KEY_LENGTH) } ?: malformed("The link has no valid key")
-            val relayProtocol = params["relay-protocol"] ?: RELAY_PROTOCOL
-            if (relayProtocol != RELAY_PROTOCOL) malformed("Unsupported relay protocol")
-            val relayData = params["relay-data"]
-            if (relayData != null && relayData.length > MAX_RELAY_DATA_LENGTH) malformed("Invalid relay data")
-            val expiryTimestamp = params["expiryTimestamp"]?.let { it.toLongOrNull()?.takeIf { value -> value > 0 } ?: malformed("Invalid expiry") }
-            if (expiryTimestamp != null && expiryTimestamp <= nowSeconds) expired()
-
-            return WcPairingUri(topic, WcEncoding.unhex(symKeyHex), relayProtocol, relayData, expiryTimestamp)
+            return topic to query
         }
 
         private fun malformed(message: String): Nothing = throw WalletConnectUriException(message)

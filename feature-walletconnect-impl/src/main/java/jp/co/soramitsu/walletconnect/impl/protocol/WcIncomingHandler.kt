@@ -98,16 +98,16 @@ internal class WcIncomingHandler(
             return
         } ?: return
         val verify = verifier.resolve(message.attestation, message.message, proposal.proposer.url)
-        val stored = proposal.copy(verify = WcStoredVerify.of(verify))
+        val stored = proposal.copy(verify = WcStoredVerify.from(verify))
         store.mutate { it.copy(proposals = it.proposals.filterNot { item -> item.id == stored.id } + stored) }
         emit(WalletConnectEvent.SessionProposal(WcModels.proposal(stored), verify))
     }
 
-    /** The proposal, or null when it already expired (the dApp stopped waiting, so nothing is answered). */
+    // The proposal, or null when it already expired (the dApp stopped waiting, so nothing is answered).
     private fun readProposal(topic: String, rpc: WcJsonRpc.Request): WcStoredProposal? {
         val params = rpc.params as? JsonObject ?: refuse(WcErrors.INVALID_REQUEST, "Malformed proposal")
         val now = clock.nowSeconds()
-        val expiry = params.long("expiryTimestamp") ?: (now + WcRpcOptionsTable.PROPOSAL_TTL_SECONDS)
+        val expiry = params.long("expiryTimestamp") ?: now + WcRpcOptionsTable.PROPOSAL_TTL_SECONDS
         if (expiry <= now) return null
         if (store.state.proposals.size >= WcLimits.MAX_PENDING_PROPOSALS) {
             refuse(WcErrors.LIMIT_EXCEEDED, "Too many pending proposals")
@@ -130,14 +130,12 @@ internal class WcIncomingHandler(
             optionalNamespaces = optional,
             relayProtocol = WcPairingUri.RELAY_PROTOCOL,
             expiry = minOf(expiry, now + MAX_PROPOSAL_LIFETIME_SECONDS),
-            verify = WcStoredVerify.of(WalletConnectVerifyContext.unknown(null))
+            verify = WcStoredVerify.from(WalletConnectVerifyContext.unknown(null))
         )
     }
 
-    /**
-     * One-click authentication (CACAO sign-in) is declined with WC_METHOD_UNSUPPORTED: the dApp then
-     * uses the session proposal it sends alongside, and the user approves that as usual.
-     */
+    // One-click authentication (CACAO sign-in) is declined with WC_METHOD_UNSUPPORTED: the dApp then
+    // uses the session proposal it sends alongside, and the user approves that as usual.
     private suspend fun declineAuthentication(topic: String, rpc: WcJsonRpc.Request) {
         val requesterKey = ((rpc.params as? JsonObject)?.get("requester") as? JsonObject)?.string("publicKey")
         val error = WcJsonRpc.Error(rpc.id, WcErrors.WC_METHOD_UNSUPPORTED, "Unsupported wc_ method. ${WcMethods.SESSION_AUTHENTICATE}")
@@ -155,8 +153,9 @@ internal class WcIncomingHandler(
     private suspend fun onSessionRequest(message: WcRelayMessage, rpc: WcJsonRpc.Request) {
         val topic = message.topic
         val session = store.state.sessions.firstOrNull { it.topic == topic } ?: return
-        val requestKey = handledRequestKey(topic, rpc.id)
-        if (store.state.handled.containsKey(requestKey) || store.state.requests.any { it.topic == topic && it.id == rpc.id }) return
+        val known = store.state.handled.containsKey(handledRequestKey(topic, rpc.id)) ||
+            store.state.requests.any { it.topic == topic && it.id == rpc.id }
+        if (known) return
         val stored = try {
             readSessionRequest(session, rpc)
         } catch (refused: WcProtocolException) {
@@ -164,7 +163,7 @@ internal class WcIncomingHandler(
             return
         }
         val verify = verifier.resolve(message.attestation, message.message, session.peer.url)
-        val request = stored.copy(verify = WcStoredVerify.of(verify))
+        val request = stored.copy(verify = WcStoredVerify.from(verify))
         store.mutate { it.copy(requests = it.requests + request) }
         emit(WalletConnectEvent.SessionRequest(WcModels.request(request, session), verify))
     }
@@ -184,7 +183,7 @@ internal class WcIncomingHandler(
         if (method !in namespace.methods) refuse(WcErrors.UNAUTHORIZED_METHOD, "Unauthorized method.")
         if (method !in supportedMethods) refuse(WcErrors.UNSUPPORTED_METHODS, "Unsupported methods.")
         val now = clock.nowSeconds()
-        val expiry = request.long("expiryTimestamp") ?: (now + WcRpcOptionsTable.REQUEST_TTL_SECONDS)
+        val expiry = request.long("expiryTimestamp") ?: now + WcRpcOptionsTable.REQUEST_TTL_SECONDS
         if (expiry <= now) refuse(WcErrors.SESSION_REQUEST_EXPIRED, "Session Request Expired.")
         if (store.state.requests.count { it.topic == session.topic } >= WcLimits.MAX_PENDING_REQUESTS_PER_SESSION) {
             refuse(WcErrors.LIMIT_EXCEEDED, "Too many pending requests")
@@ -196,11 +195,15 @@ internal class WcIncomingHandler(
             method = method,
             params = requestParams,
             expiry = minOf(expiry, now + WcRpcOptionsTable.REQUEST_MAX_EXPIRY_SECONDS),
-            verify = WcStoredVerify.of(WalletConnectVerifyContext.unknown(session.peer.url))
+            verify = WcStoredVerify.from(WalletConnectVerifyContext.unknown(session.peer.url))
         )
     }
 
-    private suspend fun onResponse(topic: String, rpc: WcJsonRpc, isSession: Boolean) {
+    private suspend fun onResponse(
+        topic: String,
+        rpc: WcJsonRpc,
+        isSession: Boolean
+    ) {
         val session = store.state.sessions.firstOrNull { it.topic == topic }
         if (isSession && session != null && session.settleRequestId == rpc.id) {
             val accepted = rpc is WcJsonRpc.Result && (rpc.result as? JsonPrimitive)?.booleanOrNull != false
@@ -210,7 +213,11 @@ internal class WcIncomingHandler(
         publisher.complete(rpc)
     }
 
-    private suspend fun reply(topic: String, message: WcJsonRpc, options: WcRpcOptions) {
+    private suspend fun reply(
+        topic: String,
+        message: WcJsonRpc,
+        options: WcRpcOptions
+    ) {
         // Best effort: an answer that cannot be sent leaves the dApp to time out, never the wallet in error.
         runCatchingNonCancellation { publisher.send(topic, message, options) }
     }

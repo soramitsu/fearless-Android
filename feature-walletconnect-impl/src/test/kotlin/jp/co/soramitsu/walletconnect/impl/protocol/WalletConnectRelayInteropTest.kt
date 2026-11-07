@@ -44,14 +44,13 @@ import kotlin.concurrent.thread
 class WalletConnectRelayInteropTest {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var dapp: Process? = null
+    private val events = CopyOnWriteArrayList<WalletConnectEvent>()
 
     @After
     fun tearDown() {
         scope.cancel()
         dapp?.destroy()
     }
-
-    private val events = CopyOnWriteArrayList<WalletConnectEvent>()
 
     @Test
     fun `the official sign-client pairs, gets personal_sign answered, sees a rejection and the disconnect`() {
@@ -147,7 +146,12 @@ class WalletConnectRelayInteropTest {
         assertEquals(0, requireNotNull(dapp).exitValue())
     }
 
-    private fun startDapp(script: String, modules: String, projectId: String, mode: String): Steps {
+    private fun startDapp(
+        script: String,
+        modules: String,
+        projectId: String,
+        mode: String
+    ): Steps {
         val process = ProcessBuilder("node", script, modules)
             .directory(File(script).parentFile)
             .redirectErrorStream(true)

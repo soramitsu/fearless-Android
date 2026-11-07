@@ -73,16 +73,28 @@ internal class OkHttpRelayTransport(baseClient: OkHttpClient) : WcRelayTransport
                 listener.onMessage(this@OkHttpRelaySocket, text)
             }
 
-            override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+            override fun onClosing(
+                webSocket: WebSocket,
+                code: Int,
+                reason: String
+            ) {
                 webSocket.close(NORMAL_CLOSURE, null)
                 reportClosed(null)
             }
 
-            override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+            override fun onClosed(
+                webSocket: WebSocket,
+                code: Int,
+                reason: String
+            ) {
                 reportClosed(null)
             }
 
-            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+            override fun onFailure(
+                webSocket: WebSocket,
+                t: Throwable,
+                response: Response?
+            ) {
                 reportClosed(t)
             }
 

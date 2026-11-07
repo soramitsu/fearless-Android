@@ -56,7 +56,7 @@ class WcJsonRpcTest {
 
         assertEquals(1_700_000_000_000_000, first)
         assertEquals(first + 1, second)
-        assertTrue(second < (1L shl 53))
+        assertTrue(second < 1L shl 53)
     }
 
     @Test

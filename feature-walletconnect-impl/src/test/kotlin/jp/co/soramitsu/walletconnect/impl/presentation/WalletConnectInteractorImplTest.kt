@@ -1,6 +1,8 @@
 package jp.co.soramitsu.walletconnect.impl.presentation
 
-import com.reown.walletkit.client.Wallet
+import co.jp.soramitsu.walletconnect.model.WalletConnectRequest
+import co.jp.soramitsu.walletconnect.model.WalletConnectValidation
+import co.jp.soramitsu.walletconnect.model.WalletConnectVerifyContext
 import io.mockk.MockKMatcherScope
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -61,7 +63,7 @@ class WalletConnectInteractorImplTest {
         val outcome = sign(ethereumChain, request)
 
         assertTrue(outcome.signError is WalletConnectRequestRejectedException)
-        assertEquals(11L, (sessionClient.responses.single() as Wallet.Model.JsonRpcResponse.JsonRpcError).id)
+        assertEquals(11L, (sessionClient.responses.single() as WalletConnectResponse.Error).id)
         coVerify(exactly = 0) { keypairProvider.getKeypairFor(any(), any()) }
     }
 
@@ -72,7 +74,7 @@ class WalletConnectInteractorImplTest {
         val outcome = sign(polkadotChain, request)
 
         assertTrue(outcome.signError is WalletConnectRequestRejectedException)
-        assertTrue(sessionClient.responses.single() is Wallet.Model.JsonRpcResponse.JsonRpcError)
+        assertTrue(sessionClient.responses.single() is WalletConnectResponse.Error)
     }
 
     @Test
@@ -85,7 +87,7 @@ class WalletConnectInteractorImplTest {
         val outcome = sign(polkadotChain, request)
 
         assertTrue(outcome.signError is WalletConnectRequestRejectedException)
-        assertTrue(sessionClient.responses.single() is Wallet.Model.JsonRpcResponse.JsonRpcError)
+        assertTrue(sessionClient.responses.single() is WalletConnectResponse.Error)
         coVerify(exactly = 0) { keypairProvider.getKeypairFor(any(), any()) }
     }
 
@@ -177,7 +179,7 @@ class WalletConnectInteractorImplTest {
         val outcome = sign(polkadotChain, polkadotTransaction(id = 31, address = address, genesisHash = "0x$KUSAMA_GENESIS"))
 
         assertTrue(outcome.signError is WalletConnectRequestRejectedException)
-        assertTrue(sessionClient.responses.single() is Wallet.Model.JsonRpcResponse.JsonRpcError)
+        assertTrue(sessionClient.responses.single() is WalletConnectResponse.Error)
         coVerify(exactly = 0) { keypairProvider.getKeypairFor(any(), any()) }
     }
 
@@ -253,7 +255,7 @@ class WalletConnectInteractorImplTest {
         val outcome = sign(polkadotChain, polkadotTransaction(id = 38, address = address, era = "0x00"))
 
         assertEquals(PolkadotRefusal.NeverExpires, (outcome.signError as PolkadotTransactionRefusedException).refusal)
-        assertTrue(sessionClient.responses.single() is Wallet.Model.JsonRpcResponse.JsonRpcError)
+        assertTrue(sessionClient.responses.single() is WalletConnectResponse.Error)
         coVerify(exactly = 0) { keypairProvider.getKeypairFor(any(), any()) }
     }
 
@@ -279,7 +281,7 @@ class WalletConnectInteractorImplTest {
         val outcome = sign(ethereumChain, typedData(id = 35, address = address, chainId = "137"))
 
         assertTrue(outcome.signError is WalletConnectRequestRejectedException)
-        assertTrue(sessionClient.responses.single() is Wallet.Model.JsonRpcResponse.JsonRpcError)
+        assertTrue(sessionClient.responses.single() is WalletConnectResponse.Error)
         coVerify(exactly = 0) { keypairProvider.getKeypairFor(any(), any()) }
     }
 
@@ -377,11 +379,10 @@ class WalletConnectInteractorImplTest {
     fun `request that Verify reports as a scam is refused before any key is read`() {
         val address = approveEvmAccount()
         val request = typedData(id = 51, address = address, chainId = "1")
-        sessionClient.verifyContexts[51] = Wallet.Model.VerifyContext(
-            id = 51,
-            origin = "https://drainer.example",
-            validation = Wallet.Model.Validation.INVALID,
-            verifyUrl = "",
+        sessionClient.verifyContexts[51] = WalletConnectVerifyContext(
+            validation = WalletConnectValidation.INVALID,
+            verifiedOrigin = "https://drainer.example",
+            claimedUrl = null,
             isScam = true
         )
 
@@ -401,7 +402,7 @@ class WalletConnectInteractorImplTest {
         val paused = sign(polkadotChain, polkadotSignMessage(id = 61, address = polkadotAddress))
 
         assertTrue(paused.signError is DappSigningPausedException)
-        assertEquals(61L, (sessionClient.responses.single() as Wallet.Model.JsonRpcResponse.JsonRpcError).id)
+        assertEquals(61L, (sessionClient.responses.single() as WalletConnectResponse.Error).id)
         coVerify(exactly = 0) { keypairProvider.getKeypairFor(any(), any()) }
 
         sessionClient.responses.clear()
@@ -423,7 +424,7 @@ class WalletConnectInteractorImplTest {
         assertTrue(first.signError != null)
         assertTrue(retry.signError is DappSigningPausedException)
         assertEquals(listOf("0xsigned"), transactionSender.sent)
-        assertEquals(63L, (sessionClient.responses.single() as Wallet.Model.JsonRpcResponse.JsonRpcError).id)
+        assertEquals(63L, (sessionClient.responses.single() as WalletConnectResponse.Error).id)
     }
 
     @Test
@@ -440,7 +441,7 @@ class WalletConnectInteractorImplTest {
         val outcome = sign(polkadotChain, polkadotSignMessage(id = 67, address = address))
 
         assertTrue(outcome.signError is DappSigningPausedException)
-        assertEquals(67L, (sessionClient.responses.single() as Wallet.Model.JsonRpcResponse.JsonRpcError).id)
+        assertEquals(67L, (sessionClient.responses.single() as WalletConnectResponse.Error).id)
     }
 
     @Test
@@ -455,7 +456,7 @@ class WalletConnectInteractorImplTest {
 
         assertTrue(outcome.signError is DappSigningPausedException)
         assertEquals(emptyList<String>(), transactionSender.sent)
-        assertEquals(68L, (sessionClient.responses.single() as Wallet.Model.JsonRpcResponse.JsonRpcError).id)
+        assertEquals(68L, (sessionClient.responses.single() as WalletConnectResponse.Error).id)
     }
 
     @Test
@@ -470,7 +471,7 @@ class WalletConnectInteractorImplTest {
 
         assertTrue(outcome.signError is DappSigningPausedException)
         assertEquals(emptyList<String>(), transactionSender.sent)
-        assertEquals(69L, (sessionClient.responses.single() as Wallet.Model.JsonRpcResponse.JsonRpcError).id)
+        assertEquals(69L, (sessionClient.responses.single() as WalletConnectResponse.Error).id)
     }
 
     @Test
@@ -494,7 +495,7 @@ class WalletConnectInteractorImplTest {
         var signError: Exception? = null
         var operationHash: String? = null
         var succeeded = false
-        var requestError: Wallet.Model.Error? = null
+        var requestError: Throwable? = null
     }
 
     private fun interactor(runtimeSource: PolkadotRuntimeSource = { null }) = WalletConnectInteractorImpl(
@@ -511,7 +512,7 @@ class WalletConnectInteractorImplTest {
 
     private fun sign(
         chain: Chain,
-        request: Wallet.Model.SessionRequest,
+        request: WalletConnectRequest,
         interactor: WalletConnectInteractorImpl = interactor()
     ): Outcome = Outcome().also { outcome ->
         runBlocking {
@@ -535,11 +536,11 @@ class WalletConnectInteractorImplTest {
     private fun MockKMatcherScope.sameBytes(expected: ByteArray) = match<ByteArray> { it.contentEquals(expected) }
 
     private fun results(): List<String?> = sessionClient.responses.map { response ->
-        (response as Wallet.Model.JsonRpcResponse.JsonRpcResult).result
+        (response as WalletConnectResponse.Result).result
     }
 
     private fun singleResult(): String =
-        requireNotNull((sessionClient.responses.single() as Wallet.Model.JsonRpcResponse.JsonRpcResult).result)
+        requireNotNull((sessionClient.responses.single() as WalletConnectResponse.Result).result)
 
     private fun polkadotSignMessage(
         id: Long,

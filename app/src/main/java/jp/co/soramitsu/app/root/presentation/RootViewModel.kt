@@ -3,7 +3,9 @@ package jp.co.soramitsu.app.root.presentation
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.reown.walletkit.client.Wallet
+import co.jp.soramitsu.walletconnect.model.WalletConnectEvent
+import co.jp.soramitsu.walletconnect.model.WalletConnectProposal
+import co.jp.soramitsu.walletconnect.model.WalletConnectRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.AppInitializer
@@ -250,12 +252,12 @@ class RootViewModel @Inject constructor(
 
         WCDelegate.walletEvents.onEach {
             when (it) {
-                is Wallet.Model.SessionProposal -> {
-                    handleSessionProposal(it)
+                is WalletConnectEvent.SessionProposal -> {
+                    handleSessionProposal(it.proposal)
                 }
 
-                is Wallet.Model.SessionRequest -> {
-                    handleSessionRequest(it)
+                is WalletConnectEvent.SessionRequest -> {
+                    handleSessionRequest(it.request)
                 }
 
                 else -> {}
@@ -263,7 +265,7 @@ class RootViewModel @Inject constructor(
         }.stateIn(this, SharingStarted.Eagerly, null)
     }
 
-    private suspend fun handleSessionRequest(sessionRequest: Wallet.Model.SessionRequest) {
+    private suspend fun handleSessionRequest(sessionRequest: WalletConnectRequest) {
         val pendingListOfSessionRequests =
             interactor.getPendingListOfSessionRequests(sessionRequest.topic)
         if (pendingListOfSessionRequests.isEmpty()) {
@@ -272,7 +274,7 @@ class RootViewModel @Inject constructor(
         rootRouter.openWalletConnectSessionRequest(sessionRequest.topic)
     }
 
-    private fun handleSessionProposal(sessionProposal: Wallet.Model.SessionProposal) {
+    private fun handleSessionProposal(sessionProposal: WalletConnectProposal) {
         rootRouter.openWalletConnectSessionProposal(sessionProposal.pairingTopic)
     }
 }

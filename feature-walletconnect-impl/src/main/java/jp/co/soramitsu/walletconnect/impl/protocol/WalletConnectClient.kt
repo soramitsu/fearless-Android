@@ -76,7 +76,9 @@ class WalletConnectClient internal constructor(
     private val ready = CompletableDeferred<Boolean>()
     private val _events = MutableSharedFlow<WalletConnectEvent>(extraBufferCapacity = EVENT_BUFFER, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     private val _sessions = MutableStateFlow<List<WalletConnectSession>>(emptyList())
-    private val relay: WcRelayClient = WcRelayClient(transport, relayConfig, ::identity, clock, scope, onMessage = { incoming.onMessage(it) })
+    private val relay: WcRelayClient = WcRelayClient(transport, relayConfig, ::identity, clock, scope, onMessage = {
+        incoming.onMessage(it)
+    })
     private val publisher: WcPublisher = WcPublisher(relay, store, ids)
     private val incoming: WcIncomingHandler = WcIncomingHandler(
         store = store,
@@ -141,7 +143,7 @@ class WalletConnectClient internal constructor(
                 topic = pairing.topic,
                 symKey = WcEncoding.hex(pairing.symKey),
                 relayProtocol = pairing.relayProtocol,
-                expiry = pairing.expiryTimestamp ?: (clock.nowSeconds() + WcRpcOptionsTable.PAIRING_INACTIVE_TTL_SECONDS),
+                expiry = pairing.expiryTimestamp ?: clock.nowSeconds() + WcRpcOptionsTable.PAIRING_INACTIVE_TTL_SECONDS,
                 active = false
             )
             state.copy(pairings = state.pairings.filterNot { it.topic == pairing.topic } + stored) to Unit
@@ -153,11 +155,14 @@ class WalletConnectClient internal constructor(
      * Approves proposal [proposalId] with exactly [namespaces]: each namespace, chain, method and
      * event must have been proposed, and every account must be on an approved chain.
      */
-    suspend fun approveSession(proposalId: Long, namespaces: Map<String, WalletConnectSessionNamespace>): WalletConnectSession = withContext(Dispatchers.IO) {
+    suspend fun approveSession(
+        proposalId: Long,
+        namespaces: Map<String, WalletConnectSessionNamespace>
+    ): WalletConnectSession = withContext(Dispatchers.IO) {
         requireUsable()
         val proposal = pendingProposal(proposalId)
         check(!proposal.verify.isScam) { "The dApp is flagged as a scam" }
-        val approved = namespaces.mapValues { WcStoredSessionNamespace.of(it.value) }
+        val approved = namespaces.mapValues { WcStoredSessionNamespace.from(it.value) }
         checkApprovable(proposal, approved)
         val pairing = checkNotNull(store.state.pairings.firstOrNull { it.topic == proposal.pairingTopic }) {
             "The connection request has expired"
@@ -199,7 +204,7 @@ class WalletConnectClient internal constructor(
             val settle = buildJsonObject {
                 put("relay", relayJson)
                 put("namespaces", WcPayloads.sessionNamespacesJson(approved))
-                put("controller", WcIncomingHandler.controllerJson(selfPublicKey, WcStoredMetadata.of(config.metadata)))
+                put("controller", WcIncomingHandler.controllerJson(selfPublicKey, WcStoredMetadata.from(config.metadata)))
                 put("expiry", expiry)
             }
             publisher.send(sessionTopic, WcJsonRpc.Request(settleId, WcMethods.SESSION_SETTLE, settle), WcRpcOptionsTable.settleRequest, symKey)
@@ -228,7 +233,11 @@ class WalletConnectClient internal constructor(
     }
 
     /** Answers proposal [proposalId] with an error and forgets it. */
-    suspend fun rejectSession(proposalId: Long, code: Long = WcErrors.USER_REJECTED, message: String = "User rejected.") = withContext(Dispatchers.IO) {
+    suspend fun rejectSession(
+        proposalId: Long,
+        code: Long = WcErrors.USER_REJECTED,
+        message: String = "User rejected."
+    ) = withContext(Dispatchers.IO) {
         requireReady()
         val proposal = store.state.proposals.firstOrNull { it.id == proposalId } ?: return@withContext
         try {
@@ -241,13 +250,24 @@ class WalletConnectClient internal constructor(
     }
 
     /** Sends [result] as the answer to pending request [requestId] of session [topic]. */
-    suspend fun respond(topic: String, requestId: Long, result: JsonElement) =
-        answer(topic, requestId, WcJsonRpc.Result(requestId, result))
+    suspend fun respond(
+        topic: String,
+        requestId: Long,
+        result: JsonElement
+    ) = answer(topic, requestId, WcJsonRpc.Result(requestId, result))
 
-    suspend fun respondError(topic: String, requestId: Long, code: Long, message: String) =
-        answer(topic, requestId, WcJsonRpc.Error(requestId, code, message))
+    suspend fun respondError(
+        topic: String,
+        requestId: Long,
+        code: Long,
+        message: String
+    ) = answer(topic, requestId, WcJsonRpc.Error(requestId, code, message))
 
-    private suspend fun answer(topic: String, requestId: Long, response: WcJsonRpc) = withContext(Dispatchers.IO) {
+    private suspend fun answer(
+        topic: String,
+        requestId: Long,
+        response: WcJsonRpc
+    ) = withContext(Dispatchers.IO) {
         requireReady()
         val request = checkNotNull(store.state.requests.firstOrNull { it.topic == topic && it.id == requestId }) {
             "The request is no longer pending"
@@ -263,8 +283,10 @@ class WalletConnectClient internal constructor(
     private suspend fun forgetRequest(request: WcStoredRequest) = store.mutate { state ->
         state.copy(
             requests = state.requests.filterNot { it.topic == request.topic && it.id == request.id },
-            handled = state.handled + (WcIncomingHandler.handledRequestKey(request.topic, request.id) to
-                clock.nowSeconds() + WcIncomingHandler.HANDLED_RETENTION_SECONDS)
+            handled = state.handled + (
+                WcIncomingHandler.handledRequestKey(request.topic, request.id) to
+                clock.nowSeconds() + WcIncomingHandler.HANDLED_RETENTION_SECONDS
+            )
         )
     }
 
@@ -281,7 +303,12 @@ class WalletConnectClient internal constructor(
     }
 
     /** Emits a session event (`chainChanged`, `accountsChanged`) the session approved. */
-    suspend fun emitEvent(topic: String, chainId: String, name: String, data: JsonElement) = withContext(Dispatchers.IO) {
+    suspend fun emitEvent(
+        topic: String,
+        chainId: String,
+        name: String,
+        data: JsonElement
+    ) = withContext(Dispatchers.IO) {
         requireReady()
         val session = activeSession(topic)
         val namespace = session.namespaces[chainId.substringBefore(':')]
@@ -289,31 +316,35 @@ class WalletConnectClient internal constructor(
             "The session did not approve this event"
         }
         val params = buildJsonObject {
-            put("event", buildJsonObject {
-                put("name", name)
-                put("data", data)
-            })
+            put(
+                "event",
+                buildJsonObject {
+                    put("name", name)
+                    put("data", data)
+                }
+            )
             put("chainId", chainId)
         }
         publisher.send(topic, WcJsonRpc.Request(ids.next(), WcMethods.SESSION_EVENT, params), WcRpcOptionsTable.eventRequest)
     }
 
     /** Replaces what session [topic] approves; only what the dApp proposed may be approved. */
-    suspend fun updateSession(topic: String, namespaces: Map<String, WalletConnectSessionNamespace>) = withContext(Dispatchers.IO) {
-        requireReady()
-        val session = activeSession(topic)
-        val approved = namespaces.mapValues { WcStoredSessionNamespace.of(it.value) }
-        val asProposal = WcStoredProposal(
-            id = 0, pairingTopic = session.pairingTopic, proposerPublicKey = session.peerPublicKey, proposer = session.peer,
-            requiredNamespaces = session.requiredNamespaces, optionalNamespaces = session.optionalNamespaces,
-            relayProtocol = session.relayProtocol, expiry = session.expiry, verify = WcStoredVerify.of(WalletConnectVerifyContext.unknown(null))
-        )
-        checkApprovable(asProposal, approved)
-        val params = buildJsonObject { put("namespaces", WcPayloads.sessionNamespacesJson(approved)) }
-        publisher.send(topic, WcJsonRpc.Request(ids.next(), WcMethods.SESSION_UPDATE, params), WcRpcOptionsTable.updateRequest)
-        store.mutate { state -> state.copy(sessions = state.sessions.map { if (it.topic == topic) it.copy(namespaces = approved) else it }) }
-        publishSessions()
-    }
+    suspend fun updateSession(topic: String, namespaces: Map<String, WalletConnectSessionNamespace>) =
+        withContext(Dispatchers.IO) {
+            requireReady()
+            val session = activeSession(topic)
+            val approved = namespaces.mapValues { WcStoredSessionNamespace.from(it.value) }
+            val asProposal = WcStoredProposal(
+                id = 0, pairingTopic = session.pairingTopic, proposerPublicKey = session.peerPublicKey, proposer = session.peer,
+                requiredNamespaces = session.requiredNamespaces, optionalNamespaces = session.optionalNamespaces,
+                relayProtocol = session.relayProtocol, expiry = session.expiry, verify = WcStoredVerify.from(WalletConnectVerifyContext.unknown(null))
+            )
+            checkApprovable(asProposal, approved)
+            val params = buildJsonObject { put("namespaces", WcPayloads.sessionNamespacesJson(approved)) }
+            publisher.send(topic, WcJsonRpc.Request(ids.next(), WcMethods.SESSION_UPDATE, params), WcRpcOptionsTable.updateRequest)
+            changeSession(topic) { it.copy(namespaces = approved) }
+            publishSessions()
+        }
 
     /** Extends session [topic] by the default session lifetime from now. */
     suspend fun extendSession(topic: String) = withContext(Dispatchers.IO) {
@@ -322,7 +353,7 @@ class WalletConnectClient internal constructor(
         val expiry = clock.nowSeconds() + WcRpcOptionsTable.SESSION_TTL_SECONDS
         val params = buildJsonObject { put("expiry", expiry) }
         publisher.send(topic, WcJsonRpc.Request(ids.next(), WcMethods.SESSION_EXTEND, params), WcRpcOptionsTable.extendRequest)
-        store.mutate { state -> state.copy(sessions = state.sessions.map { if (it.topic == topic) it.copy(expiry = expiry) else it }) }
+        changeSession(topic) { it.copy(expiry = expiry) }
         publishSessions()
     }
 
@@ -391,9 +422,7 @@ class WalletConnectClient internal constructor(
             deleteSession(topic)
             return
         }
-        store.mutate { state ->
-            state.copy(sessions = state.sessions.map { if (it.topic == topic) it.copy(acknowledged = true, settleRequestId = null) else it })
-        }
+        changeSession(topic) { it.copy(acknowledged = true, settleRequestId = null) }
         publishSessions()
         emit(WalletConnectEvent.SessionSettled(topic))
     }
@@ -414,7 +443,7 @@ class WalletConnectClient internal constructor(
                 requests = current.requests.filter { it.expiry > now && it.topic !in expiredSessions }
             )
         }
-        (expiredSessions + expiredPairings).forEach { topic -> runCatchingNonCancellation { relay.unsubscribe(topic) } }
+        runCatchingNonCancellation { relay.unsubscribe(expiredSessions + expiredPairings) }
         if (expiredSessions.isNotEmpty()) {
             publishSessions()
             expiredSessions.forEach { emit(WalletConnectEvent.SessionDeleted(it)) }
@@ -455,7 +484,14 @@ class WalletConnectClient internal constructor(
             "The connection request has expired"
         }
 
-    private fun activeTopics(): List<String> = store.state.let { state -> state.pairings.map { it.topic } + state.sessions.map { it.topic } }
+    private fun activeTopics(): List<String> {
+        val state = store.state
+        return state.pairings.map { it.topic } + state.sessions.map { it.topic }
+    }
+
+    private suspend fun changeSession(topic: String, change: (WcStoredSession) -> WcStoredSession) {
+        store.mutate { state -> state.copy(sessions = state.sessions.map { if (it.topic == topic) change(it) else it }) }
+    }
 
     private fun publishSessions() {
         val now = clock.nowSeconds()

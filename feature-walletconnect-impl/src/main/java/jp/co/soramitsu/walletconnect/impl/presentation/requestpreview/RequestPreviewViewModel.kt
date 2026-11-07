@@ -5,7 +5,8 @@ import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.feature_walletconnect_impl.R
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
-import com.reown.walletkit.client.Wallet
+import co.jp.soramitsu.walletconnect.model.WalletConnectRequest
+import co.jp.soramitsu.walletconnect.model.WalletConnectVerifyContext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -22,10 +23,13 @@ import jp.co.soramitsu.walletconnect.impl.presentation.DappSigningPausedExceptio
 import jp.co.soramitsu.walletconnect.impl.presentation.WalletConnectRequestRejectedException
 import jp.co.soramitsu.walletconnect.impl.presentation.address
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
-import jp.co.soramitsu.walletconnect.impl.presentation.dappUrl
+import jp.co.soramitsu.walletconnect.impl.presentation.displayedHost
+import jp.co.soramitsu.walletconnect.impl.presentation.isFlaggedAsScam
 import jp.co.soramitsu.walletconnect.impl.presentation.isSameRequestAs
 import jp.co.soramitsu.walletconnect.impl.presentation.message
+import jp.co.soramitsu.walletconnect.impl.presentation.originWarning
 import jp.co.soramitsu.walletconnect.impl.presentation.pendingRequest
+import jp.co.soramitsu.walletconnect.impl.presentation.scamNotice
 import jp.co.soramitsu.walletconnect.impl.presentation.summary.WalletConnectRequestSummaries
 import jp.co.soramitsu.walletconnect.impl.presentation.walletConnectValueOrBack
 import jp.co.soramitsu.walletconnect.impl.presentation.walletFor
@@ -58,10 +62,15 @@ class RequestPreviewViewModel @Inject constructor(
     private val requestId: Long? = savedStateHandle[RequestPreviewFragment.PAYLOAD_REQUEST_ID_KEY]
 
     // Exactly the request the previous screen showed, never whichever request of the session is newest.
-    private val recentSession: Wallet.Model.SessionRequest? = walletConnectValueOrBack(
+    private val recentSession: WalletConnectRequest? = walletConnectValueOrBack(
         value = requestId?.let { walletConnectInteractor.getPendingListOfSessionRequests(topic).pendingRequest(it) },
         onUnavailable = walletConnectRouter::back
     )
+
+    // Where the dApp that sent this request really runs; a scam verdict blocks signing.
+    private val verifyContext: WalletConnectVerifyContext = recentSession?.let {
+        walletConnectInteractor.getVerifyContext(topic, it.request.id)
+    } ?: WalletConnectVerifyContext.unknown(recentSession?.peerMetaData?.url)
 
     private val isLoading = MutableStateFlow(false)
     private val requestChainFlow = MutableSharedFlow<Chain?>()
@@ -135,7 +144,7 @@ class RequestPreviewViewModel @Inject constructor(
             ),
             TitleValueViewState(
                 resourceManager.getString(R.string.common_host),
-                currentSession.peerMetaData?.dappUrl
+                verifyContext.displayedHost
             ),
             TitleValueViewState(
                 resourceManager.getString(R.string.common_network),
@@ -156,7 +165,9 @@ class RequestPreviewViewModel @Inject constructor(
                 tableItems = requestItems + listOfNotNull(rawDataItem),
                 wallet = it,
                 loading = isLoading,
-                summary = summary
+                summary = summary,
+                originWarning = verifyContext.originWarning(resourceManager),
+                isBlocked = verifyContext.isFlaggedAsScam
             )
         } ?: RequestPreviewViewState.default
     }
@@ -169,8 +180,8 @@ class RequestPreviewViewModel @Inject constructor(
     }
 
     override fun onSignClick() {
-        // Nothing is signed before the request is decoded, nor when the wallet refuses it.
-        if (isLoading.value || summaryFlow.value?.blocksSigning != false) return
+        // Nothing is signed before the request is decoded, nor when the wallet or Verify refuses it.
+        if (isLoading.value || summaryFlow.value?.blocksSigning != false || refusesScam()) return
         val chain = requestChainFlow.value ?: return
         val displayedRequest = recentSession ?: return
         val currentRequest = walletConnectInteractor.getPendingListOfSessionRequests(topic).pendingRequest(displayedRequest.request.id)
@@ -193,6 +204,19 @@ class RequestPreviewViewModel @Inject constructor(
         }
     }
 
+    // A site WalletConnect Verify lists as a scam: one notice, and the screen closes.
+    private fun refusesScam(): Boolean = verifyContext.isFlaggedAsScam.also { isScam ->
+        if (isScam) {
+            showError(
+                title = resourceManager.getString(R.string.common_error_general_title),
+                message = verifyContext.scamNotice(resourceManager),
+                positiveButtonText = resourceManager.getString(R.string.common_close),
+                positiveClick = walletConnectRouter::back,
+                onBackClick = walletConnectRouter::back
+            )
+        }
+    }
+
     private fun onRespondSessionRequestSuccess(operationHash: String?, chainId: ChainId?) {
         isLoading.value = false
         viewModelScope.launch(Dispatchers.Main) {
@@ -204,12 +228,12 @@ class RequestPreviewViewModel @Inject constructor(
         }
     }
 
-    private fun onRespondRequestSessionError(error: Wallet.Model.Error) {
+    private fun onRespondRequestSessionError(error: Throwable) {
         isLoading.value = false
         viewModelScope.launch(Dispatchers.Main) {
             showError(
                 title = resourceManager.getString(R.string.common_error_general_title),
-                message = resourceManager.getString(R.string.common_try_again) + "\n" + error.throwable.message.orEmpty(),
+                message = resourceManager.getString(R.string.common_try_again) + "\n" + error.message.orEmpty(),
                 positiveButtonText = resourceManager.getString(R.string.common_ok)
             )
         }

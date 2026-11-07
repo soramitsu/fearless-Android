@@ -1,6 +1,6 @@
 package jp.co.soramitsu.walletconnect.impl.presentation
 
-import com.reown.walletkit.client.Wallet
+import co.jp.soramitsu.walletconnect.model.WalletConnectRpcRequest
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -11,7 +11,7 @@ class WalletConnectRequestParamsTest {
     private val evmAddress = "0x8ba1f109551bd432803012645ac136ddd64dba72"
 
     private fun request(method: String, params: String) =
-        Wallet.Model.SessionRequest.JSONRPCRequest(id = 1, method = method, params = params)
+        WalletConnectRpcRequest(id = 1, method = method, params = params)
 
     @Test
     fun `malformed hex in a personal message yields no message instead of throwing`() {

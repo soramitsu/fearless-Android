@@ -86,14 +86,15 @@ class WcStateStoreTest {
         val verify = WcStoredVerify("VALID", "https://a.org", "https://a.org/x", isScam = false).toModel()
         assertEquals("https://a.org", verify.verifiedOrigin)
         assertEquals(co.jp.soramitsu.walletconnect.model.WalletConnectValidation.UNKNOWN, WcStoredVerify("bogus").toModel().validation)
-        assertEquals(WcStoredVerify.of(verify), WcStoredVerify("VALID", "https://a.org", "https://a.org/x", false))
+        assertEquals(WcStoredVerify.from(verify), WcStoredVerify("VALID", "https://a.org", "https://a.org/x", false))
         val metadata = WcStoredMetadata("n", "d", "u", listOf("i"), "r")
-        assertEquals(metadata, WcStoredMetadata.of(metadata.toModel()))
+        assertEquals(metadata, WcStoredMetadata.from(metadata.toModel()))
         val proposalNamespace = WcStoredProposalNamespace(listOf("eip155:1"), listOf("m"), listOf("e"))
-        assertEquals(proposalNamespace, WcStoredProposalNamespace.of(proposalNamespace.toModel()))
+        assertEquals(proposalNamespace, WcStoredProposalNamespace.from(proposalNamespace.toModel()))
         val sessionNamespace = WcStoredSessionNamespace(listOf("eip155:1"), listOf("a"), listOf("m"), listOf("e"))
-        assertEquals(sessionNamespace, WcStoredSessionNamespace.of(sessionNamespace.toModel()))
+        assertEquals(sessionNamespace, WcStoredSessionNamespace.from(sessionNamespace.toModel()))
     }
 
-    private fun pairing() = WcStoredPairing("t".repeat(64), "k".repeat(64), "irn", clock.nowSeconds() + 300, active = false)
+    private fun pairing() =
+        WcStoredPairing("t".repeat(64), "k".repeat(64), "irn", clock.nowSeconds() + 300, active = false)
 }

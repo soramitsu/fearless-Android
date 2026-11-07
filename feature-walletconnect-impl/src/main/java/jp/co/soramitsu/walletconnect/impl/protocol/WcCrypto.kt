@@ -85,7 +85,11 @@ internal object WcCrypto {
     /** The hex SHA-256 of a message's UTF-8 text, as Verify attestations name messages. */
     fun hashMessage(message: String): String = WcEncoding.hex(sha256(message.toByteArray(Charsets.UTF_8)))
 
-    fun seal(symKey: ByteArray, iv: ByteArray, plaintext: ByteArray): ByteArray {
+    fun seal(
+        symKey: ByteArray,
+        iv: ByteArray,
+        plaintext: ByteArray
+    ): ByteArray {
         val cipher = cipher(forEncryption = true, symKey, iv)
         val out = ByteArray(cipher.getOutputSize(plaintext.size))
         val written = cipher.processBytes(plaintext, 0, plaintext.size, out, 0)
@@ -93,7 +97,11 @@ internal object WcCrypto {
         return out
     }
 
-    fun open(symKey: ByteArray, iv: ByteArray, sealed: ByteArray): ByteArray {
+    fun open(
+        symKey: ByteArray,
+        iv: ByteArray,
+        sealed: ByteArray
+    ): ByteArray {
         if (sealed.size < TAG_LENGTH) cryptoFailure("Envelope too short")
         val cipher = cipher(forEncryption = false, symKey, iv)
         val out = ByteArray(cipher.getOutputSize(sealed.size))
@@ -107,7 +115,11 @@ internal object WcCrypto {
     }
 
     /** A type 0 envelope: `0x00 || iv || ciphertext+tag`, Base64. */
-    fun encodeType0(symKey: ByteArray, message: String, iv: ByteArray = randomBytes(IV_LENGTH)): String {
+    fun encodeType0(
+        symKey: ByteArray,
+        message: String,
+        iv: ByteArray = randomBytes(IV_LENGTH)
+    ): String {
         val sealed = seal(symKey, iv, message.toByteArray(Charsets.UTF_8))
         return WcEncoding.base64(byteArrayOf(TYPE_0.toByte()) + iv + sealed)
     }
@@ -156,7 +168,9 @@ internal object WcCrypto {
     }
 
     fun decodeType1(receiverPrivateKey: ByteArray, envelope: WcEnvelope): String {
-        val senderPublicKey = envelope.senderPublicKey?.takeIf { envelope.type == TYPE_1 } ?: cryptoFailure("Not a type 1 envelope")
+        val senderPublicKey = envelope.senderPublicKey?.takeIf {
+            envelope.type == TYPE_1
+        } ?: cryptoFailure("Not a type 1 envelope")
         val symKey = deriveSymKey(receiverPrivateKey, senderPublicKey)
         return try {
             String(open(symKey, envelope.iv, envelope.sealed), Charsets.UTF_8)
@@ -165,7 +179,11 @@ internal object WcCrypto {
         }
     }
 
-    private fun cipher(forEncryption: Boolean, symKey: ByteArray, iv: ByteArray): ChaCha20Poly1305 {
+    private fun cipher(
+        forEncryption: Boolean,
+        symKey: ByteArray,
+        iv: ByteArray
+    ): ChaCha20Poly1305 {
         if (symKey.size != KEY_LENGTH || iv.size != IV_LENGTH) cryptoFailure("Invalid key or nonce length")
         return ChaCha20Poly1305().apply { init(forEncryption, AEADParameters(KeyParameter(symKey), TAG_BITS, iv)) }
     }

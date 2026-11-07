@@ -20,7 +20,13 @@ internal class WcTestAttestor {
     val publicKey = WcVerifyPublicKey(point.affineXCoord.encoded, point.affineYCoord.encoded, expiresAtSeconds = 4_000_000_000)
 
     /** An attestation for the encrypted [message], as the relay delivers it next to the message. */
-    fun attest(message: String, origin: String, isScam: Boolean = false, isVerified: Boolean = true, expiresAt: Long = 4_000_000_000): String {
+    fun attest(
+        message: String,
+        origin: String,
+        isScam: Boolean = false,
+        isVerified: Boolean = true,
+        expiresAt: Long = 4_000_000_000
+    ): String {
         val header = buildJsonObject {
             put("alg", "ES256")
             put("typ", "JWT")

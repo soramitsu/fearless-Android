@@ -18,7 +18,8 @@ class EncryptedWalletConnectStateStorageTest {
     private val cipher = object : WalletConnectStateCipher {
         override fun seal(plaintext: String) = "sealed:" + plaintext.reversed()
 
-        override fun open(sealed: String) = sealed.removePrefix("sealed:").takeIf { sealed.startsWith("sealed:") }?.reversed()
+        override fun open(sealed: String) =
+            sealed.removePrefix("sealed:").takeIf { sealed.startsWith("sealed:") }?.reversed()
     }
     private val storage = EncryptedWalletConnectStateStorage(preferences, cipher)
 
@@ -78,6 +79,13 @@ class EncryptedWalletConnectStateStorageTest {
         assertNull(appCipher.open("v2:bad"))
     }
 
+    private fun commitPending(pending: MutableMap<String, String?>): Boolean {
+        val committed = if (commits) pending.toMap() else emptyMap()
+        pending.clear()
+        committed.forEach { (key, value) -> if (value == null) values.remove(key) else values[key] = value }
+        return commits
+    }
+
     private fun fakePreferences(): SharedPreferences {
         val editor = mockk<SharedPreferences.Editor>()
         val pending = mutableMapOf<String, String?>()
@@ -89,13 +97,7 @@ class EncryptedWalletConnectStateStorageTest {
             pending[firstArg()] = null
             editor
         }
-        every { editor.commit() } answers {
-            if (commits) {
-                pending.forEach { (key, value) -> if (value == null) values.remove(key) else values[key] = value }
-            }
-            pending.clear()
-            commits
-        }
+        every { editor.commit() } answers { commitPending(pending) }
         return mockk {
             every { getString(any(), any()) } answers { values[firstArg()] ?: secondArg() }
             every { edit() } returns editor

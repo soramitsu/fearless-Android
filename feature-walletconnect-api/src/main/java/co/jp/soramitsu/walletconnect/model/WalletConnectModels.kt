@@ -93,14 +93,21 @@ data class WalletConnectVerifyContext(
     val isScam: Boolean
 ) {
     companion object {
-        fun unknown(claimedUrl: String?) = WalletConnectVerifyContext(WalletConnectValidation.UNKNOWN, null, claimedUrl, isScam = false)
+        fun unknown(claimedUrl: String?) =
+            WalletConnectVerifyContext(WalletConnectValidation.UNKNOWN, null, claimedUrl, isScam = false)
     }
 }
 
 /** What the WalletConnect client reports to the app. */
 sealed interface WalletConnectEvent {
-    data class SessionProposal(val proposal: WalletConnectProposal, val verifyContext: WalletConnectVerifyContext) : WalletConnectEvent
-    data class SessionRequest(val request: WalletConnectRequest, val verifyContext: WalletConnectVerifyContext) : WalletConnectEvent
+    data class SessionProposal(
+        val proposal: WalletConnectProposal,
+        val verifyContext: WalletConnectVerifyContext
+    ) : WalletConnectEvent
+    data class SessionRequest(
+        val request: WalletConnectRequest,
+        val verifyContext: WalletConnectVerifyContext
+    ) : WalletConnectEvent
     data class SessionDeleted(val topic: String) : WalletConnectEvent
     data class SessionSettled(val topic: String) : WalletConnectEvent
     data class ConnectionChanged(val isConnected: Boolean) : WalletConnectEvent

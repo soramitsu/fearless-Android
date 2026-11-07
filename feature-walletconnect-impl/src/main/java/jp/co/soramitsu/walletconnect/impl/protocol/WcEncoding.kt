@@ -10,6 +10,7 @@ internal object WcEncoding {
     private const val NIBBLE_BITS = 4
     private const val NIBBLE_MASK = 0x0f
     private const val BYTE_MASK = 0xff
+    private const val HEX_RADIX = 16
     private val BASE58 = BigInteger.valueOf(BASE58_ALPHABET.length.toLong())
 
     fun hex(bytes: ByteArray): String {
@@ -25,16 +26,16 @@ internal object WcEncoding {
     fun unhex(text: String): ByteArray {
         require(text.length % 2 == 0) { "Odd hex length" }
         return ByteArray(text.length / 2) { index ->
-            val high = Character.digit(text[index * 2], 16)
-            val low = Character.digit(text[index * 2 + 1], 16)
+            val high = Character.digit(text[index * 2], HEX_RADIX)
+            val low = Character.digit(text[index * 2 + 1], HEX_RADIX)
             require(high >= 0 && low >= 0) { "Not hex" }
-            ((high shl NIBBLE_BITS) or low).toByte()
+            (high shl NIBBLE_BITS or low).toByte()
         }
     }
 
     /** Whether [text] is exactly [byteLength] bytes of hex. */
     fun isHex(text: String?, byteLength: Int): Boolean =
-        text != null && text.length == byteLength * 2 && text.all { Character.digit(it, 16) >= 0 }
+        text != null && text.length == byteLength * 2 && text.all { Character.digit(it, HEX_RADIX) >= 0 }
 
     fun base64(bytes: ByteArray): String = Base64.getEncoder().encodeToString(bytes)
 

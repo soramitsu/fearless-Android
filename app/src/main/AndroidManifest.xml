@@ -12,9 +12,9 @@
 
     <!--
         allowBackup="false" does not stop Android 12+ device-to-device
-        transfer, and the Reown libraries merge in rules that exclude only
-        their own files. The wallet rules exclude every domain from cloud
-        backup and device transfer, and must replace the library rules.
+        transfer, and a library may merge in rules that exclude only its own
+        files. The wallet rules exclude every domain from cloud backup and
+        device transfer, and must replace any library rules.
     -->
     <application
         android:name=".App"

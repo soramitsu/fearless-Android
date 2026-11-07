@@ -1,6 +1,9 @@
 package co.jp.soramitsu.walletconnect.domain
 
-import com.reown.walletkit.client.Wallet
+import co.jp.soramitsu.walletconnect.model.WalletConnectProposal
+import co.jp.soramitsu.walletconnect.model.WalletConnectRequest
+import co.jp.soramitsu.walletconnect.model.WalletConnectSession
+import co.jp.soramitsu.walletconnect.model.WalletConnectVerifyContext
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
@@ -9,56 +12,60 @@ interface WalletConnectInteractor {
 
     suspend fun getChains(): List<Chain>
 
-    suspend fun checkChainsSupported(proposal: Wallet.Model.SessionProposal): Result<Boolean>
+    suspend fun checkChainsSupported(proposal: WalletConnectProposal): Result<Boolean>
 
     suspend fun approveSession(
-        proposal: Wallet.Model.SessionProposal,
+        proposal: WalletConnectProposal,
         selectedWalletIds: Set<Long>,
         selectedOptionalChainIds: Set<String>,
-        onSuccess: (Wallet.Params.SessionApprove) -> Unit = {},
-        onError: (Wallet.Model.Error) -> Unit
+        onSuccess: () -> Unit = {},
+        onError: (Throwable) -> Unit
     )
 
     fun rejectSession(
-        proposal: Wallet.Model.SessionProposal,
-        onSuccess: (Wallet.Params.SessionReject) -> Unit = {},
-        onError: (Wallet.Model.Error) -> Unit
+        proposal: WalletConnectProposal,
+        onSuccess: () -> Unit = {},
+        onError: (Throwable) -> Unit
     )
 
     fun silentRejectSession(
-        proposal: Wallet.Model.SessionProposal,
-        onSuccess: (Wallet.Params.SessionReject) -> Unit = {},
-        onError: (Wallet.Model.Error) -> Unit
+        proposal: WalletConnectProposal,
+        onSuccess: () -> Unit = {},
+        onError: (Throwable) -> Unit
     )
 
     suspend fun handleSignAction(
         chain: Chain,
         topic: String,
-        recentSession: Wallet.Model.SessionRequest,
+        recentSession: WalletConnectRequest,
         onSignError: (Exception) -> Unit,
         onRequestSuccess: (operationHash: String?, chainId: ChainId?) -> Unit,
-        onRequestError: (Wallet.Model.Error) -> Unit
+        onRequestError: (Throwable) -> Unit
     )
 
     fun rejectSessionRequest(
         sessionTopic: String,
         requestId: Long,
-        onSuccess: (Wallet.Params.SessionRequestResponse) -> Unit = {},
-        onError: (Wallet.Model.Error) -> Unit
+        onSuccess: () -> Unit = {},
+        onError: (Throwable) -> Unit
     )
 
-    fun getActiveSessionByTopic(topic: String): Wallet.Model.Session?
+    fun getActiveSessionByTopic(topic: String): WalletConnectSession?
 
-    fun getPendingListOfSessionRequests(topic: String): List<Wallet.Model.SessionRequest>
+    fun getPendingListOfSessionRequests(topic: String): List<WalletConnectRequest>
+
+    /** Where the dApp that sent request [requestId] runs, as WalletConnect Verify attested it. */
+    fun getVerifyContext(topic: String, requestId: Long): WalletConnectVerifyContext?
+
     fun disconnectSession(
         topic: String,
-        onSuccess: (Wallet.Params.SessionDisconnect) -> Unit = {},
-        onError: (Wallet.Model.Error) -> Unit
+        onSuccess: () -> Unit = {},
+        onError: (Throwable) -> Unit
     )
 
     fun pair(
         pairingUri: String,
-        onSuccess: (Wallet.Params.Pair) -> Unit = {},
-        onError: (Wallet.Model.Error) -> Unit = {}
+        onSuccess: () -> Unit = {},
+        onError: (Throwable) -> Unit = {}
     )
 }

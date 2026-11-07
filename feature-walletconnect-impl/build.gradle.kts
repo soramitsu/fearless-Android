@@ -48,18 +48,6 @@ dependencies {
     implementation(libs.coroutines.core)
     implementation(libs.lifecycle.process)
 
-    implementation(platform(libs.reownBomDep))
-    implementation(libs.reownCoreDep) {
-        // Exclude JNA to prevent class duplication - JNA is added as direct dependency in app module
-        exclude(group = "net.java.dev.jna")
-    }
-    implementation(libs.reownWalletKitDep) {
-        // Exclude JNA to prevent class duplication - JNA is added as direct dependency in app module
-        exclude(group = "net.java.dev.jna")
-        // Exclude WalletConnect Pay until 16 KB native builds are available
-        exclude(group = "com.walletconnect", module = "pay")
-    }
-
     implementation(libs.zxing.core)
     implementation(libs.zxing.embedded)
 

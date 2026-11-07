@@ -23,20 +23,35 @@ internal class WcPublisher(
         return WcEncoding.unhex(hex)
     }
 
-    suspend fun send(topic: String, message: WcJsonRpc, options: WcRpcOptions, symKey: ByteArray? = null) {
-        val key = symKey ?: symKeyOf(topic) ?: throw IllegalStateException("No key for the topic")
+    suspend fun send(
+        topic: String,
+        message: WcJsonRpc,
+        options: WcRpcOptions,
+        symKey: ByteArray? = null
+    ) {
+        val key = symKey ?: symKeyOf(topic) ?: error("No key for the topic")
         val encoded = WcCrypto.encodeType0(key, WcJsonRpcCodec.encode(message))
         relay.publish(topic, encoded, options.ttlSeconds, options.tag, options.prompt)
     }
 
     /** Publishes [message] as a type 1 envelope from a fresh key to [receiverPublicKey], on [topic]. */
-    suspend fun sendType1(topic: String, receiverPublicKey: ByteArray, message: WcJsonRpc, options: WcRpcOptions) {
+    suspend fun sendType1(
+        topic: String,
+        receiverPublicKey: ByteArray,
+        message: WcJsonRpc,
+        options: WcRpcOptions
+    ) {
         val encoded = WcCrypto.encodeType1(WcCrypto.generateKeyPair(), receiverPublicKey, WcJsonRpcCodec.encode(message))
         relay.publish(topic, encoded, options.ttlSeconds, options.tag, options.prompt)
     }
 
     /** Sends [request] and waits for the peer's answer. */
-    suspend fun request(topic: String, request: WcJsonRpc.Request, options: WcRpcOptions, timeoutMillis: Long): WcJsonRpc {
+    suspend fun request(
+        topic: String,
+        request: WcJsonRpc.Request,
+        options: WcRpcOptions,
+        timeoutMillis: Long
+    ): WcJsonRpc {
         val answer = CompletableDeferred<WcJsonRpc>()
         awaiting[request.id] = answer
         try {

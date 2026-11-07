@@ -63,11 +63,14 @@ class WcPayloadsTest {
             """{"eip155":"x"}""" to WcErrors.INVALID_REQUEST
         )
         cases.forEach { (json, code) ->
-            val error = assertThrows(json, WcProtocolException::class.java) { WcPayloads.proposalNamespaces(WcTestDapp.objectOf(json)) }
+            val error = assertThrows(json, WcProtocolException::class.java) {
+                WcPayloads.proposalNamespaces(WcTestDapp.objectOf(json))
+            }
             assertEquals(json, code, error.code)
         }
         val many = (1..17).joinToString(",", "{", "}") { """"ns$it":{"chains":[],"methods":[],"events":[]}""" }
-        assertEquals(WcErrors.LIMIT_EXCEEDED, assertThrows(WcProtocolException::class.java) { WcPayloads.proposalNamespaces(WcTestDapp.objectOf(many)) }.code)
+        val tooMany = assertThrows(WcProtocolException::class.java) { WcPayloads.proposalNamespaces(WcTestDapp.objectOf(many)) }
+        assertEquals(WcErrors.LIMIT_EXCEEDED, tooMany.code)
     }
 
     @Test

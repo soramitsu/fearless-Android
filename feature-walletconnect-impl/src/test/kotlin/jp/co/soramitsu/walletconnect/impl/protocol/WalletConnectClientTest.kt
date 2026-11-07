@@ -151,7 +151,9 @@ class WalletConnectClientTest {
         assertEquals(JsonPrimitive("0xsignature"), answer.result)
         assertEquals(1109, relay.publishedOn(topic).last().tag)
         assertTrue(client.pendingRequests(topic).isEmpty())
-        assertThrows(IllegalStateException::class.java) { runBlocking { client.respond(topic, requestId, JsonPrimitive("again")) } }
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking { client.respond(topic, requestId, JsonPrimitive("again")) }
+        }
     }
 
     @Test
@@ -177,13 +179,19 @@ class WalletConnectClientTest {
     fun `a message delivered twice is handled once`() {
         val client = client()
         val topic = settledSession(client)
-        val request = WcJsonRpc.Request(dapp.nextId(), WcMethods.SESSION_REQUEST, buildJsonObject {
-            put("request", buildJsonObject {
-                put("method", "personal_sign")
-                put("params", WcTestDapp.paramsOf("[]"))
-            })
-            put("chainId", "eip155:1")
-        })
+        val request = WcJsonRpc.Request(
+            dapp.nextId(), WcMethods.SESSION_REQUEST,
+            buildJsonObject {
+                put(
+                    "request",
+                    buildJsonObject {
+                        put("method", "personal_sign")
+                        put("params", WcTestDapp.paramsOf("[]"))
+                    }
+                )
+                put("chainId", "eip155:1")
+            }
+        )
         val message = WcCrypto.encodeType0(dapp.sessionSymKey!!, WcJsonRpcCodec.encode(request))
 
         relay.push(topic, message)
@@ -218,10 +226,15 @@ class WalletConnectClientTest {
         dapp.request("personal_sign", WcTestDapp.paramsOf("[]"))
         eventually { client.pendingRequests(topic).isNotEmpty() }
 
-        dapp.onSession(WcJsonRpc.Request(dapp.nextId(), WcMethods.SESSION_DELETE, buildJsonObject {
-            put("code", 6000)
-            put("message", "User disconnected.")
-        }))
+        dapp.onSession(
+            WcJsonRpc.Request(
+                dapp.nextId(), WcMethods.SESSION_DELETE,
+                buildJsonObject {
+                    put("code", 6000)
+                    put("message", "User disconnected.")
+                }
+            )
+        )
 
         assertEquals(topic, awaitEvent<WalletConnectEvent.SessionDeleted>().topic)
         assertNull(client.session(topic))
@@ -252,8 +265,10 @@ class WalletConnectClientTest {
 
         val update = dapp.nextId()
         val extend = dapp.nextId()
-        dapp.onSession(WcJsonRpc.Request(update, WcMethods.SESSION_UPDATE, buildJsonObject { put("namespaces", JsonObject(emptyMap())) }))
-        dapp.onSession(WcJsonRpc.Request(extend, WcMethods.SESSION_EXTEND, buildJsonObject { put("expiry", clock.nowSeconds() + 999_999) }))
+        val updateParams = buildJsonObject { put("namespaces", JsonObject(emptyMap())) }
+        val extendParams = buildJsonObject { put("expiry", clock.nowSeconds() + 999_999) }
+        dapp.onSession(WcJsonRpc.Request(update, WcMethods.SESSION_UPDATE, updateParams))
+        dapp.onSession(WcJsonRpc.Request(extend, WcMethods.SESSION_EXTEND, extendParams))
 
         eventually { dapp.sessionMessages().count { it is WcJsonRpc.Error } == 2 }
         val errors = dapp.sessionMessages().filterIsInstance<WcJsonRpc.Error>().associate { it.id to it.code }
@@ -291,13 +306,22 @@ class WalletConnectClientTest {
         val requester = WcCrypto.generateKeyPair()
         val id = dapp.nextId()
 
-        dapp.send(dapp.pairingTopic, dapp.pairingSymKey, WcJsonRpc.Request(id, WcMethods.SESSION_AUTHENTICATE, buildJsonObject {
-            put("requester", buildJsonObject {
-                put("publicKey", WcEncoding.hex(requester.publicKey))
-                put("metadata", buildJsonObject { put("name", "dApp") })
-            })
-            put("authPayload", buildJsonObject { put("domain", "app.example.org") })
-        }))
+        dapp.send(
+            dapp.pairingTopic, dapp.pairingSymKey,
+            WcJsonRpc.Request(
+                id, WcMethods.SESSION_AUTHENTICATE,
+                buildJsonObject {
+                    put(
+                        "requester",
+                        buildJsonObject {
+                            put("publicKey", WcEncoding.hex(requester.publicKey))
+                            put("metadata", buildJsonObject { put("name", "dApp") })
+                        }
+                    )
+                    put("authPayload", buildJsonObject { put("domain", "app.example.org") })
+                }
+            )
+        )
 
         val responseTopic = WcCrypto.topicOf(requester.publicKey)
         eventually { relay.publishedOn(responseTopic).isNotEmpty() }
@@ -315,10 +339,16 @@ class WalletConnectClientTest {
         val client = client()
         val proposalId = pairAndPropose(client)
 
-        dapp.send(dapp.pairingTopic, dapp.pairingSymKey, WcJsonRpc.Request(dapp.nextId(), WcMethods.PAIRING_DELETE, buildJsonObject {
-            put("code", 6000)
-            put("message", "User disconnected.")
-        }))
+        dapp.send(
+            dapp.pairingTopic, dapp.pairingSymKey,
+            WcJsonRpc.Request(
+                dapp.nextId(), WcMethods.PAIRING_DELETE,
+                buildJsonObject {
+                    put("code", 6000)
+                    put("message", "User disconnected.")
+                }
+            )
+        )
 
         eventually { client.proposal(proposalId) == null }
         eventually { dapp.pairingTopic !in relay.subscriptions }
@@ -435,7 +465,9 @@ class WalletConnectClientTest {
         val client = client()
 
         assertThrows(WalletConnectUriException::class.java) { runBlocking { client.pair("wc:abc@1?bridge=x&key=y") } }
-        assertThrows(WalletConnectPairingExpiredException::class.java) { runBlocking { client.pair(dapp.uri(expiry = clock.nowSeconds())) } }
+        assertThrows(WalletConnectPairingExpiredException::class.java) {
+            runBlocking { client.pair(dapp.uri(expiry = clock.nowSeconds())) }
+        }
         assertTrue(relay.urls.isEmpty())
     }
 
@@ -534,7 +566,10 @@ class WalletConnectClientTest {
         return id
     }
 
-    private fun settledSession(client: WalletConnectClient, methods: List<String> = listOf("personal_sign", "eth_sendTransaction")): String {
+    private fun settledSession(
+        client: WalletConnectClient,
+        methods: List<String> = listOf("personal_sign", "eth_sendTransaction")
+    ): String {
         runBlocking { client.pair(dapp.uri()) }
         val id = dapp.propose(optionalNamespaces = WcTestDapp.evmNamespaces(methods = methods))
         eventually { client.proposal(id) != null }
@@ -552,7 +587,8 @@ class WalletConnectClientTest {
         chains: List<String> = listOf("eip155:1"),
         accounts: List<String> = listOf(account),
         methods: List<String> = listOf("personal_sign", "eth_sendTransaction")
-    ) = WalletConnectSessionNamespace(chains = chains, accounts = accounts, methods = methods, events = listOf("accountsChanged"))
+    ) =
+        WalletConnectSessionNamespace(chains = chains, accounts = accounts, methods = methods, events = listOf("accountsChanged"))
 
     private inline fun <reified T : WalletConnectEvent> awaitEvent(): T {
         eventually { events.any { it is T } }

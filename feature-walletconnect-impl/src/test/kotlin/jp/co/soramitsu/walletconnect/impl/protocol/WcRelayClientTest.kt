@@ -33,7 +33,9 @@ class WcRelayClientTest {
 
         eventually { relay.current != null }
         val url = URI(relay.urls.single())
-        val query = url.rawQuery.split('&').associate { it.substringBefore('=') to URLDecoder.decode(it.substringAfter('='), "UTF-8") }
+        val query = url.rawQuery.split('&').associate {
+            it.substringBefore('=') to URLDecoder.decode(it.substringAfter('='), "UTF-8")
+        }
         assertEquals("wss://relay.one", "${url.scheme}://${url.host}")
         assertEquals(PROJECT_ID, query["projectId"])
         assertEquals("wc-2/test", query["ua"])
@@ -50,10 +52,10 @@ class WcRelayClientTest {
         val client = client(backoff = { 10 })
         client.watch(listOf(topic))
 
-        eventually { relay.current != null }
+        // The relay's socket opens before the topic is subscribed on it.
+        eventually { relay.current != null && topic in relay.subscriptions }
         assertTrue(relay.urls[0].startsWith("wss://relay.one?"))
         assertTrue(relay.urls[1].startsWith("wss://relay.two?"))
-        assertTrue(topic in relay.subscriptions)
     }
 
     @Test
@@ -84,6 +86,21 @@ class WcRelayClientTest {
         eventually { relay.acknowledged.size == 1 }
         assertTrue(delivered.isEmpty())
         assertFalse(client.isWatching(topic))
+    }
+
+    @Test
+    fun `several topics are left with one batch unsubscribe`() {
+        val client = client()
+        val kept = "ef".repeat(32)
+        val other = "cd".repeat(32)
+        listOf(kept, topic, other).forEach { runBlocking { client.subscribe(it) } }
+
+        runBlocking { client.unsubscribe(listOf(topic, other)) }
+
+        assertEquals(setOf(kept), relay.subscriptions.toSet())
+        assertEquals(1, relay.calls.count { it == WcRelayClient.METHOD_BATCH_UNSUBSCRIBE })
+        assertTrue(client.isWatching(kept))
+        assertFalse(client.isWatching(other))
     }
 
     @Test
@@ -122,9 +139,9 @@ class WcRelayClientTest {
 
     @Test
     fun `a dropped connection is reopened and every watched topic resubscribed`() {
-        val client = client(backoff = { 10 })
-        client.watch(listOf(topic, "cd".repeat(32)))
-        eventually { relay.current != null }
+        // Watched before the start, as the client does with its stored topics: one batch per connection.
+        client(backoff = { 10 }, watched = listOf(topic, "cd".repeat(32)))
+        eventually { relay.current != null && relay.subscriptions.size == 2 }
         relay.subscriptions.clear()
 
         relay.dropConnection()
@@ -147,23 +164,31 @@ class WcRelayClientTest {
         assertFalse(WcRelayConfig("x".repeat(32), null, "ua").isValid)
     }
 
-    private fun client(backoff: (Int) -> Long = WcRelayClient::defaultBackoff) = WcRelayClient(
-        transport = relay,
-        config = WcRelayConfig(
-            projectId = PROJECT_ID,
-            packageName = "jp.co.soramitsu.fearless",
-            userAgent = "wc-2/test",
-            relayUrls = listOf("wss://relay.one", "wss://relay.two"),
-            connectTimeoutMillis = 300,
-            requestTimeoutMillis = 1_000,
-            backgroundGraceMillis = 100
-        ),
-        identity = { identity },
-        clock = clock,
-        scope = scope,
-        onMessage = { delivered += it },
-        backoffMillis = backoff
-    ).also { it.start() }
+    private fun client(
+        backoff: (Int) -> Long = WcRelayClient::defaultBackoff,
+        watched: List<String> = emptyList()
+    ): WcRelayClient {
+        val client = WcRelayClient(
+            transport = relay,
+            config = WcRelayConfig(
+                projectId = PROJECT_ID,
+                packageName = "jp.co.soramitsu.fearless",
+                userAgent = "wc-2/test",
+                relayUrls = listOf("wss://relay.one", "wss://relay.two"),
+                connectTimeoutMillis = 300,
+                requestTimeoutMillis = 1_000,
+                backgroundGraceMillis = 100
+            ),
+            identity = { identity },
+            clock = clock,
+            scope = scope,
+            onMessage = { delivered += it },
+            backoffMillis = backoff
+        )
+        client.watch(watched)
+        client.start()
+        return client
+    }
 
     private companion object {
         const val PROJECT_ID = "0123456789abcdef0123456789abcdef"

@@ -6,7 +6,9 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 /** The storage could not be read now (for example the device key store is unavailable). */
-internal class WcStorageUnavailableException(cause: Throwable?) : Exception("WalletConnect storage is unavailable", cause)
+internal class WcStorageUnavailableException(
+    cause: Throwable?
+) : Exception("WalletConnect storage is unavailable", cause)
 
 /**
  * The client's state in memory, written through to [storage] on every change. Readers get a
@@ -65,7 +67,8 @@ internal class WcStateStore(
         return if (bounded.size == state.handled.size) state else state.copy(handled = bounded)
     }
 
-    private fun WcStoredState.isEmpty() = !hasTopics && proposals.isEmpty() && requests.isEmpty() && handled.isEmpty() && clientSeed == null
+    private fun WcStoredState.isEmpty() =
+        !hasTopics && proposals.isEmpty() && requests.isEmpty() && handled.isEmpty() && clientSeed == null
 
     private fun decodeOrNull(json: String): WcStoredState? = try {
         JSON.decodeFromString(WcStoredState.serializer(), json).takeIf { it.version == WcStoredState.CURRENT_VERSION }

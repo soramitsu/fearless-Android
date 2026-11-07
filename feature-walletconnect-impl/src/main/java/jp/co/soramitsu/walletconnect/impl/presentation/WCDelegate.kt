@@ -1,111 +1,102 @@
 package jp.co.soramitsu.walletconnect.impl.presentation
 
-import com.reown.android.Core
-import com.reown.android.CoreClient
-import com.reown.walletkit.client.Wallet
-import com.reown.walletkit.client.WalletKit
+import co.jp.soramitsu.walletconnect.model.WalletConnectEvent
+import co.jp.soramitsu.walletconnect.model.WalletConnectProposal
+import co.jp.soramitsu.walletconnect.model.WalletConnectRequest
+import co.jp.soramitsu.walletconnect.model.WalletConnectSession
+import co.jp.soramitsu.walletconnect.model.WalletConnectVerifyContext
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.walletconnect.impl.protocol.WalletConnectClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.launch
 
-object WCDelegate : WalletKit.WalletDelegate, CoreClient.CoreDelegate {
+/**
+ * The app's view of the WalletConnect client: its events, the proposal and request the screens
+ * show, and the open sessions. Events that still wait for the user are replayed to a late collector,
+ * so a request that arrived while the app was starting is shown once the root screen listens.
+ */
+object WCDelegate {
+    private const val EVENT_BUFFER = 64
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val delegateRegistration = WalletConnectDelegateRegistration(
-        registerCoreDelegate = { CoreClient.setDelegate(this) },
-        registerWalletDelegate = { WalletKit.setWalletDelegate(this) }
-    )
+    private val attached = MutableStateFlow<WalletConnectClient?>(null)
+    private val events = MutableSharedFlow<WalletConnectEvent>(extraBufferCapacity = EVENT_BUFFER, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
-    private val _walletEvents: MutableSharedFlow<Wallet.Model> = MutableSharedFlow()
-    val walletEvents: SharedFlow<Wallet.Model> = _walletEvents.asSharedFlow()
-    var sessionProposalEvent: Pair<Wallet.Model.SessionProposal, Wallet.Model.VerifyContext>? = null
-    var sessionRequestEvent: Pair<Wallet.Model.SessionRequest, Wallet.Model.VerifyContext>? = null
+    val walletEvents: SharedFlow<WalletConnectEvent> = events.onSubscription { waitingEvents().forEach { emit(it) } }
 
-    private val updateSessions = MutableStateFlow(Event(Unit))
-    val activeSessionFlow = updateSessions.map {
-        walletConnectRuntimeBoundary {
-            WalletKit.getListOfActiveSessions()
-        }.getOrElse { error ->
-            error.printStackTrace()
-            emptyList()
+    @Volatile
+    var sessionProposalEvent: Pair<WalletConnectProposal, WalletConnectVerifyContext>? = null
+
+    @Volatile
+    var sessionRequestEvent: Pair<WalletConnectRequest, WalletConnectVerifyContext>? = null
+
+    private val refreshes = MutableStateFlow(Event(Unit))
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val activeSessionFlow: Flow<List<WalletConnectSession>> = combine(
+        attached.flatMapLatest { client -> client?.sessions ?: flowOf(emptyList()) },
+        refreshes
+    ) { sessions, _ -> sessions.filter { attached.value?.session(it.topic) != null } }
+
+    val client: WalletConnectClient? get() = attached.value
+
+    /** Connects the delegate to [client] once; later calls with the same client do nothing. */
+    @Synchronized
+    fun attach(client: WalletConnectClient) {
+        if (attached.value === client) return
+        attached.value = client
+        scope.launch {
+            client.events.collect { event ->
+                remember(event)
+                events.emit(event)
+            }
         }
     }
 
-    /**
-     * Registers delegates only after Reown initialization and safely allows a later retry.
-     */
-    fun registerDelegatesIfReady(): Result<Unit> = delegateRegistration.registerIfReady()
+    /** Succeeds once the app started WalletConnect and the delegate forwards the client's events. */
+    fun registerDelegatesIfReady(): Result<Unit> =
+        if (attached.value != null) Result.success(Unit) else Result.failure(IllegalStateException("WalletConnect is not started"))
 
+    /** Reads the open sessions again, dropping any that expired since the list was last updated. */
     fun refreshConnections() {
-        updateSessions.value = Event(Unit)
+        refreshes.value = Event(Unit)
     }
 
-    override fun onConnectionStateChange(state: Wallet.Model.ConnectionState) {
-        scope.launch {
-            _walletEvents.emit(state)
+    fun getPendingListOfSessionRequests(topic: String): List<WalletConnectRequest> =
+        attached.value?.pendingRequests(topic).orEmpty()
+
+    private fun remember(event: WalletConnectEvent) {
+        when (event) {
+            is WalletConnectEvent.SessionProposal -> sessionProposalEvent = event.proposal to event.verifyContext
+            is WalletConnectEvent.SessionRequest -> sessionRequestEvent = event.request to event.verifyContext
+            else -> Unit
         }
     }
 
-    override fun onError(error: Wallet.Model.Error) {
-        error.throwable.printStackTrace()
-        scope.launch {
-            _walletEvents.emit(error)
+    // The newest proposal and the newest request of each session that still wait for an answer.
+    private fun waitingEvents(): List<WalletConnectEvent> {
+        val client = attached.value ?: return emptyList()
+        val proposal = sessionProposalEvent?.takeIf { (pending, _) -> client.proposal(pending.id) != null }
+            ?.let { (pending, verify) -> WalletConnectEvent.SessionProposal(pending, verify) }
+        val requests = client.sessions.value.mapNotNull { session ->
+            client.pendingRequests(session.topic).maxByOrNull { it.request.id }?.let { request ->
+                val verify = client.verifyContext(request.topic, request.request.id)
+                    ?: WalletConnectVerifyContext.unknown(request.peerMetaData?.url)
+                WalletConnectEvent.SessionRequest(request, verify)
+            }
         }
-    }
-
-    override fun onSessionDelete(sessionDelete: Wallet.Model.SessionDelete) {
-        refreshConnections()
-        scope.launch {
-            _walletEvents.emit(sessionDelete)
-        }
-    }
-
-    override fun onSessionExtend(session: Wallet.Model.Session) {
-    }
-
-    override fun onSessionProposal(
-        sessionProposal: Wallet.Model.SessionProposal,
-        verifyContext: Wallet.Model.VerifyContext
-    ) {
-        sessionProposalEvent = Pair(sessionProposal, verifyContext)
-
-        scope.launch {
-            _walletEvents.emit(sessionProposal)
-        }
-    }
-
-    override fun onSessionRequest(
-        sessionRequest: Wallet.Model.SessionRequest,
-        verifyContext: Wallet.Model.VerifyContext
-    ) {
-        // Once a Dapp sends the session request, it will be handled by the
-        // onSessionRequest callback in the WalletDelegate
-        sessionRequestEvent = Pair(sessionRequest, verifyContext)
-
-        scope.launch {
-            _walletEvents.emit(sessionRequest)
-        }
-    }
-
-    override fun onSessionSettleResponse(settleSessionResponse: Wallet.Model.SettledSessionResponse) {
-        refreshConnections()
-        scope.launch {
-            _walletEvents.emit(settleSessionResponse)
-        }
-    }
-
-    override fun onSessionUpdateResponse(sessionUpdateResponse: Wallet.Model.SessionUpdateResponse) {
-        scope.launch {
-            _walletEvents.emit(sessionUpdateResponse)
-        }
-    }
-
-    override fun onPairingDelete(deletedPairing: Core.Model.DeletedPairing) {
+        return listOfNotNull(proposal) + requests
     }
 }

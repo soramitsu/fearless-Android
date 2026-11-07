@@ -62,7 +62,6 @@ securityCryptoVersion = "1.0.0"
 shimmerVersion = "0.5.0"
 sonarqubeGradlePlugin = "3.3"
 storiesVersion = "3.0.1"
-reownBom = "1.6.9"
 web3j = "4.8.8-android"
 zxingEmbeddedVersion = "4.3.0"
 zxingVersion = "3.5.3"
@@ -190,9 +189,6 @@ detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", 
 detekt-cli = { module = "io.gitlab.arturbosch.detekt:detekt-cli", version.ref = "detekt" }
 
 web3jDep = { module = "org.web3j:core", version.ref = "web3j" }
-reownBomDep = { module = "com.reown:android-bom", version.ref = "reownBom" }
-reownCoreDep = { module = "com.reown:android-core" }
-reownWalletKitDep = { module = "com.reown:walletkit" }
 
 jnr-x86asm = { module = "com.github.jnr:jnr-x86asm", version.ref = "jnrVersion" }
 

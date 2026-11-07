@@ -59,7 +59,11 @@ internal class WcTestRelay : WcRelayTransport {
     }
 
     /** What a dApp publishes for [topic]: delivered now when the wallet is subscribed, otherwise kept. */
-    fun push(topic: String, message: String, attestation: String? = null) {
+    fun push(
+        topic: String,
+        message: String,
+        attestation: String? = null
+    ) {
         val socket = current
         if (socket != null && socket.open && topic in subscriptions) {
             deliver(socket, topic, message, attestation)
@@ -84,7 +88,12 @@ internal class WcTestRelay : WcRelayTransport {
         return deliveryId.toString()
     }
 
-    private fun deliver(socket: Socket, topic: String, message: String, attestation: String?) {
+    private fun deliver(
+        socket: Socket,
+        topic: String,
+        message: String,
+        attestation: String?
+    ) {
         val data = buildJsonObject {
             put("topic", topic)
             put("message", message)
@@ -123,6 +132,10 @@ internal class WcTestRelay : WcRelayTransport {
                 subscriptions -= params["topic"]!!.jsonPrimitive.content
                 reply(socket, id, JsonPrimitive(true))
             }
+            WcRelayClient.METHOD_BATCH_UNSUBSCRIBE -> {
+                params["subscriptions"]!!.jsonArray.forEach { subscriptions -= it.jsonObject["topic"]!!.jsonPrimitive.content }
+                reply(socket, id, JsonPrimitive(true))
+            }
             WcRelayClient.METHOD_BATCH_FETCH -> reply(
                 socket,
                 id,
@@ -151,12 +164,19 @@ internal class WcTestRelay : WcRelayTransport {
         mailbox.remove(topic)?.forEach { (message, attestation) -> deliver(socket, topic, message, attestation) }
     }
 
-    private fun reply(socket: Socket, id: Long, result: JsonElement) {
-        socket.listener.onMessage(socket, buildJsonObject {
-            put("id", id)
-            put("jsonrpc", "2.0")
-            put("result", result)
-        }.toString())
+    private fun reply(
+        socket: Socket,
+        id: Long,
+        result: JsonElement
+    ) {
+        socket.listener.onMessage(
+            socket,
+            buildJsonObject {
+                put("id", id)
+                put("jsonrpc", "2.0")
+                put("result", result)
+            }.toString()
+        )
     }
 
     inner class Socket(val listener: WcRelaySocketListener) : WcRelaySocket {

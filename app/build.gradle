@@ -1077,11 +1077,6 @@ dependencies {
     implementation project(':core-ui')
     implementation(project(':core-foundation'))
 
-    implementation platform(libs.reownBomDep)
-    // Exclude JNA (and WalletConnect Pay) to prevent duplicate natives and page-size incompatible libs
-    implementation libs.reownCoreDep, withoutJna
-    implementation libs.reownWalletKitDep, withoutJnaAndPay
-
     androidTestImplementation libs.runner
     androidTestImplementation libs.rules
     androidTestImplementation libs.ext.junit

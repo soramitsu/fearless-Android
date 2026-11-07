@@ -1,6 +1,6 @@
 package jp.co.soramitsu.walletconnect.impl.presentation
 
-import com.reown.walletkit.client.Wallet
+import co.jp.soramitsu.walletconnect.model.WalletConnectRequest
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
@@ -86,8 +86,7 @@ class WalletConnectSignedRequestsTest {
         assertEquals(1, signatures)
     }
 
-    private suspend fun respond(request: Wallet.Model.SessionRequest, signature: () -> String): String =
-        ledger.responseFor(
+    private suspend fun respond(request: WalletConnectRequest, signature: () -> String): String = ledger.responseFor(
             request = request,
             sign = { SignedRequest.Response(signature()) },
             broadcast = { error("not a transaction") }

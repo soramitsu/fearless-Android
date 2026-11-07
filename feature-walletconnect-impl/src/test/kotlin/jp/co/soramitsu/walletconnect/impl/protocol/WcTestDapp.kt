@@ -33,7 +33,12 @@ internal class WcTestDapp(
         "wc:$pairingTopic@2?relay-protocol=irn&symKey=${WcEncoding.hex(pairingSymKey)}&expiryTimestamp=$expiry"
 
     /** Encrypts [rpc] for [topic] and hands it to the relay; returns the encoded message. */
-    fun send(topic: String, symKey: ByteArray, rpc: WcJsonRpc, attestation: String? = null): String {
+    fun send(
+        topic: String,
+        symKey: ByteArray,
+        rpc: WcJsonRpc,
+        attestation: String? = null
+    ): String {
         val message = WcCrypto.encodeType0(symKey, WcJsonRpcCodec.encode(rpc))
         relay.push(topic, message, attestation ?: attest?.invoke(message))
         return message
@@ -50,15 +55,21 @@ internal class WcTestDapp(
             put("requiredNamespaces", requiredNamespaces)
             put("optionalNamespaces", optionalNamespaces)
             put("relays", buildJsonArray { add(buildJsonObject { put("protocol", "irn") }) })
-            put("proposer", buildJsonObject {
-                put("publicKey", WcEncoding.hex(keys.publicKey))
-                put("metadata", buildJsonObject {
-                    put("name", "Test dApp")
-                    put("description", "A dApp in a test")
-                    put("url", url)
-                    put("icons", buildJsonArray { add(JsonPrimitive("https://app.example.org/icon.png")) })
-                })
-            })
+            put(
+                "proposer",
+                buildJsonObject {
+                    put("publicKey", WcEncoding.hex(keys.publicKey))
+                    put(
+                        "metadata",
+                        buildJsonObject {
+                            put("name", "Test dApp")
+                            put("description", "A dApp in a test")
+                            put("url", url)
+                            put("icons", buildJsonArray { add(JsonPrimitive("https://app.example.org/icon.png")) })
+                        }
+                    )
+                }
+            )
             put("expiryTimestamp", expiry)
             put("pairingTopic", pairingTopic)
         }
@@ -104,14 +115,20 @@ internal class WcTestDapp(
         expiryTimestamp: Long? = null,
         attestation: String? = null
     ): Long {
-        val rpc = WcJsonRpc.Request(id, WcMethods.SESSION_REQUEST, buildJsonObject {
-            put("request", buildJsonObject {
-                put("method", method)
-                put("params", params)
-                expiryTimestamp?.let { put("expiryTimestamp", it) }
-            })
-            put("chainId", chainId)
-        })
+        val rpc = WcJsonRpc.Request(
+            id, WcMethods.SESSION_REQUEST,
+            buildJsonObject {
+                put(
+                    "request",
+                    buildJsonObject {
+                        put("method", method)
+                        put("params", params)
+                        expiryTimestamp?.let { put("expiryTimestamp", it) }
+                    }
+                )
+                put("chainId", chainId)
+            }
+        )
         send(requireNotNull(sessionTopic), requireNotNull(sessionSymKey), rpc, attestation)
         return id
     }
@@ -126,11 +143,14 @@ internal class WcTestDapp(
             methods: List<String> = listOf("personal_sign", "eth_sendTransaction", "wallet_switchEthereumChain"),
             events: List<String> = listOf("chainChanged", "accountsChanged")
         ) = buildJsonObject {
-            put("eip155", buildJsonObject {
-                put("chains", JsonArray(chains.map(::JsonPrimitive)))
-                put("methods", JsonArray(methods.map(::JsonPrimitive)))
-                put("events", JsonArray(events.map(::JsonPrimitive)))
-            })
+            put(
+                "eip155",
+                buildJsonObject {
+                    put("chains", JsonArray(chains.map(::JsonPrimitive)))
+                    put("methods", JsonArray(methods.map(::JsonPrimitive)))
+                    put("events", JsonArray(events.map(::JsonPrimitive)))
+                }
+            )
         }
 
         fun paramsOf(json: String): JsonElement = WcJsonRpcCodec.json.parseToJsonElement(json)
@@ -154,7 +174,7 @@ internal class WcMemoryStorage(var json: String? = null) : WalletConnectStateSto
     var unreadable = false
 
     override fun read(): String? {
-        if (unreadable) throw IllegalStateException("key store locked")
+        check(!unreadable) { "key store locked" }
         return json
     }
 
