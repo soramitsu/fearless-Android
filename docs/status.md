@@ -2,6 +2,34 @@
 
 # Status Summary
 
+## 4.3.2 lane: key-path cryptography in this repository — 7 November 2026
+
+Branch `claude/432-crypto-libs` (not released). Key derivation and signing in the JVM
+code use BouncyCastle 1.85 or code in this repository:
+
+- BIP39 seeds (PBKDF2-HMAC-SHA512 with the NFKD passphrase), JSON backup Base64, Hex
+  and secp256k1 point decoding moved from SpongyCastle 1.58 to BouncyCastle, and
+  SpongyCastle's JCE provider is no longer registered. SpongyCastle still reaches the
+  app through kethereum (Reown SDK) until that SDK is removed.
+- Ed25519 keys, signatures and verification moved from EdDSA-Java 0.3.0
+  (CVE-2020-36843) to BouncyCastle. Signatures are byte-identical. Verification is
+  strict (S < L, canonical points) and returns false for malformed keys instead of
+  throwing.
+- TON phrases, keys, signatures and encrypted-comment key agreement use
+  `TonMnemonic` and `TonEd25519` in runtime-utils; no key material reaches ton-kotlin.
+  curve25519-kotlin is no longer packaged (unit and device test classpaths keep it as
+  the reference). `TonEd25519.verify` accepts every valid signature (no shipped path
+  verifies TON signatures). ton-kotlin cells, BOC, addresses and StateInit stay.
+- The SCALE codec is built from the polkaj-scale 0.2.3 sources (Apache-2.0, `NOTICE`);
+  `runtime-utils/libs/polkaj-scale-0.2.3.jar` is deleted.
+- Evidence: RFC 8032, BIP39 (TREZOR, substrate-bip39, Japanese) and NFKD vectors;
+  outputs recorded from EdDSA-Java, SpongyCastle and the jar
+  (`runtime-utils/src/test/resources/legacy-crypto`, generator
+  `tools/upgrade-fixtures/android/LegacyCryptoFixtures.java`); differential tests
+  against ton-kotlin; polkadot-js and 4.2.0 JSON backups. `CryptoLibraryUsageGuardTest`
+  keeps web3j's process-RNG replacement (`Keys.createEcKeyPair`, `WalletUtils`,
+  `Wallet.create`) and the retired libraries out of production sources.
+
 ## Production release 4.3.1 (233): Asset Hub staking — 30 October 2026
 
 4.3.1 brings back Polkadot and Kusama staking, which 4.3.0 could not offer because

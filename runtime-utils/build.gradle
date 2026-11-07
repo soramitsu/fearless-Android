@@ -35,9 +35,7 @@ dependencies {
     implementation libs.coroutines.core
     implementation libs.kotlinx.serialization.json
     testImplementation libs.junit
-    // Reference implementations for the differential tests of the code that replaced them.
-    testImplementation "com.madgag.spongycastle:prov:1.58.0.0"
-    testImplementation "net.i2p.crypto:eddsa:0.3.0"
+    // ton-kotlin is the reference implementation for the TON differential tests.
     testImplementation libs.ton.crypto
     testImplementation libs.ton.tonapi
     testImplementation libs.ton.tvm

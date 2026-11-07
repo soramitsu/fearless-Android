@@ -42,6 +42,12 @@ expect_failure "stale extra provenance row" env \
   "$AUDIT" --strict-provenance
 
 cp "$ROOT_DIR/docs/binary-provenance.md" "$tmp_dir/provenance.md"
+printf '%s\n' '| `runtime-utils/libs/polkaj-scale-0.2.3.jar` | `bea0f3904fef83497b9e5802f36408663a4aba462bf63ded38b89a5f22befa4d` |' >> "$tmp_dir/provenance.md"
+expect_failure "retired polkaj-scale jar row" env \
+  PUBLIC_ARTIFACT_PROVENANCE_DOC="$tmp_dir/provenance.md" \
+  "$AUDIT" --strict-provenance
+
+cp "$ROOT_DIR/docs/binary-provenance.md" "$tmp_dir/provenance.md"
 grep -F '| `app/src/main/jniLibs/arm64-v8a/libsodium.so` |' "$ROOT_DIR/docs/binary-provenance.md" >> "$tmp_dir/provenance.md"
 expect_failure "duplicate provenance row" env \
   PUBLIC_ARTIFACT_PROVENANCE_DOC="$tmp_dir/provenance.md" \

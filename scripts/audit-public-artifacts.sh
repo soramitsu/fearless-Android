@@ -45,7 +45,7 @@ PROVENANCE_DOC="${PUBLIC_ARTIFACT_PROVENANCE_DOC:-docs/binary-provenance.md}"
 DEFAULT_PROVENANCE_DOC="docs/binary-provenance.md"
 GRADLE_DISTRIBUTION_SHA256="8fad3d78296ca518113f3d29016617c7f9367dc005f932bd9d93bf45ba46072b"
 SR25519_SOURCE_COMMIT="7500809f33243ee47ecb2ec8563fc284ac4de0d6"
-EXPECTED_DOCUMENTED_BINARY_COUNT=10
+EXPECTED_DOCUMENTED_BINARY_COUNT=9
 
 sha256() {
   if command -v sha256sum >/dev/null 2>&1; then
@@ -66,7 +66,6 @@ expected_checksum() {
     app/src/main/jniLibs/armeabi-v7a/libsr25519java.so) echo "d217b2511bf2c7f90ea29879d5ecad86c62d95a3ee2dd412fbb0f6d804e5f3de" ;;
     app/src/main/jniLibs/x86/libsr25519java.so) echo "56f26fe8e7e55026cf36be6c22a62037389d4f59cc8ee35d6bb295b5dc5441aa" ;;
     app/src/main/jniLibs/x86_64/libsr25519java.so) echo "b024dcc2ebf236f21d329e3d637a6fdd39746ad1dc0e0ccc99143279617946dc" ;;
-    runtime-utils/libs/polkaj-scale-0.2.3.jar) echo "bea0f3904fef83497b9e5802f36408663a4aba462bf63ded38b89a5f22befa4d" ;;
     *) echo "" ;;
   esac
 }
@@ -129,7 +128,6 @@ check_strict_provenance_contract() {
 
   local path
   for path in \
-    runtime-utils/libs/polkaj-scale-0.2.3.jar \
     gradle/wrapper/gradle-wrapper.jar \
     app/src/main/jniLibs/arm64-v8a/libsodium.so \
     app/src/main/jniLibs/armeabi-v7a/libsodium.so \
@@ -266,6 +264,9 @@ while IFS= read -r -d '' path; do
       ;;
     feature-wallet-impl/libs/pushpayment-core-sdk-*.jar)
       fail "$path must not be vendored. The CBDC QR parser is implemented from source."
+      ;;
+    runtime-utils/libs/polkaj-scale-*.jar)
+      fail "$path must not be vendored. The SCALE codec is built from source in runtime-utils."
       ;;
     *.jar|*.aar|*.so|*.a|*.dylib|*.wasm|*.framework/*|*.xcframework/*)
       check_checksum "$path" || fail "$path is a tracked binary without an allowlisted checksum/provenance entry."

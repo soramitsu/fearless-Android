@@ -104,6 +104,16 @@ CBDC QR parsing now lives in
 with unit coverage under
 `feature-wallet-impl/src/test/java/jp/co/soramitsu/wallet/impl/domain/qr/CbdcQrParserTest.kt`.
 
+`runtime-utils/libs/polkaj-scale-0.2.3.jar` (SHA-256
+`bea0f3904fef83497b9e5802f36408663a4aba462bf63ded38b89a5f22befa4d`) has been
+removed in 4.3.2. The SCALE codec it held is built from source in
+`runtime-utils/src/main/java/io/emeraldpay/polkaj/scale`: upstream polkaj v0.2.3
+(Apache-2.0, commit `3227a8ef605cd65b29b1cb2648a02e3a2a9c2419`) plus the Java 8
+changes and the Short, Long and String codecs the jar carried (see `NOTICE`).
+Before the jar was deleted, `PolkajScaleJarDifferentialTest` ran every reader and
+writer of both over the same random input; `PolkajScaleGoldenTest` now replays
+the jar's recorded transcript.
+
 `debug-keystore.jks` has been removed from source control. Use the Android
 default generated debug keystore for local builds and CI-provided keystores for
 release signing.
@@ -112,17 +122,3 @@ Checked-in `google-services.json` files must stay on the `fearless-public`
 placeholder project with empty API keys and no OAuth certificate hashes. Release
 CI restores the real `app/src/release/google-services.json` from
 `GOOGLE_SERVICES_RELEASE_JSON_B64`.
-
-### Imported SCALE utility JAR
-
-The third-party `polkaj-scale-0.2.3.jar` is imported byte-for-byte from the reviewed
-`fearless-utils-Android` commit `3d22dad159ca5304d199acd08c5a622dea3c1577`, path
-`fearless-utils/libs/polkaj-scale-0.2.3.jar`. It remains a third-party SCALE utility,
-not an independently published internal Android library. Its bytes are bound by
-both the runtime source manifest and the strict binary audit; the application
-owns the consuming Gradle module. This consolidation did not rebuild the JAR or
-any native `.so` file.
-
-| File | SHA-256 |
-| --- | --- |
-| `runtime-utils/libs/polkaj-scale-0.2.3.jar` | `bea0f3904fef83497b9e5802f36408663a4aba462bf63ded38b89a5f22befa4d` |
