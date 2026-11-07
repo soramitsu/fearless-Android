@@ -2,6 +2,32 @@
 
 # Roadmap & Technical Debt
 
+## 4.3.2 (in progress): the PIN inside the encryption of wallet secrets
+
+Audit of 4.3.1, 7 November 2026 (Medium): every wallet secret sat under one device
+key that needs no user authentication, and the PIN was stored under that key and
+compared as plaintext. 4.3.2 (lane `pin-envelope`):
+
+- Wallet secrets (active, quarantine, archive, V1 and 0.4 copies; an allowlist,
+  never the PIN, TON Connect, WalletConnect or journals) get an inner envelope,
+  `fse1:` + AES-256-GCM under a random key SK, inside the unchanged outer layer.
+- SK records live in plain preferences (`wallet_secret_keyring_v1:`): a PIN wrap
+  (Argon2id 32 MiB, 3 passes, mixed with HMAC under a non-exportable Keystore
+  key) and one backup wrap per wallet root. Opening the PIN wrap is the PIN
+  check; the legacy `pin_code` is deleted once every secret is sealed.
+- The first unlock creates the keyring; sealing runs after every unlock, one key
+  at a time with compare-and-set and a verified read-back. Before the PIN no pass
+  quarantines, archives, converts or rewrites a sealed value; the account journal
+  replay waits for the unlock.
+- "Forgot PIN?" on the unlock screen: proving one wallet's backup opens SK and
+  sets a new PIN. Kill switch: `WALLET_SECRET_SEALING_ENABLED` and the remote veto
+  `wallet_secret_sealing_enabled` stop new sealing only.
+- Every later build must read envelopes: a build without this code would treat
+  sealed values as corrupt.
+- Open risk for the owner: if the Keystore loses only the new HMAC key (the
+  device key survives), sealed secrets reopen only through a backup proof; a
+  user without a backup of any wallet would lose them.
+
 ## Production release 4.3.1 (233): Asset Hub staking — 30 October 2026
 
 4.3.1 brings back Polkadot and Kusama staking, which 4.3.0 could not offer because
