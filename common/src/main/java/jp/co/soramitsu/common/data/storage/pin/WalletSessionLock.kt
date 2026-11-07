@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.data.storage.pin
 
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSession
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,8 +21,10 @@ object WalletSessionLock {
     /** True while the PIN screen guards the wallet, or while only view-only access was granted. */
     fun isLocked(): Boolean = mutableLocked.value || WalletViewOnlyAccess.isEnabled()
 
+    /** Locks and zeroes the wallet secret key SK, so sealed secrets stay closed until the next PIN. */
     fun lock() {
         mutableLocked.value = true
+        WalletSecretSession.clear()
     }
 
     fun unlock() {

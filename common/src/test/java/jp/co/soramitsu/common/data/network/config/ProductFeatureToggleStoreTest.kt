@@ -275,4 +275,22 @@ class ProductFeatureToggleStoreTest {
         }.`when`(preferences).putBoolean(anyString(), anyBoolean())
         return preferences
     }
+
+    @Test
+    fun `wallet secret sealing is a remembered veto that never enables beyond the build`() {
+        val preferences = mapBackedPreferences()
+        val store = ProductFeatureToggleStore(preferences, mock(MutationAuthorizationStore::class.java))
+        assertTrue(store.walletSecretSealingEnabled)
+
+        store.rememberRemoteVetoes(FeatureToggleConfig(walletSecretSealingEnabled = false))
+        assertFalse(store.walletSecretSealingEnabled)
+        // A later fetch without the key keeps the veto.
+        store.rememberRemoteVetoes(FeatureToggleConfig())
+        assertFalse(store.walletSecretSealingEnabled)
+        store.rememberRemoteVetoes(FeatureToggleConfig(walletSecretSealingEnabled = true))
+        assertTrue(store.walletSecretSealingEnabled)
+        assertFalse(
+            jp.co.soramitsu.common.data.storage.envelope.WalletSecretSealingSwitch.isEnabled(preferences, compiled = false)
+        )
+    }
 }

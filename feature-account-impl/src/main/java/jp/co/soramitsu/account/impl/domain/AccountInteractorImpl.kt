@@ -1,7 +1,7 @@
 package jp.co.soramitsu.account.impl.domain
 
-import java.security.MessageDigest
 import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
+import jp.co.soramitsu.common.data.storage.envelope.PinVerification
 
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
@@ -170,27 +170,25 @@ class AccountInteractorImpl(
             return false
         }
 
-        val pinCode = accountRepository.getPinCode()
-        if (PinHealth.assess(true, pinCode) != PinHealth.HEALTHY) {
+        // Opening the PIN wrap is the check; it also opens the wallet key for this session.
+        return when (accountRepository.verifyPinCode(code)) {
+            PinVerification.CORRECT -> {
+                pinAttemptLimiter.reset()
+                true
+            }
+            PinVerification.WRONG -> {
+                pinAttemptLimiter.registerFailure()
+                false
+            }
             // Nothing can match a PIN this device cannot read, so it is no wrong guess.
-            return false
+            PinVerification.UNREADABLE -> false
         }
-
-        if (pinCode == code) {
-            pinAttemptLimiter.reset()
-            return true
-        }
-
-        pinAttemptLimiter.registerFailure()
-        return false
     }
 
     override suspend fun getPinRetryDelayMillis(): Long = pinAttemptLimiter.remainingDelayMillis()
 
     override suspend fun verifyBiometricVaultPin(pin: String): Boolean {
-        val pinCode = accountRepository.getPinCode()
-        if (PinHealth.assess(true, pinCode) != PinHealth.HEALTHY) return false
-        if (!MessageDigest.isEqual(checkNotNull(pinCode).toByteArray(), pin.toByteArray())) return false
+        if (accountRepository.verifyPinCode(pin) != PinVerification.CORRECT) return false
         pinAttemptLimiter.reset()
         return true
     }

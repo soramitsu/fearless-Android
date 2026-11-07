@@ -30,6 +30,9 @@ import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptionUtil
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore
+import jp.co.soramitsu.common.data.storage.envelope.MasterKeyBoundKeyringFactor
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretKeyring
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSealer
 import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.resources.ClipboardManager
@@ -124,11 +127,25 @@ class CommonModule {
 
     @Provides
     @Singleton
+    fun provideWalletSecretKeyring(preferences: Preferences, encryptionUtil: EncryptionUtil): WalletSecretKeyring {
+        // The PIN wrap's device factor lives under the existing device key: no new Keystore key.
+        return WalletSecretKeyring(preferences, MasterKeyBoundKeyringFactor(preferences, encryptionUtil))
+    }
+
+    @Provides
+    @Singleton
+    fun provideWalletSecretSealer(preferences: Preferences, keyring: WalletSecretKeyring): WalletSecretSealer {
+        return WalletSecretSealer(preferences, keyring)
+    }
+
+    @Provides
+    @Singleton
     fun provideEncryptedPreferences(
         preferences: Preferences,
-        encryptionUtil: EncryptionUtil
+        encryptionUtil: EncryptionUtil,
+        sealer: WalletSecretSealer
     ): EncryptedPreferences {
-        return EncryptedPreferencesImpl(preferences, encryptionUtil)
+        return EncryptedPreferencesImpl(preferences, encryptionUtil, sealer)
     }
 
     @Provides

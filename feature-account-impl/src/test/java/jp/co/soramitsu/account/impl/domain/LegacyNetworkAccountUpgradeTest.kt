@@ -49,6 +49,14 @@ import org.mockito.kotlin.whenever
 import java.lang.reflect.Proxy
 
 class LegacyNetworkAccountUpgradeTest {
+
+    // Secrets are read only in an unlocked session (4.3.2); these tests run unlocked.
+    @org.junit.Before
+    fun unlockWalletSession() = jp.co.soramitsu.common.data.storage.pin.WalletSessionLock.unlock()
+
+    @org.junit.After
+    fun lockWalletSession() = jp.co.soramitsu.common.data.storage.pin.WalletSessionLock.lock()
+
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `wallet imported after startup receives native accounts without process restart or repeat writes`() = runTest {
@@ -74,6 +82,22 @@ class LegacyNetworkAccountUpgradeTest {
         fixture.walletFlow.value = fixture.wallets.values.toList()
         runCurrent()
         assertEquals(8, fixture.inserts.size)
+        observer.cancel()
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `a locked wallet reads no secret and upgrades right after the PIN`() = runTest {
+        jp.co.soramitsu.common.data.storage.pin.WalletSessionLock.lock()
+        val fixture = Fixture()
+        val observer = fixture.upgrade.observeWallets(backgroundScope, MutableStateFlow(setOf(BTC, BTC_TEST, SOL, TAIRA)))
+        runCurrent()
+        assertTrue(fixture.inserts.isEmpty())
+        assertTrue(fixture.fallbackReads.isEmpty())
+
+        jp.co.soramitsu.common.data.storage.pin.WalletSessionLock.unlock()
+        runCurrent()
+        assertEquals(4, fixture.inserts.size)
         observer.cancel()
     }
 

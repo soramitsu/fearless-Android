@@ -129,6 +129,7 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
             pinCodeEnteredListener = { viewModel.pinCodeEntered(it) }
             fingerprintClickListener = { startNormalPrompt() }
         }
+        binding.forgotPin.setOnClickListener { viewModel.forgotPin() }
     }
 
     override fun subscribe(viewModel: PinCodeViewModel) {
@@ -153,6 +154,8 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
         }
 
         viewModel.homeButtonVisibilityLiveData.observe(binding.toolbar::setHomeButtonVisibility)
+
+        viewModel.forgotPinVisible.observe { binding.forgotPin.isVisible = it }
 
         viewModel.matchingPincodeErrorEvent.observeEvent {
             binding.pinCodeView.pinCodeMatchingError()

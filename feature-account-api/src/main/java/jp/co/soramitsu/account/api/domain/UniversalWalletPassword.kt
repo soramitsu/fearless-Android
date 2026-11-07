@@ -5,6 +5,7 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretLockedException
 import jp.co.soramitsu.common.model.UniversalWalletRegistry
 import jp.co.soramitsu.common.utils.BitcoinKeyDerivation
 import jp.co.soramitsu.common.utils.IrohaAddressCodec
@@ -62,6 +63,9 @@ suspend fun AccountRepository.universalWalletRoot(metaId: Long): UniversalWallet
 private inline fun <T> readOptionalSecret(read: () -> T?): T? = try {
     read()
 } catch (failure: CancellationException) {
+    throw failure
+} catch (failure: WalletSecretLockedException) {
+    // A sealed secret while locked is not an absent one: never derive with a missing password.
     throw failure
 } catch (_: Exception) {
     null

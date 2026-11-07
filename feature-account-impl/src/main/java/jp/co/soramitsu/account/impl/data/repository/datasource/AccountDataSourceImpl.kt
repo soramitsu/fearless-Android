@@ -1,6 +1,8 @@
 package jp.co.soramitsu.account.impl.data.repository.datasource
 
 import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
+import jp.co.soramitsu.common.data.storage.envelope.PinVerification
+import jp.co.soramitsu.common.data.storage.envelope.WalletPinAuthority
 
 import com.google.gson.Gson
 import jp.co.soramitsu.account.api.domain.model.Account
@@ -14,7 +16,6 @@ import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToMetaAccoun
 import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountToAccount
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.storage.Preferences
-import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.core.model.Language
@@ -46,17 +47,17 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.withContext
 
 private const val PREFS_AUTH_TYPE = "auth_type"
-private const val PREFS_PIN_CODE = "pin_code"
 
 private val DEFAULT_CRYPTO_TYPE = CryptoType.SR25519
 
 class AccountDataSourceImpl(
     private val preferences: Preferences,
-    private val encryptedPreferences: EncryptedPreferences,
     private val jsonMapper: Gson,
     private val metaAccountDao: MetaAccountDao,
     secretStoreV1: SecretStoreV1,
-    private val chainsRepository: ChainsRepository
+    private val chainsRepository: ChainsRepository,
+    /** The PIN lives in the wallet keyring once it exists; no plaintext PIN is read here. */
+    private val pinAuthority: WalletPinAuthority
 ) : AccountDataSource, SecretStoreV1 by secretStoreV1 {
 
     private val selectedMetaAccountLocal = metaAccountDao.selectedMetaAccountInfoFlow()
@@ -106,21 +107,15 @@ class AccountDataSourceImpl(
     }
 
     override suspend fun getPinHealth(): PinHealth = withContext(Dispatchers.IO) {
-        encryptedPreferences.getPinHealth()
+        pinAuthority.health()
     }
 
     override suspend fun savePinCode(pinCode: String) = withContext(Dispatchers.IO) {
-        encryptedPreferences.savePinCodeDurably(pinCode)
+        pinAuthority.save(pinCode)
     }
 
-    override suspend fun getPinCode(): String? {
-        return withContext(Dispatchers.IO) {
-            try {
-                encryptedPreferences.getDecryptedString(PREFS_PIN_CODE)
-            } catch (_: ClassCastException) {
-                ""
-            }
-        }
+    override suspend fun verifyPinCode(code: String): PinVerification = withContext(Dispatchers.Default) {
+        pinAuthority.verify(code)
     }
 
     override suspend fun anyAccountSelected(): Boolean = selectedMetaAccountLocal.firstOrNull() != null

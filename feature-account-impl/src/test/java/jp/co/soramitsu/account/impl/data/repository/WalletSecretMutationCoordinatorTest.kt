@@ -225,6 +225,124 @@ class WalletSecretMutationCoordinatorTest {
         assertFalse(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
     }
 
+    /** What the production writer does while unlocked: seal [keys] in place under a session SK. */
+    private fun sealInPlace(vararg keys: String): Pair<ByteArray, ByteArray> {
+        val keyId = ByteArray(16).also(java.security.SecureRandom()::nextBytes)
+        val key = ByteArray(32).also(java.security.SecureRandom()::nextBytes)
+        for (name in keys) {
+            val target = checkNotNull(jp.co.soramitsu.common.data.storage.envelope.WalletSecretSealPolicy.classify(name))
+            val sealed = jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelope.seal(
+                key,
+                jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelope.Header(keyId, target.scope, target.logicalKey, ByteArray(0)),
+                checkNotNull(preferences.value(name)),
+                java.security.SecureRandom()
+            )
+            preferences.putEncryptedString(name, sealed)
+        }
+        return keyId to key
+    }
+
+    private fun openSession(sk: Pair<ByteArray, ByteArray>) =
+        jp.co.soramitsu.common.data.storage.envelope.WalletSecretSession.open(
+            sk.first, sk.second, jp.co.soramitsu.common.data.storage.envelope.WalletSecretSession.Origin.PIN_WRAP
+        )
+
+    @Test
+    fun aCreateStagedWhileUnlockedWaitsForThePinInsteadOfNeedingRecovery() = runBlocking {
+        val fixture = substrateFixture(1)
+        database.failBeforeTransactionNumber = 2
+        expectFailure<InjectedDatabaseFailure> {
+            coordinator.create(substratePrototype(fixture), fixture.encoded, null, null)
+        }
+        val sk = sealInPlace("77:SUBSTRATE_SECRETS")
+        jp.co.soramitsu.common.data.storage.envelope.WalletSecretSession.clear()
+        val stored = preferences.keys().associateWith(preferences::value)
+
+        // Before the PIN: the replay needs SK, so the journal and every value stay exactly as they are.
+        coordinator().reconcilePendingMutation()
+        assertNull(database.account(77))
+        assertEquals(stored, preferences.keys().associateWith(preferences::value))
+
+        try {
+            openSession(sk)
+            coordinator().reconcilePendingMutation()
+            assertNotNull(database.account(77))
+            assertFalse(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
+            assertEquals(stored["77:SUBSTRATE_SECRETS"], preferences.value("77:SUBSTRATE_SECRETS"))
+        } finally {
+            jp.co.soramitsu.common.data.storage.envelope.WalletSecretSession.clear()
+        }
+    }
+
+    @Test
+    fun aDeletionThatWouldArchiveSealedValuesWaitsForThePin() = runBlocking {
+        val fixture = substrateFixture(1)
+        val existing = substratePrototype(fixture, isSelected = true).copyForTest(id = 10)
+        database.put(existing)
+        preferences.putEncryptedString("10:SUBSTRATE_SECRETS", fixture.encoded)
+        val sk = sealInPlace("10:SUBSTRATE_SECRETS")
+        val sealed = preferences.value("10:SUBSTRATE_SECRETS")
+        preferences.enqueueDurableFault(DurableFault.NONE, DurableFault.BEFORE)
+        expectCoordinatorFailure { coordinator.delete(10) }
+        assertNull(database.account(10))
+        jp.co.soramitsu.common.data.storage.envelope.WalletSecretSession.clear()
+
+        coordinator().reconcilePendingMutation()
+        assertTrue(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
+        assertEquals(sealed, preferences.value("10:SUBSTRATE_SECRETS"))
+
+        try {
+            openSession(sk)
+            coordinator().reconcilePendingMutation()
+            assertFalse(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
+            assertFalse(preferences.hasKey("10:SUBSTRATE_SECRETS"))
+            // Archived by exact value: still sealed, nothing re-encrypted.
+            assertEquals(sealed, preferences.value(jp.co.soramitsu.common.data.storage.encrypt.WalletSecretArchive.keyFor("10:SUBSTRATE_SECRETS")))
+        } finally {
+            jp.co.soramitsu.common.data.storage.envelope.WalletSecretSession.clear()
+        }
+    }
+
+    @Test
+    fun aTonReplacementThatReadsSealedRootsWaitsForThePin() = runBlocking {
+        val (before, legacy, protected) = passwordWalletWithLegacyTon()
+        val after = before.copyForTest(tonPublicKey = protected.publicKey)
+        database.failBeforeTransactionNumber = 2
+        expectFailure<InjectedDatabaseFailure> { coordinator.replaceUniversalTon(before, after, universalTonSecret(protected)) }
+        val sk = sealInPlace("10:SUBSTRATE_SECRETS")
+        jp.co.soramitsu.common.data.storage.envelope.WalletSecretSession.clear()
+
+        // The binding needs the sealed Substrate path's password: no SECRET_BINDING_FAILED, it waits.
+        coordinator().reconcilePendingMutation()
+        assertTrue(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
+        assertArrayEquals(legacy.publicKey, database.account(10)?.tonPublicKey)
+
+        try {
+            openSession(sk)
+            coordinator().reconcilePendingMutation()
+            assertArrayEquals(protected.publicKey, database.account(10)?.tonPublicKey)
+            assertFalse(preferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY))
+        } finally {
+            jp.co.soramitsu.common.data.storage.envelope.WalletSecretSession.clear()
+        }
+    }
+
+    @Test
+    fun aUserMutationWithAPendingLockedReplayFailsWithoutChangingAnything() = runBlocking {
+        val fixture = substrateFixture(1)
+        database.failBeforeTransactionNumber = 2
+        expectFailure<InjectedDatabaseFailure> {
+            coordinator.create(substratePrototype(fixture), fixture.encoded, null, null)
+        }
+        sealInPlace("77:SUBSTRATE_SECRETS")
+        jp.co.soramitsu.common.data.storage.envelope.WalletSecretSession.clear()
+        val stored = preferences.keys().associateWith(preferences::value)
+        expectFailure<jp.co.soramitsu.common.data.storage.envelope.WalletSecretLockedException> {
+            coordinator().create(substratePrototype(substrateFixture(2)), substrateFixture(2).encoded, null, null)
+        }
+        assertEquals(stored, preferences.keys().associateWith(preferences::value))
+    }
+
     private fun passwordWalletWithLegacyTon(): Triple<MetaAccountLocal, jp.co.soramitsu.common.utils.TonKeyDerivation.TonAccount,
         jp.co.soramitsu.common.utils.TonKeyDerivation.TonAccount> {
         val legacy = jp.co.soramitsu.common.utils.TonKeyDerivation.deriveAccount(PASSWORD_PHRASE)

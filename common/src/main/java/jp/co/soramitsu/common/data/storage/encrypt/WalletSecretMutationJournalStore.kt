@@ -5,6 +5,8 @@ import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
 import java.io.StringReader
 import java.io.StringWriter
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelopes
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretLockedException
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
 
 /**
@@ -191,6 +193,16 @@ class WalletSecretMutationJournalStore(
     @Synchronized
     fun loadStagedMutation(): StagedMutation? {
         return loadValidated()
+    }
+
+    /**
+     * The validated active journal without reading any staged secret value,
+     * for passes that must know which keys a pending mutation owns while the
+     * wallet is locked and its staged values may be sealed.
+     */
+    @Synchronized
+    fun loadIntent(): Journal? {
+        return loadValidatedJournal()
     }
 
     /**
@@ -467,7 +479,7 @@ class WalletSecretMutationJournalStore(
                         FailureReason.CONFLICT,
                         "A validated staged wallet secret disappeared before clear"
                     )
-            if (secretSnapshot.plaintext != expectedPlaintext) {
+            if (WalletSecretEnvelopes.open(secretSnapshot.plaintext) != expectedPlaintext) {
                 fail(
                     FailureReason.CONFLICT,
                     "A staged wallet secret changed after public-image validation"
@@ -596,6 +608,14 @@ class WalletSecretMutationJournalStore(
     }
 
     private fun loadValidated(): StagedMutation? {
+        val journal = loadValidatedJournal() ?: return null
+        return StagedMutation(
+            journal = journal,
+            secretPlaintexts = loadStagedSecrets(journal)
+        )
+    }
+
+    private fun loadValidatedJournal(): Journal? {
         val journalExists = try {
             encryptedPreferences.hasKey(JOURNAL_KEY)
         } catch (failure: WalletSecureStorageUnavailableException) {
@@ -640,7 +660,16 @@ class WalletSecretMutationJournalStore(
             journal = journal,
             failureReason = FailureReason.MALFORMED_STORED_JOURNAL
         )
+        return journal
+    }
 
+    /**
+     * Staged values are opened right after they are read, outside the
+     * malformed-journal conversion: a value sealed while the wallet was
+     * unlocked throws [WalletSecretLockedException] while it is locked, so the
+     * replay waits for the PIN instead of declaring the journal broken.
+     */
+    private fun loadStagedSecrets(journal: Journal): Map<String, String> {
         val secretPlaintexts = linkedMapOf<String, String>()
         journal.secretKeysToPut.sorted().forEach { secretKey ->
             val secretExists = try {
@@ -672,22 +701,19 @@ class WalletSecretMutationJournalStore(
                     cause = failure
                 )
             }
+            val opened = secretPlaintext?.let { WalletSecretEnvelopes.open(it) }
             if (
-                secretPlaintext.isNullOrEmpty() ||
-                secretPlaintext.length > MAX_SECRET_PLAINTEXT_CHARS
+                opened.isNullOrEmpty() ||
+                opened.length > MAX_SECRET_PLAINTEXT_CHARS
             ) {
                 fail(
                     FailureReason.MALFORMED_STORED_JOURNAL,
                     "A staged wallet secret is empty, unreadable, or oversized"
                 )
             }
-            secretPlaintexts[secretKey] = secretPlaintext
+            secretPlaintexts[secretKey] = opened
         }
-
-        return StagedMutation(
-            journal = journal,
-            secretPlaintexts = secretPlaintexts
-        )
+        return secretPlaintexts
     }
 
     /**
@@ -1762,6 +1788,9 @@ class WalletSecretMutationJournalStore(
                 cause = failure
             )
         } catch (failure: WalletSecureStorageUnavailableException) {
+            throw failure
+        } catch (failure: WalletSecretLockedException) {
+            // The commit happened; its read-back waits for the PIN. Replay finishes it after unlock.
             throw failure
         } catch (failure: Exception) {
             throw JournalException(

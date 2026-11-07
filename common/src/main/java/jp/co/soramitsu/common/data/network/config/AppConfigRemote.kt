@@ -62,4 +62,7 @@ data class FeatureToggleConfig(
     val polkaswapBridgeMutationsEnabled: Boolean? = null,
     @SerializedName("mutation_authorization")
     val mutationAuthorization: String? = null,
+    /** Veto-only: `false` stops NEW wallet-secret sealing; it never unseals or blocks reads. */
+    @SerializedName("wallet_secret_sealing_enabled")
+    val walletSecretSealingEnabled: Boolean? = null,
 )

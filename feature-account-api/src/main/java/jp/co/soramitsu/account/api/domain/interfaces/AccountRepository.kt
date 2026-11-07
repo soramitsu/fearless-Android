@@ -1,6 +1,7 @@
 package jp.co.soramitsu.account.api.domain.interfaces
 
 import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
+import jp.co.soramitsu.common.data.storage.envelope.PinVerification
 
 import jp.co.soramitsu.account.api.domain.model.Account
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
@@ -113,7 +114,8 @@ interface AccountRepository {
 
     suspend fun savePinCode(code: String)
 
-    suspend fun getPinCode(): String?
+    /** Checks [code] against the PIN wrap (or the legacy PIN); CORRECT leaves SK open for this session. */
+    suspend fun verifyPinCode(code: String): PinVerification
 
     suspend fun generateMnemonic(length: Mnemonic.Length): List<String>
 
@@ -199,6 +201,13 @@ interface AccountRepository {
      * root key of the chain's ecosystem.
      */
     suspend fun isSigningRecoveryRequired(metaId: Long, chain: IChain): Boolean
+
+    /**
+     * Whether a signing secret is stored for [chain]: the per-network key when the
+     * wallet has one for that chain, otherwise the Substrate root. Key names only,
+     * so it answers the same while the wallet is locked and its secrets are sealed.
+     */
+    suspend fun hasSigningMaterial(metaId: Long, chain: IChain): Boolean
 
     /**
      * Whether the stored phrase, seed and path of the root key of [ecosystem]

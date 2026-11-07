@@ -9,6 +9,7 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletRecoveryRequiredExcepti
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
 import jp.co.soramitsu.common.data.storage.encrypt.quarantineEncryptedStringSnapshotDurably
 import jp.co.soramitsu.common.data.storage.encrypt.readWalletSecretOrQuarantine
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelopes
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.core.extrinsic.MutationExecutionGuard
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
@@ -183,7 +184,8 @@ class SecretStoreV2 internal constructor(
         ) {
             "A chain-account secret disappeared during validation"
         }
-        val encoded = snapshot.plaintext
+        // A sealed value the session cannot open throws WalletSecretLockedException here, never quarantine.
+        val encoded = WalletSecretEnvelopes.open(snapshot.plaintext)
 
         val validated = try {
             decodeAndValidate(encoded)

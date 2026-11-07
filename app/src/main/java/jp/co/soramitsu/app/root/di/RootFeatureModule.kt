@@ -19,6 +19,7 @@ import jp.co.soramitsu.app.root.domain.AppInitializer
 import jp.co.soramitsu.app.root.domain.AssetDiscoveryService
 import jp.co.soramitsu.app.root.domain.ProductionAssetDiscoverySweep
 import jp.co.soramitsu.app.root.domain.RootInteractor
+import jp.co.soramitsu.app.root.domain.WalletUnlockMaintenance
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.core.updater.UpdateSystem
@@ -69,7 +70,8 @@ class RootFeatureModule {
         universalWalletFundsProbe: UniversalWalletFundsProbe,
         universalWalletFreshRoots: UniversalWalletFreshRoots,
         universalWalletWatchList: UniversalWalletWatchList,
-        universalWalletPasswordNotice: UniversalWalletPasswordNotice
+        universalWalletPasswordNotice: UniversalWalletPasswordNotice,
+        unlockMaintenance: WalletUnlockMaintenance
     ): AppInitializer {
         return AppInitializer(
             chainRegistry,
@@ -91,7 +93,8 @@ class RootFeatureModule {
                 universalWalletWatchList, universalWalletPasswordNotice
             ) {
                 chainsRepository.getChains().map { it.id }.toSet()
-            }
+            },
+            unlockMaintenance = unlockMaintenance
         )
     }
 }

@@ -19,6 +19,7 @@ import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.WalletCrossStoreMutationMutex
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import jp.co.soramitsu.common.utils.TonKeyDerivation
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
@@ -126,11 +127,13 @@ class UniversalWalletPasswordNoticeService(
     private class LegacySlot(val slot: UniversalWalletSlot, val chainId: String?, val legacyKey: ByteArray)
 
     private suspend fun passwordRoot(metaId: Long): UniversalWalletRoot? = try {
+        // Wallet secrets are sealed under the PIN (4.3.2); never hold a lock while waiting here.
+        WalletSessionLock.awaitUnlocked()
         accountRepository.universalWalletRoot(metaId)?.takeIf(UniversalWalletRoot::hasPassword)
     } catch (failure: CancellationException) {
         throw failure
     } catch (_: Exception) {
-        // A wallet whose secrets cannot be read has nothing to switch here.
+        // A wallet whose secrets cannot be read (or locked again meanwhile) has nothing to switch here.
         null
     }
 

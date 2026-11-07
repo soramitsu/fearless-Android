@@ -36,6 +36,8 @@ import jp.co.soramitsu.app.root.domain.WalletDatabaseStartupResult
 import jp.co.soramitsu.app.root.presentation.WalletRootActivity
 import jp.co.soramitsu.app.root.presentation.WalletStartupActivity
 import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
+import jp.co.soramitsu.common.data.storage.envelope.PinVerification
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSealingSwitch
 import jp.co.soramitsu.common.di.modules.SHARED_PREFERENCES_FILE
 import jp.co.soramitsu.onboarding.impl.welcome.WelcomeFragment
 import kotlinx.coroutines.Dispatchers
@@ -176,11 +178,14 @@ class SavedEndpointsAuthenticationInstrumentedTest {
                 arrayOf(PUBLIC_NAME, PUBLIC_ENDPOINT))
             runBlocking(Dispatchers.IO) {
                 assertEquals(PinHealth.ABSENT, graph.accountRepository().getPinHealth())
+                // These fixtures pin the 4.3.1 PIN layout (`pin_code`); the 4.3.2 keyring has its own device tests.
+                check(context.getSharedPreferences(SHARED_PREFERENCES_FILE, Context.MODE_PRIVATE).edit()
+                    .putBoolean(WalletSecretSealingSwitch.REMOTE_VETO_KEY, false).commit())
                 graph.accountRepository().savePinCode(PUBLIC_PIN)
             }
         } else {
             check(hasArchive)
-            assertEquals(PUBLIC_PIN, runBlocking(Dispatchers.IO) { graph.accountRepository().getPinCode() })
+            assertEquals(PinVerification.CORRECT, runBlocking(Dispatchers.IO) { graph.accountRepository().verifyPinCode(PUBLIC_PIN) })
         }
         assertEquals(1L, scalar("SELECT COUNT(*) FROM nodes"))
         assertEquals(PinHealth.HEALTHY, runBlocking(Dispatchers.IO) { graph.accountRepository().getPinHealth() })

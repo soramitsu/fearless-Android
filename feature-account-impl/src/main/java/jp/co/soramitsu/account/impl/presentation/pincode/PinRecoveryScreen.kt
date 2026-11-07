@@ -48,7 +48,8 @@ fun PinRecoveryScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(stringResource(R.string.pin_recovery_title), color = if (restyled) c.textPrimary else Color.White,
                 style = MaterialTheme.typography.h5, modifier = Modifier.semantics { heading() })
-            Text(stringResource(R.string.pin_recovery_intro), color = if (restyled) c.textPrimary else Color.White)
+            Text(stringResource(if (state.forgotten) R.string.pin_recovery_forgot_intro else R.string.pin_recovery_intro),
+                color = if (restyled) c.textPrimary else Color.White)
             if (state.loading) CircularProgressIndicator(color = if (restyled) c.textLink else colorAccent)
             if (state.error) {
                 Text(stringResource(R.string.pin_recovery_failed), color = if (restyled) c.textPrimary else Color.White)

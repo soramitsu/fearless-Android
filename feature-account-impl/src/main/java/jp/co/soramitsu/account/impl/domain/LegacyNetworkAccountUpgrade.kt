@@ -13,6 +13,8 @@ import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.data.storage.encrypt.WalletCrossStoreMutationMutex
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretLockedException
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import jp.co.soramitsu.common.utils.TonKeyDerivation
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
@@ -67,8 +69,26 @@ class LegacyNetworkAccountUpgrade(
         .onEach { upgrade() }
         .launchIn(scope)
 
-    /** Best-effort and restartable; an unavailable addition cannot block old wallets. */
+    /**
+     * Best-effort and restartable; an unavailable addition cannot block old wallets.
+     *
+     * Wallet secrets are sealed under the PIN (4.3.2), so the roots are read only
+     * in an unlocked session, never under the cross-store mutex while waiting. A
+     * run that meets a sealed root it cannot open (locked again meanwhile) is
+     * repeated after the next unlock; it never decides from a missing root.
+     */
     suspend fun upgrade() {
+        repeat(MAX_LOCKED_RUNS) {
+            WalletSessionLock.awaitUnlocked()
+            if (!upgradeOnce()) return
+            // Still unlocked means a value this session cannot open, not a lock: do not spin.
+            if (!WalletSessionLock.isLocked()) return
+        }
+    }
+
+    /** Returns true when a sealed root could not be opened and the run should be repeated after unlock. */
+    private suspend fun upgradeOnce(): Boolean {
+        var locked = false
         try {
             val availableIds = availableChainIds()
             val walletIds = accountRepository.allMetaAccounts().map { it.id }
@@ -80,6 +100,8 @@ class LegacyNetworkAccountUpgrade(
                         addMissingTonRoot(walletId)
                     } catch (failure: CancellationException) {
                         throw failure
+                    } catch (failure: WalletSecretLockedException) {
+                        throw failure
                     } catch (_: Exception) {
                         // Retry next startup; other networks can still be added.
                     }
@@ -88,6 +110,8 @@ class LegacyNetworkAccountUpgrade(
                     passwordNotice?.refresh(walletId)
                 } catch (failure: CancellationException) {
                     throw failure
+                } catch (_: WalletSecretLockedException) {
+                    locked = true
                 } catch (_: Exception) {
                     // One unreadable wallet must not prevent another wallet's
                     // upgrade. Runtime signing retains its existing safeguards.
@@ -98,6 +122,7 @@ class LegacyNetworkAccountUpgrade(
         } catch (_: Exception) {
             // Catalog/database availability is not an onboarding requirement.
         }
+        return locked
     }
 
     private class PendingSlots(
@@ -258,5 +283,10 @@ class LegacyNetworkAccountUpgrade(
         val complete = wallet.tonPublicKey != null &&
             UniversalWalletSlot.chainRowSlots.all { slot -> slot.chainIds.any { it in aliases } }
         if (complete) freshRoots.forget(walletId, substratePublicKey)
+    }
+
+    private companion object {
+        /** One run per unlock, a few times at most if the wallet keeps re-locking mid-run. */
+        const val MAX_LOCKED_RUNS = 3
     }
 }

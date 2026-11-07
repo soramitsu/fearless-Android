@@ -1,55 +1,57 @@
 package jp.co.soramitsu.common.data.storage.pin
 
-import java.security.MessageDigest
 import javax.inject.Inject
 import jp.co.soramitsu.common.data.storage.Preferences
-import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
-import jp.co.soramitsu.common.data.storage.encrypt.WalletMasterKeyAttestation
-import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
+import jp.co.soramitsu.common.data.storage.envelope.PinVerification
+import jp.co.soramitsu.common.data.storage.envelope.WalletPinAuthority
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretKeyring
 
 /**
  * Checks the wallet PIN without the wallet database, for emergency key access
- * from a start-up failure or recovery state (addendum U0.4). It reads the PIN
- * from the same encrypted preference the PIN screen writes and shares that
- * screen's lockout.
+ * from a start-up failure or recovery state (addendum U0.4). It opens the same
+ * PIN wrap the PIN screen opens (or reads the legacy PIN before the keyring
+ * exists) and shares that screen's lockout. It never unlocks the session.
  */
 class WalletEmergencyAuthenticator internal constructor(
     private val preferences: Preferences,
-    private val encryptedPreferences: EncryptedPreferences,
+    private val pinAuthority: WalletPinAuthority,
     private val clock: PinAttemptClock
 ) {
 
     @Inject
     constructor(
         preferences: Preferences,
-        encryptedPreferences: EncryptedPreferences
-    ) : this(preferences, encryptedPreferences, PinAttemptClock.system)
+        pinAuthority: WalletPinAuthority
+    ) : this(preferences, pinAuthority, PinAttemptClock.system)
 
     fun authenticate(code: String): WalletEmergencyAuthentication {
+        val (result, key) = authenticateWithKey(code)
+        key?.close()
+        return result
+    }
+
+    /**
+     * Like [authenticate]; when it succeeds and a keyring exists, also the wallet
+     * key SK that opens sealed values. The caller must close it.
+     */
+    fun authenticateWithKey(code: String): Pair<WalletEmergencyAuthentication, WalletSecretKeyring.OpenedKey?> {
         val limiter = PinAttemptLimiter(preferences, clock)
         val remaining = limiter.remainingDelayMillis()
-        if (remaining > 0L) return WalletEmergencyAuthentication.Locked(remaining)
+        if (remaining > 0L) return WalletEmergencyAuthentication.Locked(remaining) to null
 
-        val stored = try {
-            encryptedPreferences.getDecryptedString(WalletMasterKeyAttestation.PIN_CODE_KEY)
-        } catch (_: ClassCastException) {
-            return WalletEmergencyAuthentication.Unavailable
-        }
-        if (PinHealth.assess(true, stored) != PinHealth.HEALTHY) {
-            // No PIN was ever set, or this device can no longer decrypt it:
+        val (verification, key) = pinAuthority.verifyForEmergency(code)
+        return when (verification) {
+            PinVerification.CORRECT -> {
+                limiter.reset()
+                WalletEmergencyAuthentication.Authenticated to key
+            }
+            PinVerification.WRONG -> {
+                val delay = limiter.registerFailure()
+                (if (delay > 0L) WalletEmergencyAuthentication.Locked(delay) else WalletEmergencyAuthentication.WrongPin) to null
+            }
+            // No PIN was ever set, or this device can no longer open it:
             // nothing stored can be shown without it.
-            return WalletEmergencyAuthentication.Unavailable
-        }
-        val matches = MessageDigest.isEqual(
-            checkNotNull(stored).toByteArray(Charsets.UTF_8),
-            code.toByteArray(Charsets.UTF_8)
-        )
-        return if (matches) {
-            limiter.reset()
-            WalletEmergencyAuthentication.Authenticated
-        } else {
-            val delay = limiter.registerFailure()
-            if (delay > 0L) WalletEmergencyAuthentication.Locked(delay) else WalletEmergencyAuthentication.WrongPin
+            PinVerification.UNREADABLE -> WalletEmergencyAuthentication.Unavailable to null
         }
     }
 }

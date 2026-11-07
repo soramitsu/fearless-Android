@@ -25,6 +25,11 @@ import jp.co.soramitsu.common.data.storage.encrypt.TonConnectStorageKeys
 import jp.co.soramitsu.common.data.storage.encrypt.WalletCrossStoreMutationMutex
 import jp.co.soramitsu.common.data.storage.encrypt.WalletTonRootReplacementMutex
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelope
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelopes
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretLockedException
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSealPolicy
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSession
 import jp.co.soramitsu.common.utils.SolanaKeyDerivation
 import jp.co.soramitsu.common.utils.TonKeyDerivation
 import jp.co.soramitsu.common.utils.UniversalWalletPassphrase
@@ -213,7 +218,7 @@ class WalletSecretMutationCoordinator private constructor(
             ?: throw IllegalArgumentException("A retained wallet record is required")
         val current = checkNotNull(encryptedPreferences.getDecryptedStringSnapshot(archiveKey))
         check(current.matchesExactSnapshot(expected)) { "Retained data changed after its preview" }
-        val candidate = ArchivedWalletMaterialDecoder().decode(source, current.plaintext)
+        val candidate = ArchivedWalletMaterialDecoder().decode(source, WalletSecretEnvelopes.open(current.plaintext))
             .candidates.single { it.scope == scope }
         currentCoroutineContext().ensureActive()
         val prototype = MetaAccountLocal(
@@ -426,10 +431,16 @@ class WalletSecretMutationCoordinator private constructor(
             )
         }
 
-    /** Replays and finalizes the one active mutation, if present. */
+    /**
+     * Replays and finalizes the one active mutation, if present. A replay that
+     * needs SK while the wallet is locked (staged values sealed while it was
+     * unlocked, a sealed root the binding reads, or sealed values a deletion
+     * would archive) leaves the journal exactly as it is and returns; it runs
+     * again after the next unlock. It never reports that as needing recovery.
+     */
     suspend fun reconcilePendingMutation() =
         WalletCrossStoreMutationMutex.instance.withLock {
-            reconcilePendingMutationLocked()
+            reconcilePendingMutationLocked(deferWhileLocked = true)
         }
 
     private suspend fun prepareCreate(prototype: MetaAccountLocal): PreparedCreate {
@@ -613,14 +624,45 @@ class WalletSecretMutationCoordinator private constructor(
         }
     }
 
-    private suspend fun reconcilePendingMutationLocked() {
+    private suspend fun reconcilePendingMutationLocked(deferWhileLocked: Boolean = false) {
         requireDurableStorageHealthy()
-        val staged = journalCall {
-            journalStore.loadStagedMutation()
+        val staged = try {
+            journalCall {
+                journalStore.loadStagedMutation()
+            }
+        } catch (failure: WalletSecretLockedException) {
+            if (deferWhileLocked) return else throw failure
         } ?: return
+        if (deferWhileLocked && removesSealedValuesWhileLocked(staged.journal)) return
 
-        whileTonRootChanges(staged.journal.operation) { reconcileStagedMutation(staged) }
+        try {
+            whileTonRootChanges(staged.journal.operation) { reconcileStagedMutation(staged) }
+        } catch (failure: WalletSecretLockedException) {
+            // Every replay step is idempotent; the rest runs after the next unlock.
+            if (deferWhileLocked) return else throw failure
+        }
     }
+
+    /**
+     * Before the PIN no pass archives a sealed value: a pending deletion that
+     * would move one waits for the next unlock. Its Room change, if already
+     * committed, stays; the orphan pass leaves the keys of a pending journal alone.
+     */
+    private fun removesSealedValuesWhileLocked(journal: Journal): Boolean {
+        if (journal.operation != Operation.DELETE || WalletSecretSession.isOpen()) return false
+        if (journal.secretKeysToRemove.any(::holdsSealedValue)) return true
+        // Replay also discovers V2 keys an early journal did not list; they share the wallet's prefix.
+        return encryptedPreferences.keysWithPrefixes(
+            prefixes = setOf("${journal.metaId}:"),
+            maxResultCount = MAX_SCANNED_KEYS,
+            maxKeyBytes = MAX_SCANNED_KEY_BYTES,
+            maxTotalKeyBytes = MAX_SCANNED_TOTAL_KEY_BYTES
+        ).any { key -> WalletSecretSealPolicy.isSealable(key) && holdsSealedValue(key) }
+    }
+
+    private fun holdsSealedValue(key: String): Boolean =
+        encryptedPreferences.hasKey(key) &&
+            WalletSecretEnvelope.isSealed(encryptedPreferences.getDecryptedStringSnapshot(key)?.plaintext)
 
     private suspend fun reconcileStagedMutation(staged: StagedMutation) {
         requireDurableStorageHealthy()
@@ -1028,6 +1070,9 @@ class WalletSecretMutationCoordinator private constructor(
             }
         } catch (failure: WalletSecretMutationCoordinatorException) {
             throw failure
+        } catch (failure: WalletSecretLockedException) {
+            // A sealed root the binding reads opens after the PIN; this is no binding failure.
+            throw failure
         } catch (failure: Throwable) {
             if (failure is VirtualMachineError || failure is ThreadDeath) {
                 throw failure
@@ -1295,9 +1340,15 @@ class WalletSecretMutationCoordinator private constructor(
     }
 
     private fun storedUniversalPassphrases(metaId: Long): List<String> = universalPassphrases(
-        substratePlaintext = runCatching { encryptedPreferences.getDecryptedString(secretKey(metaId, SUBSTRATE_SECRET_SUFFIX)) }.getOrNull(),
-        ethereumPlaintext = runCatching { encryptedPreferences.getDecryptedString(secretKey(metaId, ETHEREUM_SECRET_SUFFIX)) }.getOrNull()
+        substratePlaintext = storedRootPlaintext(secretKey(metaId, SUBSTRATE_SECRET_SUFFIX)),
+        ethereumPlaintext = storedRootPlaintext(secretKey(metaId, ETHEREUM_SECRET_SUFFIX))
     )
+
+    /** A stored root, opened. A sealed root while locked throws [WalletSecretLockedException], never "absent". */
+    private fun storedRootPlaintext(key: String): String? {
+        val stored = runCatching { encryptedPreferences.getDecryptedString(key) }.getOrNull() ?: return null
+        return WalletSecretEnvelopes.open(stored)
+    }
 
     /**
      * Only a universal root of the same words may be replaced, and only by its counterpart: the
@@ -1308,6 +1359,7 @@ class WalletSecretMutationCoordinator private constructor(
         val passphrase = storedUniversalPassphrases(existing.id).singleOrNull()
         requireArgument(passphrase != null) { "Only a password wallet's universal TON root can be replaced" }
         val current = encryptedPreferences.getDecryptedString(secretKey(existing.id, TON_SECRET_SUFFIX))
+            ?.let { WalletSecretEnvelopes.open(it) }
         requireArgument(current != null) { "Only an existing TON root can be replaced" }
         val before = decodeCanonicalSecret(checkNotNull(current), WalletSecretScalePreflight::requireTonV3, TonSecrets::read) { it.toHexString() }
         val after = decodeCanonicalSecret(replacementPlaintext, WalletSecretScalePreflight::requireTonV3, TonSecrets::read) { it.toHexString() }
@@ -1746,6 +1798,9 @@ class WalletSecretMutationCoordinator private constructor(
         private const val MAX_TON_MNEMONIC_CHARS = 8_192
         private const val MAX_DERIVATION_PATH_CHARS = 2_048
         private const val MAX_SECRET_PLAINTEXT_CHARS = 1_048_576
+        private const val MAX_SCANNED_KEY_BYTES = 1_024
+        private const val MAX_SCANNED_KEYS = 8_192
+        private const val MAX_SCANNED_TOTAL_KEY_BYTES = 1_048_576
         private const val HEX_RADIX = 16
 
         private val KEYPAIR_BINDING_MESSAGE =

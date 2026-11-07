@@ -1,5 +1,7 @@
 package jp.co.soramitsu.account.impl.domain
 
+import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
+import jp.co.soramitsu.common.data.storage.envelope.PinVerification
 import java.io.File
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
@@ -48,9 +50,15 @@ class AccountInteractorImplTest {
 
         accountRepository = interfaceProxy { method, args ->
             when (method.name) {
-                "getPinCode" -> {
+                // The PIN authority's legacy check: an unreadable stored PIN matches nothing.
+                "verifyPinCode" -> {
                     pinReads++
-                    pinCode
+                    val typed = args?.firstOrNull() as? String
+                    when {
+                        PinHealth.assess(true, pinCode) != PinHealth.HEALTHY -> PinVerification.UNREADABLE
+                        pinCode == typed -> PinVerification.CORRECT
+                        else -> PinVerification.WRONG
+                    }
                 }
                 "savePinCode" -> {
                     pinCode = args?.firstOrNull() as? String

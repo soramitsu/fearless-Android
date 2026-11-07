@@ -21,4 +21,21 @@ class WalletPinHealthTest {
         WalletPinHealth.replace(null)
         assertEquals(null, WalletPinHealth.health.value)
     }
+
+    @Test
+    fun `the keyring decides once the device key has authenticated`() {
+        try {
+            WalletPinHealth.replaceKeyring(PinHealth.HEALTHY)
+            assertEquals("nothing is published before the device key", null, WalletPinHealth.health.value)
+            WalletPinHealth.replace(PinHealth.ABSENT)
+            assertEquals(PinHealth.HEALTHY, WalletPinHealth.health.value)
+            WalletPinHealth.replaceKeyring(PinHealth.UNREADABLE)
+            assertEquals(PinHealth.UNREADABLE, WalletPinHealth.health.value)
+            WalletPinHealth.replaceKeyring(null)
+            assertEquals(PinHealth.ABSENT, WalletPinHealth.health.value)
+        } finally {
+            WalletPinHealth.resetForTest()
+        }
+        assertEquals(null, WalletPinHealth.health.value)
+    }
 }

@@ -3,6 +3,7 @@ package jp.co.soramitsu.common.data.network.config
 import javax.inject.Inject
 import javax.inject.Singleton
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSealingSwitch
 
 /**
  * Durable read-only and legacy rollout state, plus current verified new-capability authority.
@@ -13,11 +14,11 @@ import jp.co.soramitsu.common.data.storage.Preferences
  * fresh signed authorization and immutable bundled approval; a new capability token never grants
  * the shipped features below.
  *
- * Polkaswap swaps and liquidity, Demeter farming, Bitcoin send, Solana send and dApp signing
- * (Polkadot and EVM over WalletConnect, TON over TON Connect) ship enabled. Their remote keys are
- * veto-only kill switches: an explicit `false` turns the feature off and is remembered across later
- * fetches that omit the key or fail, until a successful fetch says `true`. A remote `true` never
- * enables anything beyond the compiled default.
+ * Polkaswap swaps and liquidity, Demeter farming, Bitcoin send, Solana send, dApp signing
+ * (Polkadot and EVM over WalletConnect, TON over TON Connect) and wallet-secret sealing ship
+ * enabled. Their remote keys are veto-only kill switches: an explicit `false` turns the feature
+ * off and is remembered across later fetches that omit the key or fail, until a successful fetch
+ * says `true`. A remote `true` never enables anything beyond the compiled default.
  */
 @Singleton
 class ProductFeatureToggleStore @Inject constructor(
@@ -45,7 +46,13 @@ class ProductFeatureToggleStore @Inject constructor(
         rememberVeto(POLKADOT_DAPP_SIGNING, config.polkadotDappSigningEnabled)
         rememberVeto(EVM_DAPP_SIGNING, config.evmDappSigningEnabled)
         rememberVeto(TON_DAPP_SIGNING, config.tonDappSigningEnabled)
+        // The 4.3.2 PIN envelope: a veto stops new sealing only; sealed secrets always open with the PIN.
+        rememberVeto(WalletSecretSealingSwitch.REMOTE_VETO_KEY, config.walletSecretSealingEnabled)
     }
+
+    /** Whether new wallet secrets are sealed under the PIN (compiled flag and remote veto). */
+    val walletSecretSealingEnabled: Boolean
+        get() = WalletSecretSealingSwitch.isEnabled(preferences)
 
     val assetDiscoveryShadowEnabled: Boolean
         get() = preferences.getBoolean(DISCOVERY_SHADOW, true)
