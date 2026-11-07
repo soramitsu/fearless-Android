@@ -6,6 +6,8 @@ import jp.co.soramitsu.common.data.secrets.v3.TonPhraseVariant
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretValidator
 import jp.co.soramitsu.common.utils.SolanaKeyDerivation
+import jp.co.soramitsu.fearless_utils.encrypt.ton.TonEd25519
+import jp.co.soramitsu.fearless_utils.encrypt.ton.TonMnemonic
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -56,6 +58,35 @@ class HistoricalTonPhraseAcceptanceTest(private val library: String) {
             }
         }
         mismatches.assertNone(minimumChecked = 24)
+    }
+
+    /**
+     * 4.3.2 moved TON key derivation off ton-kotlin onto TonMnemonic and TonEd25519 (BouncyCastle). They must
+     * reproduce every historical key from the exact stored text, typed variants included.
+     */
+    @Test
+    fun inRepoTonCryptoDerivesEveryHistoricalTonKey() {
+        val mismatches = GoldenMismatches(library, "ton_in_repo")
+        crypto.objects("ton").forEach { vector ->
+            val typed = vector.string("typedText")
+            mismatches.check("TonMnemonic.toSeed(typed.split(\" \"))", "${vector.string("kind")}/${vector.string("variant")}") {
+                val words = typed.split(" ")
+                val seed = TonMnemonic.toSeed(words)
+                expectEqual(vector.string("seed"), seed.hex(), "seed")
+                expectEqual(vector.string("privateKey"), seed.hex(), "private key")
+                expectEqual(vector.string("publicKey"), TonEd25519.publicKey(seed).hex(), "public key")
+                expectEqual(vector["tonIsValid"].asBoolean, TonMnemonic.isValid(words), "TON validity")
+            }
+        }
+        tonRows().forEach { vector ->
+            mismatches.check("TonMnemonic stored text", vector.string("case")) {
+                val secrets = TonSecrets.read(vector.string("stored"))
+                val seed = TonMnemonic.toSeed(vector.string("storedText").split(" "))
+                expectEqual(secrets[TonSecrets.PrivateKey].hex(), seed.hex(), "private key")
+                expectEqual(vector.string("publicKey"), TonEd25519.publicKey(seed).hex(), "public key")
+            }
+        }
+        mismatches.assertNone(minimumChecked = 48)
     }
 
     @Test

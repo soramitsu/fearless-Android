@@ -15,7 +15,6 @@ import org.ton.cell.Cell
 import org.ton.cell.CellBuilder
 import org.ton.cell.CellBuilder.Companion.beginCell
 import org.ton.cell.CellSlice
-import org.ton.crypto.SecureRandom
 import org.ton.tlb.loadTlb
 import java.math.BigInteger
 import kotlin.math.floor
@@ -192,7 +191,7 @@ fun String.isValidTonAddress(): Boolean {
 
 fun newWalletQueryId(): BigInteger {
     return try {
-        val randomBytes = SecureRandom.nextBytes(8)
+        val randomBytes = ByteArray(8).also(java.security.SecureRandom()::nextBytes)
         val hexString = randomBytes.toHexString(true)
         BigInteger(hexString, 16)
     } catch (e: Throwable) {

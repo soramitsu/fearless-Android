@@ -32,11 +32,11 @@ import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypair
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
+import jp.co.soramitsu.fearless_utils.encrypt.ton.TonEd25519
+import jp.co.soramitsu.fearless_utils.encrypt.ton.TonMnemonic
 import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.toHexString
-import org.ton.api.pk.PrivateKeyEd25519
-import org.ton.mnemonic.Mnemonic
 
 /**
  * A deterministic violation confined to one decoded V3 root-secret payload.
@@ -1208,11 +1208,10 @@ private object ProductionWalletRootCryptography : WalletRootCryptography {
     override fun recoverTonFromMnemonic(
         mnemonicWords: List<String>
     ): FearlessKeypair {
-        val seed = Mnemonic.toSeed(mnemonicWords)
-        val privateKey = PrivateKeyEd25519(seed)
+        val seed = TonMnemonic.toSeed(mnemonicWords)
         return Keypair(
-            publicKey = privateKey.publicKey().key.toByteArray(),
-            privateKey = privateKey.key.toByteArray()
+            publicKey = TonEd25519.publicKey(seed),
+            privateKey = seed
         )
     }
 }
