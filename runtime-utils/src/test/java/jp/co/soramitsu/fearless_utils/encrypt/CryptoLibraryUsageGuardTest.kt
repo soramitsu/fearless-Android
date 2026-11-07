@@ -42,8 +42,8 @@ class CryptoLibraryUsageGuardTest {
         val root = repositoryRoot()
         val sources = root.listFiles().orEmpty()
             .filter { module -> File(module, "build.gradle").isFile || File(module, "build.gradle.kts").isFile }
-            .flatMap { module -> File(module, "src").listFiles().orEmpty().filter { it.name == "main" || it.name.endsWith("Main") } }
-            .flatMap { sourceSet -> sourceSet.walkTopDown().filter { it.isFile && (it.extension == "kt" || it.extension == "java") }.toList() }
+            .flatMap { module -> File(module, "src").listFiles().orEmpty().filter(::isProductionSourceSet) }
+            .flatMap { sourceSet -> sourceSet.walkTopDown().filter(::isSourceFile).toList() }
         assertTrue("found only ${sources.size} production sources under $root", sources.size > 1000)
 
         val violations = sources.flatMap { file ->
@@ -76,6 +76,11 @@ class CryptoLibraryUsageGuardTest {
             assertTrue(allowed, forbidden.none { (pattern, _) -> pattern.containsMatchIn(allowed) })
         }
     }
+
+    private fun isProductionSourceSet(directory: File): Boolean =
+        directory.name == "main" || directory.name.endsWith("Main")
+
+    private fun isSourceFile(file: File): Boolean = file.isFile && (file.extension == "kt" || file.extension == "java")
 
     private fun repositoryRoot(): File {
         var directory: File? = File("").absoluteFile

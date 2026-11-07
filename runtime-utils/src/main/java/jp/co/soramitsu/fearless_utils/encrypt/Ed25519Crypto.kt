@@ -39,7 +39,11 @@ object Ed25519Crypto {
     }
 
     /** True only for a canonical RFC 8032 signature of [message] by [publicKey]. */
-    fun verify(message: ByteArray, signature: ByteArray, publicKey: ByteArray): Boolean {
+    fun verify(
+        message: ByteArray,
+        signature: ByteArray,
+        publicKey: ByteArray
+    ): Boolean {
         if (signature.size != SIGNATURE_SIZE || publicKey.size != PUBLIC_KEY_SIZE) return false
         if (!hasCanonicalScalar(signature)) return false
 

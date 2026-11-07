@@ -20,7 +20,7 @@ import java.util.Random
 /** The TON contract and comment code after TON keys moved from ton-kotlin types to plain bytes (4.3.2). */
 class TonInRepoKeyMaterialTest {
 
-    private val random = Random(4_32)
+    private val random = Random(432)
 
     @Test
     fun `V4R2 addresses equal the ones built from ton-kotlin's PublicKeyEd25519`() {

@@ -45,7 +45,9 @@ internal object CryptoTestVectors {
         return signature.copyOfRange(0, 32) + littleEndian
     }
 
-    fun flip(value: ByteArray, index: Int): ByteArray = value.copyOf().also { it[index] = (it[index].toInt() xor 1).toByte() }
+    fun flip(value: ByteArray, index: Int): ByteArray = value.copyOf().also { flipped ->
+        flipped[index] = (flipped[index].toInt() xor 1).toByte()
+    }
 }
 
 internal fun JsonObject.string(name: String): String = get(name).asString

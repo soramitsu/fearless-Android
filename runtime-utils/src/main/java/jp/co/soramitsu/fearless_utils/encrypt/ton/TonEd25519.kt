@@ -32,8 +32,8 @@ object TonEd25519 {
     // BigInteger.TWO needs Android 13; minSdk is 26.
     private val TWO: BigInteger = BigInteger.valueOf(2)
     private val fieldPrime: BigInteger = BigInteger.ONE.shiftLeft(255).subtract(BigInteger.valueOf(19))
-    private val edwardsD: BigInteger = BigInteger.valueOf(-121665).mod(fieldPrime)
-        .multiply(BigInteger.valueOf(121666).modInverse(fieldPrime))
+    private val edwardsD: BigInteger = BigInteger.valueOf(-121_665).mod(fieldPrime)
+        .multiply(BigInteger.valueOf(121_666).modInverse(fieldPrime))
         .mod(fieldPrime)
 
     /** A fresh random private key. */
@@ -60,8 +60,11 @@ object TonEd25519 {
     fun sign(privateKey: ByteArray, message: ByteArray): ByteArray = Ed25519Crypto.sign(privateKey, message)
 
     /** Strict RFC 8032 verification. */
-    fun verify(publicKey: ByteArray, message: ByteArray, signature: ByteArray): Boolean =
-        Ed25519Crypto.verify(message, signature, publicKey)
+    fun verify(
+        publicKey: ByteArray,
+        message: ByteArray,
+        signature: ByteArray
+    ): Boolean = Ed25519Crypto.verify(message, signature, publicKey)
 
     /**
      * ton-kotlin's `Ed25519.sharedKey`: X25519 of the private key's clamped SHA-512 scalar with the Montgomery form

@@ -122,19 +122,26 @@ object TonMnemonic {
 
         while (true) {
             val mnemonic = List(wordCount) { wordlist[random.nextInt(wordlist.size)] }
-            if (password.isEmpty() || isPasswordNeeded(mnemonic)) {
-                val entropy = toEntropy(mnemonic, password)
-                val basic = try {
-                    isBasicSeed(entropy)
-                } finally {
-                    entropy.fill(0)
-                }
-                if (basic) return mnemonic
-            }
+            if (passesChecks(mnemonic, password)) return mnemonic
         }
     }
 
-    private fun firstDerivedByte(entropy: ByteArray, salt: String, iterations: Int): Int {
+    // ton-kotlin's generation checks: a password phrase must need its password, and every phrase is a basic seed.
+    private fun passesChecks(mnemonic: List<String>, password: String): Boolean {
+        if (password.isNotEmpty() && !isPasswordNeeded(mnemonic)) return false
+        val entropy = toEntropy(mnemonic, password)
+        try {
+            return isBasicSeed(entropy)
+        } finally {
+            entropy.fill(0)
+        }
+    }
+
+    private fun firstDerivedByte(
+        entropy: ByteArray,
+        salt: String,
+        iterations: Int
+    ): Int {
         val derived = pbkdf2(entropy, salt, iterations)
         try {
             return derived[0].toInt()
@@ -143,7 +150,11 @@ object TonMnemonic {
         }
     }
 
-    private fun pbkdf2(password: ByteArray, salt: String, iterations: Int): ByteArray {
+    private fun pbkdf2(
+        password: ByteArray,
+        salt: String,
+        iterations: Int
+    ): ByteArray {
         val generator = PKCS5S2ParametersGenerator(SHA512Digest())
         generator.init(password, salt.encodeToByteArray(), iterations)
         return (generator.generateDerivedParameters(DERIVED_KEY_BITS) as KeyParameter).key

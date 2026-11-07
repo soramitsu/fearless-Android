@@ -14,7 +14,7 @@ import java.util.Random
 /** TonMnemonic against ton-kotlin 0.3.1's org.ton.mnemonic.Mnemonic, which the app used for TON phrases until 4.3.1. */
 class TonMnemonicTest {
 
-    private val random = Random(20261107)
+    private val random = Random(20_261_107)
     private val words = TonMnemonic.wordList()
 
     @Test

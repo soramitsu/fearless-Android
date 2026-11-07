@@ -1,6 +1,7 @@
 package jp.co.soramitsu.fearless_utils.encrypt.json
 
 import com.google.gson.Gson
+import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import jp.co.soramitsu.fearless_utils.encrypt.CryptoTestVectors
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
@@ -40,32 +41,7 @@ class JsonBackupCompatibilityTest {
     fun `opens polkadot-js and 4_2_0 Fearless backups exactly as the historical decoder did`() {
         val backups = CryptoTestVectors.json("crypto/json-backups.json").objects("backups")
         assertEquals(9, backups.size)
-        backups.forEach { backup ->
-            val name = backup.string("input")
-            val json = backup.string("json")
-            val password = backup.string("password")
-            val expected = backup.getAsJsonObject("expected")
-            val actual = runCatching { decoder.decode(json, password) }
-            if (expected.has("error")) {
-                assertEquals(name, expected.string("error"), actual.exceptionOrNull()?.javaClass?.name?.substringAfter("fearless_utils."))
-            } else {
-                val imported = actual.getOrThrow()
-                val encryption = when (val chain = imported.multiChainEncryption) {
-                    MultiChainEncryption.Ethereum -> "ethereum"
-                    is MultiChainEncryption.Substrate -> chain.encryptionType.name
-                }
-                assertEquals(name, expected.string("encryption"), encryption)
-                val keypair = expected.getAsJsonObject("keypair")
-                assertEquals(name, keypair.string("privateKey"), imported.keypair.privateKey.toHexString(withPrefix = true))
-                assertEquals(name, keypair.string("publicKey"), imported.keypair.publicKey.toHexString(withPrefix = true))
-                assertEquals(name, expected.nullableString("seed"), imported.seed?.toHexString(withPrefix = true))
-                assertEquals(name, expected.nullableString("username"), imported.username)
-            }
-            backup.getAsJsonObject("expectedWrongPassword")?.let { wrong ->
-                val failure = runCatching { decoder.decode(json, "$password-wrong") }.exceptionOrNull()
-                assertEquals(name, wrong.string("error"), failure?.javaClass?.name?.substringAfter("fearless_utils."))
-            }
-        }
+        backups.forEach(::assertOpensAsHistoricalDecoder)
     }
 
     @Test
@@ -74,46 +50,12 @@ class JsonBackupCompatibilityTest {
         assertEquals(15, backups.size)
         val wrongPasswordWriters = mutableSetOf<String>()
         backups.forEach { backup ->
-            val name = backup.string("input")
-            val json = backup.string("json")
-            val password = backup.string("password")
             val error = backup.nullableString("error")
             if (error != null) {
-                val failure = runCatching { decoder.decode(json, password) }.exceptionOrNull()
-                assertEquals(name, error, failure?.javaClass?.name?.substringAfter("fearless_utils."))
-                return@forEach
-            }
-            val document = JsonParser.parseString(json).asJsonObject
-            val encoded = document.string("encoded")
-            // Canonical Base64: the input on which BouncyCastle and SpongyCastle 1.58 decode alike (tests below).
-            assertEquals(name, encoded, Base64.toBase64String(Base64.decode(encoded)))
-            val encoding = document.getAsJsonObject("encoding")
-            val content = encoding.getAsJsonArray("content").map { it.asString }
-            val publicKey = if (content[1] == "sr25519") {
-                // sr25519 keys need the native library, so take the public key from the decrypted PKCS8 secret.
-                val type = encoding.getAsJsonArray("type").map { it.asString }
-                val pkcs8 = requireNotNull(TypeCoderFactory.getDecoder(type)).decode(Base64.decode(encoded), password.encodeToByteArray())
-                Pkcs8ChecksumCoder.decode(requireNotNull(pkcs8) { name })[1]
+                val failure = runCatching { decoder.decode(backup.string("json"), backup.string("password")) }.exceptionOrNull()
+                assertEquals(backup.string("input"), error, failure?.javaClass?.name?.substringAfter("fearless_utils."))
             } else {
-                decoder.decode(json, password).keypair.publicKey
-            }
-
-            // The key opened here is the key its writer recorded for the account.
-            val address = document.string("address")
-            when (content[1]) {
-                "sr25519", "ed25519" -> assertArrayEquals(name, SS58Encoder.decode(address), publicKey)
-                "ecdsa" -> {
-                    assertArrayEquals(name, SS58Encoder.decode(backup.nullableString("ss58Address") ?: address), publicKey.blake2b256())
-                    if (address.startsWith("0x")) assertEquals(name, address, publicKey.toHexString(withPrefix = true))
-                }
-                "ethereum" -> {
-                    assertEquals(name, (backup.nullableString("ethereumAddress") ?: address).lowercase(), ethereumAddress(publicKey))
-                    if (address.length == COMPRESSED_KEY_HEX_LENGTH) assertEquals(name, address, publicKey.toHexString(withPrefix = true))
-                }
-                else -> fail("$name: unexpected key type ${content[1]}")
-            }
-            if (wrongPasswordWriters.add(backup.string("writtenBy"))) {
-                assertThrows(name, IncorrectPasswordException::class.java) { decoder.decode(json, "$password-wrong") }
+                assertOpensToRecordedKey(backup, checkWrongPassword = wrongPasswordWriters.add(backup.string("writtenBy")))
             }
         }
         assertEquals(5, wrongPasswordWriters.size)
@@ -192,6 +134,85 @@ class JsonBackupCompatibilityTest {
         val truncated = document.deepCopy().apply { addProperty("encoded", encoded.trimEnd('=').dropLast(1)) }
         val failure = runCatching { decoder.decode(truncated.toString(), backup.string("password")) }.exceptionOrNull()
         assertTrue(failure.toString(), failure is JsonSeedDecodingException)
+    }
+
+    private fun assertOpensAsHistoricalDecoder(backup: JsonObject) {
+        val name = backup.string("input")
+        val json = backup.string("json")
+        val password = backup.string("password")
+        val expected = backup.getAsJsonObject("expected")
+        val actual = runCatching { decoder.decode(json, password) }
+        if (expected.has("error")) {
+            assertEquals(name, expected.string("error"), actual.exceptionOrNull()?.javaClass?.name?.substringAfter("fearless_utils."))
+        } else {
+            val imported = actual.getOrThrow()
+            val encryption = when (val chain = imported.multiChainEncryption) {
+                MultiChainEncryption.Ethereum -> "ethereum"
+                is MultiChainEncryption.Substrate -> chain.encryptionType.name
+            }
+            assertEquals(name, expected.string("encryption"), encryption)
+            val keypair = expected.getAsJsonObject("keypair")
+            assertEquals(name, keypair.string("privateKey"), imported.keypair.privateKey.toHexString(withPrefix = true))
+            assertEquals(name, keypair.string("publicKey"), imported.keypair.publicKey.toHexString(withPrefix = true))
+            assertEquals(name, expected.nullableString("seed"), imported.seed?.toHexString(withPrefix = true))
+            assertEquals(name, expected.nullableString("username"), imported.username)
+        }
+        backup.getAsJsonObject("expectedWrongPassword")?.let { wrong ->
+            val failure = runCatching { decoder.decode(json, "$password-wrong") }.exceptionOrNull()
+            assertEquals(name, wrong.string("error"), failure?.javaClass?.name?.substringAfter("fearless_utils."))
+        }
+    }
+
+    // A backup written elsewhere opens with its password to the key its writer recorded for the account.
+    private fun assertOpensToRecordedKey(backup: JsonObject, checkWrongPassword: Boolean) {
+        val name = backup.string("input")
+        val json = backup.string("json")
+        val password = backup.string("password")
+        val document = JsonParser.parseString(json).asJsonObject
+        val encoded = document.string("encoded")
+        // Canonical Base64: the input on which BouncyCastle and SpongyCastle 1.58 decode alike (tests below).
+        assertEquals(name, encoded, Base64.toBase64String(Base64.decode(encoded)))
+        val encoding = document.getAsJsonObject("encoding")
+        val keyType = encoding.getAsJsonArray("content").map { it.asString }[1]
+        val publicKey = if (keyType == "sr25519") {
+            // sr25519 keys need the native library, so take the public key from the decrypted PKCS8 secret.
+            val type = encoding.getAsJsonArray("type").map { it.asString }
+            val pkcs8 = requireNotNull(TypeCoderFactory.getDecoder(type)).decode(Base64.decode(encoded), password.encodeToByteArray())
+            Pkcs8ChecksumCoder.decode(requireNotNull(pkcs8) { name })[1]
+        } else {
+            decoder.decode(json, password).keypair.publicKey
+        }
+
+        val address = document.string("address")
+        when (keyType) {
+            "sr25519", "ed25519" -> assertArrayEquals(name, SS58Encoder.decode(address), publicKey)
+            "ecdsa" -> assertEcdsaKeyRecorded(name, backup.nullableString("ss58Address") ?: address, address, publicKey)
+            "ethereum" -> assertEthereumKeyRecorded(name, backup.nullableString("ethereumAddress") ?: address, address, publicKey)
+            else -> fail("$name: unexpected key type $keyType")
+        }
+        if (checkWrongPassword) {
+            assertThrows(name, IncorrectPasswordException::class.java) { decoder.decode(json, "$password-wrong") }
+        }
+    }
+
+    private fun assertEcdsaKeyRecorded(
+        name: String,
+        ss58Address: String,
+        address: String,
+        publicKey: ByteArray
+    ) {
+        assertArrayEquals(name, SS58Encoder.decode(ss58Address), publicKey.blake2b256())
+        if (address.startsWith("0x")) assertEquals(name, address, publicKey.toHexString(withPrefix = true))
+    }
+
+    private fun assertEthereumKeyRecorded(
+        name: String,
+        ethereumAddress: String,
+        address: String,
+        publicKey: ByteArray
+    ) {
+        assertEquals(name, ethereumAddress.lowercase(), ethereumAddress(publicKey))
+        if (address.length == COMPRESSED_KEY_HEX_LENGTH) assertEquals(name, address, publicKey.toHexString(withPrefix = true))
     }
 
     private fun ethereumAddress(compressedPublicKey: ByteArray): String {
