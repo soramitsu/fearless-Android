@@ -2,6 +2,18 @@
 
 # Roadmap & Technical Debt
 
+## 4.3.2 lane `google`: follow-ups — 7 November 2026
+
+- Remove Firebase Messaging and its Play services from the release graph with the Reown SDK
+  (WalletConnect lane), then drop `-dontwarn com.google.android.gms.**`, `GoogleApiActivity`, the
+  Firebase components and `c2dm` permission from the AAB identity allowlist.
+- Register an Android OAuth client with custom URI schemes in project 621183184145 if the owner
+  wants Android off the iOS client; set `GOOGLE_DRIVE_OAUTH_CLIENT_ID`, the release pin and the
+  AAB identity redirect scheme together.
+- Passkey backup needs an open app-attestation design before it can be enabled.
+- Qualify the browser sign-in on devices (Chrome, Firefox, Samsung Internet; process death while
+  the browser is open) and a Drive round trip with 4.3.1, iOS and extension backups.
+
 ## Production release 4.3.1 (233): Asset Hub staking — 30 October 2026
 
 4.3.1 brings back Polkadot and Kusama staking, which 4.3.0 could not offer because

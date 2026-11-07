@@ -108,10 +108,10 @@ with unit coverage under
 default generated debug keystore for local builds and CI-provided keystores for
 release signing.
 
-Checked-in `google-services.json` files must stay on the `fearless-public`
-placeholder project with empty API keys and no OAuth certificate hashes. Release
-CI restores the real `app/src/release/google-services.json` from
-`GOOGLE_SERVICES_RELEASE_JSON_B64`.
+No `google-services.json` may be tracked or present under `app/`: Firebase and
+Google Play services are not part of the app's own code since 4.3.2, and
+`scripts/audit-public-artifacts.sh` refuses such a file (in release mode even an
+untracked one).
 
 ### Imported SCALE utility JAR
 

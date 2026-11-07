@@ -63,6 +63,13 @@
 ## Security & Configuration
 - Secrets are read via `scripts/secrets.gradle`; set in env vars or `local.properties` (see `README.md`).
 - Do not commit keys, keystores, provisioning files, or `local.properties`.
+- No closed Google SDK (Play services, Play Core/Integrity, Firebase, `googleid`, Google API
+  client libraries) and no `google-services.json`. Google Drive backup uses the in-repo OAuth 2.0
+  + PKCE browser sign-in (`core-backup/.../oauth`, `feature-account-impl/.../google_signin`) and
+  Drive v3 REST client (`core-backup/.../data/GoogleDriveApi.kt`); keep the backup file layout
+  (`backupFolder`, `<address>.json`, `text/json`) byte-compatible with iOS and the extension.
+  `GOOGLE_DRIVE_OAUTH_CLIENT_ID` (scripts/secrets.gradle) must stay a client of project
+  621183184145; changing it also changes the release pin and the AAB identity redirect scheme.
 - Internal App Sharing must run only through the dedicated
   `android-internal-app-sharing.yml` CI path. Generate a new mode-`0600` JKS and
   bind its certificate SHA-256 for that run; never commit or reuse the private
@@ -70,8 +77,8 @@
   artifact. Only a manual run of the first-party workflow from the protected,
   merged, current `master` head may retain a seven-day verified GitHub Actions
   handoff. The workflow must never upload to Google/Play or mutate a Play track.
-  Because IAS uses fake/empty public Firebase and OAuth values, do not claim it
-  qualifies live Firebase, Google sign-in, Drive/passkey backup, or restore.
+  IAS builds carry no Firebase configuration; do not claim IAS qualifies
+  passkey backup, Play upgrade, production migration or production signing.
   When versioning changes, update the workflow/verifier hardcodes for
   `4.3.1-ias` / `233` in the same reviewed commit.
 - Polkadot runtime sources: to align debug builds with a specific Polkadot SDK release (e.g., `polkadot-stable2503`), you can override chain/type registries without code changes:
