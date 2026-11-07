@@ -93,8 +93,15 @@ internal class MapSharedPreferences(
         private set
     val dead: Boolean get() = commitsBeforeDeath?.let { commits > it } == true
 
+    /** Like the platform, a string read of a value of another type throws [ClassCastException]. */
+    var strictTypes = false
+
     override fun getAll(): MutableMap<String, *> = LinkedHashMap(values)
-    override fun getString(key: String?, defValue: String?): String? = values[key] as? String ?: defValue
+    override fun getString(key: String?, defValue: String?): String? {
+        val value = values[key]
+        if (strictTypes && value != null && value !is String) throw ClassCastException("$key is not a string")
+        return value as? String ?: defValue
+    }
     @Suppress("UNCHECKED_CAST")
     override fun getStringSet(key: String?, defValues: MutableSet<String>?): MutableSet<String>? =
         (values[key] as? Set<String>)?.toMutableSet() ?: defValues

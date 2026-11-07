@@ -75,6 +75,8 @@ class WalletSecretSealPolicyTest {
             WalletSecretQuarantine.keyFor(TonConnectStorageKeys.legacy("ab".repeat(32))),
             WalletPublicIdentityRecovery.keyFor(7, "7:SUBSTRATE_SECRETS"),
             WalletSecretKeyring.KEY_PREFIX + "current",
+            WalletSecretKeyring.sealingKey(ByteArray(16) { 1 }),
+            WalletSecretKeyring.pinKey(ByteArray(16) { 1 }),
             "biometric_pin_vault_v1",
             "portable_wallet_cohort_journal_v1",
             "auth_type",

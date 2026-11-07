@@ -35,9 +35,10 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 
 /**
- * The PIN wrap's device factor sits in the same preference file as every wallet secret. A full
- * upgrade from 4.3.1 data (first unlock, sealing), the quarantine revalidation and the orphan
- * inventory leave it exactly as it was, and emergency export never lists it.
+ * The PIN wrap's device factor and SK's sealing mark sit in the same preference file as every
+ * wallet secret. A full upgrade from 4.3.1 data (first unlock, sealing), the quarantine
+ * revalidation and the orphan inventory leave them exactly as they were, and emergency export
+ * never lists them.
  */
 class WalletKeyringFactorUntouchedTest {
 
@@ -85,7 +86,7 @@ class WalletKeyringFactorUntouchedTest {
         shared.values.filterKeys { it.startsWith(MasterKeyBoundKeyringFactor.ALIAS_PREFIX) }
 
     @Test
-    fun anUpgradeSealAndBothPassesLeaveTheFactorAloneAndUnlisted() = runBlocking {
+    fun anUpgradeSealAndBothPassesLeaveTheFactorAndSealingMarkAloneAndUnlisted(): Unit = runBlocking {
         val converted = checkNotNull(
             WalletSecretIntegrityValidator.validateLegacyAndPrepareReplacement(encoded = wallet.accessSecretsHex, identity = identity)
                 .substratePlaintext
@@ -104,6 +105,8 @@ class WalletKeyringFactorUntouchedTest {
         val report = migration.run()
         assertEquals(3, report.sealed)
         assertTrue(report.legacyPinRetired)
+        val mark = WalletSecretKeyring.sealingKey(checkNotNull(keyring.currentKeyId()))
+        val markValue = checkNotNull(shared.values[mark])
         WalletQuarantineRevalidation(storage).reconcile(ShippedWalletFixtures.database(identity))
         val orphans = WalletOrphanSecretInventory(storage).reconcile(ShippedWalletFixtures.database(identity))
         assertEquals(1, orphans.archivedCount)
@@ -116,6 +119,10 @@ class WalletKeyringFactorUntouchedTest {
         val listed = reader.listPage().keys.map { it.storageKey }
         assertTrue(listed.contains(SUBSTRATE))
         assertTrue(listed.none { it.startsWith(MasterKeyBoundKeyringFactor.ALIAS_PREFIX) })
+        // The sealing mark too: unchanged, never sealed, never listed.
+        assertEquals(markValue, shared.values[mark])
+        assertFalse(WalletSecretSealPolicy.isSealable(mark))
+        assertTrue(listed.none { it.startsWith(WalletSecretKeyring.KEY_PREFIX) })
         assertEquals(PinVerification.CORRECT, authority.verify(PIN))
     }
 

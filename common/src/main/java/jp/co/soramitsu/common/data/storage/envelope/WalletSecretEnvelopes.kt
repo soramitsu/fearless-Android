@@ -79,8 +79,9 @@ object WalletSecretSealingSwitch {
  * Seals allowlisted wallet secret values as they are written, whenever this
  * session holds SK and sealing is on. A root value is sealed only after a
  * backup wrap for each of its keys is stored, so every sealed root can be
- * opened by proving its backup. If anything in that fails, the value is
- * written as it was; the unlock migration seals it later.
+ * opened by proving its backup, and only after SK's sealing mark is stored.
+ * If anything in that fails, the value is written as it was; the unlock
+ * migration seals it later.
  */
 class WalletSecretSealer(
     private val preferences: Preferences,
@@ -110,14 +111,16 @@ class WalletSecretSealer(
 
     /**
      * Seals [plaintext] for [target] with [opened], after storing the backup
-     * wraps of its keys. Throws when a wrap cannot be stored; the caller keeps
-     * the value unsealed then.
+     * wraps of its keys and the SK's sealing mark. Throws when a wrap or the
+     * mark cannot be stored; the caller keeps the value unsealed then.
      */
     fun seal(target: WalletSecretSealPolicy.Target, plaintext: String, opened: WalletSecretKeyring.OpenedKey): String {
         require(isSealable(plaintext)) { "This value cannot be sealed" }
         val current = checkNotNull(keyring.currentKeyId()) { "There is no wallet keyring" }
         check(current.contentEquals(opened.keyId)) { "The session SK is not the keyring's SK" }
         ensureBackupWraps(target, plaintext, opened)
+        // Every sealed value is made here, so the mark is stored before any value sealed under SK.
+        keyring.beginSealing(opened)
         val header = WalletSecretEnvelope.Header(
             keyId = opened.keyId,
             scope = target.scope,

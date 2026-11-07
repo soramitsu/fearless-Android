@@ -58,6 +58,53 @@ class WalletSecretSealingWriteAndReadTest {
     }
 
     @Test
+    fun `a value is sealed only once its SK's sealing mark is stored`() {
+        unlockNewKeyring()
+        assertFalse(harness.keyring.mayHoldSealedValues())
+
+        harness.storage.putEncryptedString("5:SUBSTRATE_SECRETS", SyntheticSecrets.substrateSr25519(1))
+
+        assertTrue(WalletSecretEnvelope.isSealed(harness.inner("5:SUBSTRATE_SECRETS")))
+        assertTrue(harness.keyring.mayHoldSealedValues())
+    }
+
+    @Test
+    fun `a sealing mark of another type is replaced before the value is sealed`() {
+        unlockNewKeyring()
+        val mark = WalletSecretKeyring.sealingKey(checkNotNull(harness.keyring.currentKeyId()))
+        harness.shared.values[mark] = 5
+        harness.shared.strictTypes = true
+
+        harness.storage.putEncryptedString("5:SUBSTRATE_SECRETS", SyntheticSecrets.substrateSr25519(1))
+
+        assertTrue(WalletSecretEnvelope.isSealed(harness.inner("5:SUBSTRATE_SECRETS")))
+        assertEquals("1", harness.shared.values[mark])
+    }
+
+    @Test
+    fun `a write whose sealing mark cannot be stored is written as it was`() {
+        val base = jp.co.soramitsu.common.data.storage.pin.InMemoryPreferences()
+        var refuseMark = true
+        val preferences = object : jp.co.soramitsu.common.data.storage.Preferences by base {
+            override fun replaceStringsDurably(valuesToPut: Map<String, String>, keysToRemove: Set<String>): Boolean =
+                if (refuseMark && valuesToPut.keys.any { it.endsWith(":sealing") }) false else base.replaceStringsDurably(valuesToPut, keysToRemove)
+        }
+        val keyring = WalletSecretKeyring(preferences, FakeKeyringDeviceFactor(), java.security.SecureRandom(), TEST_KDF)
+        val sealer = WalletSecretSealer(preferences, keyring, java.security.SecureRandom(), true)
+        val created = keyring.create(PIN)
+        WalletSecretSession.open(created.keyId, created.key, WalletSecretSession.Origin.NEW_KEYRING)
+        created.close()
+        val value = SyntheticSecrets.substrateSr25519(1)
+
+        assertEquals(value, sealer.sealForWrite("5:SUBSTRATE_SECRETS", value))
+        assertFalse(keyring.mayHoldSealedValues())
+
+        refuseMark = false
+        assertTrue(WalletSecretEnvelope.isSealed(sealer.sealForWrite("5:SUBSTRATE_SECRETS", value)))
+        assertTrue(keyring.mayHoldSealedValues())
+    }
+
+    @Test
     fun `a write while locked is stored as it is`() {
         unlockNewKeyring()
         WalletSecretSession.clear()

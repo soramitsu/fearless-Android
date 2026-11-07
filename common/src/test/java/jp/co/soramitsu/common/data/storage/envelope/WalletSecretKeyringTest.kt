@@ -157,6 +157,50 @@ class WalletSecretKeyringTest {
     }
 
     @Test
+    fun `the sealing mark is stored once, durably, and only for the current SK`() {
+        val created = keyring.create(PIN)
+        assertFalse(keyring.mayHoldSealedValues())
+
+        keyring.beginSealing(created)
+        assertTrue(keyring.mayHoldSealedValues())
+        assertEquals("1", preferences.getString(WalletSecretKeyring.sealingKey(created.keyId)))
+        val marked = preferences.snapshot()
+        keyring.beginSealing(created)
+        assertEquals(marked, preferences.snapshot())
+
+        val foreign = WalletSecretKeyring.OpenedKey(ByteArray(16) { 7 }, ByteArray(32) { 9 })
+        assertThrows(IllegalStateException::class.java) { keyring.beginSealing(foreign) }
+        assertEquals(marked, preferences.snapshot())
+
+        // A plain record that no pass walking wallet values ever reads, seals or attests with.
+        val mark = WalletSecretKeyring.sealingKey(created.keyId)
+        assertFalse(WalletSecretSealPolicy.isSealable(mark))
+        assertTrue(WalletSecretSealPolicy.SCANNED_PREFIXES.none(mark::startsWith))
+        assertFalse(jp.co.soramitsu.common.data.storage.encrypt.WalletMasterKeyAttestation.isProtectedPayloadKey(mark))
+    }
+
+    @Test
+    fun `a sealing mark that cannot be stored is an error, and nothing is marked`() {
+        val refusing = object : jp.co.soramitsu.common.data.storage.Preferences by preferences {
+            override fun replaceStringsDurably(valuesToPut: Map<String, String>, keysToRemove: Set<String>): Boolean =
+                if (valuesToPut.keys.any { it.endsWith(":sealing") }) false else preferences.replaceStringsDurably(valuesToPut, keysToRemove)
+        }
+        val guarded = WalletSecretKeyring(refusing, factor, SecureRandom(), TEST_KDF)
+        val created = guarded.create(PIN)
+
+        assertThrows(IllegalStateException::class.java) { guarded.beginSealing(created) }
+        assertFalse(guarded.mayHoldSealedValues())
+    }
+
+    @Test
+    fun `without a current SK that can be named nothing rules out sealed values`() {
+        keyring.create(PIN)
+        preferences.replaceStringsDurably(mapOf("${WalletSecretKeyring.KEY_PREFIX}current" to "not hex"), emptySet())
+        assertNull(keyring.currentKeyId())
+        assertTrue(keyring.mayHoldSealedValues())
+    }
+
+    @Test
     fun `the production KDF stays within its memory budget`() {
         val parameters = WalletPinKdfParameters.DEFAULT
         assertTrue(parameters.isAcceptable)

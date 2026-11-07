@@ -26,6 +26,9 @@ import org.bouncycastle.util.encoders.Hex
  * - Backup wraps, one per wallet root: SK under KEK = HKDF-SHA256 of the
  *   root's canonical private key ([WalletRootKeyKind.canonical]). Proving any
  *   one backup opens SK, as PIN recovery by backup works today.
+ * - The sealing mark: stored before the first value is sealed under SK. While
+ *   it is absent, nothing was ever sealed under SK, even if some stored values
+ *   cannot be read right now.
  *
  * Guessing the PIN needs D, which a copy of the app's files without the device
  * key does not have. Code running as the app can unwrap the device key and
@@ -200,6 +203,35 @@ class WalletSecretKeyring(
             if (reused == null && preferences.getString(name) != record) removeUnreferencedFactor(alias)
             throw failure
         }
+    }
+
+    /**
+     * Stores the sealing mark of the open SK, durably, before its first value
+     * is sealed. Throws when the mark cannot be stored; nothing may be sealed
+     * then. The mark is never removed.
+     */
+    @Synchronized
+    fun beginSealing(opened: OpenedKey) {
+        val keyId = checkNotNull(currentKeyId()) { "There is no wallet keyring" }
+        check(MessageDigest.isEqual(keyId, opened.keyId)) { "The open SK is not this keyring's SK" }
+        val name = sealingKey(keyId)
+        val stored = try {
+            preferences.getString(name)
+        } catch (_: ClassCastException) {
+            null
+        }
+        if (stored == SEALING_BEGUN) return
+        check(preferences.replaceStringsDurably(mapOf(name to SEALING_BEGUN), emptySet())) { "The sealing mark was not stored durably" }
+        check(preferences.getString(name) == SEALING_BEGUN) { "The sealing mark read-back differs" }
+    }
+
+    /**
+     * Whether a value may have been sealed under the current SK: its sealing
+     * mark is stored, or the current SK cannot be named, so nothing can be ruled out.
+     */
+    fun mayHoldSealedValues(): Boolean {
+        val keyId = currentKeyId() ?: return true
+        return preferences.contains(sealingKey(keyId))
     }
 
     fun hasBackupWrap(keyId: ByteArray, canonicalRoot: ByteArray): Boolean =
@@ -493,6 +525,7 @@ class WalletSecretKeyring(
         const val KEY_PREFIX = "wallet_secret_keyring_v1:"
         private const val CURRENT_KEY = "${KEY_PREFIX}current"
         private const val RECORD_PREFIX = "${KEY_PREFIX}sk:"
+        private const val SEALING_BEGUN = "1"
 
         private const val KEY_ID_BYTES = WalletSecretEnvelope.KEY_ID_BYTES
         private const val KEY_BYTES = WalletSecretEnvelope.KEY_BYTES
@@ -518,6 +551,9 @@ class WalletSecretKeyring(
 
         fun backupKey(keyId: ByteArray, rootId: ByteArray): String =
             "$RECORD_PREFIX${Hex.toHexString(keyId)}:backup:${Hex.toHexString(rootId)}"
+
+        /** Where the sealing mark of SK [keyId] is stored. */
+        fun sealingKey(keyId: ByteArray): String = "$RECORD_PREFIX${Hex.toHexString(keyId)}:sealing"
 
         /** A root's id: a digest of its canonical key, so every proof of that root finds its wrap. */
         fun rootId(canonicalRoot: ByteArray): ByteArray {
