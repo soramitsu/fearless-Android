@@ -17,7 +17,7 @@ import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.model.WalletEcosystem
-import jp.co.soramitsu.common.utils.isGooglePlayServicesAvailable
+import jp.co.soramitsu.common.utils.canOpenHttpsLinks
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.common.view.protectSensitiveContent
 
@@ -41,7 +41,7 @@ class BackupMnemonicDialog : BaseComposeBottomSheetDialogFragment<BackupMnemonic
         val state by viewModel.state.collectAsState()
         viewModel.encryptionTypeChooserEvent.observeEvent(::showEncryptionChooser)
 
-        val isGoogleAvailable = context?.isGooglePlayServicesAvailable() == true
+        val isGoogleAvailable = context?.canOpenHttpsLinks() == true
         BottomSheetScreen {
             BackupMnemonicContent(
                 state = state,

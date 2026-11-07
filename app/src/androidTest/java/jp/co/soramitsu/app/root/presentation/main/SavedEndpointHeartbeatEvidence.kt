@@ -1,61 +1,52 @@
 package jp.co.soramitsu.app.root.presentation.main
 
 import android.content.Context
-import android.os.Bundle
 import android.os.SystemClock
 import android.util.Base64
 import org.json.JSONObject
 import java.io.File
 
-/** Keeps original raw snapshots and records each narrowly validated telemetry observation. */
-internal class SavedEndpointHeartbeatEvidence(baselinePreferences: JSONObject, arguments: Bundle) {
-    private val utcDate = checkNotNull(arguments.getString("fearlessFixtureUtcDate"))
-    private val issuedAtMillis = checkNotNull(arguments.getString("fearlessFixtureIssuedAtMillis")).toLong()
-    private val oracle = SavedEndpointHeartbeatOracle(
-        utcDate, issuedAtMillis, decode(baselinePreferences.getJSONObject(SavedEndpointHeartbeatOracle.NAME))
-    )
+/**
+ * Records each observation of the Firebase heartbeat preferences file. Firebase is not part of the
+ * app since 4.3.2, so a fresh fixture never gets one and a file an older version left behind must
+ * stay byte-identical.
+ */
+internal class SavedEndpointHeartbeatEvidence(baselinePreferences: JSONObject) {
+    private val baseline: SavedEndpointHeartbeatOracle.FileState? =
+        baselinePreferences.optJSONObject(SavedEndpointHeartbeatOracle.NAME)?.let(::decode)
 
     fun observe(snapshot: JSONObject) {
         check(!snapshot.has("heartbeatObservation"))
-        val file = snapshot.getJSONObject("preferences").getJSONObject(SavedEndpointHeartbeatOracle.NAME)
-        val result = oracle.observe(decode(file), System.currentTimeMillis())
-        snapshot.put(
-            "heartbeatObservation",
-            JSONObject()
+        val file = snapshot.getJSONObject("preferences").optJSONObject(SavedEndpointHeartbeatOracle.NAME)
+        val observation = JSONObject()
             .put("path", SavedEndpointHeartbeatOracle.PATH)
-            .put("expectedUtcDate", result.expectedUtcDate)
-            .put("issuedAtMillis", result.issuedAtMillis)
-            .put("observedAtMillis", result.observedAtMillis)
-            .put("baselineSHA256", result.baselineSha256)
-            .put("previousSHA256", result.previousSha256)
-            .put("observedSHA256", result.observedSha256)
-            .put("dailyAppend", result.dailyAppend)
-        )
+            .put("observedAtMillis", System.currentTimeMillis())
+        val retained = baseline
+        if (retained == null) {
+            check(file == null) { "A Firebase heartbeat appeared; Firebase is not part of the app" }
+            observation.put("present", false)
+        } else {
+            val current = decode(checkNotNull(file) { "The retained Firebase heartbeat file disappeared" })
+            check(current == retained) { "The retained Firebase heartbeat changed; Firebase is not part of the app" }
+            observation
+                .put("present", true)
+                .put("baselineSHA256", retained.rawSha256)
+                .put("observedSHA256", current.rawSha256)
+        }
+        snapshot.put("heartbeatObservation", observation)
     }
 
     companion object {
-        /** Wait only for initial asynchronous telemetry, before the fresh fixture's first raw baseline. */
-        fun awaitFreshHeartbeat(context: Context, arguments: Bundle) {
-            val deadline = SystemClock.elapsedRealtime() + 15_000
-            val expectedDay = checkNotNull(arguments.getString("fearlessFixtureUtcDate"))
-            val issuedAt = checkNotNull(arguments.getString("fearlessFixtureIssuedAtMillis")).toLong()
+        private const val ABSENCE_SETTLE_MILLIS = 3_000L
+
+        /** A fresh fixture must not get a Firebase heartbeat: Firebase is not part of the app. */
+        fun assertNoFreshFirebaseHeartbeat(context: Context) {
             val path = File(context.applicationInfo.dataDir, SavedEndpointHeartbeatOracle.PATH)
+            val deadline = SystemClock.elapsedRealtime() + ABSENCE_SETTLE_MILLIS
             do {
-                val raw = if (path.isFile) {
-                    SavedEndpointInspectionRawSnapshot.preferences(context, SavedEndpointHeartbeatOracle.NAME)
-                } else {
-                    null
-                }
-                // Only a missing or empty, not-yet-completed initial heartbeat is retryable.
-                if (raw != null && raw.getJSONObject("typedMap").length() != 0) {
-                    val state = decode(raw)
-                    SavedEndpointHeartbeatOracle(expectedDay, issuedAt, state).observe(state, System.currentTimeMillis())
-                    check(raw.getJSONObject("typedMap").getJSONObject("last-used-date").getString("value") == expectedDay)
-                    return
-                }
+                check(!path.exists()) { "A Firebase heartbeat appeared; Firebase is not part of the app" }
                 Thread.sleep(25)
             } while (SystemClock.elapsedRealtime() < deadline)
-            error("Fresh Firebase heartbeat did not finish within the bounded admission interval")
         }
 
         private fun decode(snapshot: JSONObject): SavedEndpointHeartbeatOracle.FileState {

@@ -96,6 +96,7 @@
   <string name="backup_not_backed_up_message">Cihazınız kaybolur veya çalınırsa cüzdanınızı ve tüm paranızı sonsuza kadar kaybedeceksiniz</string>
   <string name="backup_not_backed_up_title">Yedeklenmedi!</string>
   <string name="backup_now">Şimdi yedekle</string>
+  <string name="backup_password_rule">En az 12 karakter ve şu 4 türden 3\'ü: küçük harf, büyük harf, rakam, sembol. Ya da en az 16 karakter. PIN, cüzdan adı veya bir adres olamaz.</string>
   <string name="backup_wallet_backup_to_google">Google\'a yedekleme</string>
   <string name="backup_wallet_delete_alert_message">Google yedeklemenizi silerseniz, cüzdanınızı yalnızca parolanızın manuel olarak yedeklenmesiyle kurtarabilirsiniz.</string>
   <plurals name="backup_wallet_delete_copies_alert_message">

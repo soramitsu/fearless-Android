@@ -31,7 +31,7 @@ import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.presentation.askPermissionsSafely
 import jp.co.soramitsu.common.scan.ScanTextContract
 import jp.co.soramitsu.common.scan.ScannerActivity
-import jp.co.soramitsu.common.utils.isGooglePlayServicesAvailable
+import jp.co.soramitsu.common.utils.canOpenHttpsLinks
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -87,7 +87,7 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
         scrollState: ScrollState,
         modalBottomSheetState: ModalBottomSheetState
     ) {
-        val isGoogleAvailable = context?.isGooglePlayServicesAvailable() == true
+        val isGoogleAvailable = context?.canOpenHttpsLinks() == true
         val navController = rememberNavController()
 
         LaunchedEffect(Unit) {

@@ -15,7 +15,8 @@ Build Types
 - `internalAppSharing` is CI-only and file-only. It inherits release shrinker
   semantics, uses a run-bound ephemeral JKS with the Android Debug identity and
   the `-ias` version-name suffix, and cannot upgrade a Play-installed app.
-- R8/shrinker toggled for remote builds; Firebase App Distribution configured on CI branches.
+- R8/shrinker toggled for remote builds. Firebase App Distribution and the Google Services
+  plugin are gone (4.3.2).
 
 Configs & Secrets (see README for details)
 - WalletConnect: `WALLET_CONNECT_PROJECT_ID` in `BuildConfig`.
@@ -23,21 +24,20 @@ Configs & Secrets (see README for details)
   `MOONPAY_PRODUCTION_PUBLIC_KEY` only. URL signatures and server secrets must
   never be generated, stored, or injected in the Android app.
 - Buy providers: `RAMP_TOKEN_DEBUG`, `RAMP_TOKEN_RELEASE`, `COINBASE_APP_ID`.
-- Firebase: checked-in `google-services.json` files are placeholders; real
-  Firebase project files must come from private CI or local overlay config for
-  governed production release builds. IAS finalizes the typed input of
-  `processInternalAppSharingGoogleServices` directly to the checked-in
-  `fearless-public` release placeholder. It must never create an
-  `app/src/internalAppSharing` tree. Its fake/empty Firebase and OAuth values
-  mean IAS cannot qualify live Firebase, Google sign-in, or Drive/passkey
-  backup and restore.
+- Google Drive backup: `GOOGLE_DRIVE_OAUTH_CLIENT_ID` (optional; default is
+  project 621183184145's public iOS client) feeds `BuildConfig` and the
+  `googleDriveOAuthRedirectScheme` manifest placeholder of the exported
+  `GoogleDriveSignInRedirectActivity`. No `google-services.json` may exist under
+  `app/`; IAS verification fails on one. IAS must never create an
+  `app/src/internalAppSharing` tree.
 - EVM/API keys: `FL_BLAST_API_*`, `FL_ANDROID_*SCAN_API_KEY`.
 
 Release Safety
 - Never use the legacy combined `RELEASE_OVERLAY_MODE=release`. The protected
   workflow first runs a credential-free `release-controls` source/governance
-  gate, then uses `firebase` in the protected build job and `signing` in a
-  separate protected fresh signing job.
+  gate, then restores nothing in the protected build job (the `firebase`
+  overlay mode was removed in 4.3.2) and `signing` in a separate protected
+  fresh signing job.
 - At every boundary, use `scripts/verify-android-release-source-tree.sh` to
   prove the exact commit/tree and reject tracked, staged, untracked, or
   source-like ignored drift. Runtime modules belong to the same app tree; nested

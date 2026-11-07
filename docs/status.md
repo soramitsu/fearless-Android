@@ -40,6 +40,49 @@ different Substrate call signed than the one shown.
 - Builds need rustup, cargo-ndk 4.1.2 and NDK `30.0.16248370`; the hosted
   release workflow's isolated SDK provides neither yet.
 
+## 4.3.2 lane `google`: Google Drive backup without Google SDKs — 7 November 2026
+
+- Google Drive backup no longer uses Google Play services. The app signs in with its own OAuth 2.0
+  authorization-code flow with PKCE (S256) and `state` in the user's browser (never a WebView):
+  `GoogleDriveSignInActivity` (private, singleTask) opens Google's page, the exported
+  `GoogleDriveSignInRedirectActivity` hands back only the redirect URI, and the code is exchanged at
+  `oauth2.googleapis.com/token`. The refresh token is kept only in the encrypted preferences
+  (`google_drive_oauth_session_v1`, bound to the client id); access tokens stay in memory and are
+  refreshed, dropped on a 401 and retried once. `invalid_grant` or a client Google refuses ends the
+  session and asks for sign-in again; Drive access turned off on the consent page asks for consent.
+  Sign-out forgets the session on the device and does not revoke the grant at Google, because
+  iOS and the extension share project 621183184145 (revocation is available as
+  `GoogleDriveAuthorization.revokeAccess()`). Upgrading users sign in once in the browser at their
+  first Drive action, because the Play services sign-in cannot be carried over; their backups stay
+  where they are.
+- The client is `GOOGLE_DRIVE_OAUTH_CLIENT_ID` (`scripts/secrets.gradle`), by default the project's
+  public iOS client, whose `com.googleusercontent.apps.…:/oauth2redirect` redirect Google accepts from
+  Android with PKCE (checked 7 November 2026: the authorization request reaches the sign-in page; a
+  wrong redirect gets `redirect_uri_mismatch`). The build refuses clients of other projects.
+- Drive v3 REST client on OkHttp/Gson (`GoogleDriveApi`) with the same queries, fields, folder,
+  names, descriptions and `text/json` type as before; paged listings stop on a repeated page token.
+- Removed: play-services-auth (and auth-base, api-phone, blockstore, fido, identity-credentials),
+  credentials-play-services-auth, googleid, Play Integrity and core-common, the Google API, HTTP and
+  OAuth client libraries, google-auth-library, the Google Services and Firebase App Distribution
+  plugins, every `google-services.json` and the `firebase` release overlay. Firebase Messaging and
+  some Play services libraries remain only through the Reown SDK.
+- Passkey backup stays compiled off; Play Integrity is replaced by an attestation interface with no
+  provider, so enabling it needs an open attestation design.
+- No library went older than 4.3.1 (233) shipped: the removed SDKs had raised androidx.loader,
+  Play services base/basement/tasks (still pulled by Reown), Gson, Error Prone annotations and
+  JSpecify, so the root `build.gradle` holds every Android module at the 233 versions. Guava and
+  its friends left with the Google API client; `listenablefuture` therefore moves from 233's
+  9999.0-empty placeholder to the real 1.0 jar, which now carries `ListenableFuture`. The
+  verification metadata drops the 77 entries of the removed families (OpenCensus API and proto
+  stay: AGP's instrumented-test platform still uses them).
+- Audit fix: backing an existing wallet up to Drive now asks for the PIN through
+  `withPinCodeCheckRequired`, like the phrase, seed and JSON exports. New Drive backup and JSON export
+  passwords need 12+ characters from 3 classes or 16+ characters, and may not be the PIN, the wallet
+  name or one of its addresses; the rule is shown under the field. Restores accept any password.
+- Gates updated: AAB identity allowlist, release overlays, IAS build/AAB checks, public artifact
+  audit, the Drive client pin, and the dependency provenance check. The build-log verifier no longer
+  checks `WEB_CLIENT_ID_RELEASE`, which the build stopped reading (suite now 3 positive / 26).
+
 ## Production release 4.3.1 (233): Asset Hub staking — 30 October 2026
 
 4.3.1 brings back Polkadot and Kusama staking, which 4.3.0 could not offer because

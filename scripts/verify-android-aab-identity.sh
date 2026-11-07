@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 EXPECTED_ANDROID_GRADLE_PLUGIN_VERSION="8.10.1"
 EXPECTED_R8_VERSION="8.10.24"
-EXPECTED_MANIFEST_COMPONENTS_SHA256="4d91723e7fe0a4960f76d7d127a6d44a06c5b30ae3392cf334faca6bfe920d35"
+EXPECTED_MANIFEST_COMPONENTS_SHA256="0fc9d861880e9221cbf2bced07819fb0a37acfc4a554ac5369f2ffb91f2bfad3"
 temporary_files=()
 
 cleanup() {
@@ -674,6 +674,25 @@ buy_success_filter = expected_filter(
     ],
     [expected_data(scheme="fearless"), expected_data(host="buy-success")],
 )
+google_drive_sign_in_activity = (
+    "jp.co.soramitsu.account.impl.presentation.google_signin.GoogleDriveSignInActivity"
+)
+google_drive_sign_in_redirect_activity = (
+    "jp.co.soramitsu.account.impl.presentation.google_signin.GoogleDriveSignInRedirectActivity"
+)
+# The reversed id of the Drive backup OAuth client (scripts/secrets.gradle). Changing the client
+# is a reviewed change of this line, the pin file and the reviewed inventory digest together.
+google_drive_oauth_redirect_scheme = (
+    "com.googleusercontent.apps.621183184145-jla1mrbl3soobt85btt2nebon8s3d30b"
+)
+google_drive_oauth_redirect_filter = expected_filter(
+    ["android.intent.action.VIEW"],
+    [
+        "android.intent.category.DEFAULT",
+        "android.intent.category.BROWSABLE",
+    ],
+    [expected_data(scheme=google_drive_oauth_redirect_scheme)],
+)
 ton_connect_filter = expected_filter(
     ["android.intent.action.VIEW"],
     [
@@ -689,26 +708,10 @@ ton_connect_filter = expected_filter(
 )
 
 expected_components = [
-    expected_component(
-        "activity",
-        "androidx.credentials.playservices.controllers.identityauth.HiddenActivity",
-    ),
-    expected_component(
-        "activity",
-        "androidx.credentials.playservices.controllers.identitycredentials.IdentityCredentialApiHiddenActivity",
-    ),
-    expected_component(
-        "activity",
-        "com.google.android.gms.auth.api.signin.internal.SignInHubActivity",
-    ),
+    # play-services-base, brought only by Reown's firebase-messaging; leaves with it.
     expected_component(
         "activity",
         "com.google.android.gms.common.api.GoogleApiActivity",
-    ),
-    # Play Integrity (core-backup attestation) merges this non-exported Play Core dialog host.
-    expected_component(
-        "activity",
-        "com.google.android.play.core.common.PlayCoreDialogWrapperActivity",
     ),
     expected_component(
         "activity",
@@ -744,9 +747,15 @@ expected_components = [
         ],
     ),
     expected_component("activity", wallet_root_activity),
+    # Google Drive backup sign-in (OAuth 2.0 + PKCE in the browser, no Play services). The
+    # sign-in screen is private; the redirect receiver is exported for the browser and accepts
+    # only the Drive OAuth client's custom scheme.
+    expected_component("activity", google_drive_sign_in_activity),
     expected_component(
-        "service",
-        "androidx.credentials.playservices.CredentialProviderMetadataHolder",
+        "activity",
+        google_drive_sign_in_redirect_activity,
+        exported=True,
+        intent_filters=[google_drive_oauth_redirect_filter],
     ),
     expected_component(
         "service",
@@ -760,15 +769,6 @@ expected_components = [
         "service",
         "com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService",
         permission="android.permission.BIND_JOB_SERVICE",
-    ),
-    expected_component(
-        "service",
-        "com.google.android.gms.auth.api.signin.RevocationBoundService",
-        exported=True,
-        permission=(
-            "com.google.android.gms.auth.api.signin.permission."
-            "REVOCATION_NOTIFICATION"
-        ),
     ),
     expected_component(
         "service",
@@ -1279,11 +1279,23 @@ for chain_activity, required_exported in (
             f"enabled/exported state at {chain_activity!r}."
         )
 
+# Browsers must be able to deliver Google's sign-in redirect, so the reviewed redirect receiver is
+# the one non-launcher component exported without a permission, and only with its exact filter.
+def is_reviewed_oauth_redirect_receiver(component):
+    return (
+        component["type"] == "activity"
+        and component["name"] == google_drive_sign_in_redirect_activity
+        and canonical_json(component["intentFilters"])
+        == canonical_json([google_drive_oauth_redirect_filter])
+    )
+
+
 for component in actual_components:
     if (
         component["exported"]
         and component["name"] != launcher_component["name"]
         and not component["permission"]
+        and not is_reviewed_oauth_redirect_receiver(component)
     ):
         fail_manifest(
             "An exported non-launcher component lacks a required permission: "

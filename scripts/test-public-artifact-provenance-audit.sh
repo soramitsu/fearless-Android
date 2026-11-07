@@ -79,4 +79,18 @@ expect_failure "release provenance document override" env \
   PUBLIC_ARTIFACT_PROVENANCE_DOC="$ROOT_DIR/docs/binary-provenance.md" \
   "$AUDIT" --release --strict-provenance
 
-echo "[artifact-provenance-test] all adversarial fixtures passed (1 valid contract plus $NEGATIVE_SCENARIO_COUNT negative scenarios)"
+# Firebase is not part of the app: an unsigned release audit passes without a Google Services
+# configuration and fails as soon as one appears, tracked or not.
+release_env=(env -u CI_KEYSTORE_PATH -u CI_KEYSTORE_PASS -u CI_KEYSTORE_KEY_ALIAS -u CI_KEYSTORE_KEY_PASS
+  RAMP_TOKEN_RELEASE=synthetic WALLET_CONNECT_PROJECT_ID=00000000000000000000000000000000)
+stray_google_services="$ROOT_DIR/app/src/release/google-services.json"
+[[ ! -e "$stray_google_services" ]] || fail "a Google Services configuration already exists"
+"${release_env[@]}" "$AUDIT" --unsigned-release --strict-provenance >/dev/null ||
+  fail "unsigned release audit without Google Services configuration was rejected"
+trap 'rm -rf "$tmp_dir"; rm -f "$stray_google_services"' EXIT
+printf '{"project_info":{"project_id":"fearless-public"}}\n' >"$stray_google_services"
+expect_failure "release with a Google Services configuration" \
+  "${release_env[@]}" "$AUDIT" --unsigned-release --strict-provenance
+rm -f "$stray_google_services"
+
+echo "[artifact-provenance-test] all adversarial fixtures passed (2 valid contracts plus $NEGATIVE_SCENARIO_COUNT negative scenarios)"

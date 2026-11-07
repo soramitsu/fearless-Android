@@ -44,7 +44,10 @@ data class CreateBackupPasswordViewState(
     @StringRes val passwordMatchingTextResource: Int?,
     val highlightConfirmPassword: Boolean,
     val isSetButtonEnabled: Boolean,
-    val isLoading: Boolean
+    val isLoading: Boolean,
+    /** The new-password rule, always shown; highlighted while the typed password breaks it. */
+    @StringRes val passwordRuleTextResource: Int = R.string.backup_password_rule,
+    val highlightPasswordRule: Boolean = false
 )
 
 interface CreateBackupPasswordCallback {
@@ -111,6 +114,15 @@ internal fun CreateBackupPasswordContent(
                         onEndIconClick = callback::onOriginPasswordVisibilityClick
                     )
                 }
+                MarginVertical(margin = 8.dp)
+                B2(
+                    text = stringResource(state.passwordRuleTextResource),
+                    color = if (state.highlightPasswordRule) {
+                        colorAccent
+                    } else {
+                        gray2
+                    }
+                )
                 MarginVertical(margin = 16.dp)
                 key(state.confirmPasswordViewState.isActive) {
                     TextInput(

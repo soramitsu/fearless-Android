@@ -74,6 +74,7 @@ class GoogleBackupIssueTest {
         assertEquals(GoogleBackupIssue.UNAVAILABLE, GoogleSignInResult.ConfigurationError.toGoogleBackupIssue())
         assertEquals(GoogleBackupIssue.NO_CONNECTION, GoogleSignInResult.Network.toGoogleBackupIssue())
         assertEquals(GoogleBackupIssue.UNKNOWN, GoogleSignInResult.Other(13).toGoogleBackupIssue())
+        assertEquals(GoogleBackupIssue.SIGN_IN_REQUIRED, GoogleSignInResult.DriveAccessDenied.toGoogleBackupIssue())
     }
 
     @Test

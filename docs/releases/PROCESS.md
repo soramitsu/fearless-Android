@@ -126,14 +126,14 @@ This document standardizes how we cut beta and stable releases for Fearless Andr
     identical. The signed-AAB snapshot suite fixes 1 positive and 8
     adversarial cases, including four deterministic signer-output swaps and a
     private-snapshot tamper. Fearless-utils integrity fixes 4 positive and 7
-    adversarial cases. The build-log suite fixes 3 positive and 30 adversarial
+    adversarial cases. The build-log suite fixes 3 positive and 26 adversarial
     cases and rejects cached, skipped, duplicated, warning-bearing, oversized,
-    symlinked, or mutating evidence and a missing or blank
-    `WEB_CLIENT_ID_RELEASE`. The Google Drive web-client suite fixes 3 positive
+    symlinked, or mutating evidence (4.3.2 dropped its `WEB_CLIENT_ID_RELEASE`
+    check with the secret). The Google Drive OAuth client suite fixes 3 positive
     and 27 adversarial cases; its verifier checks the unsigned and signed AAB
     against the pinned client (`docs/release-checklist.md`, Google Drive
     Backup). Gradle dependency provenance fixes 2
-    positive and 65
+    positive and 66
     adversarial cases and pins the Gradle distribution checksum, strict
     verification metadata and its digest, the strict root buildscript lock, and
     the production release lockfile; release/CI builds reject `mavenLocal()` and
@@ -217,15 +217,13 @@ The build contract is fail-closed:
   forbidden. So are the unsigned-release switch, Play service-account and
   publisher controls, production Firebase overlay variables, and other
   distribution credentials.
-- `processInternalAppSharingGoogleServices` exposes a typed JSON input that is
-  finalized directly to the checksum-pinned reviewed `fearless-public` file at
-  `app/src/release/google-services.json`. Symlink traversal, hardlinks, byte
-  changes, non-public Firebase values, and attempts to replace that finalized
-  input fail closed. No copy, owner marker, or cleanup lifecycle exists:
-  `app/src/internalAppSharing` must never be created.
-- The placeholder's fake/empty Firebase and OAuth values deliberately disable
-  live Firebase, Google OAuth/sign-in, and Google Drive/passkey backup and
-  restore. Supported IAS smoke scope is install/fresh launch, cold start,
+- IAS verification fails when any `google-services.json` (file or symlink)
+  exists under `app/` or a Google Services processing task is registered, and
+  the IAS AAB verifier fails when Firebase resources are compiled in. No copy,
+  owner marker, or cleanup lifecycle exists: `app/src/internalAppSharing` must
+  never be created.
+- IAS builds sign in to Google Drive like release builds (same public OAuth
+  client); passkey backup stays compiled off. Supported IAS smoke scope is install/fresh launch, cold start,
   onboarding/navigation, local-only disposable-wallet flows, and screens that
   do not depend on those services. Play upgrade, production migration, and
   production signing remain unsupported.
@@ -301,12 +299,12 @@ CI qualification runs in this order:
    otherwise it must delete it. The scheduled janitor removes canceled, failed,
    stale, or ambiguous pending artifacts.
 
-Frozen totals are dependency provenance 2 positive / 65 adversarial, bounded
+Frozen totals are dependency provenance 2 positive / 66 adversarial, bounded
 Gradle coverage cleanup 4 positive / 12 negative/adversarial, IAS Gradle 8
-positive / 39 behavioral negative / 645 static adversarial assertions, and
+positive / 37 behavioral negative / 645 static adversarial assertions, and
 workflow Linux public-certificate IAS AAB 7 positive / 78 adversarial
-artifacts. Local AAB expectations are 7/76 on macOS in certificate mode, 7/84
-on macOS in keystore mode, and 7/86 on Linux in keystore mode. Any total drift
+artifacts. Local AAB expectations are 7/76 on macOS in certificate mode, 7/82
+on macOS in keystore mode, and 7/84 on Linux in keystore mode. Any total drift
 requires review. IAS handoff status remains pending until the eligible manual
 run supplies full green evidence.
 
@@ -433,7 +431,7 @@ feature smoke testing only.
     evidence, then upload the workflow artifact.
   - Always run `CI=true ./scripts/cleanup-release-overlays.sh` in a final
     cleanup step, including cancelled and failed jobs.
-  - Required CI secrets include `GOOGLE_SERVICES_RELEASE_JSON_B64`,
+  - Required CI secrets include
     `ANDROID_RELEASE_KEYSTORE_B64`, signing passwords, and partner-provider
     keys. Configure the non-secret signing alias in
     `ANDROID_RELEASE_KEY_ALIAS`. No Play service-account secret is accepted.

@@ -88,6 +88,9 @@ android {
         }
         buildConfigField "String", "SOLANA_RPC_PROVIDER_URL", "\"${solanaRpcProviderUrl}\""
 
+        // Public OAuth client for Google Drive backup; see googleDriveOAuthClientId in scripts/secrets.gradle.
+        buildConfigField "String", "GOOGLE_DRIVE_OAUTH_CLIENT_ID", "\"${googleDriveOAuthClientId()}\""
+
         buildConfigField("String", "DAPPS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/development/appConfigs/dapps.json\"")
     }
 
@@ -95,13 +98,11 @@ android {
         debug {
             buildConfigField "String", "FIAT_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/development/fiat/fiats.json\""
 
-            buildConfigField "String", "WEB_CLIENT_ID", readSecretInQuotes("WEB_CLIENT_ID_DEBUG")
             buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/development/appVersionSupport/android_app_support_dev.json\""
         }
         release {
             buildConfigField "String", "FIAT_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/fiat/fiats.json\""
 
-            buildConfigField "String", "WEB_CLIENT_ID", readSecretInQuotes("WEB_CLIENT_ID_RELEASE")
             buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/development/appVersionSupport/android_app_support.json\""
         }
     }
@@ -186,8 +187,6 @@ dependencies {
     implementation libs.hilt.android
     implementation libs.navigation.fragment.ktx
     ksp libs.hilt.compiler
-
-    implementation libs.play.services.base
 
     implementation libs.converter.gson
     implementation libs.converter.scalars

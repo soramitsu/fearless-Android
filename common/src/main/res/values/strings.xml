@@ -96,6 +96,7 @@
   <string name="backup_not_backed_up_message">If your device gets lost or stolen, you will lose your wallet and all your funds forever</string>
   <string name="backup_not_backed_up_title">Not backed up!</string>
   <string name="backup_now">Backup now</string>
+  <string name="backup_password_rule">Use 12+ characters with 3 of: lowercase, uppercase, digits, symbols, or 16+ characters. Not your PIN, wallet name or an address.</string>
   <string name="backup_wallet_backup_to_google">Backup to Google</string>
   <string name="backup_wallet_delete_alert_message">If you delete your Google backup, you’ll only be able to recover your wallet with a manual backup of your passphrase</string>
   <plurals name="backup_wallet_delete_copies_alert_message">

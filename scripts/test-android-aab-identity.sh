@@ -36,8 +36,10 @@ component_manifest_modes=(
   missing-service
   unexpected-service
   service-exported
-  revocation-permission-missing
-  revocation-permission-mutated
+  oauth-redirect-scheme-mutated
+  oauth-redirect-not-exported
+  oauth-redirect-extra-filter
+  oauth-sign-in-exported-true
   missing-receiver
   unexpected-receiver
   firebase-receiver-permission-missing
@@ -1125,39 +1127,30 @@ scanner = add_component(
 )
 add_component(
     "activity",
-    "androidx.credentials.playservices.controllers.identityauth.HiddenActivity",
-    **{attribute_enabled: "true", attribute_exported: "false"},
-)
-add_component(
-    "activity",
-    "androidx.credentials.playservices.controllers.identitycredentials.IdentityCredentialApiHiddenActivity",
-    **{attribute_enabled: "true", attribute_exported: "false"},
-)
-add_component(
-    "activity",
-    "com.google.android.gms.auth.api.signin.internal.SignInHubActivity",
-    **{attribute_exported: "false"},
-)
-add_component(
-    "activity",
     "com.google.android.gms.common.api.GoogleApiActivity",
     **{attribute_exported: "false"},
 )
-add_component(
+oauth_sign_in = add_component(
     "activity",
-    "com.google.android.play.core.common.PlayCoreDialogWrapperActivity",
+    "jp.co.soramitsu.account.impl.presentation.google_signin.GoogleDriveSignInActivity",
     **{attribute_exported: "false"},
+)
+oauth_redirect = add_component(
+    "activity",
+    "jp.co.soramitsu.account.impl.presentation.google_signin.GoogleDriveSignInRedirectActivity",
+    **{attribute_exported: "true"},
+)
+oauth_redirect_filter = add_intent_filter(
+    oauth_redirect,
+    ["android.intent.action.VIEW"],
+    ["android.intent.category.DEFAULT", "android.intent.category.BROWSABLE"],
+    [{"scheme": "com.googleusercontent.apps.621183184145-jla1mrbl3soobt85btt2nebon8s3d30b"}],
 )
 add_component(
     "activity",
     "com.journeyapps.barcodescanner.CaptureActivity",
 )
 
-add_component(
-    "service",
-    "androidx.credentials.playservices.CredentialProviderMetadataHolder",
-    **{attribute_enabled: "true", attribute_exported: "false"},
-)
 firebase_messaging = add_component(
     "service",
     "com.google.firebase.messaging.FirebaseMessagingService",
@@ -1172,17 +1165,6 @@ component_discovery = add_component(
     "service",
     "com.google.firebase.components.ComponentDiscoveryService",
     **{attribute_exported: "false"},
-)
-revocation_service = add_component(
-    "service",
-    "com.google.android.gms.auth.api.signin.RevocationBoundService",
-    **{
-        attribute_exported: "true",
-        attribute_permission: (
-            "com.google.android.gms.auth.api.signin.permission."
-            "REVOCATION_NOTIFICATION"
-        ),
-    },
 )
 add_component(
     "service",
@@ -1367,10 +1349,19 @@ elif mode == "unexpected-service":
     )
 elif mode == "service-exported":
     component_discovery.set(attribute_exported, "true")
-elif mode == "revocation-permission-missing":
-    del revocation_service.attrib[attribute_permission]
-elif mode == "revocation-permission-mutated":
-    revocation_service.set(attribute_permission, "jp.example.WRONG_PERMISSION")
+elif mode == "oauth-redirect-scheme-mutated":
+    oauth_redirect_filter.find("data").set(attribute_scheme, "com.example.attacker")
+elif mode == "oauth-redirect-not-exported":
+    oauth_redirect.set(attribute_exported, "false")
+elif mode == "oauth-redirect-extra-filter":
+    add_intent_filter(
+        oauth_redirect,
+        ["android.intent.action.VIEW"],
+        ["android.intent.category.DEFAULT", "android.intent.category.BROWSABLE"],
+        [{"scheme": "https"}, {"host": "attacker.example"}],
+    )
+elif mode == "oauth-sign-in-exported-true":
+    oauth_sign_in.set(attribute_exported, "true")
 elif mode == "missing-receiver":
     remove_component(profile_receiver)
 elif mode == "unexpected-receiver":
@@ -2263,13 +2254,13 @@ for manifest_mode in "${component_manifest_modes[@]}"; do
     missing-root|missing-wallet-root|root-exported-true|root-disabled)
       expected_diagnostic="wallet startup activity chain is missing or has unsafe"
       ;;
-    scanner-exported-true|service-exported|revocation-permission-missing|firebase-receiver-permission-missing|profile-permission-missing|file-provider-exported-true)
+    scanner-exported-true|service-exported|oauth-redirect-scheme-mutated|oauth-redirect-extra-filter|oauth-sign-in-exported-true|firebase-receiver-permission-missing|profile-permission-missing|file-provider-exported-true)
       expected_diagnostic="exported non-launcher component lacks a required permission"
       ;;
     duplicate-launcher-filter)
       expected_diagnostic="contains duplicate intent filters"
       ;;
-    unexpected-activity|unexpected-activity-alias|launcher-extra-action|launcher-extra-category|launcher-extra-data|missing-ton-filter|mutated-ton-host|ton-autoverify-false|missing-service|unexpected-service|revocation-permission-mutated|missing-receiver|unexpected-receiver|firebase-receiver-exported-false|receiver-intent-mutated|missing-provider|unexpected-provider|authority-mutated|grant-uri-disabled|provider-read-permission|provider-write-permission)
+    unexpected-activity|unexpected-activity-alias|launcher-extra-action|launcher-extra-category|launcher-extra-data|missing-ton-filter|mutated-ton-host|ton-autoverify-false|missing-service|unexpected-service|oauth-redirect-not-exported|missing-receiver|unexpected-receiver|firebase-receiver-exported-false|receiver-intent-mutated|missing-provider|unexpected-provider|authority-mutated|grant-uri-disabled|provider-read-permission|provider-write-permission)
       expected_diagnostic="exact manifest component surface differs from the reviewed allowlist"
       ;;
     authority-duplicated)
@@ -2307,9 +2298,9 @@ for manifest_mode in "${component_manifest_modes[@]}"; do
   component_manifest_negative_count=$((component_manifest_negative_count + 1))
 done
 
-[[ "${#component_manifest_modes[@]}" == "55" ]] ||
+[[ "${#component_manifest_modes[@]}" == "57" ]] ||
   fail \
-    "expected 55 declared component mutation modes; got ${#component_manifest_modes[@]}"
+    "expected 57 declared component mutation modes; got ${#component_manifest_modes[@]}"
 [[ "$component_manifest_negative_count" == "${#component_manifest_modes[@]}" ]] ||
   fail \
     "not every declared component mutation mode executed: " \
@@ -2323,8 +2314,8 @@ done
     "$r8_policy_negative_count"
 [[ "$positive_count" == "2" ]] ||
   fail "expected 2 positive cases; got $positive_count"
-[[ "$negative_count" == "135" ]] ||
-  fail "expected 135 negative cases; got $negative_count"
+[[ "$negative_count" == "137" ]] ||
+  fail "expected 137 negative cases; got $negative_count"
 
 printf '%s\n' \
   "[android-aab-r8-policy-test] $r8_policy_positive_count positive + $r8_policy_negative_count negative/adversarial cases passed"

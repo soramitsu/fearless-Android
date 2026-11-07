@@ -76,15 +76,15 @@ class CreateBackupPasswordViewModelTest {
         savedStateHandle: SavedStateHandle = SavedStateHandle(mapOf(CreateBackupPasswordDialog.PAYLOAD_KEY to payload))
     ) = CreateBackupPasswordViewModel(router, savedStateHandle, interactor, resourceManager).also {
         viewModels += it
-        it.onOriginPasswordChange("backup password")
-        it.onConfirmPasswordChange("backup password")
+        it.onOriginPasswordChange("backup password 2026")
+        it.onConfirmPasswordChange("backup password 2026")
     }
 
     private fun CreateBackupPasswordViewModel.dialog(): ErrorDialogState = errorDialogStateLiveData.value!!.peekContent()
 
     @Test
     fun `a failed upload retries the backup of the created wallet without creating it again`() = runTest(dispatcher) {
-        coEvery { interactor.saveGoogleBackupAccount(42L, "backup password") } throws IOException("offline") andThen emptySet()
+        coEvery { interactor.saveGoogleBackupAccount(42L, "backup password 2026") } throws IOException("offline") andThen emptySet()
         val vm = viewModel()
 
         vm.onApplyPasswordClick()
@@ -103,7 +103,7 @@ class CreateBackupPasswordViewModelTest {
         runCurrent()
 
         coVerify(exactly = 1) { interactor.createAccount(any()) }
-        coVerify(exactly = 2) { interactor.saveGoogleBackupAccount(42L, "backup password") }
+        coVerify(exactly = 2) { interactor.saveGoogleBackupAccount(42L, "backup password 2026") }
         coVerify(exactly = 1) { interactor.updateWalletBackedUp(42L) }
         verify(exactly = 1) { router.backWithResult(CreateBackupPasswordDialog.RESULT_BACKUP_KEY to Activity.RESULT_OK) }
     }
@@ -290,14 +290,14 @@ class CreateBackupPasswordViewModelTest {
         assertFalse(vm.state.value.originPasswordViewState.isActive)
         assertFalse(vm.state.value.confirmPasswordViewState.isActive)
         // A stray keystroke in the masked field while the wallet is being created.
-        vm.onOriginPasswordChange("backup password!")
+        vm.onOriginPasswordChange("backup password 2026!")
         created.complete(Result.success(42L))
         runCurrent()
 
-        coVerify(exactly = 1) { interactor.saveGoogleBackupAccount(42L, "backup password") }
-        coVerify(exactly = 0) { interactor.saveGoogleBackupAccount(any(), "backup password!") }
+        coVerify(exactly = 1) { interactor.saveGoogleBackupAccount(42L, "backup password 2026") }
+        coVerify(exactly = 0) { interactor.saveGoogleBackupAccount(any(), "backup password 2026!") }
         coVerify(exactly = 1) { interactor.updateWalletBackedUp(42L) }
-        assertEquals("backup password", vm.state.value.originPasswordViewState.text)
+        assertEquals("backup password 2026", vm.state.value.originPasswordViewState.text)
         // Once the backup is saved, the fields keep showing its password.
         assertFalse(vm.state.value.originPasswordViewState.isActive)
         assertFalse(vm.state.value.confirmPasswordViewState.isActive)
@@ -318,11 +318,11 @@ class CreateBackupPasswordViewModelTest {
         coVerify(exactly = 0) { interactor.updateWalletBackedUp(any()) }
         verify(exactly = 0) { router.backWithResult(*anyVararg()) }
 
-        vm.onOriginPasswordChange("backup password")
+        vm.onOriginPasswordChange("backup password 2026")
         vm.onApplyPasswordClick()
         runCurrent()
 
-        coVerify(exactly = 2) { interactor.saveGoogleBackupAccount(7L, "backup password") }
+        coVerify(exactly = 2) { interactor.saveGoogleBackupAccount(7L, "backup password 2026") }
         coVerify(exactly = 1) { interactor.updateWalletBackedUp(7L) }
     }
 
@@ -341,12 +341,58 @@ class CreateBackupPasswordViewModelTest {
         runCurrent()
 
         // Drive holds the first password, so the screen must not suggest the new one protects it.
-        assertEquals("backup password", vm.state.value.originPasswordViewState.text)
+        assertEquals("backup password 2026", vm.state.value.originPasswordViewState.text)
         vm.dialog().positiveClick()
         runCurrent()
 
-        coVerify(exactly = 1) { interactor.saveGoogleBackupAccount(7L, "backup password") }
+        coVerify(exactly = 1) { interactor.saveGoogleBackupAccount(7L, "backup password 2026") }
         coVerify(exactly = 0) { interactor.saveGoogleBackupAccount(any(), "new password") }
         verify(exactly = 1) { router.backWithResult(CreateBackupPasswordDialog.RESULT_BACKUP_KEY to Activity.RESULT_OK) }
+    }
+
+    @Test
+    fun `a weak password never creates or uploads anything`() = runTest(dispatcher) {
+        val vm = viewModel()
+        vm.onOriginPasswordChange("short pass")
+        vm.onConfirmPasswordChange("short pass")
+        vm.onAgreementsClick()
+        runCurrent()
+
+        assertTrue(vm.state.value.highlightPasswordRule)
+        assertFalse(vm.state.value.isSetButtonEnabled)
+        vm.onApplyPasswordClick()
+        runCurrent()
+
+        coVerify(exactly = 0) { interactor.createAccount(any()) }
+        coVerify(exactly = 0) { interactor.saveGoogleBackupAccount(any(), any()) }
+        assertFalse(vm.state.value.isLoading)
+    }
+
+    @Test
+    fun `the wallet name is refused even when it is long enough`() = runTest(dispatcher) {
+        val named = AddAccountPayload.SubstrateOrEvm("My savings wallet 2026", "synthetic words", CryptoType.SR25519, "", "", null, false)
+        val vm = viewModel(payload = SaveBackupPayload(walletId = null, addAccountPayload = named))
+        vm.onOriginPasswordChange("my savings wallet 2026")
+        vm.onConfirmPasswordChange("my savings wallet 2026")
+        runCurrent()
+
+        vm.onApplyPasswordClick()
+        runCurrent()
+
+        coVerify(exactly = 0) { interactor.saveGoogleBackupAccount(any(), any()) }
+        assertTrue(vm.state.value.highlightPasswordRule)
+    }
+
+    @Test
+    fun `a password that meets the rule enables the button once the agreements are accepted`() = runTest(dispatcher) {
+        val vm = viewModel()
+        runCurrent()
+
+        assertFalse(vm.state.value.highlightPasswordRule)
+        assertEquals(R.string.backup_password_rule, vm.state.value.passwordRuleTextResource)
+        assertFalse(vm.state.value.isSetButtonEnabled)
+        vm.onAgreementsClick()
+        runCurrent()
+        assertTrue(vm.state.value.isSetButtonEnabled)
     }
 }

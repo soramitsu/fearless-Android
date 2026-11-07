@@ -21,7 +21,7 @@ import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.presentation.askPermissionsSafely
 import jp.co.soramitsu.common.scan.ScanTextContract
 import jp.co.soramitsu.common.scan.ScannerActivity
-import jp.co.soramitsu.common.utils.isGooglePlayServicesAvailable
+import jp.co.soramitsu.common.utils.canOpenHttpsLinks
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -65,7 +65,7 @@ class SelectWalletFragment : BaseComposeBottomSheetDialogFragment<SelectWalletVi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val isGoogleAvailable = context?.isGooglePlayServicesAvailable() == true
+        val isGoogleAvailable = context?.canOpenHttpsLinks() == true
         if (isGoogleAvailable) {
             viewModel.googleAuthorizeLiveData.observeEvent {
                 viewModel.authorizeGoogle(launcher = launcher)

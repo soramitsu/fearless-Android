@@ -96,6 +96,7 @@
   <string name="backup_not_backed_up_message">Jika perangkat Anda hilang atau dicuri, Anda akan kehilangan dompet dan seluruh dana Anda selamanya</string>
   <string name="backup_not_backed_up_title">Tidak dicadangkan</string>
   <string name="backup_now">Cadangkan sekarang</string>
+  <string name="backup_password_rule">Gunakan minimal 12 karakter dengan 3 jenis: huruf kecil, huruf besar, angka, simbol; atau minimal 16 karakter. Bukan PIN, nama dompet, atau alamat.</string>
   <string name="backup_wallet_backup_to_google">Cadangkan ke google</string>
   <string name="backup_wallet_delete_alert_message">Jika Anda menghapus cadangan Google, Anda hanya dapat memulihkan dompet Anda dengan cadangan manual frasa sandi Anda</string>
   <plurals name="backup_wallet_delete_copies_alert_message">

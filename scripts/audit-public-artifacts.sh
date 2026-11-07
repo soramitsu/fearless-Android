@@ -201,32 +201,13 @@ sys.exit(1 if errors else 0)
 PY
 }
 
-check_public_google_services() {
-  local path="$1"
-
-  grep -q '"project_id"[[:space:]]*:[[:space:]]*"fearless-public"' "$path" ||
-    fail "$path must use the checked-in fearless-public Firebase placeholder project."
-
-  if grep -Eq '"current_key"[[:space:]]*:[[:space:]]*"[^"]+"' "$path"; then
-    fail "$path contains a non-empty Firebase API key. Commit only placeholder Firebase config."
-  fi
-
-  if grep -q '"certificate_hash"' "$path"; then
-    fail "$path contains OAuth certificate hashes. Commit only placeholder Firebase config."
-  fi
-}
-
-check_release_google_services() {
-  local path="app/src/release/google-services.json"
-
-  [[ -s "$path" ]] || fail "$path is required for release mode."
-
-  if grep -q '"project_id"[[:space:]]*:[[:space:]]*"fearless-public"' "$path"; then
-    fail "$path still points at the public placeholder project in release mode."
-  fi
-
-  grep -Eq '"current_key"[[:space:]]*:[[:space:]]*"[^"]+"' "$path" ||
-    fail "$path must contain release Firebase API keys restored from CI secrets."
+# Firebase and Google Play services are not part of the app (4.3.2): no Google Services
+# configuration may be tracked, and none may be present, tracked or not, when a release is built.
+check_no_google_services_configuration() {
+  local present
+  present="$(find app -maxdepth 3 -name google-services.json -print 2>/dev/null | LC_ALL=C sort)"
+  [[ -z "$present" ]] ||
+    fail "Google Services configuration is not part of the app; remove: $(printf '%s' "$present" | tr '\n' ' ')"
 }
 
 check_required_release_env() {
@@ -276,10 +257,8 @@ while IFS= read -r -d '' path; do
     *.jks|*.keystore|*.p12|*.p8|*.pem|*.mobileprovision|*.provisionprofile)
       fail "$path is tracked private release material. Keep it in CI/local overlays only."
       ;;
-    */google-services.json)
-      if [[ "$RELEASE_MODE" == false ]]; then
-        check_public_google_services "$path"
-      fi
+    google-services.json|*/google-services.json)
+      fail "$path is a tracked Google Services configuration. Firebase is not part of the app."
       ;;
     feature-wallet-impl/libs/pushpayment-core-sdk-*.jar)
       fail "$path must not be vendored. The CBDC QR parser is implemented from source."
@@ -291,14 +270,14 @@ while IFS= read -r -d '' path; do
 done < <(git ls-files -z -- \
   '*.jar' '*.aar' '*.so' '*.a' '*.dylib' '*.framework/**' '*.xcframework/**' '*.wasm' \
   '*.keystore' '*.jks' '*.mobileprovision' '*.p12' '*.p8' '*.pem' '*.provisionprofile' \
-  '*/google-services.json')
+  'google-services.json' '*/google-services.json')
 
 if [[ "$STRICT_PROVENANCE" == true ]]; then
   check_strict_provenance_contract
 fi
 
 if [[ "$RELEASE_MODE" == true ]]; then
-  check_release_google_services
+  check_no_google_services_configuration
   check_required_release_env
 fi
 

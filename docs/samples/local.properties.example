@@ -9,11 +9,10 @@ RAMP_TOKEN_DEBUG=<your_ramp_debug_token>
 RAMP_TOKEN_RELEASE=<your_ramp_release_token>
 COINBASE_APP_ID=<your_coinbase_app_id>
 
-# Google Drive backup web client ID. Release builds must use the client 2.4.1-4.2.0 shipped
-# (SHA-256 pinned in .github/release/android-google-drive-web-client-sha256.txt); debug builds may
-# leave WEB_CLIENT_ID_DEBUG unset. See "Google Drive Backup" in docs/release-checklist.md.
-WEB_CLIENT_ID_DEBUG=<your_google_web_client_id_debug>
-WEB_CLIENT_ID_RELEASE=<your_google_web_client_id_release>
+# Google Drive backup OAuth client (public id, no secret). Optional: unset means project
+# 621183184145's iOS client, whose redirect works from Android with PKCE. Must belong to project
+# 621183184145. See "Google Drive Backup" in docs/release-checklist.md.
+# GOOGLE_DRIVE_OAUTH_CLIENT_ID=621183184145-<client>.apps.googleusercontent.com
 
 # Ethereum blast api nodes keys
 FL_BLAST_API_ETHEREUM_KEY=<your_blast_api_eth_key>

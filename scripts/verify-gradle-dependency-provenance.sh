@@ -821,8 +821,6 @@ if len(entries) != len(set(entries)):
 
 required_entries = {
     "com.android.tools.build:gradle:8.10.1=classpath",
-    "com.google.firebase:firebase-appdistribution-gradle:5.3.1=classpath",
-    "com.google.gms:google-services:4.4.1=classpath",
     "org.jetbrains.kotlin:compose-compiler-gradle-plugin:2.1.10=classpath",
     "org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.10=classpath",
     "org.jetbrains.kotlin:kotlin-serialization:2.1.10=classpath",
@@ -834,6 +832,16 @@ if missing:
     raise SystemExit(
         "root buildscript lock omits reviewed classpath roots: "
         + ", ".join(missing)
+    )
+# Firebase App Distribution and Google Services were removed with Firebase (4.3.2).
+removed_entries = sorted(
+    entry for entry in entries
+    if entry.startswith(("com.google.gms:google-services:", "com.google.firebase:"))
+)
+if removed_entries:
+    raise SystemExit(
+        "root buildscript lock contains removed Firebase build plugins: "
+        + ", ".join(removed_entries)
     )
 PY
 then
