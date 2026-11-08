@@ -100,6 +100,23 @@ class SunlitPinLayoutInstrumentedTest {
         }
     }
 
+    @Test fun launchArtKeepsTheMarksAspectAndSpansMostOfThePageInEveryWidthClass() {
+        val context = compose.activity
+        for (widthDp in listOf(320, 360, 411, 480, 600)) {
+            val config = Configuration(context.resources.configuration).apply {
+                screenWidthDp = widthDp
+                smallestScreenWidthDp = minOf(widthDp, smallestScreenWidthDp)
+            }
+            val resources = context.createConfigurationContext(config).resources
+            val density = resources.displayMetrics.density
+            val width = resources.getDimension(jp.co.soramitsu.common.R.dimen.fw_splash_wings_width)
+            val height = resources.getDimension(jp.co.soramitsu.common.R.dimen.fw_splash_wings_height)
+            assertEquals("$widthDp aspect", FwWings.ASPECT, width / height, 0.01f)
+            assertTrue("$widthDp fits the page", width <= widthDp * density)
+            if (widthDp < 600) assertTrue("$widthDp spans most of the page", width >= widthDp * density * 0.85f)
+        }
+    }
+
     @Test fun wideHeroFillsItsWidthKeepsItsAspectAndDropsItsGlowWithReducedEffects() {
         var fx by mutableStateOf(FwEffects(FwTier.Full, false, true))
         compose.setContent {

@@ -4,23 +4,23 @@
     android:opacity="opaque">
     <item android:drawable="@drawable/fw_page_sunlit" />
     <item
-        android:width="360dp"
-        android:height="200dp"
+        android:width="320dp"
+        android:height="320dp"
         android:gravity="center">
         <shape
             android:dither="true"
             android:shape="oval">
             <gradient
                 android:type="radial"
-                android:gradientRadius="130dp"
+                android:gradientRadius="160dp"
                 android:startColor="@color/fw_emissive_glow"
                 android:centerColor="@color/fw_sun_bounce"
                 android:endColor="@android:color/transparent" />
         </shape>
     </item>
     <item
-        android:width="300dp"
-        android:height="82.4dp"
+        android:width="@dimen/fw_splash_wings_width"
+        android:height="@dimen/fw_splash_wings_height"
         android:gravity="center"
         android:drawable="@drawable/fw_brand_wings" />
 </layer-list>
