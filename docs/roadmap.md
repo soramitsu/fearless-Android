@@ -17,7 +17,7 @@ Described in `docs/status.md`. Not yet done on branch `claude/android-sunlit-red
 
 ## 4.3.2 (234): open items — 8 November 2026
 
-The candidate is described in `docs/status.md` and `docs/releases/4.3.2.md`. Open before or after release:
+The candidate is described in `docs/status.md` and `docs/releases/4.3.2.md`. The migration/keyring replacement race is fixed in `07d06681c`; its three regressions failed on the preceding source. The final validation and artifact receipts are under `build/android-432/evidence/takeover-20261108/` in the workspace. The earlier `7dc7512e5` signed bundle is superseded and must not be uploaded. Open before or after release:
 
 - **Owner:** back up the remote-configuration signing key (`~/.fearless-release/remote-config-signing-ed25519.key`)
   and publish the signed `remote-config/remote-config-manifest.json` on master before 4.3.2 reaches users;

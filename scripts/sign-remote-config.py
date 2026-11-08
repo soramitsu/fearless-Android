@@ -21,6 +21,8 @@ import stat
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+# Loading a sibling script must not leave scripts/__pycache__/, which the release source-tree check refuses.
+sys.dont_write_bytecode = True
 _SPEC = importlib.util.spec_from_file_location('remote_config_ed25519', Path(__file__).resolve().parent / 'remote_config_ed25519.py')
 ED25519 = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(ED25519)

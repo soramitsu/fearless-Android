@@ -66,7 +66,7 @@ networking, remote configuration and chain logic are unchanged). Binding spec: t
 
 Fixes every finding of the 2026-11-07 Android key-exposure audit of 4.3.1 (233) and removes every
 closed-source or non-OSI library (owner, 7 November 2026: "don't use any closed source libraries" and "fix
-all issues"). Branch `claude/android-4.3.2-key-safety`, from release/android-4.3.0 at `c9d18c435`. The
+all issues"). Branch `release/android-4.3.2`, targeting master in PR #1275, originally from release/android-4.3.0 at `c9d18c435`. The
 database schema stays 84. Release notes: `docs/releases/4.3.2.md`.
 
 - **Unlocking:** biometric unlock unseals the PIN from an Android Keystore key that only a strong (Class 3)
@@ -85,6 +85,8 @@ database schema stays 84. Release notes: `docs/releases/4.3.2.md`.
   Firebase, SpongyCastle, EdDSA-Java, curve25519-kotlin, libsodium and the prebuilt polkaj jar and
   sr25519 library are gone; WalletConnect v2, Drive OAuth, TON keys and the sr25519 library are built in
   this repository. The release graph has 308 libraries against 4.3.1's 441, none older and none added.
+- **PIN migration concurrency:** `07d06681c` serializes disposal/replacement of the PIN keyring with encrypted writes and each migration seal/commit/read-back. A concurrent PIN check or recovery cannot discard a key while its first ciphertext is being committed. The envelope and backup formats are unchanged.
+- **Socket shutdown crash:** `RequestExecutor.reset` copies its concurrent task set with `ArrayList` instead of Kotlin's `toList()`, which threw `NoSuchElementException` and closed the app when the only task finished during the copy. The bug has been there since `86b658605`, so 4.3.1 (233) carries it too. `WcRelayClient`, new in 4.3.2, copies its watched topics and pending requests the same way.
 - **Upgrade:** keys are unchanged; connected dApps carry over; users sign in to Google Drive once more.
 
 ### Unlocking, locking and exposure
@@ -138,8 +140,11 @@ different Substrate call signed than the one shown.
   is no longer committed. Gradle builds it from `runtime-utils/native/sr25519`
   (schnorrkel 0.11.5 on curve25519-dalek 4.1.3, which fixes RUSTSEC-2024-0344;
   jni 0.22.4; zeroize 1.9.1) with Rust 1.99.1, cargo-ndk 4.1.2 and NDK r30 at
-  API 26 with 16 KB pages. Two clean builds are byte-identical, and every ABI
-  must match `runtime-utils/native/sr25519/reproducible-build.json`.
+  API 26 with 16 KB pages. Two clean builds are byte-identical, on any build
+  host (a rustc wrapper keeps cargo's crate metadata free of the host
+  platform; no build id and no `.comment` section, which names the NDK
+  linker's build machine), and every ABI must match
+  `runtime-utils/native/sr25519/reproducible-build.json`.
 - The JNI ABI and the keys are unchanged: JVM tests show identical keypairs and
   derivations and cross-verifying signatures against the 4.3.1 library, plus the
   Substrate vectors. Exceptions no longer contain keypair bytes, a short chain

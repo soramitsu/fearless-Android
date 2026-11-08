@@ -8,6 +8,8 @@ import re
 import sys
 from urllib.parse import unquote, urlsplit
 
+# Loading a sibling script must not leave scripts/__pycache__/, which the release source-tree check refuses.
+sys.dont_write_bytecode = True
 _SIGNING_SPEC = importlib.util.spec_from_file_location('sign_remote_config', Path(__file__).resolve().parent / 'sign-remote-config.py')
 SIGNING = importlib.util.module_from_spec(_SIGNING_SPEC)
 _SIGNING_SPEC.loader.exec_module(SIGNING)

@@ -42,12 +42,18 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 CRATE = ROOT / "runtime-utils" / "native" / "sr25519"
 MANIFEST = CRATE / "reproducible-build.json"
+# Makes cargo's crate metadata independent of the build machine, so every host builds the same bytes.
+RUSTC_WRAPPER = CRATE / "stable-crate-metadata.py"
 LIBRARY = "libsr25519java.so"
 REQUIRED_PAGE_ALIGNMENT = 16 * 1024
 PAGE_SIZE_FLAGS = (
     "-Clink-arg=-Wl,-z,common-page-size=4096",
     "-Clink-arg=-Wl,-z,max-page-size=16384",
 )
+# The NDK's LLD names the machine it was built on in .comment ("Linker: LLD 21.0.0 (/Volumes/Android/...)"),
+# which differs between the macOS and Linux NDK packages, and its build id hashes the whole file. The app
+# uploads no native symbols, so the libraries carry neither: no build id here, .comment removed after linking.
+HOST_NEUTRAL_LINK_FLAGS = ("-Clink-arg=-Wl,--build-id=none",)
 RUST_TARGETS = {
     "arm64-v8a": "aarch64-linux-android",
     "armeabi-v7a": "armv7-linux-androideabi",
@@ -201,12 +207,21 @@ def resolve_ndk(argument, manifest):
     return ndk.resolve()
 
 
-def readelf_path(ndk):
+def ndk_tool(ndk, name):
     tags = {"Darwin": "darwin-x86_64", "Linux": "linux-x86_64", "Windows": "windows-x86_64"}
-    tool = ndk / "toolchains" / "llvm" / "prebuilt" / tags.get(platform.system(), "") / "bin" / "llvm-readelf"
+    tool = ndk / "toolchains" / "llvm" / "prebuilt" / tags.get(platform.system(), "") / "bin" / name
     if not tool.is_file():
-        raise BuildError("llvm-readelf is missing from the NDK: " + str(tool))
+        raise BuildError(name + " is missing from the NDK: " + str(tool))
     return tool
+
+
+def readelf_path(ndk):
+    return ndk_tool(ndk, "llvm-readelf")
+
+
+def drop_comment_section(ndk, library):
+    """Removes .comment, which names the machines that built the NDK's tools; nothing loads it."""
+    run([ndk_tool(ndk, "llvm-objcopy"), "--remove-section=.comment", library], clean_environment(), cwd=ROOT)
 
 
 def encoded_rustflags(environment, sysroot, target_dir):
@@ -217,7 +232,7 @@ def encoded_rustflags(environment, sysroot, target_dir):
         (CRATE.resolve(), "/sr25519"),
         (Path(target_dir).resolve(), "/cargo-target"),
     ]
-    flags = list(PAGE_SIZE_FLAGS) + ["-Ccodegen-units=1"]
+    flags = list(PAGE_SIZE_FLAGS) + list(HOST_NEUTRAL_LINK_FLAGS) + ["-Ccodegen-units=1"]
     flags += ["--remap-path-prefix=" + str(source) + "=" + mapped for source, mapped in remaps]
     return "\x1f".join(flags)
 
@@ -252,7 +267,9 @@ def build_android(output, target_dir, ndk, manifest):
     """Builds all four ABIs into a staging directory and returns {abi: path}."""
     environment = clean_environment()
     sysroot = check_toolchain(environment, manifest, needs_cargo_ndk=True)
-    target_dir = Path(target_dir).resolve()
+    # Cargo does not rebuild when RUSTC_WRAPPER changes: each wrapper version gets its own target
+    # directory, so no build reuses artifacts compiled with other crate metadata.
+    target_dir = Path(target_dir).resolve() / ("metadata-" + sha256(RUSTC_WRAPPER)[:16])
     staging = target_dir / "jniLibs-staging"
     if staging.exists():
         shutil.rmtree(staging)
@@ -262,6 +279,7 @@ def build_android(output, target_dir, ndk, manifest):
         "CARGO_ENCODED_RUSTFLAGS": encoded_rustflags(environment, sysroot, target_dir),
         "SOURCE_DATE_EPOCH": str(manifest["sourceDateEpoch"]),
         "CARGO_INCREMENTAL": "0",
+        "RUSTC_WRAPPER": str(RUSTC_WRAPPER),
     })
     command = ["cargo", "ndk"]
     for abi in RUST_TARGETS:
@@ -276,6 +294,7 @@ def build_android(output, target_dir, ndk, manifest):
         library = staging / abi / LIBRARY
         if not library.is_file() or library.is_symlink():
             raise BuildError("cargo-ndk produced no " + LIBRARY + " for " + abi)
+        drop_comment_section(ndk, library)
         built[abi] = library
     return built
 

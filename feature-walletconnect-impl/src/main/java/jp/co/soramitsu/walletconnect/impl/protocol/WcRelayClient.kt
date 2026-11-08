@@ -231,10 +231,10 @@ internal class WcRelayClient(
     private suspend fun serve(connection: Connection): ConnectionOutcome {
         val openedAt = clock.nowMillis()
         return try {
-            subscribeOn(connection, watched.toList())
+            subscribeOn(connection, watchedTopics())
             current.value = connection
             _connected.value = true
-            fetchMessages(connection, watched.toList())
+            fetchMessages(connection, watchedTopics())
             holdOpen(connection)
             // A relay that closes right after accepting us is retried with backoff, not in a loop.
             if (clock.nowMillis() - openedAt < STABLE_CONNECTION_MILLIS) ConnectionOutcome.UNSTABLE else ConnectionOutcome.STABLE
@@ -248,6 +248,11 @@ internal class WcRelayClient(
             failPending()
         }
     }
+
+    // Not toList(): with one entry it reads the size and then calls iterator().next(), which throws
+    // if unsubscribe() removed the entry in between. ArrayList copies through the set's toArray(),
+    // which returns only what it finds.
+    private fun watchedTopics(): List<String> = ArrayList(watched)
 
     // Waits until the connection closes or is no longer needed, then returns.
     private suspend fun holdOpen(connection: Connection) {
@@ -354,7 +359,8 @@ internal class WcRelayClient(
     }
 
     private fun failPending() {
-        val failed = pending.values.toList()
+        // ArrayList for the same reason as watchedTopics(): a finishing request removes its own entry.
+        val failed = ArrayList(pending.values)
         pending.clear()
         failed.forEach { it.completeExceptionally(WcRelayException("The relay connection closed")) }
     }

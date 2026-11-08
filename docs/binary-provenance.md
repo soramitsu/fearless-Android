@@ -45,6 +45,17 @@ the app-owned Rust crate `runtime-utils/native/sr25519` (imported from
 - reproducibility: one codegen unit, fat LTO, stripped symbols, a cleaned build
   environment, `--remap-path-prefix` for the cargo home, the Rust toolchain, the
   crate and the cargo target directory, and a fixed `SOURCE_DATE_EPOCH`
+- the same bytes on every build machine: cargo's `-C metadata` hashes the
+  `host:` line of `rustc -vV`, so macOS and Linux builds differed. The rustc
+  wrapper `runtime-utils/native/sr25519/stable-crate-metadata.py` (set by
+  `scripts/build-sr25519.py`) replaces each value with a hash of the package,
+  version, crate name and types, edition, cfgs, target and package-relative
+  source path; arm64 and x86_64 macOS hosts build byte-identical libraries
+- no build id and no `.comment` section: the NDK's LLD writes the directory it
+  was built in into `.comment` (`/Volumes/Android/...` in the macOS NDK,
+  `/mnt/disks/...` in the Linux NDK), and its build id hashes the whole file.
+  The build links with `-Wl,--build-id=none` and removes `.comment` with the
+  NDK's `llvm-objcopy` before any check or hash; the loader reads neither
 
 `runtime-utils/native/sr25519/reproducible-build.json` records the reviewed
 SHA-256 of each ABI and the exact JNI export list. Every build checks each
@@ -65,10 +76,10 @@ Reviewed checksums:
 
 | ABI | SHA-256 |
 | --- | --- |
-| arm64-v8a | `cca739ef44e0d3f93e7b21cfe08cde8f3820e5fc493be21e5b0e1474196a209e` |
-| armeabi-v7a | `7e2701966ee9f17922900cf1bf6eb46507492c2bdac66bc0a47e2079f13f0f4d` |
-| x86 | `f3a4cadfe6493cfc19ca107c2325e85013ff414931e6464244f529be19dcb974` |
-| x86_64 | `2e9e7d68a9d0b31356f6c69f5c5867a59d829411671113686706ed2695bd98be` |
+| arm64-v8a | `778dcc6bb577039ece9ba7971212d4bf917c60ab7f8a3688f0998025b7c61d11` |
+| armeabi-v7a | `0d4ea2944c78b3e9c3257b8bed4bb88062ed8cb59e0081c9acc5ec4c235fd6e6` |
+| x86 | `2541d94922a7db836b3351288f5b6108e9e3b36add122230ae4cc310bda31d4f` |
+| x86_64 | `458533705ed8194f95f7028632b69c73618f7a1918898af070ce66b8307e4e16` |
 
 Host builds of the same crate back the JVM unit tests
 (`Sr25519NativeTest`, `HostSr25519KeypairDerivationTest`). The library shipped
