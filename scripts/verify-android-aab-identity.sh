@@ -73,25 +73,25 @@ expected_native_sha256() {
       echo "41399eba6fc2a60f6f14642375c1824f3cf25eb8fec7397d753730a3ceda3e2b"
       ;;
     base/lib/armeabi-v7a/libsr25519java.so)
-      echo "8aff40c7748cadd375a9a44381746e37d9c97d589b8868a9d9fa14d300edae14"
+      echo "0d4ea2944c78b3e9c3257b8bed4bb88062ed8cb59e0081c9acc5ec4c235fd6e6"
       ;;
     base/lib/arm64-v8a/libandroidx.graphics.path.so)
       echo "41e9a793c43a0f4fddb19e33f346bace464f30f888ba7b9eaf96294ea115bfb6"
       ;;
     base/lib/arm64-v8a/libsr25519java.so)
-      echo "453b2acb2f8372145cddd9783338a1cf600499dbe5cea148cb53849f14ed07da"
+      echo "778dcc6bb577039ece9ba7971212d4bf917c60ab7f8a3688f0998025b7c61d11"
       ;;
     base/lib/x86/libandroidx.graphics.path.so)
       echo "eb0570b41fd3bff25d8204a967c03bd7550719e768b791f680cc40cbe35f29af"
       ;;
     base/lib/x86/libsr25519java.so)
-      echo "e929646e3021c2b36bd8ed13144024411711b3b8d953859afa43e9eb3eed3f9c"
+      echo "2541d94922a7db836b3351288f5b6108e9e3b36add122230ae4cc310bda31d4f"
       ;;
     base/lib/x86_64/libandroidx.graphics.path.so)
       echo "4e56c996f13670e70082658de7880c4020eabf4f25e43387f88ed78a713fc9f0"
       ;;
     base/lib/x86_64/libsr25519java.so)
-      echo "14376c77935b4bc0e6c8bae755bc47caaa29d3f6acb65259e36e0827b540ecea"
+      echo "458533705ed8194f95f7028632b69c73618f7a1918898af070ce66b8307e4e16"
       ;;
     *)
       return 1

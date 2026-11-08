@@ -80,7 +80,8 @@ different Substrate call signed than the one shown.
   jni 0.22.4; zeroize 1.9.1) with Rust 1.99.1, cargo-ndk 4.1.2 and NDK r30 at
   API 26 with 16 KB pages. Two clean builds are byte-identical, on any build
   host (a rustc wrapper keeps cargo's crate metadata free of the host
-  platform), and every ABI must match
+  platform; no build id and no `.comment` section, which names the NDK
+  linker's build machine), and every ABI must match
   `runtime-utils/native/sr25519/reproducible-build.json`.
 - The JNI ABI and the keys are unchanged: JVM tests show identical keypairs and
   derivations and cross-verifying signatures against the 4.3.1 library, plus the

@@ -50,7 +50,8 @@ if args[:1] == ["ndk"]:
         if os.environ.get("FAKE_OMIT_ABI") == abi:
             continue
         (staging / abi).mkdir(parents=True, exist_ok=True)
-        content = "built " + abi + os.environ.get("FAKE_CONTENT_SUFFIX", "")
+        # " [comment]" stands for the host-specific .comment section that the build must remove before hashing.
+        content = "built " + abi + " [comment]" + os.environ.get("FAKE_CONTENT_SUFFIX", "")
         counter = Path(os.environ["TEST_ROOT"]) / "build-count"
         count = int(counter.read_text()) if counter.exists() else 0
         if os.environ.get("FAKE_NONDETERMINISTIC") and count:
@@ -100,6 +101,15 @@ else:
     sys.exit(2)
 '''
 
+FAKE_OBJCOPY = r'''#!/usr/bin/env python3
+import json, os, sys
+from pathlib import Path
+with (Path(os.environ["TEST_ROOT"]) / "objcopy.jsonl").open("a") as handle:
+    handle.write(json.dumps(sys.argv[1:]) + "\n")
+library = Path(sys.argv[-1])
+library.write_text(library.read_text().replace(" [comment]", ""))
+'''
+
 
 class BuildSr25519Test(unittest.TestCase):
     def setUp(self):
@@ -109,6 +119,8 @@ class BuildSr25519Test(unittest.TestCase):
         shutil.copyfile(ROOT / "scripts/build-sr25519.py", self.root / "scripts/build-sr25519.py")
         self.crate = self.root / "runtime-utils/native/sr25519"
         self.crate.mkdir(parents=True)
+        shutil.copyfile(ROOT / "runtime-utils/native/sr25519/stable-crate-metadata.py",
+                        self.crate / "stable-crate-metadata.py")
         self.manifest = {
             "schemaVersion": 1,
             "crate": "runtime-utils/native/sr25519",
@@ -127,6 +139,7 @@ class BuildSr25519Test(unittest.TestCase):
         readelf = self.ndk / "toolchains/llvm/prebuilt" / HOST_TAG / "bin/llvm-readelf"
         readelf.parent.mkdir(parents=True)
         self.write_tool(readelf, FAKE_READELF)
+        self.write_tool(readelf.parent / "llvm-objcopy", FAKE_OBJCOPY)
         (self.ndk / "source.properties").write_text("Pkg.Desc = Android NDK\nPkg.Revision = 30.0.16248370\n")
         (self.root / "rust-toolchain").mkdir()
         bin_dir = self.root / "bin"
@@ -186,6 +199,10 @@ class BuildSr25519Test(unittest.TestCase):
         self.assertIn("-Clink-arg=-Wl,-z,common-page-size=4096", flags)
         self.assertIn("-Clink-arg=-Wl,-z,max-page-size=16384", flags)
         self.assertIn("-Ccodegen-units=1", flags)
+        self.assertIn("-Clink-arg=-Wl,--build-id=none", flags)
+        objcopy = [json.loads(line) for line in (self.root / "objcopy.jsonl").read_text().splitlines()]
+        self.assertEqual(4, len(objcopy))
+        self.assertTrue(all(call[0] == "--remove-section=.comment" for call in objcopy))
         self.assertIn("--remap-path-prefix=" + str(self.root / "cargo-home") + "=/cargo-home", flags)
         self.assertIn("--remap-path-prefix=" + str(self.root / "rust-toolchain") + "=/rust-toolchain", flags)
         self.assertIn("--remap-path-prefix=" + str(self.crate) + "=/sr25519", flags)

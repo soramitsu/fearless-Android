@@ -51,6 +51,11 @@ the app-owned Rust crate `runtime-utils/native/sr25519` (imported from
   `scripts/build-sr25519.py`) replaces each value with a hash of the package,
   version, crate name and types, edition, cfgs, target and package-relative
   source path; arm64 and x86_64 macOS hosts build byte-identical libraries
+- no build id and no `.comment` section: the NDK's LLD writes the directory it
+  was built in into `.comment` (`/Volumes/Android/...` in the macOS NDK,
+  `/mnt/disks/...` in the Linux NDK), and its build id hashes the whole file.
+  The build links with `-Wl,--build-id=none` and removes `.comment` with the
+  NDK's `llvm-objcopy` before any check or hash; the loader reads neither
 
 `runtime-utils/native/sr25519/reproducible-build.json` records the reviewed
 SHA-256 of each ABI and the exact JNI export list. Every build checks each
@@ -71,10 +76,10 @@ Reviewed checksums:
 
 | ABI | SHA-256 |
 | --- | --- |
-| arm64-v8a | `453b2acb2f8372145cddd9783338a1cf600499dbe5cea148cb53849f14ed07da` |
-| armeabi-v7a | `8aff40c7748cadd375a9a44381746e37d9c97d589b8868a9d9fa14d300edae14` |
-| x86 | `e929646e3021c2b36bd8ed13144024411711b3b8d953859afa43e9eb3eed3f9c` |
-| x86_64 | `14376c77935b4bc0e6c8bae755bc47caaa29d3f6acb65259e36e0827b540ecea` |
+| arm64-v8a | `778dcc6bb577039ece9ba7971212d4bf917c60ab7f8a3688f0998025b7c61d11` |
+| armeabi-v7a | `0d4ea2944c78b3e9c3257b8bed4bb88062ed8cb59e0081c9acc5ec4c235fd6e6` |
+| x86 | `2541d94922a7db836b3351288f5b6108e9e3b36add122230ae4cc310bda31d4f` |
+| x86_64 | `458533705ed8194f95f7028632b69c73618f7a1918898af070ce66b8307e4e16` |
 
 Host builds of the same crate back the JVM unit tests
 (`Sr25519NativeTest`, `HostSr25519KeypairDerivationTest`). The library shipped
