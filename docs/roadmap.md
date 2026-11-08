@@ -4,7 +4,7 @@
 
 ## Sun-lit redesign: open items — 8 November 2026
 
-Described in `docs/status.md`. Not yet done on branch `claude/android-sunlit-redesign`:
+Described in `docs/status.md`. Not yet done on branch `release/sunlit-redesign`:
 
 - Surfaces still on the shared components only (their flags stay off until each is reviewed on device):
   recovery, manage assets, pickers, unavailable, signing, appearance, mnemonic and staking; staking and

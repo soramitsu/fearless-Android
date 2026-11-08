@@ -6,7 +6,7 @@
 
 Owner, 8 November 2026: "the mobile apps are ugly and don't use our new logo branding. make the ui look
 good and really cool with neumorphism and global illumination and subtle and informative animations".
-Branch `claude/android-sunlit-redesign` from `4056a845f`; UI only (keys, PIN envelope, signing, storage,
+Branch `release/sunlit-redesign` from `4056a845f`; UI only (keys, PIN envelope, signing, storage,
 networking, remote configuration and chain logic are unchanged). Binding spec: the 2026-11-08
 `DESIGN-SPEC.md` and `reference-mockup.html` of the mobile redesign.
 
