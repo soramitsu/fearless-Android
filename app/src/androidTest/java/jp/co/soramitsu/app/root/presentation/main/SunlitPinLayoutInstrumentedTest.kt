@@ -27,6 +27,8 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.height
+import androidx.compose.ui.unit.width
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.widget.NestedScrollView
 import androidx.test.ext.junit.runners.AndroidJUnit4
