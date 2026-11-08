@@ -2,8 +2,6 @@ package jp.co.soramitsu.common.data.storage.envelope
 
 import java.security.SecureRandom
 import java.util.Base64
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptionUtil
 import org.bouncycastle.util.encoders.Hex
@@ -100,10 +98,7 @@ class MasterKeyBoundKeyringFactor(
             if (factor.size != FACTOR_BYTES) {
                 throw WalletKeyringDeviceFactorLostException("The keyring factor does not authenticate under the device key")
             }
-            return Mac.getInstance(MAC).run {
-                init(SecretKeySpec(factor, MAC))
-                doFinal(data)
-            }
+            return KeyringMac.sha256(factor, data)
         } finally {
             factor.fill(0)
         }
@@ -116,6 +111,5 @@ class MasterKeyBoundKeyringFactor(
         const val ALIAS_PREFIX = "${WalletSecretKeyring.KEY_PREFIX}factor:"
         private const val ALIAS_RANDOM_BYTES = 8
         private const val FACTOR_BYTES = 32
-        private const val MAC = "HmacSHA256"
     }
 }

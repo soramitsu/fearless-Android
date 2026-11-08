@@ -1,10 +1,9 @@
 package jp.co.soramitsu.testshared
 
 import java.security.SecureRandom
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
 import jp.co.soramitsu.common.data.storage.InitialValueProducer
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.data.storage.envelope.KeyringMac
 import jp.co.soramitsu.common.data.storage.envelope.WalletKeyringDeviceFactor
 import jp.co.soramitsu.common.data.storage.envelope.WalletKeyringDeviceFactorLostException
 import jp.co.soramitsu.core.model.Language
@@ -61,10 +60,7 @@ class InMemoryKeyringDeviceFactor : WalletKeyringDeviceFactor {
 
     override fun hmac(alias: String, data: ByteArray): ByteArray {
         val key = keys[alias] ?: throw WalletKeyringDeviceFactorLostException("missing")
-        return Mac.getInstance("HmacSHA256").run {
-            init(SecretKeySpec(key, "HmacSHA256"))
-            doFinal(data)
-        }
+        return KeyringMac.sha256(key, data)
     }
 
     override fun exists(alias: String): Boolean = alias in keys
