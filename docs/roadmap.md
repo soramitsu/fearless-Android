@@ -4,12 +4,12 @@
 
 ## 4.3.2 (234): open items — 8 November 2026
 
-The candidate is described in `docs/status.md` and `docs/releases/4.3.2.md`. The migration/keyring replacement race is fixed in `07d06681c`; its three regressions failed on the preceding source. The final validation and artifact receipts are under `build/android-432/evidence/takeover-20261108/` in the workspace. The earlier `7dc7512e5` signed bundle is superseded and must not be uploaded. Open before or after release:
+The candidate is described in `docs/status.md` and `docs/releases/4.3.2.md`. The migration/keyring replacement race is fixed in `07d06681c`; its three regressions failed on the preceding source. The final validation and artifact receipts are under `build/android-432/evidence/final-a168420d9b12/` in the workspace. The earlier `7dc7512e5` and `ba5642e46` signed bundles are superseded and must not be uploaded. Open before or after release:
 
 - **Owner:** back up the remote-configuration signing key (`~/.fearless-release/remote-config-signing-ed25519.key`)
-  and publish the signed `remote-config/remote-config-manifest.json` on master before 4.3.2 reaches users;
-  until then 4.3.2 uses the configuration snapshot bundled into the APK. Uploading the signed AAB to Play is
-  the owner's call.
+  and approve PR #1275 so the signed `remote-config/remote-config-manifest.json` reaches master;
+  until then 4.3.2 uses the configuration snapshot bundled into the APK, and remote kill switches and node repairs
+  do not reach it.
 - **Devices:** qualify on physical phones (Class 3 biometric unlock and re-enrollment, the PIN keyring's
   Argon2id time on a mid-range phone, the source-built `libsr25519java.so` on every ABI, Drive sign-in in
   Chrome, Firefox and Samsung Internet), and run the PIN envelope's API 30/31/36 compatibility matrix.
@@ -22,7 +22,13 @@ The candidate is described in `docs/status.md` and `docs/releases/4.3.2.md`. The
 - **Small follow-ups from the release smoke:** after a WalletConnect `personal_sign`, closing the success sheet
   returns to the Preview sheet (signing again is refused, 4.3.1 navigates the same way), and that success sheet says
   "Transaction sent" for a message signature. The WalletConnect QR error text in `ConnectionsViewModel` is hard-coded
-  Russian.
+  Russian. On a brand-new wallet the home shows "Balance unavailable" over "No assets were found"; the total logic is
+  unchanged since 4.3.1.
+- **System Back in the liquidity pools sheet (also in 4.3.1):** with `enableOnBackInvokedCallback=true`, Back on
+  Android 13+ goes to the dialog's `OnBackPressedDispatcher`, so `PoolsFlowFragment`'s `onBackPressed` override never
+  runs. The nested `NavHost` pops to its Loading page, whose `MainToolbarShimmer` Back icon has no click action, and
+  another Back only collapses the sheet. Tapping outside closes it; no data is at risk. `NFTFlowFragment` uses the same
+  override and should be checked with it.
 - **Limits by design:** Polkadot dApp payloads with Mode::Disabled commit to no metadata, so their call can
   only be shown as decoded; refusing them would break most dApps. Drive sign-in shares the iOS OAuth client
   (Google keeps 100 refresh tokens per account and client). Passkey backup needs an open attestation design.
