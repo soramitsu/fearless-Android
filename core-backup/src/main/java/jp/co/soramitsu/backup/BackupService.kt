@@ -57,6 +57,9 @@ class BackupService internal constructor(
         return storage.signIn(launcher)
     }
 
+    /** Whether Google is signed in on this device. Unlike [authorize], it never opens the sign-in screen. */
+    suspend fun hasSession(): Boolean = isAvailable && storage.hasSession()
+
     /**
      * Uploads a new backup file. Refuses, without uploading anything, a phrase or seed that does not
      * restore the wallet filed under [DecryptedBackupAccount.address].

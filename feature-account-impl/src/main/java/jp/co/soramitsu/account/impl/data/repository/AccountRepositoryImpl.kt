@@ -721,8 +721,10 @@ class AccountRepositoryImpl(
         }
     }
 
-    override suspend fun isGoogleBackupSupported(walletId: Long): Boolean {
-        return try {
+    // Reading secrets re-derives each key to prove its phrase restores it, which takes seconds on a slow
+    // phone. The backup screens call these from the main thread, so the reads below leave the caller's thread.
+    override suspend fun isGoogleBackupSupported(walletId: Long): Boolean = withContext(dispatcher) {
+        try {
             val metaAccount = getMetaAccount(walletId)
             requireScopeAccess(metaAccount, WalletSecretScope.Substrate)
             val substrateSecrets = readValidatedSubstrateSecrets(metaAccount)
@@ -732,8 +734,11 @@ class AccountRepositoryImpl(
         }
     }
 
-    override suspend fun getBestBackupType(walletId: Long, type: WalletEcosystem): BackupAccountType? {
-        return try {
+    override suspend fun getBestBackupType(
+        walletId: Long,
+        type: WalletEcosystem
+    ): BackupAccountType? = withContext(dispatcher) {
+        try {
             val metaAccount = getMetaAccount(walletId)
             when (type) {
                 WalletEcosystem.Substrate -> {
@@ -741,10 +746,10 @@ class AccountRepositoryImpl(
                     val substrateSecrets =
                         readValidatedSubstrateSecrets(metaAccount)
                     if (substrateSecrets?.get(SubstrateSecrets.Entropy) != null) {
-                        return BackupAccountType.PASSPHRASE
+                        return@withContext BackupAccountType.PASSPHRASE
                     }
                     if (substrateSecrets?.get(SubstrateSecrets.Seed) != null) {
-                        return BackupAccountType.SEED
+                        return@withContext BackupAccountType.SEED
                     }
                 }
 
@@ -753,10 +758,10 @@ class AccountRepositoryImpl(
                     val ethereumSecrets =
                         readValidatedEthereumSecrets(metaAccount)
                     if (ethereumSecrets?.get(EthereumSecrets.Entropy) != null) {
-                        return BackupAccountType.PASSPHRASE
+                        return@withContext BackupAccountType.PASSPHRASE
                     }
                     if (ethereumSecrets?.get(EthereumSecrets.Seed) != null) {
-                        return BackupAccountType.SEED
+                        return@withContext BackupAccountType.SEED
                     }
                 }
 
@@ -764,13 +769,13 @@ class AccountRepositoryImpl(
                     requireScopeAccess(metaAccount, WalletSecretScope.Ton)
                     val tonSecrets = readValidatedTonSecrets(metaAccount)
                     if (tonSecrets != null) {
-                        return BackupAccountType.PASSPHRASE
+                        return@withContext BackupAccountType.PASSPHRASE
                     }
                 }
 
                 WalletEcosystem.Bitcoin,
                 WalletEcosystem.Solana,
-                WalletEcosystem.Iroha -> return null
+                WalletEcosystem.Iroha -> return@withContext null
             }
             null
         } catch (failure: WalletRecoveryRequiredException) {
@@ -781,8 +786,8 @@ class AccountRepositoryImpl(
         }
     }
 
-    override suspend fun getSupportedBackupTypes(walletId: Long): Set<BackupAccountType> {
-        return try {
+    override suspend fun getSupportedBackupTypes(walletId: Long): Set<BackupAccountType> = withContext(dispatcher) {
+        try {
             // Each ecosystem offers what its own key supports; a blocked key
             // contributes nothing and never hides the others.
             val metaAccount = getMetaAccount(walletId)
@@ -809,7 +814,7 @@ class AccountRepositoryImpl(
                 }
 
                 types.add(BackupAccountType.JSON)
-                return types
+                return@withContext types
             }
 
             if (tonSecrets != null) {
@@ -868,22 +873,22 @@ class AccountRepositoryImpl(
         }
     }
 
-    override suspend fun getSubstrateSecrets(metaId: Long): EncodableStruct<SubstrateSecrets>? {
+    override suspend fun getSubstrateSecrets(metaId: Long): EncodableStruct<SubstrateSecrets>? = withContext(dispatcher) {
         val metaAccount = getMetaAccount(metaId)
         requireScopeAccess(metaAccount, WalletSecretScope.Substrate)
-        return readValidatedSubstrateSecrets(metaAccount)
+        readValidatedSubstrateSecrets(metaAccount)
     }
 
-    override suspend fun getEthereumSecrets(metaId: Long): EncodableStruct<EthereumSecrets>? {
+    override suspend fun getEthereumSecrets(metaId: Long): EncodableStruct<EthereumSecrets>? = withContext(dispatcher) {
         val metaAccount = getMetaAccount(metaId)
         requireScopeAccess(metaAccount, WalletSecretScope.Ethereum)
-        return readValidatedEthereumSecrets(metaAccount)
+        readValidatedEthereumSecrets(metaAccount)
     }
 
-    override suspend fun getTonSecrets(metaId: Long): EncodableStruct<TonSecrets>? {
+    override suspend fun getTonSecrets(metaId: Long): EncodableStruct<TonSecrets>? = withContext(dispatcher) {
         val metaAccount = getMetaAccount(metaId)
         requireScopeAccess(metaAccount, WalletSecretScope.Ton)
-        return readValidatedTonSecrets(metaAccount)
+        readValidatedTonSecrets(metaAccount)
     }
 
     // Secrets handed out by this repository feed phrase, seed and JSON export,

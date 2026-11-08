@@ -431,6 +431,8 @@ class AccountInteractorImpl(
         return backupService.authorize(launcher)
     }
 
+    override suspend fun hasGoogleBackupSession(): Boolean = backupService.hasSession()
+
     override suspend fun getSubstrateSecrets(metaId: Long): EncodableStruct<SubstrateSecrets>? {
         return accountRepository.getSubstrateSecrets(metaId)
     }

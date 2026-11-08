@@ -162,6 +162,9 @@ interface AccountInteractor {
      */
     suspend fun deleteGoogleBackupAccount(walletId: Long, copies: List<BackupAccountMeta>)
     suspend fun authorizeGoogleBackup(launcher: ActivityResultLauncher<Intent>): Boolean
+
+    /** Whether Google is signed in on this device, asked without opening the sign-in screen. */
+    suspend fun hasGoogleBackupSession(): Boolean
     suspend fun getSubstrateSecrets(metaId: Long): EncodableStruct<SubstrateSecrets>?
 
     fun getMnemonic(metaId: Long): Flow<Mnemonic>

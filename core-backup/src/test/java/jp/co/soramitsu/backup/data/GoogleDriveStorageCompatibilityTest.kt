@@ -91,6 +91,18 @@ class GoogleDriveStorageCompatibilityTest {
     }
 
     @Test
+    fun `asking whether a session exists opens no sign-in screen`() = runBlocking {
+        assertFalse(storage.hasSession())
+        assertTrue(prompts.isEmpty())
+
+        signedIn()
+
+        assertTrue(storage.hasSession())
+        assertTrue(prompts.isEmpty())
+        assertTrue(oauthRequests.isEmpty())
+    }
+
+    @Test
     fun `without a session the browser sign-in opens with the account chooser`() = runBlocking {
         val launcher = mock<ActivityResultLauncher<Intent>>()
 
