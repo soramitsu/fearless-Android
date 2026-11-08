@@ -5,7 +5,9 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
+import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,6 +27,9 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.text
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -94,20 +99,34 @@ fun FwRollingText(
         else -> color
     }
     val semantics = Modifier.clearAndSetSemantics { this.text = AnnotatedString(text) }
-    if (progress.value >= 1f && tint.value <= 0f) {
-        Text(text = text, style = style, color = color, modifier = modifier.then(semantics))
-        return
-    }
-    Row(modifier.then(semantics), verticalAlignment = Alignment.CenterVertically) {
-        plan.columns.forEachIndexed { index, column ->
-            val columnColor = if (index >= plan.changedFrom) lerp(color, accent, tint.value) else color
-            when {
-                column.rolls && progress.value < 1f -> RollingDigit(column, plan.direction, progress.value, style, columnColor)
-                column.changed && progress.value < 1f -> Box {
-                    column.previous?.let { Text(it.toString(), style = style, color = columnColor, modifier = Modifier.graphicsLayer { alpha = 1f - progress.value }) }
-                    Text(column.char.toString(), style = style, color = columnColor, modifier = Modifier.graphicsLayer { alpha = progress.value })
+    val textMeasurer = rememberTextMeasurer()
+    val resolvedStyle = LocalTextStyle.current.merge(style)
+    BoxWithConstraints(modifier.then(semantics)) {
+        // A digit row cannot wrap. Keep the complete text layout when large type or a narrow
+        // viewport needs more than one line; its changed suffix still reports the direction.
+        val naturalWidth = textMeasurer.measure(text, style = resolvedStyle, softWrap = false).size.width
+        val wraps = constraints.hasBoundedWidth && naturalWidth > constraints.maxWidth
+        if (wraps || progress.value >= 1f && tint.value <= 0f) {
+            val displayed = buildAnnotatedString {
+                append(text)
+                if (tint.value > 0f) {
+                    addStyle(SpanStyle(color = lerp(color, accent, tint.value)), plan.changedFrom.coerceAtMost(text.length), text.length)
                 }
-                else -> Text(column.char.toString(), style = style, color = columnColor)
+            }
+            Text(text = displayed, style = style, color = color)
+        } else {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                plan.columns.forEachIndexed { index, column ->
+                    val columnColor = if (index >= plan.changedFrom) lerp(color, accent, tint.value) else color
+                    when {
+                        column.rolls && progress.value < 1f -> RollingDigit(column, plan.direction, progress.value, style, columnColor)
+                        column.changed && progress.value < 1f -> Box {
+                            column.previous?.let { Text(it.toString(), style = style, color = columnColor, modifier = Modifier.graphicsLayer { alpha = 1f - progress.value }) }
+                            Text(column.char.toString(), style = style, color = columnColor, modifier = Modifier.graphicsLayer { alpha = progress.value })
+                        }
+                        else -> Text(column.char.toString(), style = style, color = columnColor)
+                    }
+                }
             }
         }
     }
