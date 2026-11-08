@@ -34,6 +34,8 @@ All notable changes to this project will be documented in this file.
   curve25519-kotlin, libsodium and the prebuilt polkaj jar are gone: the release
   has 308 libraries instead of 441, none older than in 4.3.1.
 - Fix: jetton transfers carry a random query_id instead of 0.
+- Fix: closing a network connection can no longer close the app when its last
+  request finishes at the same moment.
 - Upgrade: keys are unchanged; dApps connected with 4.3.1 stay connected; Google
   Drive needs one new sign-in in the browser.
 
