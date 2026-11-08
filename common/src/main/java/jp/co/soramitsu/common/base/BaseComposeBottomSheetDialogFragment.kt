@@ -35,8 +35,8 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomS
 
     abstract val viewModel: T
 
-    /** Signing and recovery-phrase sheets: nothing animates in them beyond press feedback. */
-    protected open val secureSurface: Boolean = false
+    /** Shared sheets include signing and recovery routes: only press feedback is allowed by default. */
+    protected open val secureSurface: Boolean = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

@@ -2,12 +2,15 @@ package jp.co.soramitsu.app.root.presentation.main
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -26,7 +29,10 @@ import com.google.zxing.BinaryBitmap
 import com.google.zxing.MultiFormatReader
 import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.HybridBinarizer
+import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
+import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.theme.fw.FwEffects
+import jp.co.soramitsu.common.compose.theme.fw.fwSheet
 import jp.co.soramitsu.common.compose.component.FearlessProgress
 import jp.co.soramitsu.common.compose.component.Shimmer
 import jp.co.soramitsu.common.compose.theme.fw.FwRollingText
@@ -120,4 +126,50 @@ class SunlitMotionInstrumentedTest {
         val changing = compose.onNodeWithTag("wrapped-amount").fetchSemanticsNode().boundsInRoot
         assertEquals("A balance update must retain all wrapped lines", before.height, changing.height, 1f)
     }
+
+    @Test fun unmarkedSharedSheetsStayStillWithoutCallerOptOut() {
+        compose.mainClock.autoAdvance = false
+        compose.setContent {
+            CompositionLocalProvider(
+                LocalFwSecureSurface provides false,
+                LocalFwEffects provides FwEffects(FwTier.Full, false, false)
+            ) {
+                Box(Modifier.requiredSize(240.dp, 120.dp).fwSheet().testTag("unmarked-rim"))
+            }
+        }
+        compose.mainClock.advanceTimeBy(16)
+        val rim = compose.onNodeWithTag("unmarked-rim").captureToImage().asAndroidBitmap()
+        compose.mainClock.advanceTimeBy(500)
+        assertTrue("Shared rims stay static even without a secure caller", rim.sameAs(compose.onNodeWithTag("unmarked-rim").captureToImage().asAndroidBitmap()))
+
+        var observedSecure = false
+        var amount by mutableStateOf("1234.56")
+        val sheet = object : BaseComposeBottomSheetDialogFragment<BaseViewModel>() {
+            override val viewModel = BaseViewModel()
+
+            @Composable override fun Content(padding: PaddingValues) {
+                observedSecure = LocalFwSecureSurface.current
+                Column(Modifier.requiredSize(240.dp, 200.dp).fwSheet().padding(16.dp).testTag("unmarked-host")) {
+                    FwRollingText(amount, TextStyle(fontSize = 32.sp))
+                    FwPrimaryButton("Loading", {}, loading = true, textStyle = TextStyle(fontSize = 16.sp))
+                    FearlessProgress()
+                }
+            }
+        }
+        try {
+            compose.runOnUiThread { sheet.showNow(compose.activity.supportFragmentManager, "unmarked-sheet") }
+            compose.mainClock.advanceTimeBy(64)
+            compose.runOnIdle {
+                assertTrue("The actual shared sheet host must default to secure motion", observedSecure)
+                amount = "2345.67"
+            }
+            compose.mainClock.advanceTimeBy(64)
+            val frame = compose.onNodeWithTag("unmarked-host").captureToImage().asAndroidBitmap()
+            compose.mainClock.advanceTimeBy(1000)
+            assertTrue("Unmarked sheet contents must stay still", frame.sameAs(compose.onNodeWithTag("unmarked-host").captureToImage().asAndroidBitmap()))
+        } finally {
+            compose.runOnUiThread { sheet.dismissNow() }
+        }
+    }
+
 }

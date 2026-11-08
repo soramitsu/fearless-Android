@@ -497,16 +497,12 @@ fun FwEmptyState(title: String, modifier: Modifier = Modifier, description: Stri
 }
 
 /**
- * Sheet surface: rises toward the key light (surfaceRaised2) with a rounded top; its top rim fades
- * in as it appears (a crossfade under reduced motion).
+ * Static sheet surface with a rounded, lit rim. Shared sheets also host signing and recovery
+ * flows, so their decoration never relies on a caller remembering to opt out of animation.
  */
 fun Modifier.fwSheet(): Modifier = composed {
     val c = LocalFwColors.current
     val fx = LocalFwEffects.current
-    val duration = fwMotion.durationMillis(FwMotionKind.SheetRise)
-    var shown by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { shown = true }
-    val rim by animateFloatAsState(if (shown) 1f else 0f, tween(duration), label = "fwSheetRim")
     val shape = androidx.compose.foundation.shape.RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
     background(c.surfaceRaised2, shape).drawWithCache {
         val outline = shape.createOutline(size, layoutDirection, this)
@@ -516,7 +512,7 @@ fun Modifier.fwSheet(): Modifier = composed {
             drawContent()
             val edge = if (fx.highContrast) androidx.compose.ui.graphics.SolidColor(c.strokeControl)
             else rimBrush(c, FwLight.SUN_RIM_MAX * 0.4f, 120.dp.toPx())
-            clipPath(path) { drawOutline(outline, edge, alpha = rim, style = stroke) }
+            clipPath(path) { drawOutline(outline, edge, style = stroke) }
         }
     }
 }

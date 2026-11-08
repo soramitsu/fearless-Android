@@ -19,6 +19,8 @@ import jp.co.soramitsu.feature_account_impl.R
 
 @AndroidEntryPoint
 class ArchivedWalletRecoveryFragment : BaseComposeFragment<ArchivedWalletRecoveryViewModel>() {
+
+    override val secureSurface = true
     override val viewModel: ArchivedWalletRecoveryViewModel by viewModels()
 
     // Archived keys can be shown exactly as stored; keep them out of screen captures,
