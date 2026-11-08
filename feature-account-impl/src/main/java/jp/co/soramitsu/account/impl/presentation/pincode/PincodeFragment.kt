@@ -136,7 +136,6 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
         }
         if (FwRestyle.isEnabled(FwSurface.Pin)) {
             val context = requireContext()
-            binding.root.clipChildren = false
             binding.pinCodeView.applySunlitStyle(FwViews.effects(context), FwStandardOrHighContrast(context))
             binding.forgotPin.setTextColor(FwStandardOrHighContrast(context).textLink.toArgb())
         }
