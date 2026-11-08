@@ -14,8 +14,9 @@ networking, remote configuration and chain logic are unchanged). Binding spec: t
   make the wings logo span most of the width of the screen"):** PIN, welcome, onboarding splash, About and the
   launch art show `fw_brand_wings`, the badge's own wing, joint and disc paths without the circle, at about 90%
   of the page width (at most 480 dp) and no taller than the circle was. The wallet hero keeps the round sun
-  because its sync arc needs the circle, and Android 12+'s system splash keeps the badge because the OS masks
-  that icon to a circle.
+  because its sync arc needs the circle. Android 12+'s system splash also keeps the round badge, because the OS
+  draws that icon itself and keeps only the centre 192 dp of its 288 dp box; `fw_splash_icon` insets the badge so
+  the whole approved logo fits in that circle instead of losing its wing tips.
 - **Wallet home scrolls as one page:** the hero, actions, backup prompt and assets now scroll together at every
   text size. As a fixed header the hero left the asset list a sliver of the screen, and none on short phones. The
   NFT grid scrolls on its own, so above it the page keeps only the switch back to currencies.

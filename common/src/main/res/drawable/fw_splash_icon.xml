@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ shows the splash icon in a 288 dp box and keeps only the centre 192 dp circle, which cut the
+     badge's wing tips off and enlarged its disc. The inset keeps the whole approved badge inside that circle. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/fw_brand_badge"
+    android:inset="16.667%" />
