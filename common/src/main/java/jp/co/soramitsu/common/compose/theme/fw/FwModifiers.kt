@@ -368,10 +368,10 @@ fun Modifier.fwNeuInset(
     focused: Boolean = false,
     error: Boolean = false
 ): Modifier {
-    val surface = fwSurface(fx, c, shape, FwElevation.Inset, interactive = true)
-    // The surface already draws the neutral rim. Drawing it twice changes its declared contrast.
-    return if (focused || error) surface.fwInsideBorder(2.dp, SolidColor(if (error) c.danger else c.brand), shape)
-    else surface
+    // Draw state feedback after the surface rim so reduced/high-contrast strokes cannot tint it.
+    // Without a state border the surface itself supplies the neutral rim exactly once.
+    val border = if (focused || error) fwInsideBorder(2.dp, SolidColor(if (error) c.danger else c.brand), shape) else this
+    return border.fwSurface(fx, c, shape, FwElevation.Inset, interactive = true)
 }
 
 /** Shared radii (DESIGN-SPEC 3): cards 22, buttons 18, pills full, icon wells circular. */
