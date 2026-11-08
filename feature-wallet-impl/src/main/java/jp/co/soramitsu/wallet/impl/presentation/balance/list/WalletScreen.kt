@@ -132,8 +132,10 @@ fun WalletScreen(
 
 
     val largeText = LocalDensity.current.fontScale > 1.3f
-    val scrollHeaderWithAssets = largeText && data.assetsState is WalletAssetsState.Assets
     val sunlit = FwRestyle.isEnabled(FwSurface.Portfolio)
+    // The sun-lit hero takes most of a phone's height, so the page scrolls as one at every text size.
+    val scrollingHeader = largeText || sunlit
+    val scrollHeaderWithAssets = scrollingHeader && data.assetsState is WalletAssetsState.Assets
     val walletHeader: @Composable () -> Unit = {
         Column {
             if (sunlit) {
@@ -187,7 +189,18 @@ fun WalletScreen(
     }
 
     Column(modifier = Modifier.padding(horizontal = if (sunlit) 20.dp else 16.dp)) {
-        if (!scrollHeaderWithAssets && !(largeText && data.assetsState is WalletAssetsState.NetworkIssue)) walletHeader()
+        when {
+            // The NFT grid scrolls on its own: above it the page keeps only the switch back to currencies.
+            sunlit && data.assetsState is WalletAssetsState.NftAssets -> if (data.showCurrenciesOrNftSelector) {
+                MarginVertical(margin = 8.dp)
+                MultiToggleButton(
+                    state = data.multiToggleButtonState,
+                    onToggleChange = callback::assetTypeChanged,
+                    stacked = largeText
+                )
+            }
+            !scrollHeaderWithAssets && !(scrollingHeader && data.assetsState is WalletAssetsState.NetworkIssue) -> walletHeader()
+        }
         when (data.assetsState) {
             is WalletAssetsState.NftAssets -> {
                 NFTScreen(collectionsScreen = data.assetsState.collectionScreenModel)
@@ -247,7 +260,7 @@ fun WalletScreen(
             }
 
             is WalletAssetsState.NetworkIssue -> {
-                if (largeText) {
+                if (scrollingHeader) {
                     Column(Modifier.verticalScroll(rememberScrollState())) {
                         walletHeader()
                         NetworkIssue(data.assetsState.retryButtonLoading, callback::onRetry)
