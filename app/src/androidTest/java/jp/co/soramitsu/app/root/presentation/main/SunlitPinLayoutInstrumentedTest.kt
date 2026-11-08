@@ -100,6 +100,17 @@ class SunlitPinLayoutInstrumentedTest {
         }
     }
 
+    @Test fun navigationBarShowsThePageInsteadOfAStrip() {
+        val theme = ContextThemeWrapper(compose.activity, jp.co.soramitsu.common.R.style.Theme_Soramitsu_Fearless)
+        val attributes = theme.obtainStyledAttributes(intArrayOf(android.R.attr.navigationBarColor, android.R.attr.enforceNavigationBarContrast))
+        try {
+            assertEquals(android.graphics.Color.TRANSPARENT, attributes.getColor(0, android.graphics.Color.BLACK))
+            assertFalse("Three-button navigation must not lay a scrim over the page", attributes.getBoolean(1, true))
+        } finally {
+            attributes.recycle()
+        }
+    }
+
     @Test fun launchArtKeepsTheMarksAspectAndSpansMostOfThePageInEveryWidthClass() {
         val context = compose.activity
         for (widthDp in listOf(320, 360, 411, 480, 600)) {

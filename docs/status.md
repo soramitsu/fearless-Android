@@ -20,6 +20,8 @@ networking, remote configuration and chain logic are unchanged). Binding spec: t
 - **Wallet home scrolls as one page:** the hero, actions, backup prompt and assets now scroll together at every
   text size. As a fixed header the hero left the asset list a sliver of the screen, and none on short phones. The
   NFT grid scrolls on its own, so above it the page keeps only the switch back to currencies.
+- **Navigation bar:** in the v1 palette the bar is transparent, with no contrast scrim, so the page light runs to
+  the bottom edge instead of ending in a black strip. `FW_PALETTE=legacy` keeps the black bar.
 - **Brand:** `brand/sun-disc` now holds the approved winged-sun badges (SORA disc radius 64, no cobras,
   wings byte-identical to the 2026-10-10 Figma export; fearless-wallet-web `1275e1a6`, sha256
   `9756447c…53d4d8` lines and `ff653295…e89` solid). `scripts/generate-brand-assets.py` pins them and
