@@ -34,6 +34,8 @@ class CrossChainConfirmFragment : BaseComposeFragment<CrossChainConfirmViewModel
     }
 
     override val viewModel: CrossChainConfirmViewModel by viewModels()
+
+    override val secureSurface = true
     private val validationDialogCoordinator:
         TransferValidationDialogCoordinator by viewModels()
 

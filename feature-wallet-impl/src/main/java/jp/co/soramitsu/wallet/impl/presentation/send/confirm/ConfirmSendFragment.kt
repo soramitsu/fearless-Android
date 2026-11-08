@@ -39,6 +39,8 @@ class ConfirmSendFragment : BaseComposeBottomSheetDialogFragment<ConfirmSendView
     }
 
     override val viewModel: ConfirmSendViewModel by viewModels()
+
+    override val secureSurface = true
     private val validationDialogCoordinator:
         TransferValidationDialogCoordinator by viewModels()
 

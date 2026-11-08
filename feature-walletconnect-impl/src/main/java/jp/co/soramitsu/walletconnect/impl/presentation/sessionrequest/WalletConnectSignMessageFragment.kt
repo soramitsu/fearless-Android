@@ -16,6 +16,8 @@ class WalletConnectSignMessageFragment : BaseComposeBottomSheetDialogFragment<Wa
 
     override val viewModel: WalletConnectSignMessageViewModel by viewModels()
 
+    override val secureSurface = true
+
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()

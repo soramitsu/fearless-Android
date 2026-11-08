@@ -47,6 +47,9 @@ import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.backgroundBlurColor
 import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.common.compose.theme.customTypography
+import jp.co.soramitsu.common.compose.theme.fw.FwIconButton
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
@@ -149,19 +152,7 @@ fun MainToolbar(
             modifier = Modifier.align(Alignment.CenterEnd)
         ) {
             menuItems?.forEach { menuItem ->
-                IconButton(
-                    onClick = menuItem.onClick,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(backgroundBlurColor)
-                        .size(48.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = menuItem.icon),
-                        tint = white,
-                        contentDescription = stringResource(menuItem.contentDescriptionRes)
-                    )
-                }
+                ToolbarMenuButton(menuItem)
             }
         }
     }
@@ -200,16 +191,7 @@ fun MainToolbar(
                 }
             }
             menuItems?.forEach { menuItem ->
-                IconButton(
-                    onClick = menuItem.onClick,
-                    modifier = Modifier.clip(CircleShape).background(backgroundBlurColor).size(48.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = menuItem.icon),
-                        tint = white,
-                        contentDescription = stringResource(menuItem.contentDescriptionRes)
-                    )
-                }
+                ToolbarMenuButton(menuItem)
             }
         }
         Row(
@@ -290,19 +272,7 @@ fun MainToolbarShimmer(
             modifier = Modifier.weight(1f)
         ) {
             menuItems?.forEach { menuItem ->
-                IconButton(
-                    onClick = menuItem.onClick,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(backgroundBlurColor)
-                        .size(48.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = menuItem.icon),
-                        tint = white,
-                        contentDescription = stringResource(menuItem.contentDescriptionRes)
-                    )
-                }
+                ToolbarMenuButton(menuItem)
             }
         }
     }
@@ -338,6 +308,33 @@ fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit, onScoreCli
     }
 }
 
+/** Toolbar menu action: a raised key-lit disc in the sun-lit palette. */
+@Composable
+private fun ToolbarMenuButton(menuItem: MenuIconItem) {
+    if (FwRestyle.paletteEnabled) {
+        FwIconButton(
+            iconRes = menuItem.icon,
+            contentDescription = stringResource(menuItem.contentDescriptionRes),
+            onClick = menuItem.onClick,
+            tint = LocalFwColors.current.textPrimary
+        )
+        return
+    }
+    IconButton(
+        onClick = menuItem.onClick,
+        modifier = Modifier
+            .clip(CircleShape)
+            .background(backgroundBlurColor)
+            .size(48.dp)
+    ) {
+        Icon(
+            painter = painterResource(id = menuItem.icon),
+            tint = white,
+            contentDescription = stringResource(menuItem.contentDescriptionRes)
+        )
+    }
+}
+
 @Composable
 fun IconButton(
     modifier: Modifier = Modifier,
@@ -346,6 +343,11 @@ fun IconButton(
     tint: Color = LocalContentColor.current.copy(alpha = LocalContentAlpha.current),
     onClick: () -> Unit
 ) {
+    if (FwRestyle.paletteEnabled) {
+        FwIconButton(painter = painter, contentDescription = contentDescription, onClick = onClick, modifier = modifier,
+            tint = if (tint == Color.Unspecified) Color.Unspecified else LocalFwColors.current.textPrimary)
+        return
+    }
     IconButton(
         onClick = onClick,
         modifier = modifier
@@ -401,19 +403,7 @@ fun Toolbar(state: ToolbarViewState, modifier: Modifier = Modifier, onNavigation
             modifier = Modifier.weight(1f)
         ) {
             state.menuItems?.forEach { menuItem ->
-                IconButton(
-                    onClick = menuItem.onClick,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(backgroundBlurColor)
-                        .size(48.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = menuItem.icon),
-                        tint = white,
-                        contentDescription = stringResource(menuItem.contentDescriptionRes)
-                    )
-                }
+                ToolbarMenuButton(menuItem)
             }
         }
     }

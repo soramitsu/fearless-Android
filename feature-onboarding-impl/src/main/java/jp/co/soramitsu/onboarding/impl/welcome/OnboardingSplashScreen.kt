@@ -25,6 +25,12 @@ import androidx.navigation.compose.composable
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSunBadge
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.FwSyncPhase
+import jp.co.soramitsu.common.compose.theme.fw.FwSyncState
+import jp.co.soramitsu.common.compose.theme.fw.fwPageBackground
 import jp.co.soramitsu.feature_onboarding_impl.R
 import kotlinx.coroutines.flow.StateFlow
 
@@ -45,10 +51,7 @@ private fun OnboardingSplashScreenContent() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .paint(
-                painter = painterResource(R.drawable.drawable_background_image),
-                contentScale = ContentScale.FillWidth
-            ),
+            .fwPageBackground(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -60,12 +63,18 @@ private fun OnboardingSplashScreenContent() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                modifier = Modifier.fillMaxWidth(),
-                painter = painterResource(id = R.drawable.fearless_bird_glossy),
-                contentDescription = null,
-                contentScale = ContentScale.FillWidth
-            )
+            if (FwRestyle.isEnabled(FwSurface.Welcome)) {
+                // The approved badge as the emissive sun of the page light.
+                FwSunBadge(sync = FwSyncState(FwSyncPhase.Idle), badgeSize = 136.dp)
+                MarginVertical(margin = 24.dp)
+            } else {
+                Image(
+                    modifier = Modifier.fillMaxWidth(),
+                    painter = painterResource(id = R.drawable.fearless_bird_glossy),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillWidth
+                )
+            }
 
             Image(
                 modifier = Modifier.fillMaxWidth(),

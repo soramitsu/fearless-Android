@@ -39,6 +39,7 @@ import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.setupBuyIntegration
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -113,6 +114,8 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         viewModel.showUniversalPasswordNotice.observeEvent(::showUniversalPasswordNotice)
         viewModel.universalPasswordSwitchResult.observeEvent { universalPasswordNotice?.showResult(it.rows) }
         viewModel.openPlayMarket.observeEvent { openPlayMarket() }
+        // The hero's Buy uses the same provider chooser as asset details.
+        setupBuyIntegration(viewModel)
     }
 
     private fun showFiatChooser(payload: DynamicListBottomSheet.Payload<FiatCurrency>) {

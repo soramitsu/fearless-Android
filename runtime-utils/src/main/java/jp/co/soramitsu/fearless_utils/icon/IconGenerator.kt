@@ -48,13 +48,18 @@ class IconGenerator {
         stringBuilder.append("</filter>")
         stringBuilder.append("</defs>")
 
-        stringBuilder.append("<clipPath id=\"clipWingedSun\">")
-        stringBuilder.append(
-            "<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" transform=\"scale(0.125)\" d=\"$WINGED_SUN_CLIP_PATH\" />"
-        )
-        stringBuilder.append("</clipPath>")
+        // The approved badge as a luminance mask: white circle, black wings, white disc keyline, black
+        // disc. The wallet's colours show through the badge's own shape; the mark stays negative space.
+        stringBuilder.append("<mask id=\"maskWingedSun\" maskUnits=\"userSpaceOnUse\" x=\"0\" y=\"0\" width=\"64\" height=\"64\">")
+        stringBuilder.append("<g transform=\"scale(0.125)\">")
+        stringBuilder.append("<path fill=\"#ffffff\" d=\"$WINGED_SUN_CIRCLE_PATH\" />")
+        stringBuilder.append("<path fill=\"#000000\" fill-rule=\"evenodd\" d=\"$WINGED_SUN_WINGS_PATH\" />")
+        stringBuilder.append("<path fill=\"#ffffff\" d=\"$WINGED_SUN_KEYLINE_PATH\" />")
+        stringBuilder.append("<path fill=\"#000000\" fill-rule=\"evenodd\" d=\"$WINGED_SUN_DISC_PATH\" />")
+        stringBuilder.append("</g>")
+        stringBuilder.append("</mask>")
 
-        stringBuilder.append("<g clip-path=\"url(#clipWingedSun)\">")
+        stringBuilder.append("<g mask=\"url(#maskWingedSun)\">")
 
         circles.dropLast(1).forEachIndexed { index, circle ->
             stringBuilder.append("<defs>")
@@ -67,7 +72,7 @@ class IconGenerator {
         }
 
         val lastCircle = circles.last()
-        stringBuilder.append("<circle clip-path=\"url(#clipWingedSun)\" cx='${lastCircle.x}' cy='${lastCircle.y}' r='${lastCircle.radius}' fill=\"#ffffff4d\" filter=\"url(#blur)\" />")
+        stringBuilder.append("<circle mask=\"url(#maskWingedSun)\" cx='${lastCircle.x}' cy='${lastCircle.y}' r='${lastCircle.radius}' fill=\"#ffffff4d\" filter=\"url(#blur)\" />")
         stringBuilder.append("</g>")
 
         stringBuilder.append("</svg>")

@@ -493,6 +493,51 @@ class BalanceListViewModelTests {
     }
 
     @Test
+    fun `hero send and swap open their existing asset selection flows`() = runTest {
+        every { walletRouter.openSend(any(), any(), any(), any()) } just runs
+        every { walletRouter.openSwapTokensScreen(any(), any(), any()) } just runs
+
+        vm.onHeroAction(ActionItemType.SEND)
+        vm.onHeroAction(ActionItemType.SWAP)
+
+        verify(exactly = 1) { walletRouter.openSend(null, any(), any(), any()) }
+        verify(exactly = 1) { walletRouter.openSwapTokensScreen(null, null, null) }
+    }
+
+    @Test
+    fun `hero receive waits for both selected network and asset before opening the address`() = runTest {
+        val chain = kotlinx.coroutines.flow.MutableSharedFlow<String>()
+        val asset = kotlinx.coroutines.flow.MutableSharedFlow<String>()
+        every { walletRouter.observeResult<String>(jp.co.soramitsu.wallet.api.presentation.WalletRouter.KEY_CHAIN_ID) } returns chain
+        every { walletRouter.observeResult<String>(jp.co.soramitsu.wallet.api.presentation.WalletRouter.KEY_ASSET_ID) } returns asset
+        every { walletRouter.openSelectAssetForReceive() } just runs
+        every { walletRouter.openReceive(any()) } just runs
+
+        vm.onHeroAction(ActionItemType.RECEIVE)
+        advanceUntilIdle()
+        chain.emit("selected-chain")
+        advanceUntilIdle()
+        verify(exactly = 0) { walletRouter.openReceive(any()) }
+        asset.emit("selected-asset")
+        advanceUntilIdle()
+        verify(exactly = 1) { walletRouter.openReceive(AssetPayload("selected-chain", "selected-asset")) }
+    }
+
+    @Test
+    fun `hero buy falls back to exact asset details when the wallet has no eligible account`() = runTest {
+        every { walletRouter.observeResult<String>(jp.co.soramitsu.wallet.api.presentation.WalletRouter.KEY_CHAIN_ID) } returns flowOf("selected-chain")
+        every { walletRouter.observeResult<String>(jp.co.soramitsu.wallet.api.presentation.WalletRouter.KEY_ASSET_ID) } returns flowOf("selected-asset")
+        every { walletRouter.openSelectAssetForReceive() } just runs
+        every { walletRouter.openAssetDetails(any()) } just runs
+        every { walletInteractor.selectedAccountFlow("selected-chain") } returns emptyFlow()
+
+        vm.onHeroAction(ActionItemType.BUY)
+        advanceUntilIdle()
+
+        verify(exactly = 1) { walletRouter.openAssetDetails(AssetPayload("selected-chain", "selected-asset")) }
+    }
+
+    @Test
     fun `explicit shown zero row is listed and an auto zero non-default row is not`() = runTest {
         val shownSecondary = portfolioAsset("shown-secondary", "SEC", TOKEN_CHAIN_ID)
         val autoUtility = portfolioAsset("auto-utility", "TKN", TOKEN_CHAIN_ID, isUtility = true)

@@ -2,6 +2,19 @@
 
 # Roadmap & Technical Debt
 
+## Sun-lit redesign: open items — 8 November 2026
+
+Described in `docs/status.md`. Not yet done on branch `claude/android-sunlit-redesign`:
+
+- Surfaces still on the shared components only (their flags stay off until each is reviewed on device):
+  recovery, manage assets, pickers, unavailable, signing, appearance, mnemonic and staking; staking and
+  most account screens are XML and only take the page light and shared drawables.
+- The optional tilt-shifted key light (sensor) is not implemented.
+- Instrumentation suites that assert Neon Glass paint values (`WalletPaintInstrumentedTest` and the
+  v1 qualification set of `scripts/android-app-instrumentation.py`) need new expectations for the
+  sun-lit model; they were not run on this branch.
+- Physical-device review of shadow cost on API 26-27 (no hardware blur; flat fallback) and on low-end GPUs.
+
 ## 4.3.2 (234): open items — 8 November 2026
 
 The candidate is described in `docs/status.md` and `docs/releases/4.3.2.md`. Open before or after release:

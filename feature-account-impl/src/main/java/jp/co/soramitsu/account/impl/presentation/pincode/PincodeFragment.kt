@@ -23,7 +23,12 @@ import androidx.biometric.BiometricPrompt
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
+import androidx.compose.ui.graphics.toArgb
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwStandardOrHighContrast
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.FwViews
 import jp.co.soramitsu.common.io.MainThreadExecutor
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentPincodeBinding
@@ -128,6 +133,12 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
         with(binding.pinCodeView) {
             pinCodeEnteredListener = { viewModel.pinCodeEntered(it) }
             fingerprintClickListener = { startNormalPrompt() }
+        }
+        if (FwRestyle.isEnabled(FwSurface.Pin)) {
+            val context = requireContext()
+            binding.root.clipChildren = false
+            binding.pinCodeView.applySunlitStyle(FwViews.effects(context), FwStandardOrHighContrast(context))
+            binding.forgotPin.setTextColor(FwStandardOrHighContrast(context).textLink.toArgb())
         }
         binding.forgotPin.setOnClickListener { viewModel.forgotPin() }
     }

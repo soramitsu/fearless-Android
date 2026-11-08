@@ -2,6 +2,43 @@
 
 # Status Summary
 
+## Sun-lit neumorphism redesign and the approved badge — 8 November 2026
+
+Owner, 8 November 2026: "the mobile apps are ugly and don't use our new logo branding. make the ui look
+good and really cool with neumorphism and global illumination and subtle and informative animations".
+Branch `claude/android-sunlit-redesign` from `4056a845f`; UI only (keys, PIN envelope, signing, storage,
+networking, remote configuration and chain logic are unchanged). Binding spec: the 2026-11-08
+`DESIGN-SPEC.md` and `reference-mockup.html` of the mobile redesign.
+
+- **Brand:** `brand/sun-disc` now holds the approved winged-sun badges (SORA disc radius 64, no cobras,
+  wings byte-identical to the 2026-10-10 Figma export; fearless-wallet-web `1275e1a6`, sha256
+  `9756447c…53d4d8` lines and `ff653295…e89` solid). `scripts/generate-brand-assets.py` pins them and
+  regenerates the launcher (badge-gradient background, the mark in the 66/108 safe zone with the keyline
+  painted in the background's own gradient, a monochrome layer from the solid mark), the in-app marks, the
+  default wallet avatar (`ic_wallet`, was the bird PNG) and the QR centre mark (was the bird). Tinted marks
+  cut the keyline gap with a clip-path, never by editing the wing contours. The animated bird GIF is gone.
+- **Tokens and light model:** `design/fw.tokens.json` v2 carries the sun-lit palette (base `#151831`,
+  wells `#0E1024`, key-light shadow pair, rim, sun rim, sun bounce, sky, badge gradient, motion events);
+  `scripts/design/gen-fw-tokens.mjs` regenerates `FwColors.kt`/`fw_colors.xml` (it reproduced the previous
+  outputs byte for byte before the change; `scripts/test-fw-tokens.mjs` checks them). `FwLight` (key light
+  (-0.6, -0.8), Raised-1/Raised-2/Inset/Emissive, distance-weighted sun rim), `FwMotion` (spec durations;
+  reduced motion, animator scale 0, Calm, Reduced effects and secure surfaces) and `FwDigitRoll` are pure
+  and unit-tested. The spec's price-up `#3DF2B0` fails the contract's colour-vision floor against
+  `#FF9F57` (protan ΔE 28.7 < 40), so price-up keeps `#38E8E0`; `fillTop` is `#E3035E` so white labels
+  keep 4.5:1 on the whole primary gradient. All 344 contrast combinations pass.
+- **Rollback:** `FW_PALETTE=v1` and ten surfaces (portfolio, send, receive, welcome, navigation, loading,
+  PIN, asset details, history, settings) are on by default; shared components follow the palette alone, so
+  `FW_PALETTE=legacy` restores every previous presentation. New surface flags: `PIN`, `ASSET_DETAILS`,
+  `HISTORY`, `SETTINGS`. Page and window art follow the palette through generated drawable aliases.
+- **Screens:** wallet hero (the badge as the emissive sun with a sync arc driven by the real asset loading,
+  rolling total, change, copy chip, round Send/Receive/Buy/Swap; Receive and Buy pick an asset first),
+  Raised-1 token rows with a first-appearance stagger, sliding light well under the bottom navigation,
+  neumorphic PIN pad (dots fill from the key-light side, wrong PIN shakes twice), receive QR in an inset
+  well with its white field kept, status rings on pending/failed history rows, round asset actions,
+  inset input wells, raised cards, sheets with a rim, segmented controls and switches, settings rows with
+  icon wells, onboarding/about/splash with the badge. Signing sheets (WalletConnect, TON, send and
+  cross-chain confirmations) are secure motion surfaces: nothing there animates beyond press feedback.
+
 ## Production candidate 4.3.2 (234): key safety and open-source libraries only — 8 November 2026
 
 Fixes every finding of the 2026-11-07 Android key-exposure audit of 4.3.1 (233) and removes every

@@ -20,6 +20,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwRoundAction
 
 enum class ActionItemType(
     @DrawableRes val iconId: Int,
@@ -47,6 +49,23 @@ fun ActionBar(
     fillMaxWidth: Boolean = false,
     onItemClick: (ActionItemType, String, String) -> Unit = { _, _, _ -> }
 ) {
+    if (FwRestyle.paletteEnabled) {
+        // Round key-lit actions; Send carries the emissive brand light.
+        Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+            state.actionItems.forEach { actionItem ->
+                FwRoundAction(
+                    iconRes = actionItem.iconId,
+                    label = stringResource(id = actionItem.titleId),
+                    onClick = { onItemClick(actionItem, state.chainId, state.chainAssetId) },
+                    primary = actionItem == ActionItemType.SEND,
+                    enabled = actionItem !in state.disabledItems,
+                    size = 52.dp,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+        return
+    }
     Row {
         state.actionItems.forEachIndexed { index, actionItem ->
             val itemClickHandler = remember(actionItem, state.chainId, state.chainAssetId) {

@@ -116,6 +116,12 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openReceive(assetPayload: AssetPayload)
 
+    /**
+     * Asset picker for a wallet-level action (Receive, Buy) that has no asset yet; the choice comes
+     * back as [jp.co.soramitsu.wallet.api.presentation.WalletRouter.KEY_CHAIN_ID] and KEY_ASSET_ID.
+     */
+    fun openSelectAssetForReceive() = Unit
+
     fun openNodes(chainId: ChainId)
     fun openClaimRewards(chainId: ChainId)
 

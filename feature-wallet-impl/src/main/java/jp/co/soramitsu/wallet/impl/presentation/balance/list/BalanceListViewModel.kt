@@ -1,5 +1,8 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import kotlinx.coroutines.flow.firstOrNull
+import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
+import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin
 import android.net.Uri
 import android.util.Log
 import android.widget.LinearLayout
@@ -185,7 +188,8 @@ class BalanceListViewModel @Inject constructor(
     private val tokenGroupRegistry: jp.co.soramitsu.runtime.multiNetwork.tokengroups.TokenGroupRegistry,
     private val updateSecurityNotice: UpdateSecurityNoticeTracker,
     private val universalPasswordNotice: UniversalWalletPasswordNotice = UniversalWalletPasswordNotice.NONE,
-) : BaseViewModel(), WalletScreenInterface {
+    private val buyMixin: BuyMixin.Presentation = NoBuyProviders,
+) : BaseViewModel(), WalletScreenInterface, BuyMixin by buyMixin {
 
     private var awaitAssetsJob: Job? = null
 
@@ -1231,6 +1235,42 @@ class BalanceListViewModel @Inject constructor(
         state.value.balance.address.takeIf { it.isNotEmpty() }?.let(::copyToClipboard)
     }
 
+    private var heroPickJob: Job? = null
+
+    /** Wallet-level actions of the sun-lit hero: the same routes the asset rows use. */
+    override fun onHeroAction(action: ActionItemType) {
+        when (action) {
+            // Send without an asset opens Send with its own asset choice (as a scanned address does).
+            ActionItemType.SEND -> router.openSend(null)
+            ActionItemType.RECEIVE -> pickAssetThen { payload -> receiveClicked(payload) }
+            ActionItemType.BUY -> pickAssetThen { payload -> buyOrDetails(payload) }
+            ActionItemType.SWAP -> router.openSwapTokensScreen(chainId = null, assetIdFrom = null, assetIdTo = null)
+            else -> Unit
+        }
+    }
+
+    private fun pickAssetThen(action: suspend (AssetPayload) -> Unit) {
+        heroPickJob?.cancel()
+        // Results are read from this screen's entry, so observe them before the picker opens.
+        val chainResult = router.observeResult<String>(WalletRouterApi.KEY_CHAIN_ID)
+        val assetResult = router.observeResult<String>(WalletRouterApi.KEY_ASSET_ID)
+        router.openSelectAssetForReceive()
+        heroPickJob = launch {
+            val (chainId, assetId) = combine(chainResult, assetResult) { chain, asset -> chain to asset }.first()
+            action(AssetPayload(chainId, assetId))
+        }
+    }
+
+    private suspend fun buyOrDetails(payload: AssetPayload) {
+        val address = interactor.selectedAccountFlow(payload.chainId).firstOrNull()?.address
+        if (address != null && buyMixin.isBuyEnabled(payload.chainId, payload.chainAssetId)) {
+            buyMixin.buyClicked(payload.chainId, payload.chainAssetId, address)
+        } else {
+            // No provider sells this asset: its details list what can be done with it instead.
+            router.openAssetDetails(payload)
+        }
+    }
+
 
     fun onFiatSelected(item: FiatCurrency) {
         viewModelScope.launch {
@@ -1402,4 +1442,13 @@ class BalanceListViewModel @Inject constructor(
             router.openScoreDetailsScreen(currentAccount.id)
         }
     }
+}
+
+/** Used where no buy provider registry is injected (tests); the hero then opens asset details. */
+private object NoBuyProviders : BuyMixin.Presentation {
+    override val showProviderChooserEvent = androidx.lifecycle.MutableLiveData<jp.co.soramitsu.common.utils.Event<BuyMixin.ProviderChooserPayload>>()
+    override val integrateWithBuyProviderEvent = androidx.lifecycle.MutableLiveData<jp.co.soramitsu.common.utils.Event<BuyMixin.IntegrationPayload>>()
+    override fun providerChosen(provider: jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry.Provider<*>, chainAsset: jp.co.soramitsu.core.models.Asset, accountAddress: String) = Unit
+    override suspend fun buyClicked(chainId: jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId, chainAssetId: String, accountAddress: String) = Unit
+    override suspend fun isBuyEnabled(chainId: jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId, chainAssetId: String) = false
 }

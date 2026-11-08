@@ -16,6 +16,8 @@ class RequestPreviewFragment : BaseComposeBottomSheetDialogFragment<RequestPrevi
 
     override val viewModel: RequestPreviewViewModel by viewModels()
 
+    override val secureSurface = true
+
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()

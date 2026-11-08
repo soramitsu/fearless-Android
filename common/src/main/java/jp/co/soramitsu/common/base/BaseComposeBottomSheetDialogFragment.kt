@@ -24,7 +24,9 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.emptyClick
+import androidx.compose.runtime.CompositionLocalProvider
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwSecureSurface
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
@@ -32,6 +34,9 @@ import jp.co.soramitsu.common.utils.EventObserver
 abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomSheetDialogFragment() {
 
     abstract val viewModel: T
+
+    /** Signing and recovery-phrase sheets: nothing animates in them beyond press feedback. */
+    protected open val secureSurface: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,13 +54,15 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomS
         return ComposeView(requireContext()).apply {
             setContent {
                 FearlessTheme {
-                    Box(
-                        modifier = Modifier
-                            .semantics {
-                                testTagsAsResourceId = true
-                            }
-                    ) {
-                        Content(PaddingValues())
+                    CompositionLocalProvider(LocalFwSecureSurface provides secureSurface) {
+                        Box(
+                            modifier = Modifier
+                                .semantics {
+                                    testTagsAsResourceId = true
+                                }
+                        ) {
+                            Content(PaddingValues())
+                        }
                     }
                 }
             }

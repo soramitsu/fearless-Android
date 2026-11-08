@@ -53,6 +53,8 @@ import jp.co.soramitsu.common.compose.component.MultiToggleButton
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.white64
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.utils.rememberForeverLazyListState
@@ -88,6 +90,9 @@ interface WalletScreenInterface : AssetsListInterface {
     fun onPortfolioMemberAction(walletId: Long, chainId: String, assetId: String, action: ActionItemType) {}
     fun onPortfolioHideGroup(walletId: Long, groupId: String) {}
     fun onWalletRecoveryClick()
+
+    /** Send, Receive, Buy or Swap from the sun-lit hero; asset choice happens in the opened flow. */
+    fun onHeroAction(action: ActionItemType) {}
 }
 
 @Composable
@@ -128,14 +133,25 @@ fun WalletScreen(
 
     val largeText = LocalDensity.current.fontScale > 1.3f
     val scrollHeaderWithAssets = largeText && data.assetsState is WalletAssetsState.Assets
+    val sunlit = FwRestyle.isEnabled(FwSurface.Portfolio)
     val walletHeader: @Composable () -> Unit = {
         Column {
-            MarginVertical(margin = 16.dp)
-            AssetBalance(
-                state = data.balance,
-                onAddressClick = callback::onAddressClick,
-                onBalanceClick = callback::onBalanceClicked
-            )
+            if (sunlit) {
+                SunlitWalletHero(
+                    state = data.balance,
+                    sync = walletSyncState(data),
+                    onBalanceClick = callback::onBalanceClicked,
+                    onAddressClick = callback::onAddressClick,
+                    onAction = callback::onHeroAction
+                )
+            } else {
+                MarginVertical(margin = 16.dp)
+                AssetBalance(
+                    state = data.balance,
+                    onAddressClick = callback::onAddressClick,
+                    onBalanceClick = callback::onBalanceClicked
+                )
+            }
 
             MarginVertical(margin = 16.dp)
             when {
@@ -170,7 +186,7 @@ fun WalletScreen(
         }
     }
 
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+    Column(modifier = Modifier.padding(horizontal = if (sunlit) 20.dp else 16.dp)) {
         if (!scrollHeaderWithAssets && !(largeText && data.assetsState is WalletAssetsState.NetworkIssue)) walletHeader()
         when (data.assetsState) {
             is WalletAssetsState.NftAssets -> {

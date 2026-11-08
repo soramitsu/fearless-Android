@@ -8,6 +8,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.asFlow
 import androidx.navigation.NavBackStackEntry
+import androidx.core.os.bundleOf
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLinkRequest
 import androidx.navigation.NavGraph
@@ -1096,6 +1097,12 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
             xcmAssetSymbol = xcmAssetSymbol
         )
         navigateInMainTabOrRoot(R.id.chainSelectFragment, bundle)
+    }
+
+    override fun openSelectAssetForReceive() {
+        // Every listed asset, funded or not: receiving and buying need no balance.
+        val bundle = bundleOf(AssetSelectFragment.KEY_PURPOSE to AssetSelectPurpose.RECEIVE.name)
+        navigateInMainTabOrRoot(R.id.assetSelectFragment, bundle)
     }
 
     override fun openSelectAsset(selectedAssetId: String, selectedChainId: ChainId?) {

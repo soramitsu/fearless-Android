@@ -18,6 +18,8 @@ class TonSignRequestFragment : BaseComposeBottomSheetDialogFragment<TonSignReque
 
     override val viewModel: TonSignRequestViewModel by viewModels()
 
+    override val secureSurface = true
+
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()

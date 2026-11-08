@@ -43,6 +43,13 @@ import jp.co.soramitsu.common.compose.component.TransparentBorderedButton
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customTypography
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSunBadge
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.FwSyncPhase
+import jp.co.soramitsu.common.compose.theme.fw.FwSyncState
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
+import jp.co.soramitsu.common.compose.theme.fw.fwPageBackground
 import jp.co.soramitsu.feature_onboarding_impl.R
 import kotlinx.coroutines.flow.StateFlow
 
@@ -106,11 +113,8 @@ private fun WelcomeScreenContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .paint(
-                painter = painterResource(R.drawable.drawable_background_image),
-                contentScale = ContentScale.FillWidth
-            ),
+            .fwPageBackground()
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (state.isBackVisible) {
@@ -133,9 +137,15 @@ private fun WelcomeScreenContent(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 48.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(res = R.drawable.fw_brand_hero)
-            MarginVertical(margin = 16.dp)
-            H2(text = stringResource(R.string.fearless_wallet), textAlign = TextAlign.Center)
+            if (FwRestyle.isEnabled(FwSurface.Welcome)) {
+                FwSunBadge(sync = FwSyncState(FwSyncPhase.Idle), badgeSize = 128.dp)
+                MarginVertical(margin = 20.dp)
+                H2(text = stringResource(R.string.fearless_wallet), textAlign = TextAlign.Center)
+            } else {
+                Image(res = R.drawable.fw_brand_hero)
+                MarginVertical(margin = 16.dp)
+                H2(text = stringResource(R.string.fearless_wallet), textAlign = TextAlign.Center)
+            }
         }
         AccentButton(
             text = stringResource(id = R.string.username_setup_title_2_0),
@@ -193,7 +203,7 @@ private fun WelcomeScreenContent(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).heightIn(min = 48.dp).clickable(role = Role.Button, onClick = callbacks::termsClicked).padding(vertical = 8.dp),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.customTypography.body1,
-                color = colorAccentDark,
+                color = if (FwRestyle.paletteEnabled) LocalFwColors.current.textLink else colorAccentDark,
                 text = stringResource(id = R.string.onboarding_terms_and_conditions_2)
             )
             Text(
@@ -206,7 +216,7 @@ private fun WelcomeScreenContent(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).heightIn(min = 48.dp).clickable(role = Role.Button, onClick = callbacks::privacyClicked).padding(vertical = 8.dp),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.customTypography.body1,
-                color = colorAccentDark,
+                color = if (FwRestyle.paletteEnabled) LocalFwColors.current.textLink else colorAccentDark,
                 text = stringResource(id = R.string.onboarding_privacy_policy)
             )
         }
