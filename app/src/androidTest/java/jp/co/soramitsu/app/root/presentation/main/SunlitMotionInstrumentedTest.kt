@@ -84,7 +84,7 @@ class SunlitMotionInstrumentedTest {
 
     @Test fun brandedReceiveQrCodesDecodeToTheExactPayload() = runBlocking {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val resources = ResourceManagerImpl(ContextManager.getInstance(context, LanguagesHolder()))
+        val resources = ResourceManagerImpl(ContextManager.getInstanceOrInit(context, LanguagesHolder()))
         val generator = QrCodeGenerator(android.graphics.Color.BLACK, android.graphics.Color.WHITE, resources)
         for (payload in listOf(
             "0x0123456789012345678901234567890123456789",
