@@ -38,6 +38,9 @@ networking, remote configuration and chain logic are unchanged). Binding spec: t
   inset input wells, raised cards, sheets with a rim, segmented controls and switches, settings rows with
   icon wells, onboarding/about/splash with the badge. Signing sheets (WalletConnect, TON, send and
   cross-chain confirmations) are secure motion surfaces: nothing there animates beyond press feedback.
+- **PIN accessibility:** the native keypad has a scrollable viewport above the recovery action. At
+  narrow widths and large text the last row remains reachable without overlapping "Forgot PIN?";
+  keypad identifiers, listeners, six-digit entry and recovery routing remain unchanged.
 
 ## Production candidate 4.3.2 (234): key safety and open-source libraries only — 8 November 2026
 
