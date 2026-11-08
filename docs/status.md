@@ -41,7 +41,16 @@ networking, remote configuration and chain logic are unchanged). Binding spec: t
   animates beyond press feedback.
 - **PIN accessibility:** the native keypad has a scrollable viewport above the recovery action. At
   narrow widths and large text the last row remains reachable without overlapping "Forgot PIN?";
-  keypad identifiers, listeners, six-digit entry and recovery routing remain unchanged.
+  keypad identifiers, listeners, six-digit entry and recovery routing remain unchanged. The viewport
+  clips scroll content above recovery while the keys retain their own shadow room.
+- **Live accessibility:** a balance that wraps at large text sizes keeps its full text layout during
+  updates and tints the changed suffix. Motion preference changes settle ongoing rolls and spinners;
+  focused/error input borders paint above neutral surface rims in every effects tier.
+- **Local validation:** regression coverage includes native PIN touch targets at 320 dp/200% text,
+  wrapped amount updates, secure/live reduced motion, exact branded QR payload decoding, surface
+  pixels, localized type and screen layouts, loading input safety, brand resources and system effects.
+  Source-bound build/test logs, APK hashes and emulator screenshots are retained in the workspace's
+  `mobile-redesign-20261108/android` validation bundle. No hosted CI or release publication is involved.
 
 ## Production candidate 4.3.2 (234): key safety and open-source libraries only — 8 November 2026
 

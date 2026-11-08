@@ -10,9 +10,9 @@ Described in `docs/status.md`. Not yet done on branch `claude/android-sunlit-red
   recovery, manage assets, pickers, unavailable, signing, appearance, mnemonic and staking; staking and
   most account screens are XML and only take the page light and shared drawables.
 - The optional tilt-shifted key light (sensor) is not implemented.
-- Instrumentation suites that assert Neon Glass paint values (`WalletPaintInstrumentedTest` and the
-  v1 qualification set of `scripts/android-app-instrumentation.py`) need new expectations for the
-  sun-lit model; they were not run on this branch.
+- The complete compile-time appearance rollback matrix remains separate from the default-palette
+  local UI qualification. Paint expectations now describe the sun-lit surfaces; device checks include
+  Full/Lite/Reduced/Calm/high-contrast behavior and preserve focus/error state colors.
 - Physical-device review of shadow cost on API 26-27 (no hardware blur; flat fallback) and on low-end GPUs.
 
 ## 4.3.2 (234): open items — 8 November 2026
