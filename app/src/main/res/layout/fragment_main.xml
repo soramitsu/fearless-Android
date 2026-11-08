@@ -11,13 +11,20 @@
     android:orientation="vertical"
     tools:theme="@style/Theme.Soramitsu.Fearless">
 
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/bottomNavHost"
-        android:name="androidx.navigation.fragment.NavHostFragment"
+    <jp.co.soramitsu.common.view.BottomFadeFrameLayout
+        android:id="@+id/bottomNavContent"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:defaultNavHost="true"
-        app:navGraph="@navigation/bottom_nav_graph" />
+        android:layout_height="match_parent">
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/bottomNavHost"
+            android:name="androidx.navigation.fragment.NavHostFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:defaultNavHost="true"
+            app:navGraph="@navigation/bottom_nav_graph" />
+
+    </jp.co.soramitsu.common.view.BottomFadeFrameLayout>
 
     <jp.co.soramitsu.common.view.BottomNavigationViewWithFAB
         android:id="@+id/bottom_navigation_view_with_fab"

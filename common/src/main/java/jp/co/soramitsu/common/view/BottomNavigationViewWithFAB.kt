@@ -5,7 +5,9 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.util.AttributeSet
 import android.view.View
+import android.widget.TextView
 import androidx.compose.ui.graphics.toArgb
+import androidx.core.content.res.ResourcesCompat
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.shape.MaterialShapeDrawable
 import com.google.android.material.shape.ShapeAppearanceModel
@@ -64,7 +66,8 @@ class BottomNavigationViewWithFAB @JvmOverloads constructor(
      */
     fun applySunlitStyle(fx: FwEffects, colors: FwColors) {
         val density = resources.displayMetrics.density
-        val bar = FwNavBarDrawable(colors, fx, density, sideMargin = 14f * density, verticalMargin = 6f * density, corner = 26f * density)
+        val sideMargin = SUNLIT_SIDE_MARGIN * density
+        val bar = FwNavBarDrawable(colors, fx, density, sideMargin = sideMargin, verticalMargin = 6f * density, corner = 26f * density)
         sunlit = bar
         background = bar
         backgroundTintList = null
@@ -75,7 +78,20 @@ class BottomNavigationViewWithFAB @JvmOverloads constructor(
         itemTextColor = tint
         itemRippleColor = null
         isItemActiveIndicatorEnabled = false
-        setPadding(paddingLeft, (SUNLIT_VERTICAL_PADDING * density).toInt(), paddingRight, paddingBottom)
+        // The tabs share the bar's width, so the outer labels and the light well stay inside its ends.
+        setPadding(sideMargin.toInt(), (SUNLIT_VERTICAL_PADDING * density).toInt(), sideMargin.toInt(), paddingBottom)
+        applySunlitLabelFont()
+    }
+
+    /** Only the typeface changes, so the labels keep following the system text size. */
+    private fun applySunlitLabelFont() {
+        val inactive = ResourcesCompat.getFont(context, R.font.sora_semibold)
+        val active = ResourcesCompat.getFont(context, R.font.sora_bold)
+        for (index in 0 until menu.size()) {
+            val item = findViewById<View>(menu.getItem(index).itemId) ?: continue
+            item.findViewById<TextView>(com.google.android.material.R.id.navigation_bar_item_small_label_view)?.typeface = inactive
+            item.findViewById<TextView>(com.google.android.material.R.id.navigation_bar_item_large_label_view)?.typeface = active
+        }
     }
 
     /** Bottom system inset below the bar; the bar floats above it with its own margin. */
@@ -112,5 +128,6 @@ class BottomNavigationViewWithFAB @JvmOverloads constructor(
 
     private companion object {
         const val SUNLIT_VERTICAL_PADDING = 10
+        const val SUNLIT_SIDE_MARGIN = 14
     }
 }

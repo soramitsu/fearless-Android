@@ -57,6 +57,7 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
         val sunlit = FwRestyle.isEnabled(FwSurface.Navigation)
         if (sunlit) {
             binding.bottomNavigationViewWithFab.applySunlitStyle(FwViews.effects(requireContext()), FwStandardOrHighContrast(requireContext()))
+            binding.bottomNavContent.enableBottomFade((PAGE_FADE_DP * resources.displayMetrics.density).toInt())
         }
         binding.bottomNavigationViewWithFab.setOnApplyWindowInsetsListener { v, insets ->
             val systemWindowInsetBottom = insets.systemWindowInsetBottom
@@ -96,7 +97,7 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
             }
         }
 
-        configurePolkaswapNavigationAction(binding.bottomNavigationViewWithFab, binding.fabMain, binding.bottomNavHost)
+        configurePolkaswapNavigationAction(binding.bottomNavigationViewWithFab, binding.fabMain, binding.bottomNavContent)
 
         if (!restoringViewState) {
             arguments?.getString(ARG_POLKAMARKT_MARKET_ID)?.let { marketId ->
@@ -115,6 +116,7 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
 
     private companion object {
         const val ARG_POLKAMARKT_MARKET_ID = "marketId"
+        const val PAGE_FADE_DP = 28
 
         val TAB_ROOT_DESTINATIONS = setOf(
             R.id.walletFragment,
