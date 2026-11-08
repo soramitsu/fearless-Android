@@ -144,7 +144,10 @@ class WalletEffectsModeInstrumentedTest {
                         }
                     }
                 }.commit())
-                setPowerSave(originalPowerSave)
+                // Cleanup must restore the OS even if the test activity was recreated; do not
+                // mask an earlier assertion with the live-host assertion used during the test.
+                shell("cmd power set-mode ${if (originalPowerSave) 1 else 0}")
+                compose.waitUntil(10_000) { power.isPowerSaveMode == originalPowerSave }
             } finally {
                 try {
                     if (batteryOverrideStarted) shell("cmd battery reset")
