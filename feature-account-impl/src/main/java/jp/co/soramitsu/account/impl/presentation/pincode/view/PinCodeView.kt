@@ -5,7 +5,6 @@ import android.animation.ObjectAnimator
 import android.animation.StateListAnimator
 import android.content.Context
 import android.content.res.ColorStateList
-import android.graphics.Typeface
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.ViewGroup
@@ -13,6 +12,7 @@ import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.animation.doOnEnd
+import androidx.core.content.res.ResourcesCompat
 import jp.co.soramitsu.common.compose.theme.fw.FwColors
 import jp.co.soramitsu.common.compose.theme.fw.FwEffects
 import jp.co.soramitsu.common.compose.theme.fw.FwElevation
@@ -122,7 +122,8 @@ class PinCodeView @JvmOverloads constructor(
         }
         binding.pinCodeTitleTv.setTextColor(colors.textPrimary.toArgb())
         binding.pinCodeTitleTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
-        binding.pinCodeTitleTv.typeface = Typeface.create(binding.pinCodeTitleTv.typeface, Typeface.BOLD)
+        // The title has no text appearance of its own, so it would otherwise fall back to the system font.
+        binding.pinCodeTitleTv.typeface = ResourcesCompat.getFont(context, jp.co.soramitsu.common.R.font.sora_bold)
         binding.dotsProgressView.applySunlitStyle(fx, colors)
         val keys = listOf(binding.btn1, binding.btn2, binding.btn3, binding.btn4, binding.btn5, binding.btn6,
             binding.btn7, binding.btn8, binding.btn9, binding.btn0)

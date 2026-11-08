@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.height
 import androidx.compose.ui.unit.width
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.widget.NestedScrollView
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import java.io.File
@@ -96,6 +97,8 @@ class SunlitPinLayoutInstrumentedTest {
                 assertEquals("$next artwork keeps its aspect", FwWings.ASPECT, logo.width.toFloat() / artHeight, 0.05f)
                 assertTrue("$next mark stays above the title", logo.bottom <= pin.findViewById<View>(R.id.pinCodeTitleTv).top)
                 assertEquals(0, logo.paddingLeft + logo.paddingRight)
+                val title = pin.findViewById<TextView>(R.id.pinCodeTitleTv)
+                assertEquals("$next title uses the app's font", ResourcesCompat.getFont(title.context, jp.co.soramitsu.common.R.font.sora_bold), title.typeface)
             }
         }
     }
