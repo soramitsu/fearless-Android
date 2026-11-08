@@ -7,7 +7,7 @@
         tools:replace="android:networkSecurityConfig">
         <activity
             android:name="jp.co.soramitsu.app.root.presentation.main.PolkaswapNavigationLayoutTestActivity"
-            android:configChanges="uiMode|screenSize|smallestScreenSize"
+            android:configChanges="uiMode|screenSize|smallestScreenSize|assetsPaths"
             android:exported="false"
             android:theme="@style/Theme.Soramitsu.Fearless" />
         <activity

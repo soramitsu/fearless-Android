@@ -86,8 +86,9 @@ class WalletEffectsModeInstrumentedTest {
         fun setPowerSave(enabled: Boolean) {
             shell("cmd power set-mode ${if (enabled) 1 else 0}")
             compose.waitUntil(10_000) { power.isPowerSaveMode == enabled }
-            // Battery saver also changes system night mode. The empty debug host handles uiMode
-            // so this test observes the live callbacks instead of losing its injected content.
+            // Battery saver also changes system night mode, and the system theme overlays that follow
+            // change the asset paths. The empty debug host handles uiMode and assetsPaths so this test
+            // observes the live callbacks instead of losing its injected content.
             assertFalse(context.isDestroyed)
             assertEquals(context, compose.activity)
         }
