@@ -6,6 +6,7 @@ import android.graphics.Rect
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.TextView
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -54,7 +55,7 @@ class SunlitPinLayoutInstrumentedTest {
                         screenWidthDp = mode.first
                         screenHeightDp = mode.second
                     }
-                    val themed = ContextThemeWrapper(context.createConfigurationContext(config), compose.activity.theme)
+                    val themed = ContextThemeWrapper(context.createConfigurationContext(config), jp.co.soramitsu.common.R.style.Theme_Soramitsu_Fearless)
                     LayoutInflater.from(themed).inflate(R.layout.fragment_pincode, null).also { view ->
                         root = view
                         view.findViewById<View>(R.id.pinRecoveryContent).visibility = View.GONE
@@ -81,7 +82,11 @@ class SunlitPinLayoutInstrumentedTest {
             compose.waitForIdle()
             val zero = root.findViewById<View>(R.id.btn0)
             val delete = root.findViewById<View>(R.id.btnDelete)
-            val recovery = root.findViewById<View>(R.id.forgotPin)
+            val recovery = root.findViewById<TextView>(R.id.forgotPin)
+            if (next.third == 2f) {
+                val normalSp = 16 * recovery.resources.displayMetrics.density
+                assertTrue("The recovery label must use enlarged native text", recovery.textSize > normalSp * 1.3f)
+            }
             val viewport = Rect().also { assertTrue(root.getGlobalVisibleRect(it)) }
             val bounds = listOf(zero, delete, recovery).map { view ->
                 Rect().also {
