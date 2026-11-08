@@ -4,10 +4,7 @@ import org.bouncycastle.crypto.digests.SHA256Digest
 import org.bouncycastle.crypto.macs.HMac
 import org.bouncycastle.crypto.params.KeyParameter
 
-/**
- * HMAC over SHA-256 for the wallet keyring's device factor, on BouncyCastle like the rest of the keyring.
- * It carries no MoonPay role; the MoonPay client-secret policy keeps a generic JCA helper out of the app.
- */
+/** HMAC over SHA-256 for the wallet keyring's device factor, on BouncyCastle like the rest of the keyring. */
 object KeyringMac {
     fun sha256(key: ByteArray, data: ByteArray): ByteArray {
         val mac = HMac(SHA256Digest())
