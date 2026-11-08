@@ -83,6 +83,7 @@ class BrandAssetsTests(unittest.TestCase):
         for drawable, master in [("common/src/main/res/drawable/ic_fearless_logo.xml", "winged-sun-badge-lines.svg"),
                                  ("common/src/main/res/drawable/fw_brand_badge.xml", "winged-sun-badge-lines.svg"),
                                  ("common/src/main/res/drawable/fw_brand_wings.xml", "winged-sun-badge-lines.svg"),
+                                 ("common/src/main/res/drawable/fw_splash_icon.xml", "winged-sun-badge-lines.svg"),
                                  ("app/src/main/res/drawable/ic_launcher_foreground.xml", "winged-sun-badge-lines.svg"),
                                  ("app/src/main/res/drawable/ic_launcher_monochrome.xml", "winged-sun-badge.svg"),
                                  ("common/src/main/res/drawable/ic_fearless.xml", "winged-sun-badge.svg")]:
@@ -137,6 +138,17 @@ class BrandAssetsTests(unittest.TestCase):
         # The aspect the views size the mark with (FwWings.ASPECT).
         self.assertLess(abs(width / height - Decimal(root.get(ANDROID + "width")[:-2]) / Decimal(root.get(ANDROID + "height")[:-2])), Decimal("0.001"))
 
+    def test_splash_icon_fits_the_whole_badge_inside_the_systems_circle(self):
+        root = ET.parse(ROOT / "common/src/main/res/drawable/fw_splash_icon.xml").getroot()
+        self.assertEqual("288dp", root.get(ANDROID + "width"))
+        self.assertEqual("768", root.get(ANDROID + "viewportWidth"))
+        group = next(g for g in root.iter() if g.tag == "group")
+        self.assertEqual("128", group.get(ANDROID + "translateX"))
+        self.assertEqual("128", group.get(ANDROID + "translateY"))
+        # The badge's 512 units fill the middle two thirds, the only part of the icon Android keeps.
+        self.assertEqual(Decimal(512) / Decimal(768), Decimal(2) / Decimal(3))
+        self.assertEqual(4, sum(1 for p in root.iter() if p.tag == "path"), "circle, wings, keyline and disc")
+
     def test_retired_bird_artwork_is_gone(self):
         for retired in ("common/src/main/res/drawable-xxxhdpi/ic_wallet.png", "common/src/main/res/drawable/animated_bird.gif",
                         "common/src/main/res/drawable/background_story_wallet.png"):
@@ -154,7 +166,7 @@ class BrandAssetsTests(unittest.TestCase):
                     for value in element.attrib.values():
                         self.assertLessEqual(len(value.encode("utf-8")), 32767, str(path))
                 count += 1
-        self.assertEqual(20, count)
+        self.assertEqual(21, count)
 
 
 if __name__ == "__main__":

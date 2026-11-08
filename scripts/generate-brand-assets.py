@@ -88,6 +88,8 @@ ADAPTIVE_OFFSET = Decimal("102.4")
 KEYLINE = "badge-disc-keyline"
 # The wide mark's frame in master units: the wings' span and the keyline disc's height, centred on the disc.
 WINGS_CROP = ("15", "191.5", "482", "132.4")
+# The 512-unit badge centred in a viewport 1.5 times its size, so it fills exactly the middle two thirds.
+SPLASH_ICON_CROP = ("-128", "-128", "768", "768")
 
 
 def decimal_text(value):
@@ -122,7 +124,8 @@ def vector(source, width, height, mode="full", adaptive=False, viewport_width=No
                                 attr("viewportWidth"): viewport_width or vw, attr("viewportHeight"): vh})
     parent = root
     if crop:
-        parent = ET.SubElement(root, "group", {attr("translateX"): f"-{crop[0]}", attr("translateY"): f"-{crop[1]}"})
+        parent = ET.SubElement(root, "group", {attr("translateX"): decimal_text(-Decimal(crop[0])),
+                                               attr("translateY"): decimal_text(-Decimal(crop[1]))})
     if viewport_width:
         # Centre a square master in a wider viewport (the QR overlay keeps its 2:1 slot).
         offset = (Decimal(viewport_width) - Decimal(vw)) / 2
@@ -229,6 +232,9 @@ def main():
         write(common + name + ".xml", vector(sources["winged-sun-" + source + ".svg"], width, height, mode, viewport_width=viewport_width))
     # The wide mark for pages with room for the full span: the badge without its circle.
     write(common + "fw_brand_wings.xml", vector(sources["winged-sun-badge-lines.svg"], 360, "98.89", "foreground", crop=WINGS_CROP))
+    # Android 12+ draws the splash icon in a 288 dp box and keeps only the centre 192 dp circle: the whole badge
+    # sits inside that circle, at the box's own size so the system never scales it up.
+    write(common + "fw_splash_icon.xml", vector(sources["winged-sun-badge-lines.svg"], 288, 288, "full", crop=SPLASH_ICON_CROP))
     for variant in ["main", "debug", "release"]:
         prefix = "app/src/" + variant + "/res/"
         write(prefix + "drawable/ic_launcher_foreground.xml", vector(sources["winged-sun-badge-lines.svg"], 108, 108, "foreground", True))
