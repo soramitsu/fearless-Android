@@ -24,6 +24,8 @@ import jp.co.soramitsu.common.view.protectSensitiveContent
 @AndroidEntryPoint
 class BackupMnemonicDialog : BaseComposeBottomSheetDialogFragment<BackupMnemonicViewModel>() {
 
+    override val secureSurface = true
+
     override val viewModel: BackupMnemonicViewModel by viewModels()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
