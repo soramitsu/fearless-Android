@@ -36,6 +36,11 @@ All notable changes to this project will be documented in this file.
 - Fix: jetton transfers carry a random query_id instead of 0.
 - Fix: closing a network connection can no longer close the app when its last
   request finishes at the same moment.
+- Fix: opening Export wallet no longer jumps to a Google sign-in in the browser or
+  forgets the Drive sign-in; "Backup to Google" signs in when tapped. Bitcoin, Solana
+  and Iroha accounts, which the wallet's phrase restores, no longer raise the
+  "replaced key pair" warning. Checking a wallet's secrets for these screens no
+  longer runs on the main thread, where it could freeze the app.
 - Upgrade: keys are unchanged; dApps connected with 4.3.1 stay connected; Google
   Drive needs one new sign-in in the browser.
 

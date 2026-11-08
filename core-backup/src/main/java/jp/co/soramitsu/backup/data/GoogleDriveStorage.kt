@@ -40,6 +40,8 @@ internal class GoogleDriveStorage(
         return false
     }
 
+    override suspend fun hasSession(): Boolean = authorization.hasSession()
+
     override suspend fun getFileContent(fileId: String): String {
         return withContext(Dispatchers.IO) {
             files.getFileContent(fileId)

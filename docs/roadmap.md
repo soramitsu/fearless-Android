@@ -32,6 +32,10 @@ The candidate is described in `docs/status.md` and `docs/releases/4.3.2.md`. The
   higher versionCode.
 - **Hosted release workflow:** its checksum-locked SDK lacks NDK r30, Rust 1.99.1 and cargo-ndk 4.1.2, so
   release AABs are built locally (AGENTS.md: no CI release gate).
+- **Small follow-ups from the release smoke:** after a WalletConnect `personal_sign`, closing the success sheet
+  returns to the Preview sheet (signing again is refused, 4.3.1 navigates the same way), and that success sheet says
+  "Transaction sent" for a message signature. The WalletConnect QR error text in `ConnectionsViewModel` is hard-coded
+  Russian.
 - **Limits by design:** Polkadot dApp payloads with Mode::Disabled commit to no metadata, so their call can
   only be shown as decoded; refusing them would break most dApps. Drive sign-in shares the iOS OAuth client
   (Google keeps 100 refresh tokens per account and client). Passkey backup needs an open attestation design.

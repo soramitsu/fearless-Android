@@ -33,6 +33,9 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.flowOf
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
+import jp.co.soramitsu.runtime.ext.isUniversalWalletIroha
+import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -40,6 +43,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
@@ -69,12 +73,13 @@ class BackupWalletViewModel @Inject constructor(
     }
 
     // A build that cannot sign in to Google offers only the other backup options on this screen.
-    val isAllowGoogleBackupFlow = wallet.map { wallet ->
+    private val isGoogleBackupAllowed = wallet.map { wallet ->
         accountInteractor.isGoogleBackupAvailable() &&
             wallet.supportedEcosystemWithIconAddress().keys.any {
                 it in listOf(WalletEcosystem.Substrate, WalletEcosystem.Ethereum)
             }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    }
+    val isAllowGoogleBackupFlow = isGoogleBackupAllowed.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val supportedBackupTypes =
         flowOf { accountInteractor.getSupportedBackupTypes(walletId) }
@@ -180,10 +185,12 @@ class BackupWalletViewModel @Inject constructor(
     private suspend fun checkIsWalletWithChainAccounts() {
         val chainProjections =
             accountDetailsInteractor.getChainProjectionsFlow(walletId).firstOrNull().orEmpty()
+        // Bitcoin, Solana and Iroha rows are derived from the wallet's own phrase, which restores them.
         val chainAccounts = chainProjections[AccountInChain.From.CHAIN_ACCOUNT].orEmpty()
+            .filterNot { it.chain.isUniversalWalletBitcoin() || it.chain.isUniversalWalletSolana() || it.chain.isUniversalWalletIroha() }
 
         if (chainAccounts.isEmpty()) {
-            requestGoogleAuth.emit(Event(Unit))
+            refreshGoogleBackupIfSignedIn()
         } else {
             val message = if (chainAccounts.size == 1) {
                 val singleChainAccount = chainAccounts[0]
@@ -207,10 +214,18 @@ class BackupWalletViewModel @Inject constructor(
                 },
                 onBackClick = {
                     launch {
-                        requestGoogleAuth.emit(Event(Unit))
+                        refreshGoogleBackupIfSignedIn()
                     }
                 }
             )
+        }
+    }
+
+    // Opening this screen never opens the browser and keeps the Google session: the phrase, seed and JSON
+    // exports need no Google account. "Backup to Google" signs in when the user asks for it.
+    private suspend fun refreshGoogleBackupIfSignedIn() {
+        if (isGoogleBackupAllowed.first() && accountInteractor.hasGoogleBackupSession()) {
+            checkIsWalletBackedUpToGoogle()
         }
     }
 
