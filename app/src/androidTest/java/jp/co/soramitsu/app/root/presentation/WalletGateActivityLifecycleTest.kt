@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import androidx.core.os.bundleOf
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavController
@@ -38,6 +39,18 @@ class WalletGateActivityLifecycleTest {
         WalletStartupSession.resetForTest()
         WalletSecureStorageHealthTestHooks.reset()
         WalletGateActivityTestController.reset()
+    }
+
+    @Test
+    fun startupScreenLaysOutLikeTheWalletHostSoTheLaunchArtStaysStill() {
+        ActivityScenario.launch<WalletGateActivityTestHost>(
+            launcherIntent("layout-flags")
+        ).use { scenario ->
+            scenario.onActivity { activity ->
+                val flags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                assertEquals(flags, activity.window.decorView.systemUiVisibility and flags)
+            }
+        }
     }
 
     @Test

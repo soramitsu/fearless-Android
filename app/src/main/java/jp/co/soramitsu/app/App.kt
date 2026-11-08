@@ -3,6 +3,7 @@ package jp.co.soramitsu.app
 import android.app.Application
 import android.content.Context
 import android.content.res.Configuration
+import androidx.appcompat.app.AppCompatDelegate
 import dagger.hilt.android.HiltAndroidApp
 import jp.co.soramitsu.app.root.domain.SharedExportCleanup
 import jp.co.soramitsu.app.root.domain.SoraCardLeftoverCleanup
@@ -49,6 +50,10 @@ open class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        // Set before any Activity exists. Set later, AppCompat restarts the first Activity to apply it, which
+        // blanks the screen between the launch splash and the wallet on every start.
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
 
         initializeTonAddressCode()
 

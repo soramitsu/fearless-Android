@@ -22,6 +22,11 @@ networking, remote configuration and chain logic are unchanged). Binding spec: t
   NFT grid scrolls on its own, so above it the page keeps only the switch back to currencies.
 - **Navigation bar:** in the v1 palette the bar is transparent, with no contrast scrim, so the page light runs to
   the bottom edge instead of ending in a black strip. `FW_PALETTE=legacy` keeps the black bar.
+- **Launch:** night mode is set in `App.onCreate`, before any Activity exists. Set later, AppCompat restarted the
+  first Activity on every start, which blanked the screen between the launch splash and the wallet. The startup
+  screen also lays out like the wallet host now, so the launch art stays still when that host takes over.
+- **Bottom bar:** tab pages fade out over 28 dp (`BottomFadeFrameLayout`) instead of ending in a straight line, the
+  tabs and their light well stay inside the bar's ends, and the labels use the app font at the same text sizes.
 - **Brand:** `brand/sun-disc` now holds the approved winged-sun badges (SORA disc radius 64, no cobras,
   wings byte-identical to the 2026-10-10 Figma export; fearless-wallet-web `1275e1a6`, sha256
   `9756447c…53d4d8` lines and `ff653295…e89` solid). `scripts/generate-brand-assets.py` pins them and

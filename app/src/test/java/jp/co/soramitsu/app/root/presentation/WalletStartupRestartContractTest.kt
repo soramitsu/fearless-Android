@@ -8,6 +8,14 @@ import org.junit.Test
 class WalletStartupRestartContractTest {
 
     @Test
+    fun `night mode is set before the first activity so launch does not restart it`() {
+        val source = File(repositoryRoot(), "app/src/main/java/jp/co/soramitsu/app/App.kt").readText()
+        val onCreate = source.substringAfter("override fun onCreate()")
+
+        assertTrue(onCreate.contains("AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)"))
+    }
+
+    @Test
     fun `restart-required startup never offers an in-process retry`() {
         val source = File(
             repositoryRoot(),
