@@ -134,6 +134,7 @@ class WalletUxScreensInstrumentedTest {
         save("wallet-retry-320dp-font200")
     }
 
+    @OptIn(androidx.compose.material.ExperimentalMaterialApi::class)
     @Test
     fun assetRowsKeepTheirSwipeActionsHiddenUntilSwiped() {
         val state = jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState(
