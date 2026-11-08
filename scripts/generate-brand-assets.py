@@ -86,6 +86,8 @@ def compact_polygon_path(data):
 ADAPTIVE_SCALE = Decimal(".60")
 ADAPTIVE_OFFSET = Decimal("102.4")
 KEYLINE = "badge-disc-keyline"
+# The wide mark's frame in master units: the wings' span and the keyline disc's height, centred on the disc.
+WINGS_CROP = ("15", "191.5", "482", "132.4")
 
 
 def decimal_text(value):
@@ -99,8 +101,10 @@ def adaptive_inverse(value):
     return decimal_text((Decimal(value) - ADAPTIVE_OFFSET) / ADAPTIVE_SCALE)
 
 
-def vector(source, width, height, mode="full", adaptive=False, viewport_width=None):
+def vector(source, width, height, mode="full", adaptive=False, viewport_width=None, crop=None):
     """Android vector from an approved master. Contours are copied verbatim (or exactly compacted).
+
+    crop (x, y, width, height), in master units, frames part of the master without touching its paths.
 
     full        every path, as drawn in the master
     mark        the white mark only; a clip-path (the square minus the keyline disc, opposite windings)
@@ -112,9 +116,13 @@ def vector(source, width, height, mode="full", adaptive=False, viewport_width=No
     """
     svg = ET.fromstring(source)
     _, _, vw, vh = svg.attrib["viewBox"].split()
+    if crop:
+        vw, vh = crop[2], crop[3]
     root = ET.Element("vector", {attr("width"): f"{width}dp", attr("height"): f"{height}dp",
                                 attr("viewportWidth"): viewport_width or vw, attr("viewportHeight"): vh})
     parent = root
+    if crop:
+        parent = ET.SubElement(root, "group", {attr("translateX"): f"-{crop[0]}", attr("translateY"): f"-{crop[1]}"})
     if viewport_width:
         # Centre a square master in a wider viewport (the QR overlay keeps its 2:1 slot).
         offset = (Decimal(viewport_width) - Decimal(vw)) / 2
@@ -219,6 +227,8 @@ def main():
         ("ic_qr_code_logo", "badge", 96, 48, "full", "1024"),
     ]:
         write(common + name + ".xml", vector(sources["winged-sun-" + source + ".svg"], width, height, mode, viewport_width=viewport_width))
+    # The wide mark for pages with room for the full span: the badge without its circle.
+    write(common + "fw_brand_wings.xml", vector(sources["winged-sun-badge-lines.svg"], 360, "98.89", "foreground", crop=WINGS_CROP))
     for variant in ["main", "debug", "release"]:
         prefix = "app/src/" + variant + "/res/"
         write(prefix + "drawable/ic_launcher_foreground.xml", vector(sources["winged-sun-badge-lines.svg"], 108, 108, "foreground", True))

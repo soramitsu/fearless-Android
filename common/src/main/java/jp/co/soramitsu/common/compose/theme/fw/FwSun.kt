@@ -13,7 +13,10 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,7 +39,9 @@ import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -174,6 +179,54 @@ fun FwSunBadge(
         )
     }
 }
+
+/** The wide winged-sun mark's proportions, shared by Compose and View pages. */
+object FwWings {
+    /** The `fw_brand_wings` artwork's width over its height. */
+    const val ASPECT = 482f / 132.4f
+
+    /** Keeps the mark from taking over a tablet's height. */
+    const val MAX_WIDTH_DP = 480
+}
+
+/**
+ * The winged sun at full span, for pages with room for it (welcome, About): the approved badge's
+ * wings, joint and disc without the circle, filling the width it is given. It lights the page as
+ * the badge does. Sync states stay on the wallet's round hero sun, whose arc needs the circle.
+ */
+@Composable
+fun FwWingsHero(modifier: Modifier = Modifier, contentDescription: String? = null) {
+    val c = LocalFwColors.current
+    val glow = LocalFwEffects.current.glow
+    Image(
+        painter = painterResource(R.drawable.fw_brand_wings),
+        contentDescription = contentDescription,
+        contentScale = ContentScale.Fit,
+        modifier = modifier
+            .widthIn(max = FwWings.MAX_WIDTH_DP.dp)
+            .fillMaxWidth()
+            .aspectRatio(FwWings.ASPECT)
+            .drawBehind {
+                if (!glow) return@drawBehind
+                // The light runs along the wings and fades before it reaches the text around the mark.
+                val reach = this.size.width * WINGS_GLOW_REACH
+                scale(scaleX = 1f, scaleY = this.size.height * WINGS_GLOW_DEPTH / this.size.width) {
+                    drawCircle(
+                        Brush.radialGradient(
+                            0f to c.sunCore.copy(alpha = 0.50f),
+                            0.5f to c.brand.copy(alpha = 0.18f),
+                            1f to Color.Transparent,
+                            center = center, radius = reach
+                        ),
+                        reach, center
+                    )
+                }
+            }
+    )
+}
+
+private const val WINGS_GLOW_REACH = 0.6f
+private const val WINGS_GLOW_DEPTH = 1.5f
 
 enum class FwTxStatus { Pending, Success, Failed }
 

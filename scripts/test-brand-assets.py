@@ -82,6 +82,7 @@ class BrandAssetsTests(unittest.TestCase):
     def test_generated_wings_keep_the_master_contours_exactly(self):
         for drawable, master in [("common/src/main/res/drawable/ic_fearless_logo.xml", "winged-sun-badge-lines.svg"),
                                  ("common/src/main/res/drawable/fw_brand_badge.xml", "winged-sun-badge-lines.svg"),
+                                 ("common/src/main/res/drawable/fw_brand_wings.xml", "winged-sun-badge-lines.svg"),
                                  ("app/src/main/res/drawable/ic_launcher_foreground.xml", "winged-sun-badge-lines.svg"),
                                  ("app/src/main/res/drawable/ic_launcher_monochrome.xml", "winged-sun-badge.svg"),
                                  ("common/src/main/res/drawable/ic_fearless.xml", "winged-sun-badge.svg")]:
@@ -112,6 +113,30 @@ class BrandAssetsTests(unittest.TestCase):
             icon = (ROOT / f"app/src/{variant}/res/mipmap-anydpi-v33/ic_launcher.xml").read_text()
             self.assertIn('<monochrome android:drawable="@drawable/ic_launcher_monochrome" />', icon)
 
+    def test_wide_mark_is_the_badge_without_its_circle(self):
+        root = ET.parse(ROOT / "common/src/main/res/drawable/fw_brand_wings.xml").getroot()
+        paths = [p for p in root.iter() if p.tag == "path"]
+        self.assertEqual(3, len(paths), "wings, keyline and disc; never the circle")
+        circle = next(p.get("d") for p in ET.parse(ROOT / "brand/sun-disc/winged-sun-badge-lines.svg").iter() if p.get("d", "").startswith("M256 512C"))
+        for path in paths:
+            self.assertNotEqual(circle, path.get(ANDROID + "pathData"))
+        for path_id, path in zip(("badge-wings", "badge-disc-keyline", "badge-disc"), paths):
+            master = master_path("winged-sun-badge-lines.svg", path_id)
+            if path_id == "badge-disc-keyline":
+                self.assertEqual(master, path.get(ANDROID + "pathData"))
+            else:
+                self.assertEqual(vertices(master), vertices(path.get(ANDROID + "pathData")), path_id)
+        wings = [position for kind, position in vertices(master_path("winged-sun-badge-lines.svg", "badge-wings")) if position]
+        group = next(g for g in root.iter() if g.tag == "group")
+        left, top = -Decimal(group.get(ANDROID + "translateX")), -Decimal(group.get(ANDROID + "translateY"))
+        width, height = Decimal(root.get(ANDROID + "viewportWidth")), Decimal(root.get(ANDROID + "viewportHeight"))
+        self.assertLessEqual(left, min(x for x, _ in wings), "no wing tip is cut off")
+        self.assertGreaterEqual(left + width, max(x for x, _ in wings), "no wing tip is cut off")
+        self.assertEqual(Decimal("257.7"), top + height / 2, "the disc's centre is the frame's centre")
+        self.assertEqual(Decimal("66.2"), height / 2, "the frame holds the whole keyline disc")
+        # The aspect the views size the mark with (FwWings.ASPECT).
+        self.assertLess(abs(width / height - Decimal(root.get(ANDROID + "width")[:-2]) / Decimal(root.get(ANDROID + "height")[:-2])), Decimal("0.001"))
+
     def test_retired_bird_artwork_is_gone(self):
         for retired in ("common/src/main/res/drawable-xxxhdpi/ic_wallet.png", "common/src/main/res/drawable/animated_bird.gif",
                         "common/src/main/res/drawable/background_story_wallet.png"):
@@ -129,7 +154,7 @@ class BrandAssetsTests(unittest.TestCase):
                     for value in element.attrib.values():
                         self.assertLessEqual(len(value.encode("utf-8")), 32767, str(path))
                 count += 1
-        self.assertEqual(19, count)
+        self.assertEqual(20, count)
 
 
 if __name__ == "__main__":

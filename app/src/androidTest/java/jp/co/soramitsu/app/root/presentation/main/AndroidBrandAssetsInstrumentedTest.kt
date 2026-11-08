@@ -28,6 +28,7 @@ class AndroidBrandAssetsInstrumentedTest {
     @Test fun mergedBrandResourcesRenderAtShippedIconAndHeroSizes() {
         val resources = listOf(
             Triple("colour-hero", R.drawable.fw_brand_hero, Pair(738, 152)),
+            Triple("wide-wings-badge-mark", R.drawable.fw_brand_wings, Pair(1113, 306)),
             Triple("line-badge-48", R.drawable.fw_brand_badge, Pair(48, 48)),
             Triple("solid-badge-24", R.drawable.fw_brand_badge_small, Pair(24, 24)),
             Triple("compact-mark-24", R.drawable.ic_fearless_bird, Pair(24, 24)),

@@ -10,6 +10,12 @@ Branch `claude/android-sunlit-redesign` from `4056a845f`; UI only (keys, PIN env
 networking, remote configuration and chain logic are unchanged). Binding spec: the 2026-11-08
 `DESIGN-SPEC.md` and `reference-mockup.html` of the mobile redesign.
 
+- **Wide wings (owner, 8 November 2026: "on pages like this, we are not constrained to this little circle.
+  make the wings logo span most of the width of the screen"):** PIN, welcome, onboarding splash, About and the
+  launch art show `fw_brand_wings`, the badge's own wing, joint and disc paths without the circle, at about 90%
+  of the page width (at most 480 dp) and no taller than the circle was. The wallet hero keeps the round sun
+  because its sync arc needs the circle, and Android 12+'s system splash keeps the badge because the OS masks
+  that icon to a circle.
 - **Brand:** `brand/sun-disc` now holds the approved winged-sun badges (SORA disc radius 64, no cobras,
   wings byte-identical to the 2026-10-10 Figma export; fearless-wallet-web `1275e1a6`, sha256
   `9756447c…53d4d8` lines and `ff653295…e89` solid). `scripts/generate-brand-assets.py` pins them and

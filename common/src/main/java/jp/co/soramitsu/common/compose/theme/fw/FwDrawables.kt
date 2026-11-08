@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.ColorFilter
 import android.graphics.LinearGradient
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PixelFormat
@@ -198,19 +199,26 @@ class FwNeuDrawable(
     override fun getOpacity(): Int = PixelFormat.TRANSLUCENT
 }
 
-/** Soft emissive glow behind the brand sun (splash, PIN): the disc red into brand pink into the page. */
+/**
+ * Soft emissive glow behind the brand sun (PIN): the disc red into brand pink into the page. It fills
+ * the ellipse inscribed in its bounds, so behind the wide mark the light runs along the wings.
+ */
 class FwSunGlowDrawable(private val c: FwColors, private val lit: Boolean) : Drawable() {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { isDither = true }
+    private val oval = RectF()
 
     override fun onBoundsChange(bounds: Rect) {
-        val radius = min(bounds.width(), bounds.height()) / 2f
-        paint.shader = if (radius > 0f) RadialGradient(bounds.exactCenterX(), bounds.exactCenterY(), radius,
+        oval.set(bounds)
+        val radius = bounds.width() / 2f
+        paint.shader = if (radius > 0f && bounds.height() > 0) RadialGradient(bounds.exactCenterX(), bounds.exactCenterY(), radius,
             intArrayOf(c.sunCore.copy(alpha = 0.50f).toArgb(), c.brand.copy(alpha = 0.18f).toArgb(), 0),
-            floatArrayOf(0f, 0.5f, 1f), Shader.TileMode.CLAMP) else null
+            floatArrayOf(0f, 0.5f, 1f), Shader.TileMode.CLAMP).apply {
+            setLocalMatrix(Matrix().apply { setScale(1f, bounds.height() / bounds.width().toFloat(), bounds.exactCenterX(), bounds.exactCenterY()) })
+        } else null
     }
 
     override fun draw(canvas: Canvas) {
-        if (lit) canvas.drawCircle(bounds.exactCenterX(), bounds.exactCenterY(), min(bounds.width(), bounds.height()) / 2f, paint)
+        if (lit) canvas.drawOval(oval, paint)
     }
 
     override fun setAlpha(alpha: Int) = Unit

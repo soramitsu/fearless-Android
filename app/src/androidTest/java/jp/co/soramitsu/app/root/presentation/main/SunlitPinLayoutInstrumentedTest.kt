@@ -6,8 +6,12 @@ import android.graphics.Rect
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -18,6 +22,7 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.click
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTouchInput
@@ -30,8 +35,13 @@ import jp.co.soramitsu.account.impl.presentation.pincode.view.PinCodeView
 import jp.co.soramitsu.common.compose.theme.fw.FwEffects
 import jp.co.soramitsu.common.compose.theme.fw.FwStandard
 import jp.co.soramitsu.common.compose.theme.fw.FwTier
+import jp.co.soramitsu.common.compose.theme.fw.FwWings
+import jp.co.soramitsu.common.compose.theme.fw.FwWingsHero
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwEffects
 import jp.co.soramitsu.feature_account_impl.R
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -40,6 +50,78 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class SunlitPinLayoutInstrumentedTest {
     @get:Rule val compose = createAndroidComposeRule<PolkaswapNavigationLayoutTestActivity>()
+
+    @Test fun wingsSpanMostOfThePinPageWhereThereIsRoomForThem() {
+        val modes = listOf(Triple(320, 800, 1f), Triple(320, 800, 2f), Triple(360, 780, 1f), Triple(400, 800, 1f), Triple(800, 800, 1f), Triple(320, 600, 1f))
+        var mode by mutableStateOf(modes.first())
+        lateinit var root: View
+        compose.setContent {
+            key(mode) {
+                AndroidView(modifier = Modifier.requiredSize(mode.first.dp, mode.second.dp), factory = { context ->
+                    val config = Configuration(context.resources.configuration).apply {
+                        fontScale = mode.third
+                        screenWidthDp = mode.first
+                        screenHeightDp = mode.second
+                    }
+                    val themed = ContextThemeWrapper(context.createConfigurationContext(config), jp.co.soramitsu.common.R.style.Theme_Soramitsu_Fearless)
+                    LayoutInflater.from(themed).inflate(R.layout.fragment_pincode, null).also { view ->
+                        root = view
+                        view.findViewById<View>(R.id.pinRecoveryContent).visibility = View.GONE
+                        view.findViewById<PinCodeView>(R.id.pinCodeView).applySunlitStyle(FwEffects(FwTier.Full, false, true), FwStandard)
+                    }
+                })
+            }
+        }
+        for (next in modes) {
+            compose.runOnIdle { mode = next }
+            compose.waitForIdle()
+            compose.runOnIdle {
+                val pin = root.findViewById<PinCodeView>(R.id.pinCodeView)
+                val density = pin.resources.displayMetrics.density
+                val logo = pin.getChildAt(0) as? ImageView
+                if (next.second < 680) {
+                    assertTrue("$next has no room for the mark", logo == null)
+                    return@runOnIdle
+                }
+                checkNotNull(logo) { "$next has room for the mark" }
+                val width = minOf(next.first - 40, FwWings.MAX_WIDTH_DP) * density
+                assertEquals("$next mark width", width, logo.width.toFloat(), 1f)
+                if (next.first < FwWings.MAX_WIDTH_DP) {
+                    assertTrue("$next spans most of the page", logo.width >= next.first * density * 0.8f)
+                }
+                assertEquals("$next mark is centred", pin.width / 2f, (logo.left + logo.right) / 2f, 1f)
+                val artHeight = logo.height - logo.paddingTop - logo.paddingBottom
+                assertEquals("$next artwork keeps its aspect", FwWings.ASPECT, logo.width.toFloat() / artHeight, 0.05f)
+                assertTrue("$next mark stays above the title", logo.bottom <= pin.findViewById<View>(R.id.pinCodeTitleTv).top)
+                assertEquals(0, logo.paddingLeft + logo.paddingRight)
+            }
+        }
+    }
+
+    @Test fun wideHeroFillsItsWidthKeepsItsAspectAndDropsItsGlowWithReducedEffects() {
+        var fx by mutableStateOf(FwEffects(FwTier.Full, false, true))
+        compose.setContent {
+            CompositionLocalProvider(LocalFwEffects provides fx, LocalFwColors provides FwStandard) {
+                Box(Modifier.requiredSize(360.dp, 200.dp).testTag("wings-page")) {
+                    FwWingsHero(Modifier.padding(horizontal = 20.dp).testTag("wings"))
+                }
+            }
+        }
+        val bounds = compose.onNodeWithTag("wings").getUnclippedBoundsInRoot()
+        assertEquals(320f, bounds.width.value, 1f)
+        assertEquals(FwWings.ASPECT, bounds.width.value / bounds.height.value, 0.05f)
+        val lit = compose.onNodeWithTag("wings-page").captureToImage().asAndroidBitmap()
+        compose.runOnIdle { fx = FwEffects(FwTier.Reduced, false, true) }
+        val plain = compose.onNodeWithTag("wings-page").captureToImage().asAndroidBitmap()
+        assertFalse("Reduced effects must remove the glow", lit.sameAs(plain))
+        fun white(bitmap: Bitmap) = (0 until bitmap.height).sumOf { y ->
+            (0 until bitmap.width).count { x ->
+                val pixel = bitmap.getPixel(x, y)
+                android.graphics.Color.red(pixel) > 240 && android.graphics.Color.green(pixel) > 240 && android.graphics.Color.blue(pixel) > 240
+            }
+        }
+        assertTrue("The white mark stays with reduced effects", white(plain) > plain.width)
+    }
 
     @Test fun keypadAndRecoveryHaveSeparateFullTouchTargetsAtSmallAndLargeTextSizes() {
         val modes = listOf(Triple(320, 600, 1f), Triple(320, 600, 2f), Triple(320, 800, 2f), Triple(400, 800, 1f))

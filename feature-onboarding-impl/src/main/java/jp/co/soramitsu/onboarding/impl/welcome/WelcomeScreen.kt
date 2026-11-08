@@ -44,10 +44,8 @@ import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
-import jp.co.soramitsu.common.compose.theme.fw.FwSunBadge
+import jp.co.soramitsu.common.compose.theme.fw.FwWingsHero
 import jp.co.soramitsu.common.compose.theme.fw.FwSurface
-import jp.co.soramitsu.common.compose.theme.fw.FwSyncPhase
-import jp.co.soramitsu.common.compose.theme.fw.FwSyncState
 import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
 import jp.co.soramitsu.common.compose.theme.fw.fwPageBackground
 import jp.co.soramitsu.feature_onboarding_impl.R
@@ -138,7 +136,7 @@ private fun WelcomeScreenContent(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (FwRestyle.isEnabled(FwSurface.Welcome)) {
-                FwSunBadge(sync = FwSyncState(FwSyncPhase.Idle), badgeSize = 128.dp)
+                FwWingsHero()
                 MarginVertical(margin = 20.dp)
                 H2(text = stringResource(R.string.fearless_wallet), textAlign = TextAlign.Center)
             } else {

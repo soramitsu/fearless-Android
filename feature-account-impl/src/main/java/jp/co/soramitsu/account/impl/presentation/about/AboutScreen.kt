@@ -1,10 +1,8 @@
 package jp.co.soramitsu.account.impl.presentation.about
 
 import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
-import jp.co.soramitsu.common.compose.theme.fw.FwSunBadge
+import jp.co.soramitsu.common.compose.theme.fw.FwWingsHero
 import jp.co.soramitsu.common.compose.theme.fw.FwSurface
-import jp.co.soramitsu.common.compose.theme.fw.FwSyncPhase
-import jp.co.soramitsu.common.compose.theme.fw.FwSyncState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -72,7 +70,7 @@ fun AboutScreenContent(items: List<AboutItemListModel>, backClick: () -> Unit) {
             item {
                 MarginVertical(margin = 72.dp)
                 if (FwRestyle.isEnabled(FwSurface.Settings)) {
-                    FwSunBadge(sync = FwSyncState(FwSyncPhase.Idle), badgeSize = 112.dp)
+                    FwWingsHero(Modifier.padding(horizontal = 20.dp))
                     MarginVertical(margin = 12.dp)
                 } else {
                     Image(res = R.drawable.fw_brand_hero)

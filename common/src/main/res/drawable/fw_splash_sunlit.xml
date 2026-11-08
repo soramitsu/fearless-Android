@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Launch window in the sun-lit palette: the page light with the approved badge as the emissive sun. -->
+<!-- Launch window in the sun-lit palette: the page light with the winged sun at full span as the emissive sun. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android"
     android:opacity="opaque">
     <item android:drawable="@drawable/fw_page_sunlit" />
     <item
-        android:width="240dp"
-        android:height="240dp"
+        android:width="360dp"
+        android:height="200dp"
         android:gravity="center">
         <shape
             android:dither="true"
             android:shape="oval">
             <gradient
                 android:type="radial"
-                android:gradientRadius="120dp"
+                android:gradientRadius="130dp"
                 android:startColor="@color/fw_emissive_glow"
                 android:centerColor="@color/fw_sun_bounce"
                 android:endColor="@android:color/transparent" />
         </shape>
     </item>
     <item
-        android:width="128dp"
-        android:height="128dp"
+        android:width="300dp"
+        android:height="82.4dp"
         android:gravity="center"
-        android:drawable="@drawable/fw_brand_badge" />
+        android:drawable="@drawable/fw_brand_wings" />
 </layer-list>

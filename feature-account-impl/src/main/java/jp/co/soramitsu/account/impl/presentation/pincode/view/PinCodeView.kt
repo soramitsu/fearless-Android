@@ -21,6 +21,7 @@ import jp.co.soramitsu.common.compose.theme.fw.FwMotionDurations
 import jp.co.soramitsu.common.compose.theme.fw.FwMotionKind
 import jp.co.soramitsu.common.compose.theme.fw.FwNeuDrawable
 import jp.co.soramitsu.common.compose.theme.fw.FwSunGlowDrawable
+import jp.co.soramitsu.common.compose.theme.fw.FwWings
 import jp.co.soramitsu.common.compose.theme.fw.motionPolicy
 import android.util.AttributeSet
 import android.view.View
@@ -96,8 +97,8 @@ class PinCodeView @JvmOverloads constructor(
     private var sunlit: FwEffects? = null
 
     /**
-     * Sun-lit PIN pad (FW Pin surface): the approved badge as the sun above the title, neumorphic
-     * keys that sink while pressed, dots that fill from the key-light side, and a two-shake wrong-PIN
+     * Sun-lit PIN pad (FW Pin surface): the winged sun at full span above the title, neumorphic keys
+     * that sink while pressed, dots that fill from the key-light side, and a two-shake wrong-PIN
      * signal. Ids, listeners and content descriptions are unchanged.
      */
     fun applySunlitStyle(fx: FwEffects, colors: FwColors) {
@@ -106,17 +107,17 @@ class PinCodeView @JvmOverloads constructor(
         clipChildren = false
         clipToPadding = false
         if (resources.configuration.screenHeightDp >= MIN_HEIGHT_FOR_LOGO_DP) {
+            val glowPadding = (SUN_GLOW_PADDING_DP * density).toInt()
+            val width = minOf(resources.configuration.screenWidthDp - 2 * WINGS_MARGIN_DP, FwWings.MAX_WIDTH_DP) * density
             val logo = ImageView(context).apply {
-                setImageResource(jp.co.soramitsu.common.R.drawable.fw_brand_badge)
+                setImageResource(jp.co.soramitsu.common.R.drawable.fw_brand_wings)
+                scaleType = ImageView.ScaleType.FIT_CENTER
                 background = FwSunGlowDrawable(colors, fx.glow)
-                val pad = (SUN_GLOW_PADDING_DP * density).toInt()
-                setPadding(pad, pad, pad, pad)
+                setPadding(0, glowPadding, 0, glowPadding)
                 importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
             }
-            val size = ((LOGO_DP + SUN_GLOW_PADDING_DP * 2) * density).toInt()
-            addView(logo, 0, LayoutParams(size, size).apply {
+            addView(logo, 0, LayoutParams(width.toInt(), (width / FwWings.ASPECT).toInt() + 2 * glowPadding).apply {
                 gravity = Gravity.CENTER_HORIZONTAL
-                bottomMargin = (8 * density).toInt()
             })
         }
         binding.pinCodeTitleTv.setTextColor(colors.textPrimary.toArgb())
@@ -224,8 +225,8 @@ class PinCodeView @JvmOverloads constructor(
     private companion object {
         const val MIN_HEIGHT_FOR_LOGO_DP = 680
         const val MIN_WIDTH_FOR_ROOMY_KEYS_DP = 360
-        const val LOGO_DP = 84
-        const val SUN_GLOW_PADDING_DP = 26
+        const val WINGS_MARGIN_DP = 20
+        const val SUN_GLOW_PADDING_DP = 18
         const val KEY_SHADOW_ROOM_DP = 5f
         const val ROOMY_KEY_DP = 74
     }
