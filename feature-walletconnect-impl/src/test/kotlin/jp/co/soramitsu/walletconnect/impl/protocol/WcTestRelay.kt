@@ -31,6 +31,9 @@ internal class WcTestRelay : WcRelayTransport {
     val subscriptions: MutableSet<String> = ConcurrentHashMap.newKeySet()
     val published = CopyOnWriteArrayList<Published>()
     val acknowledged = CopyOnWriteArrayList<JsonElement>()
+
+    /** Methods this relay receives but never answers. */
+    val unanswered: MutableSet<String> = ConcurrentHashMap.newKeySet()
     private val mailbox = ConcurrentHashMap<String, MutableList<Pair<String, String?>>>()
 
     @Volatile
@@ -113,6 +116,7 @@ internal class WcTestRelay : WcRelayTransport {
             return
         }
         calls += method
+        if (method in unanswered) return
         val id = root["id"]!!.jsonPrimitive.long
         val params = root["params"]!!.jsonObject
         when (method) {

@@ -26,7 +26,7 @@ database schema stays 84. Release notes: `docs/releases/4.3.2.md`.
   sr25519 library are gone; WalletConnect v2, Drive OAuth, TON keys and the sr25519 library are built in
   this repository. The release graph has 308 libraries against 4.3.1's 441, none older and none added.
 - **PIN migration concurrency:** `07d06681c` serializes disposal/replacement of the PIN keyring with encrypted writes and each migration seal/commit/read-back. A concurrent PIN check or recovery cannot discard a key while its first ciphertext is being committed. The envelope and backup formats are unchanged.
-- **Socket shutdown crash:** `RequestExecutor.reset` copies its concurrent task set with `ArrayList` instead of Kotlin's `toList()`, which threw `NoSuchElementException` and closed the app when the only task finished during the copy. The bug has been there since `86b658605`, so 4.3.1 (233) carries it too.
+- **Socket shutdown crash:** `RequestExecutor.reset` copies its concurrent task set with `ArrayList` instead of Kotlin's `toList()`, which threw `NoSuchElementException` and closed the app when the only task finished during the copy. The bug has been there since `86b658605`, so 4.3.1 (233) carries it too. `WcRelayClient`, new in 4.3.2, copies its watched topics and pending requests the same way.
 - **Upgrade:** keys are unchanged; connected dApps carry over; users sign in to Google Drive once more.
 
 ### Unlocking, locking and exposure
