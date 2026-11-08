@@ -2,8 +2,10 @@ package jp.co.soramitsu.app.root.presentation.main
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -98,5 +100,24 @@ class SunlitMotionInstrumentedTest {
             val bitmap = BinaryBitmap(HybridBinarizer(RGBLuminanceSource(image.width, image.height, pixels)))
             assertEquals(payload, MultiFormatReader().decode(bitmap).text)
         }
+    }
+
+    @Test fun wrappedAmountsKeepTheirFullLayoutWhileValuesChange() {
+        var text by mutableStateOf("$12,814.22")
+        compose.mainClock.autoAdvance = false
+        compose.setContent {
+            CompositionLocalProvider(LocalFwEffects provides FwEffects(FwTier.Full, false, false)) {
+                Box(Modifier.requiredWidth(240.dp).background(FwStandard.bgBase).padding(8.dp).testTag("wrapped-amount")) {
+                    FwRollingText(text, TextStyle(fontSize = 48.sp))
+                }
+            }
+        }
+        compose.mainClock.advanceTimeBy(32)
+        val before = compose.onNodeWithTag("wrapped-amount").fetchSemanticsNode().boundsInRoot
+        assertTrue("The large-text fixture must wrap", before.height > 90 * compose.activity.resources.displayMetrics.density)
+        compose.runOnIdle { text = "$12,815.22" }
+        compose.mainClock.advanceTimeBy(64)
+        val changing = compose.onNodeWithTag("wrapped-amount").fetchSemanticsNode().boundsInRoot
+        assertEquals("A balance update must retain all wrapped lines", before.height, changing.height, 1f)
     }
 }
