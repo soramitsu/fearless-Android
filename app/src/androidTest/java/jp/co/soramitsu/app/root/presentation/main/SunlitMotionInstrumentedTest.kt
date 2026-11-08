@@ -142,26 +142,13 @@ class SunlitMotionInstrumentedTest {
         compose.mainClock.advanceTimeBy(500)
         assertTrue("Shared rims stay static even without a secure caller", rim.sameAs(compose.onNodeWithTag("unmarked-rim").captureToImage().asAndroidBitmap()))
 
-        var observedSecure = false
-        var amount by mutableStateOf("1234.56")
-        val sheet = object : BaseComposeBottomSheetDialogFragment<BaseViewModel>() {
-            override val viewModel = BaseViewModel()
-
-            @Composable override fun Content(padding: PaddingValues) {
-                observedSecure = LocalFwSecureSurface.current
-                Column(Modifier.requiredSize(240.dp, 200.dp).fwSheet().padding(16.dp).testTag("unmarked-host")) {
-                    FwRollingText(amount, TextStyle(fontSize = 32.sp))
-                    FwPrimaryButton("Loading", {}, loading = true, textStyle = TextStyle(fontSize = 16.sp))
-                    FearlessProgress()
-                }
-            }
-        }
+        val sheet = UnmarkedSheet()
         try {
             compose.runOnUiThread { sheet.showNow(compose.activity.supportFragmentManager, "unmarked-sheet") }
             compose.mainClock.advanceTimeBy(64)
             compose.runOnIdle {
-                assertTrue("The actual shared sheet host must default to secure motion", observedSecure)
-                amount = "2345.67"
+                assertTrue("The actual shared sheet host must default to secure motion", sheet.observedSecure)
+                sheet.amount = "2345.67"
             }
             compose.mainClock.advanceTimeBy(64)
             val frame = compose.onNodeWithTag("unmarked-host").captureToImage().asAndroidBitmap()
@@ -169,6 +156,23 @@ class SunlitMotionInstrumentedTest {
             assertTrue("Unmarked sheet contents must stay still", frame.sameAs(compose.onNodeWithTag("unmarked-host").captureToImage().asAndroidBitmap()))
         } finally {
             compose.runOnUiThread { sheet.dismissNow() }
+        }
+    }
+
+
+    // A public no-argument fragment exercises the real host/lifecycle and can be recreated by Android.
+    class UnmarkedSheet : BaseComposeBottomSheetDialogFragment<BaseViewModel>() {
+        override val viewModel = BaseViewModel()
+        var observedSecure = false
+        var amount by mutableStateOf("1234.56")
+
+        @Composable override fun Content(padding: PaddingValues) {
+            observedSecure = LocalFwSecureSurface.current
+            Column(Modifier.requiredSize(240.dp, 200.dp).fwSheet().padding(16.dp).testTag("unmarked-host")) {
+                FwRollingText(amount, TextStyle(fontSize = 32.sp))
+                FwPrimaryButton("Loading", {}, loading = true, textStyle = TextStyle(fontSize = 16.sp))
+                FearlessProgress()
+            }
         }
     }
 
