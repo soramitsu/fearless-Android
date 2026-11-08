@@ -108,11 +108,18 @@ class WalletSecretSealingMigration @Inject constructor(
         return Report(sealed, alreadySealed, remaining, failed, retired)
     }
 
+    /**
+     * Uses the same monitor as ordinary encrypted writes and PIN keyring
+     * replacement. Holding it through sealing, commit and read-back prevents
+     * a concurrent PIN recovery from discarding this SK before its first
+     * sealed value becomes visible. Never call the PIN authority under this
+     * monitor: its lock precedes the storage lock.
+     */
     private fun sealOne(
         target: WalletSecretSealPolicy.Target,
         opened: WalletSecretKeyring.OpenedKey,
         sealingEnabled: Boolean
-    ): Outcome {
+    ): Outcome = synchronized(encryptedPreferences) {
         val key = target.storageKey
         if (!encryptedPreferences.hasKey(key)) return Outcome.UNREADABLE
         val snapshot = encryptedPreferences.getDecryptedStringSnapshot(key) ?: return Outcome.UNREADABLE

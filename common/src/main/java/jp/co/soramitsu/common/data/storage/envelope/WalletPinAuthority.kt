@@ -119,7 +119,7 @@ class WalletPinAuthority @Inject constructor(
      * open SK; the sealed values are not touched.
      */
     @Synchronized
-    fun save(pin: String) {
+    fun save(pin: String): Unit = synchronized(encryptedPreferences) {
         require(isWalletPin(pin))
         if (!keyring.exists()) {
             val firstPin = encryptedPreferences.getPinHealth() == PinHealth.ABSENT
@@ -168,7 +168,12 @@ class WalletPinAuthority @Inject constructor(
      * replaced and a keyring is created (or started again) for the new PIN.
      */
     @Synchronized
-    fun saveRecovered(pin: String, expected: PinResetSnapshot, recoveredKey: WalletSecretKeyring.OpenedKey?, forgotten: Boolean) {
+    fun saveRecovered(
+        pin: String,
+        expected: PinResetSnapshot,
+        recoveredKey: WalletSecretKeyring.OpenedKey?,
+        forgotten: Boolean
+    ): Unit = synchronized(encryptedPreferences) {
         require(isWalletPin(pin))
         check(expected.matches(captureResetSnapshot())) { "The PIN changed while recovery was open" }
         if (recoveredKey != null && keyring.exists()) {
@@ -213,6 +218,10 @@ class WalletPinAuthority @Inject constructor(
      * once that key returns, so it rules disposal out unless SK never began
      * sealing. Starting a new SK over it would strand it for good: only the
      * current SK is ever opened.
+     *
+     * Mutating callers hold encryptedPreferences' mutation monitor from this
+     * scan through replacement. A writer or migration holding an SK copy must
+     * finish its seal and commit before the scan can decide that SK is empty.
      */
     private fun isKeyringDisposable(): Boolean {
         if (!keyring.exists() || keyring.pinWrapState() != WalletSecretKeyring.PinWrapState.UNUSABLE) return false
@@ -244,7 +253,7 @@ class WalletPinAuthority @Inject constructor(
     }
 
     /** The PIN wrap cannot open: the legacy PIN answers while the keyring is disposable, and a new SK follows. */
-    private fun verifyWithUnusableWrap(pin: String): PinVerification {
+    private fun verifyWithUnusableWrap(pin: String): PinVerification = synchronized(encryptedPreferences) {
         if (!isKeyringDisposable()) {
             WalletPinHealth.replaceKeyring(PinHealth.UNREADABLE)
             return PinVerification.UNREADABLE
