@@ -45,6 +45,12 @@ the app-owned Rust crate `runtime-utils/native/sr25519` (imported from
 - reproducibility: one codegen unit, fat LTO, stripped symbols, a cleaned build
   environment, `--remap-path-prefix` for the cargo home, the Rust toolchain, the
   crate and the cargo target directory, and a fixed `SOURCE_DATE_EPOCH`
+- the same bytes on every build machine: cargo's `-C metadata` hashes the
+  `host:` line of `rustc -vV`, so macOS and Linux builds differed. The rustc
+  wrapper `runtime-utils/native/sr25519/stable-crate-metadata.py` (set by
+  `scripts/build-sr25519.py`) replaces each value with a hash of the package,
+  version, crate name and types, edition, cfgs, target and package-relative
+  source path; arm64 and x86_64 macOS hosts build byte-identical libraries
 
 `runtime-utils/native/sr25519/reproducible-build.json` records the reviewed
 SHA-256 of each ABI and the exact JNI export list. Every build checks each
@@ -65,10 +71,10 @@ Reviewed checksums:
 
 | ABI | SHA-256 |
 | --- | --- |
-| arm64-v8a | `cca739ef44e0d3f93e7b21cfe08cde8f3820e5fc493be21e5b0e1474196a209e` |
-| armeabi-v7a | `7e2701966ee9f17922900cf1bf6eb46507492c2bdac66bc0a47e2079f13f0f4d` |
-| x86 | `f3a4cadfe6493cfc19ca107c2325e85013ff414931e6464244f529be19dcb974` |
-| x86_64 | `2e9e7d68a9d0b31356f6c69f5c5867a59d829411671113686706ed2695bd98be` |
+| arm64-v8a | `453b2acb2f8372145cddd9783338a1cf600499dbe5cea148cb53849f14ed07da` |
+| armeabi-v7a | `8aff40c7748cadd375a9a44381746e37d9c97d589b8868a9d9fa14d300edae14` |
+| x86 | `e929646e3021c2b36bd8ed13144024411711b3b8d953859afa43e9eb3eed3f9c` |
+| x86_64 | `14376c77935b4bc0e6c8bae755bc47caaa29d3f6acb65259e36e0827b540ecea` |
 
 Host builds of the same crate back the JVM unit tests
 (`Sr25519NativeTest`, `HostSr25519KeypairDerivationTest`). The library shipped

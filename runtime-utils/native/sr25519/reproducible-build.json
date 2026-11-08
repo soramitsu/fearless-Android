@@ -30,19 +30,19 @@
   "abis": {
     "arm64-v8a": {
       "rustTarget": "aarch64-linux-android",
-      "sha256": "cca739ef44e0d3f93e7b21cfe08cde8f3820e5fc493be21e5b0e1474196a209e"
+      "sha256": "453b2acb2f8372145cddd9783338a1cf600499dbe5cea148cb53849f14ed07da"
     },
     "armeabi-v7a": {
       "rustTarget": "armv7-linux-androideabi",
-      "sha256": "7e2701966ee9f17922900cf1bf6eb46507492c2bdac66bc0a47e2079f13f0f4d"
+      "sha256": "8aff40c7748cadd375a9a44381746e37d9c97d589b8868a9d9fa14d300edae14"
     },
     "x86": {
       "rustTarget": "i686-linux-android",
-      "sha256": "f3a4cadfe6493cfc19ca107c2325e85013ff414931e6464244f529be19dcb974"
+      "sha256": "e929646e3021c2b36bd8ed13144024411711b3b8d953859afa43e9eb3eed3f9c"
     },
     "x86_64": {
       "rustTarget": "x86_64-linux-android",
-      "sha256": "2e9e7d68a9d0b31356f6c69f5c5867a59d829411671113686706ed2695bd98be"
+      "sha256": "14376c77935b4bc0e6c8bae755bc47caaa29d3f6acb65259e36e0827b540ecea"
     }
   }
 }

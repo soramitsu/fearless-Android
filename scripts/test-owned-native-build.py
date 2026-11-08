@@ -193,7 +193,8 @@ class BuildSr25519Test(unittest.TestCase):
         self.assertEqual(str(self.ndk), environment["ANDROID_NDK_HOME"])
         self.assertEqual("0", environment["CARGO_INCREMENTAL"])
         self.assertIsNone(environment["RUSTFLAGS"])
-        self.assertIsNone(environment["RUSTC_WRAPPER"])
+        # The caller's wrapper (sccache here) is dropped; the build sets its own metadata wrapper.
+        self.assertEqual(str(self.crate / "stable-crate-metadata.py"), environment["RUSTC_WRAPPER"])
         self.assertIsNone(environment["CARGO_PROFILE_RELEASE_OPT_LEVEL"])
 
     def test_hash_mismatch_fails_and_publishes_nothing(self):
@@ -298,6 +299,79 @@ class BuildSr25519Test(unittest.TestCase):
         self.assertTrue(any(child.name.startswith("libsr25519java") for child in host.iterdir()))
         build = [entry for entry in self.invocations() if entry["argv"][:1] == ["build"]]
         self.assertEqual(["build", "--release", "--locked"], build[0]["argv"])
+
+
+class StableCrateMetadataTest(unittest.TestCase):
+    """The rustc wrapper that keeps cargo's crate metadata independent of the build machine."""
+
+    @classmethod
+    def setUpClass(cls):
+        import importlib.util
+        import sys
+        sys.dont_write_bytecode = True
+        spec = importlib.util.spec_from_file_location(
+            "stable_crate_metadata", ROOT / "runtime-utils/native/sr25519/stable-crate-metadata.py")
+        cls.wrapper = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cls.wrapper)
+
+    def rustc_arguments(self, metadata, target="aarch64-linux-android", features=("std",)):
+        arguments = ["--crate-name", "curve25519_dalek", "--edition=2021", "src/lib.rs",
+                     "--crate-type", "lib", "-C", "opt-level=3", "-C", "metadata=" + metadata,
+                     "-C", "extra-filename=-" + metadata, "--target", target]
+        for feature in features:
+            arguments += ["--cfg", 'feature="' + feature + '"']
+        return arguments
+
+    def rewritten(self, arguments, package_root):
+        environment = {"CARGO_MANIFEST_DIR": package_root, "CARGO_PKG_NAME": "curve25519-dalek",
+                       "CARGO_PKG_VERSION": "4.1.3"}
+        saved = {key: os.environ.get(key) for key in environment}
+        os.environ.update(environment)
+        cwd = os.getcwd()
+        os.makedirs(package_root, exist_ok=True)
+        os.chdir(package_root)
+        try:
+            return self.wrapper.with_stable_metadata(arguments)
+        finally:
+            os.chdir(cwd)
+            for key, value in saved.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
+
+    def test_metadata_does_not_depend_on_the_build_machine(self):
+        with tempfile.TemporaryDirectory() as first, tempfile.TemporaryDirectory() as second:
+            # Cargo's own values differ between hosts; the package lives under different cargo homes.
+            on_mac = self.rewritten(self.rustc_arguments("2b9f8e6d1a0c4e7f"), first + "/registry/curve25519-dalek-4.1.3")
+            on_linux = self.rewritten(self.rustc_arguments("9c41d2e07f5b8a63"), second + "/registry/curve25519-dalek-4.1.3")
+        metadata = [argument for argument in on_mac if argument.startswith("metadata=")]
+        self.assertEqual(1, len(metadata))
+        self.assertEqual(metadata, [argument for argument in on_linux if argument.startswith("metadata=")])
+        self.assertNotIn("metadata=2b9f8e6d1a0c4e7f", on_mac)
+
+    def test_distinct_units_keep_distinct_metadata(self):
+        with tempfile.TemporaryDirectory() as root:
+            base = self.rewritten(self.rustc_arguments("2b9f8e6d1a0c4e7f"), root)
+            other_target = self.rewritten(self.rustc_arguments("2b9f8e6d1a0c4e7f", target="x86_64-linux-android"), root)
+            other_features = self.rewritten(self.rustc_arguments("2b9f8e6d1a0c4e7f", features=("std", "zeroize")), root)
+        metadata = lambda arguments: [a for a in arguments if a.startswith("metadata=")][0]
+        self.assertNotEqual(metadata(base), metadata(other_target))
+        self.assertNotEqual(metadata(base), metadata(other_features))
+
+    def test_only_the_metadata_value_changes(self):
+        arguments = self.rustc_arguments("2b9f8e6d1a0c4e7f")
+        with tempfile.TemporaryDirectory() as root:
+            rewritten = self.rewritten(arguments, root)
+        self.assertEqual(len(arguments), len(rewritten))
+        changed = [index for index, (old, new) in enumerate(zip(arguments, rewritten)) if old != new]
+        self.assertEqual([arguments.index("metadata=2b9f8e6d1a0c4e7f")], changed)
+        self.assertIn("extra-filename=-2b9f8e6d1a0c4e7f", rewritten)
+
+    def test_commands_without_metadata_pass_through(self):
+        for arguments in (["-vV"], ["-", "--crate-name", "___", "--print=file-names"]):
+            with tempfile.TemporaryDirectory() as root:
+                self.assertEqual(arguments, self.rewritten(list(arguments), root))
 
 
 if __name__ == "__main__":

@@ -42,6 +42,8 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 CRATE = ROOT / "runtime-utils" / "native" / "sr25519"
 MANIFEST = CRATE / "reproducible-build.json"
+# Makes cargo's crate metadata independent of the build machine, so every host builds the same bytes.
+RUSTC_WRAPPER = CRATE / "stable-crate-metadata.py"
 LIBRARY = "libsr25519java.so"
 REQUIRED_PAGE_ALIGNMENT = 16 * 1024
 PAGE_SIZE_FLAGS = (
@@ -262,6 +264,7 @@ def build_android(output, target_dir, ndk, manifest):
         "CARGO_ENCODED_RUSTFLAGS": encoded_rustflags(environment, sysroot, target_dir),
         "SOURCE_DATE_EPOCH": str(manifest["sourceDateEpoch"]),
         "CARGO_INCREMENTAL": "0",
+        "RUSTC_WRAPPER": str(RUSTC_WRAPPER),
     })
     command = ["cargo", "ndk"]
     for abi in RUST_TARGETS:
