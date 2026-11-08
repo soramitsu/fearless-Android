@@ -1,9 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -421,15 +419,10 @@ fun WalletScreenFooter(
 ) {
     GrayButton(
         text = stringResource(id = R.string.wallet_manage_assets),
+        // No animateContentSize here: the size never changes, and its clip cut the button's shadow square.
         modifier = Modifier
             .scale(scale)
             .fillMaxWidth()
-            .animateContentSize(
-                animationSpec = tween(
-                    durationMillis = 300,
-                    easing = LinearOutSlowInEasing
-                )
-            )
             .height(48.dp),
         onClick = onManageAssetsClick
     )
