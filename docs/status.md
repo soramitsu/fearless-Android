@@ -6,7 +6,7 @@
 
 Fixes every finding of the 2026-11-07 Android key-exposure audit of 4.3.1 (233) and removes every
 closed-source or non-OSI library (owner, 7 November 2026: "don't use any closed source libraries" and "fix
-all issues"). Branch `claude/android-4.3.2-key-safety`, from release/android-4.3.0 at `c9d18c435`. The
+all issues"). Branch `release/android-4.3.2`, targeting master in PR #1275, originally from release/android-4.3.0 at `c9d18c435`. The
 database schema stays 84. Release notes: `docs/releases/4.3.2.md`.
 
 - **Unlocking:** biometric unlock unseals the PIN from an Android Keystore key that only a strong (Class 3)
@@ -25,6 +25,7 @@ database schema stays 84. Release notes: `docs/releases/4.3.2.md`.
   Firebase, SpongyCastle, EdDSA-Java, curve25519-kotlin, libsodium and the prebuilt polkaj jar and
   sr25519 library are gone; WalletConnect v2, Drive OAuth, TON keys and the sr25519 library are built in
   this repository. The release graph has 308 libraries against 4.3.1's 441, none older and none added.
+- **PIN migration concurrency:** `07d06681c` serializes disposal/replacement of the PIN keyring with encrypted writes and each migration seal/commit/read-back. A concurrent PIN check or recovery cannot discard a key while its first ciphertext is being committed. The envelope and backup formats are unchanged.
 - **Upgrade:** keys are unchanged; connected dApps carry over; users sign in to Google Drive once more.
 
 ### Unlocking, locking and exposure
