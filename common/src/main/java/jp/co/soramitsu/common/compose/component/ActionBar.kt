@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -50,8 +51,12 @@ fun ActionBar(
     onItemClick: (ActionItemType, String, String) -> Unit = { _, _, _ -> }
 ) {
     if (FwRestyle.paletteEnabled) {
-        // Round key-lit actions; Send carries the emissive brand light.
-        Row(Modifier.fillMaxWidth().padding(vertical = 12.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+        // Round key-lit actions; Send carries the emissive brand light. Behind a swiped row (not filling
+        // the width) they stay compact, because the row beside them sets the height.
+        Row(
+            if (fillMaxWidth) Modifier.fillMaxWidth().padding(vertical = 12.dp) else Modifier.padding(vertical = 4.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
             state.actionItems.forEach { actionItem ->
                 FwRoundAction(
                     iconRes = actionItem.iconId,
@@ -59,8 +64,8 @@ fun ActionBar(
                     onClick = { onItemClick(actionItem, state.chainId, state.chainAssetId) },
                     primary = actionItem == ActionItemType.SEND,
                     enabled = actionItem !in state.disabledItems,
-                    size = 52.dp,
-                    modifier = Modifier.weight(1f)
+                    size = if (fillMaxWidth) 52.dp else 40.dp,
+                    modifier = if (fillMaxWidth) Modifier.weight(1f) else Modifier.width(80.dp)
                 )
             }
         }

@@ -37,6 +37,8 @@ import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.swipeRight
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
@@ -63,6 +65,7 @@ import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveScreenInterface
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveScreenViewState
 import jp.co.soramitsu.wallet.impl.presentation.receive.model.ReceiveToggleType
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -129,6 +132,38 @@ class WalletUxScreensInstrumentedTest {
         assertFullyVisible(retry)
         compose.onNodeWithText(retry).performClick()
         save("wallet-retry-320dp-font200")
+    }
+
+    @Test
+    fun assetRowsKeepTheirSwipeActionsHiddenUntilSwiped() {
+        val state = jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState(
+            null, "", "Ceres", "SORA test", "CERES", null, null, "0", null,
+            emptyMap(), "sora-test", "ceres", true, false, isTestnet = true)
+        compose.setContent {
+            FearlessAppTheme {
+                Box(Modifier.requiredWidth(360.dp).background(Color.Black).testTag("fixture")) {
+                    jp.co.soramitsu.wallet.impl.presentation.common.SwipeableAssetListItem(state, true, {}, { _, _, _, _ -> })
+                }
+            }
+        }
+        compose.waitForIdle()
+        val row = compose.onNodeWithTag("SwipeBox").getUnclippedBoundsInRoot()
+        val card = compose.onNodeWithTag("AssetListItem_CERES_Ceres").getUnclippedBoundsInRoot()
+        assertEquals("The actions behind a row must not make it taller", card.bottom.value - card.top.value,
+            row.bottom.value - row.top.value, 1f)
+        val receiveLabel = compose.activity.getString(jp.co.soramitsu.common.compose.component.ActionItemType.RECEIVE.titleId)
+        val hideLabel = compose.activity.getString(jp.co.soramitsu.common.compose.component.ActionItemType.HIDE.titleId)
+        val receive = compose.onNodeWithText(receiveLabel, useUnmergedTree = true).getUnclippedBoundsInRoot()
+        val hide = compose.onNodeWithText(hideLabel, useUnmergedTree = true).getUnclippedBoundsInRoot()
+        assertTrue("Receive must wait beyond the left edge: $receive / $row", receive.right <= row.left)
+        assertTrue("Hide must wait beyond the right edge: $hide / $row", hide.left >= row.right)
+        save("asset-row-at-rest")
+        compose.onNodeWithTag("SwipeBox").performTouchInput { swipeRight() }
+        compose.waitForIdle()
+        val shown = compose.onNodeWithText(receiveLabel, useUnmergedTree = true).getUnclippedBoundsInRoot()
+        assertTrue("A swipe must reveal the whole action: $shown / $row", shown.left >= row.left && shown.right <= row.right &&
+            shown.top >= row.top && shown.bottom <= row.bottom)
+        save("asset-row-swiped")
     }
 
     @Test
