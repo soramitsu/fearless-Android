@@ -41,7 +41,7 @@ class SunlitPinLayoutInstrumentedTest {
     @get:Rule val compose = createAndroidComposeRule<PolkaswapNavigationLayoutTestActivity>()
 
     @Test fun keypadAndRecoveryHaveSeparateFullTouchTargetsAtSmallAndLargeTextSizes() {
-        val modes = listOf(Triple(320, 600, 1f), Triple(320, 600, 2f), Triple(400, 800, 1f))
+        val modes = listOf(Triple(320, 600, 1f), Triple(320, 600, 2f), Triple(320, 800, 2f), Triple(400, 800, 1f))
         var mode by mutableStateOf(modes.first())
         lateinit var root: View
         var entered: String? = null

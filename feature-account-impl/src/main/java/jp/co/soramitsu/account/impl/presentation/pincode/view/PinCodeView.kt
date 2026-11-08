@@ -125,7 +125,8 @@ class PinCodeView @JvmOverloads constructor(
         binding.dotsProgressView.applySunlitStyle(fx, colors)
         val keys = listOf(binding.btn1, binding.btn2, binding.btn3, binding.btn4, binding.btn5, binding.btn6,
             binding.btn7, binding.btn8, binding.btn9, binding.btn0)
-        val roomy = resources.configuration.screenHeightDp >= MIN_HEIGHT_FOR_LOGO_DP
+        val roomy = resources.configuration.screenHeightDp >= MIN_HEIGHT_FOR_LOGO_DP &&
+            resources.configuration.screenWidthDp >= MIN_WIDTH_FOR_ROOMY_KEYS_DP
         for (key in keys + listOf(binding.fingerprintBtn, binding.btnDelete)) {
             if (roomy) key.layoutParams = key.layoutParams.apply {
                 width = (ROOMY_KEY_DP * density).toInt()
@@ -222,6 +223,7 @@ class PinCodeView @JvmOverloads constructor(
 
     private companion object {
         const val MIN_HEIGHT_FOR_LOGO_DP = 680
+        const val MIN_WIDTH_FOR_ROOMY_KEYS_DP = 360
         const val LOGO_DP = 84
         const val SUN_GLOW_PADDING_DP = 26
         const val KEY_SHADOW_ROOM_DP = 5f
