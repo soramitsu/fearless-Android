@@ -87,14 +87,15 @@ class StakingPoolViewModel(
         return kotlinx.coroutines.flow.flowOf(Pool)
     }
 
+    override val enteredAmountFlow = MutableStateFlow(initialValue)
+
+    // After the amount flow: launchIn starts collecting here, and a pending event would find it unassigned.
     init {
         baseViewModel.enteredAmountEvent.onEach { event ->
             enteredAmountFlow.value = event.peekContent().setScale(5, RoundingMode.HALF_DOWN)
         }.launchIn(baseViewModel.stakingStateScope)
 
     }
-
-    override val enteredAmountFlow = MutableStateFlow(initialValue)
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     override suspend fun getStakingViewStateFlow(): Flow<StakingViewState?> {
