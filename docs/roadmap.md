@@ -24,6 +24,11 @@ The candidate is described in `docs/status.md` and `docs/releases/4.3.3.md`.
   `isHideable = false` (`ConfirmSendFragment`, `ClaimRewardsFragment`, `ScoreDetailsFragment`, the pool and validator
   setup sheets and others). On Android 13+ Material's back handler answers Back for them and can only collapse them, so
   they should close or go back the way the pools and NFT sheets now do. Found by reading the code; not checked on a device.
+- **Seen in the walk of the second signed build, not changed:** the staking page's scrolled content runs under the
+  transparent status bar (its container pads for the status bar inside the scroll view, as in 4.3.2; staking surface);
+  the one-time first-start scroll to Manage assets (FLW-4511) now hides the hero and total on the one-page home; the asset
+  picker of Receive and Buy ends its list in a hard cut above the navigation bar (pickers surface); the liquidity pools list
+  shows "APY" without a value while SORA's strategic-bonus APY is unavailable.
 - **Sheets opened over a dApp request close the wrong one:** the Preview, raw data and optional networks sheets open in
   the tab's stack, over a request or proposal sheet in the root's, and `Navigator.back()` pops the root's. Seen on API 34:
   Preview's Back icon closes the request sheet under it and Preview stays until tapped again; "Done" in the optional

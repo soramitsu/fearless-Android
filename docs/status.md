@@ -29,6 +29,18 @@ Walking the first signed build found what the suites had missed, all fixed in th
   no longer pads twice for the bottom bar, alert sheets (the one-time update notice among them) use the lit sheet, XML
   list sheets are opaque, and the asset picker no longer says "nothing found" before its first list arrives.
 
+Walking the second signed build (`f2810b7a3`, 10 November 2026) confirmed the three crash and currency fixes on the
+release build and found one more:
+
+- **PIN recovery prompt on every start:** `PinCodeViewModel.recoveryState` started visible and loading, so each cold start
+  showed "Recover your wallet PIN / Your stored PIN cannot be read" until the PIN's state was read: 120-360 ms on an API 34
+  emulator under load. Same since #1261, so 4.3.1 and 4.3.2 show it too. The phone's `screenrecord` paints the secure PIN
+  window black and so cannot show it; the emulator's own recorder can (`adb emu screenrecord`). The prompt now starts
+  hidden, the pad ignores input until the state is known, and an unreadable PIN still opens the prompt.
+- **Sheet strip:** floating sheets (Currency, the paused-network `ErrorDialog`) kept a dark strip above the navigation
+  bar, and Android 15+ ignores `navigationBarColor`. From the restyle lane, verified there on API 34 and 36: list sheets
+  stop floating under the sun-lit palette and the sheet's container paints its own bottom padding.
+
 ## 4.3.3: fixes from the 4.3.2 release smoke — 9 November 2026
 
 From `release/android-4.3.3` (`d5fdf9111`), based on `release/android-4.3.2`. Nothing here is in the 4.3.2 build on Play.
