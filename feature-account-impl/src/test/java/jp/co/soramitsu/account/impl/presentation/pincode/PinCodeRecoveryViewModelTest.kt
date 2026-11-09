@@ -19,6 +19,7 @@ import jp.co.soramitsu.common.data.storage.pin.WalletViewOnlyAccess
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.vibration.DeviceVibrator
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -233,6 +234,29 @@ class PinCodeRecoveryViewModelTest {
         runCurrent()
         coVerify { interactor.setBiometricOn() }
         verify { router.openAfterPinCode(delayed) }
+    }
+
+    @Test fun theRecoveryPromptStaysHiddenWhileThePinIsStillBeingRead() = runTest(dispatcher) {
+        val health = CompletableDeferred<PinHealth>()
+        coEvery { interactor.getPinHealth() } coAnswers { health.await() }
+        val model = model()
+        runCurrent()
+        // A cold start shows the pad, not "Your stored PIN cannot be read", and the pad does nothing yet.
+        assertFalse(model.recoveryState.value!!.visible)
+        model.pinCodeEntered("123456")
+        runCurrent()
+        coVerify(exactly = 0) { interactor.isPinCorrect(any()) }
+        health.complete(PinHealth.UNREADABLE)
+        runCurrent()
+        assertTrue(model.recoveryState.value!!.visible)
+    }
+
+    @Test fun aHealthyPinNeverShowsTheRecoveryPrompt() = runTest(dispatcher) {
+        coEvery { interactor.getPinHealth() } returns PinHealth.HEALTHY
+        val model = model()
+        assertFalse(model.recoveryState.value!!.visible)
+        runCurrent()
+        assertFalse(model.recoveryState.value!!.visible)
     }
 
     @Test fun healthyPinRejectsInvalidInputAndKeepsNormalUnlockAndChangeFlow() = runTest(dispatcher) {

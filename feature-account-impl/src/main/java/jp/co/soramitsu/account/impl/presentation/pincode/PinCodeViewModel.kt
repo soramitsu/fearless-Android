@@ -80,7 +80,12 @@ class PinCodeViewModel @Inject constructor(
     /** Offers biometric unlock; true when the offer follows a change to the phone's biometrics. */
     private val _biometricSwitchDialogLiveData = MutableLiveData<Event<Boolean>>()
     val biometricSwitchDialogLiveData: LiveData<Event<Boolean>> = _biometricSwitchDialogLiveData
-    val recoveryState = MutableLiveData(RecoveryState())
+    /**
+     * Hidden until the PIN's health is known: meanwhile the pad shows and ignores input, because [pinCodeEntered] and
+     * biometric unlock act only from a known state. Visible from the start, every cold start flashed "Your stored PIN
+     * cannot be read". An unreadable PIN still opens the recovery prompt as soon as that is known.
+     */
+    val recoveryState = MutableLiveData(RecoveryState(visible = false))
     /** "Forgot PIN?" shows on the unlock screen while it asks for a readable PIN. */
     private val _forgotPinVisible = MutableLiveData(false)
     val forgotPinVisible: LiveData<Boolean> = _forgotPinVisible

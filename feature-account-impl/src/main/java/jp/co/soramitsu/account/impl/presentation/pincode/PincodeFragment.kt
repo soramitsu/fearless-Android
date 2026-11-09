@@ -46,7 +46,7 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
 
     private val promptGate get() = viewModel.biometricPromptGate
     private var credentialIntentPending = false
-    private val recoveryContent = mutableStateOf(PinCodeViewModel.RecoveryState())
+    private val recoveryContent = mutableStateOf(PinCodeViewModel.RecoveryState(visible = false))
     private val credentialResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val pending = credentialIntentPending
         credentialIntentPending = false
