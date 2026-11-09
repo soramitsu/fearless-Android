@@ -2,7 +2,7 @@
 
 # Status Summary
 
-## Production candidate 4.3.2 (234): key safety and open-source libraries only — 8 November 2026
+## Production 4.3.2 (234): key safety and open-source libraries only — on Play at 20% since 9 November 2026
 
 Fixes every finding of the 2026-11-07 Android key-exposure audit of 4.3.1 (233) and removes every
 closed-source or non-OSI library (owner, 7 November 2026: "don't use any closed source libraries" and "fix
