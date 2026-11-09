@@ -19,6 +19,8 @@ Described in `docs/status.md`. Not yet done on branch `release/sunlit-redesign`:
 
 The candidate is described in `docs/status.md` and `docs/releases/4.3.2.md`. The migration/keyring replacement race is fixed in `07d06681c`; its three regressions failed on the preceding source. The final validation and artifact receipts are under `build/android-432/evidence/final-a168420d9b12/` in the workspace. The earlier `7dc7512e5` and `ba5642e46` signed bundles are superseded and must not be uploaded. Open before or after release:
 
+- **Play:** Production 234 is published at 20% since 9 November 2026, 00:05 UTC, and the other 80% stay on 229. Read
+  Android Vitals on real phones, then raise the rollout. 234 replaced 233 (`docs/releases/4.3.1.md`).
 - **Owner:** back up the remote-configuration signing key (`~/.fearless-release/remote-config-signing-ed25519.key`)
   and approve PR #1275 so the signed `remote-config/remote-config-manifest.json` reaches master;
   until then 4.3.2 uses the configuration snapshot bundled into the APK, and remote kill switches and node repairs
