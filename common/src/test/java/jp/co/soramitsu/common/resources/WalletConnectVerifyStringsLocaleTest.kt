@@ -7,7 +7,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.w3c.dom.Element
 
-/** The WalletConnect Verify notices exist in every shipped locale with the same arguments. */
+/** The WalletConnect notices exist in every shipped locale with the same arguments. */
 class WalletConnectVerifyStringsLocaleTest {
     @Test fun verifyNoticesExistInEveryShippedLocaleWithExactArguments() {
         val root = File("src/main/res")
@@ -37,7 +37,12 @@ class WalletConnectVerifyStringsLocaleTest {
         "walletconnect_origin_unverified",
         "walletconnect_origin_mismatch",
         "walletconnect_scam_blocked",
-        "walletconnect_link_expired"
+        "walletconnect_link_expired",
+        "walletconnect_qr_invalid",
+        "walletconnect_message_signed_title",
+        "walletconnect_message_signed_text",
+        "walletconnect_transaction_signed_title",
+        "walletconnect_transaction_signed_text"
     )
 
     // Notices stay short: one sentence of warning and one of advice at most.

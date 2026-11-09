@@ -4,4 +4,9 @@
     <string name="walletconnect_origin_mismatch">Запрос пришёл с %1$s, а не с %2$s. Это может быть поддельный сайт.</string>
     <string name="walletconnect_scam_blocked">%1$s — известный мошеннический сайт. Fearless заблокировал его.</string>
     <string name="walletconnect_link_expired">Срок действия этой ссылки WalletConnect истёк. Получите новую в dApp.</string>
+    <string name="walletconnect_qr_invalid">Неверный код. Пожалуйста, попробуйте ещё раз.</string>
+    <string name="walletconnect_message_signed_title">Сообщение подписано</string>
+    <string name="walletconnect_message_signed_text">Подпись отправлена в dApp.</string>
+    <string name="walletconnect_transaction_signed_title">Транзакция подписана</string>
+    <string name="walletconnect_transaction_signed_text">Подписанная транзакция отправлена в dApp, который передаст её в блокчейн.</string>
 </resources>

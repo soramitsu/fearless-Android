@@ -14,6 +14,11 @@ in the 4.3.2 build on Play. No key, signing, storage or chain change.
   Loading. The override and its pre-Android 13 key listener are gone, so every version has one path. Queued presses leave
   only the sheet, and the Back icon on the Loading toolbar works. Checked on API 34 (Back key and edge gesture, both sheets,
   including after the QR scanner) and API 26 (Back key, pools); the keyboard closes first on both.
+- **WalletConnect after signing:** the request's Preview sits in the tab's stack and `openOperationSuccessAndPopUpToNearestRelatedScreen`
+  popped only the root's, so closing the success sheet showed the answered Preview again. It now removes the Preview first.
+  A message signature says "Message signed", a transaction signed but not sent "Transaction signed"; only `eth_sendTransaction`,
+  which the wallet broadcasts itself, says "Transaction sent". Checked on API 34 with a live `personal_sign` the dApp verified.
+- **WalletConnect QR error:** the hard-coded Russian text is now `walletconnect_qr_invalid`, in all eight locales.
 
 ## Production 4.3.2 (234): key safety and open-source libraries only — on Play at 20% since 9 November 2026
 

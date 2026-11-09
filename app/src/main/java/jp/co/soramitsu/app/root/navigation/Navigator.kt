@@ -1224,6 +1224,10 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         val bundle = SuccessFragment.getBundle(operationHash, chainId, customMessage, customTitle)
         val targetController = activeAuthenticatedController() ?: return
 
+        // A request's preview opens in the tab's stack while its request sheet is in the root's, so the
+        // pop below can miss it. An answered request must not come back when this sheet closes.
+        mainTabNavController?.popBackStack(R.id.requestPreviewFragment, true)
+
         val latestAvailableWalletConnectRelatedDestinationId =
             targetController.currentBackStack.replayCache.firstOrNull()?.lastOrNull {
                 it.destination.id == R.id.connectionsFragment ||
