@@ -2,6 +2,14 @@
 
 # Status Summary
 
+## Production candidate 4.3.3 (235): the sun-lit redesign — 9 November 2026
+
+The 4.3.2 (234) code that is live on Play plus the redesign described in the next section. Branch
+`release/sunlit-redesign`, targeting master in PR #1276, after PR #1275. The database schema stays 84. The
+eight surfaces in `docs/roadmap.md` keep only the shared components; their flags stay off. Release notes,
+contents and verification: `docs/releases/4.3.3.md`. Not uploaded: a new Production release stops a running
+staged rollout (seen with 233 on 9 November 2026), so it waits for the owner's decision on 4.3.2's rollout.
+
 ## Sun-lit neumorphism redesign and the approved badge — 8 November 2026
 
 Owner, 8 November 2026: "the mobile apps are ugly and don't use our new logo branding. make the ui look

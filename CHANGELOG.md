@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## 4.3.3 (235)
+
+- Design: the sun-lit redesign. The approved winged-sun badge is the launcher icon, the
+  in-app mark, the default wallet avatar and the QR centre mark; full-page screens (PIN,
+  welcome, onboarding, About, launch art) show the wings at about 90% of the page width.
+  Cards, buttons, input wells, sheets and the bottom bar are lit from one key light.
+- Wallet home: the badge is the sun of a new hero, its ring follows the real asset loading,
+  the total rolls when it changes, and Send, Receive, Buy and Swap are round actions; Receive
+  and Buy pick an asset first. The whole home scrolls as one page at every text size.
+- PIN: the keypad is raised, dots fill from the lit side, a wrong PIN shakes twice, and the
+  last keypad row stays reachable at 320 dp and 200% text.
+- History rows, asset details, Receive, Send and Settings follow the new surfaces. Signing and
+  recovery-phrase sheets animate nothing beyond press feedback.
+- Launch: the black flash between the system splash and the wallet is gone (night mode is set
+  before any Activity exists), and the launch art no longer hops when the wallet takes over.
+- Pages run to the bottom edge behind a transparent navigation bar and fade out above the
+  bottom bar instead of ending in a straight line.
+- Presentation only: keys, the PIN envelope, signing, storage, networking, remote
+  configuration and chain logic are the code of 4.3.2. The database schema stays 84.
+
 ## 4.3.2 (234)
 
 - Security: biometric unlock is tied to the PIN. The PIN is sealed to an Android

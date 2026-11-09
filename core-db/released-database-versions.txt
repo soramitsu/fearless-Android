@@ -53,3 +53,6 @@
 
 # Key safety and open-source libraries only; the database schema is unchanged.
 4.3.2+234=84
+
+# The sun-lit redesign, presentation only; the database schema is unchanged.
+4.3.3+235=84
