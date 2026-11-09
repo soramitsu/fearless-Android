@@ -4,6 +4,14 @@
 
 ## 4.3.3: open items — 9 November 2026
 
+- **New wallet total (owner's call):** a brand-new wallet still shows "Balance unavailable". `WalletSyncService` gives each
+  network 15 s on the first read and stores no balance when that runs out, and a network that is not popular, funded or
+  needed for staking gets no background sync, so those rows are not read again: 75 rows on a new wallet on API 34 (55 on
+  mainnets such as Karura, Astar and Kaia), 72 after a restart and about 10 hours. The total counts unread rows as unknown
+  on purpose ("absence never becomes zero"). Reading them once is a sync change and was left out of the 4.3.3 fix.
+- **Fiat unit:** the header total, wallet cards and pool values read "usd0.09" instead of "$0.09". Every
+  `FiatValuationContext` in the app is built without its `FiatCurrency`, so `displayUnit` falls back to the currency id.
+  Same since `86b658605`, so 4.3.1 and 4.3.2 have it too. Seen on debug builds; not touched here.
 - **Other sheets and system Back:** 18 more sheets on `BaseComposeBottomSheetDialogFragment` keep its default
   `isHideable = false` (`ConfirmSendFragment`, `ClaimRewardsFragment`, `ScoreDetailsFragment`, the pool and validator
   setup sheets and others). On Android 13+ Material's back handler answers Back for them and can only collapse them, so
@@ -32,8 +40,6 @@ The candidate is described in `docs/status.md` and `docs/releases/4.3.2.md`. The
   higher versionCode.
 - **Hosted release workflow:** its checksum-locked SDK lacks NDK r30, Rust 1.99.1 and cargo-ndk 4.1.2, so
   release AABs are built locally (AGENTS.md: no CI release gate).
-- **Small follow-up from the release smoke:** on a brand-new wallet the home shows "Balance unavailable" over "No assets
-  were found"; the total logic is unchanged since 4.3.1.
 - **Limits by design:** Polkadot dApp payloads with Mode::Disabled commit to no metadata, so their call can
   only be shown as decoded; refusing them would break most dApps. Drive sign-in shares the iOS OAuth client
   (Google keeps 100 refresh tokens per account and client). Passkey backup needs an open attestation design.

@@ -19,6 +19,14 @@ in the 4.3.2 build on Play. No key, signing, storage or chain change.
   A message signature says "Message signed", a transaction signed but not sent "Transaction signed"; only `eth_sendTransaction`,
   which the wallet broadcasts itself, says "Transaction sent". Checked on API 34 with a live `personal_sign` the dApp verified.
 - **WalletConnect QR error:** the hard-coded Russian text is now `walletconnect_qr_invalid`, in all eight locales.
+- **New wallet home:** the total counts every network, while a new wallet's list starts on the Popular filter. Rows on other
+  networks whose first read ran out of time (`docs/roadmap.md`) made the total "Balance unavailable" while every listed row
+  was a known zero, so the list also said "No assets were found". It now says that only when every balance the total counts
+  has been read (`walletHasUnknownBalance`). How balances are read and totalled is unchanged, so the new wallet keeps
+  "Balance unavailable", now over its zero-balance networks. Checked on API 34 on the same wallet before and after.
+- **Validation (9 November 2026, local; receipts with the commit in `build/android-433/`):** 2,468 unit tests in common,
+  feature-liquiditypools-impl, feature-nft-impl, feature-walletconnect-impl, feature-wallet-impl and app: 0 failures, 2
+  skipped. `detektAll` passes. No physical phone.
 
 ## Production 4.3.2 (234): key safety and open-source libraries only — on Play at 20% since 9 November 2026
 

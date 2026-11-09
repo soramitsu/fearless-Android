@@ -98,6 +98,14 @@ class PortfolioListBuilderTest {
         assertNull(rows.filterIsInstance<PortfolioListItem.AssetRow>().single().asset.total)
     }
 
+    @Test fun `an unread balance outside the filtered list cannot become empty wallet`() {
+        val zero = asset("relay", "0", "0", null)
+        val rows = PortfolioListBuilder.build(listOf(zero), emptyList(), groups, PortfolioUiState(), null,
+            walletHasPositiveBalance = false, walletHasUnknownBalance = true)
+        assertTrue(rows.none { it is PortfolioListItem.EmptyWallet })
+        assertFalse((rows.single() as PortfolioListItem.ZeroSummary).expanded)
+    }
+
     @Test fun `group with an unknown holding cannot publish a partial quantity as total`() {
         val unknown = asset("hub", "dot", "0", null).copy(total = null)
         val group = build(listOf(asset("relay", "0", "2", "10"), unknown))

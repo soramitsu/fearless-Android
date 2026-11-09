@@ -18,6 +18,11 @@ sealed class AssetsLoadingState {
         val hiddenFundedNoticeCount: Int = 0,
         /** Any shown or automatic verified holding is funded anywhere in the wallet. */
         val walletHasPositiveBalance: Boolean = false,
+        /**
+         * A holding the header total counts has an unread balance, on any network, so the wallet
+         * cannot be called empty even when every row of the filtered list is a known zero.
+         */
+        val walletHasUnknownBalance: Boolean = false,
         val walletId: Long? = null,
         val selectedNetwork: String? = null,
         val portfolioAssets: List<PortfolioAsset> = emptyList(),
@@ -38,6 +43,7 @@ sealed class AssetsLoadingState {
             exclusions = exclusions,
             hiddenFundedNoticeCount = hiddenFundedNoticeCount,
             walletHasPositiveBalance = walletHasPositiveBalance,
+            walletHasUnknownBalance = walletHasUnknownBalance,
             walletId = walletId, selectedNetwork = selectedNetwork,
             portfolioAssets = portfolioAssets, availableAssets = availableAssets,
             portfolioItems = portfolioItems, portfolioUi = portfolioUi, tokenGroups = tokenGroups

@@ -432,7 +432,8 @@ class BalanceListViewModel @Inject constructor(
             ),
             walletHasPositiveBalance = accountingItems.any {
                 it.total?.signum() == 1 && it.metadataTrust == AssetMetadataTrust.Verified
-            }
+            },
+            walletHasUnknownBalance = AssetListHelper.hasUnknownCountedBalance(accountingAssets)
         )
     }.distinctUntilChanged()
         .onStart { emit(buildInitialAssetsList()) }
@@ -493,7 +494,7 @@ class BalanceListViewModel @Inject constructor(
         val states = state.assets.associateBy { it.canonicalAssetKey }
         val visible = state.portfolioAssets.map { it.copy(state = states[it.key] ?: it.state) }
         state.with(portfolioItems = PortfolioListBuilder.build(visible, state.availableAssets.filter { it.state.isHidden },
-            groups, preference.second, state.selectedNetwork, state.walletHasPositiveBalance),
+            groups, preference.second, state.selectedNetwork, state.walletHasPositiveBalance, state.walletHasUnknownBalance),
             portfolioUi = preference.second, tokenGroups = groups)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AssetsLoadingState.Loading())
 
