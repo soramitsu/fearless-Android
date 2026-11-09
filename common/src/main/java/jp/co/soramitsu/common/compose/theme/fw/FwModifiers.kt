@@ -380,6 +380,7 @@ object FwShape {
     val BUTTON = 18.dp
     val HERO = 26.dp
     val WELL = 16.dp
+    val SHEET_TOP = 24.dp
     val Card = RoundedCornerShape(CARD)
     val Button = RoundedCornerShape(BUTTON)
     val Hero = RoundedCornerShape(HERO)

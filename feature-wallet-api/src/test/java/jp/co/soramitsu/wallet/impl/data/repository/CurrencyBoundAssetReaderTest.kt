@@ -3,6 +3,7 @@ package jp.co.soramitsu.wallet.impl.data.repository
 import io.mockk.*
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.dao.AssetDao
@@ -37,6 +38,7 @@ class CurrencyBoundAssetReaderTest {
 
     private class Fixture {
         var selection = "usd"
+        var knownCurrency: (String) -> FiatCurrency? = { null }
         var account = meta()
         val selected = Channel<MetaAccount?>(Channel.UNLIMITED)
         val fiatEvents = Channel<String>(Channel.UNLIMITED)
@@ -53,6 +55,7 @@ class CurrencyBoundAssetReaderTest {
         }
         val fiat = mockk<SelectedFiat> {
             every { get() } answers { selection }
+            every { metadata(any()) } answers { knownCurrency(firstArg()) }
             every { flow() } answers { flow { emit(selection); emitAll(fiatEvents.receiveAsFlow()) } }
         }
         val chains = mockk<ChainsRepository> {
@@ -85,6 +88,15 @@ class CurrencyBoundAssetReaderTest {
         assertEquals(BigDecimal("12.30"), asset.total); assertEquals(BigDecimal("30.7500"), asset.fiatAmount)
         assertArrayEquals(a, asset.accountId); assertEquals(false, asset.enabled)
         assertEquals(17, asset.sortIndex); assertEquals("retained-name", asset.chainAccountName)
+    }
+
+    @Test fun snapshotsShowMoneyWithTheSelectedCurrencysOwnSymbol() = runBlocking {
+        val f = Fixture()
+        f.getter = { listOf(quote()) }
+        f.knownCurrency = { id -> FiatCurrency("usd", "$", "US Dollar", "").takeIf { it.id == id } }
+        val asset = f.reader.getSnapshot(7).toDomainAssets { true }.single()
+        assertEquals("$", asset.token.fiatSymbol)
+        assertEquals("usd", asset.token.fiatContext?.currencyId)
     }
 
     @Test fun nonUsdChoosesCatalogEvenWhenStoredPointerNamesProvider() = runBlocking {

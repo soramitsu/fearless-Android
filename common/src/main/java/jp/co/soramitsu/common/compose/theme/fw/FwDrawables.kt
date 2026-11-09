@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.compose.theme.fw
 
 import android.animation.ValueAnimator
+import android.app.Dialog
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.ColorFilter
@@ -15,6 +16,7 @@ import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.drawable.Drawable
 import android.os.Build
+import android.view.WindowManager
 import android.view.animation.OvershootInterpolator
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -29,6 +31,13 @@ import kotlin.math.min
 object FwViews {
     /** Effects for views outside Compose: system animator scale and the saved display preferences. */
     fun effects(context: Context): FwEffects = readFwEffectsSnapshot(context)
+}
+
+/** A sheet continues behind the navigation bar instead of ending in a dark strip above it. */
+fun Dialog.fwSheetNavigationBar() {
+    if (!FwRestyle.paletteEnabled) return
+    window?.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+    window?.navigationBarColor = FwStandard.surfaceRaised2.toArgb()
 }
 
 /** The palette views paint with: high-contrast tokens when contrast is increased. */

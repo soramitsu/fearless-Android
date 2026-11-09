@@ -7,8 +7,9 @@
 The 4.3.2 (234) code that is live on Play plus the redesign described in the next section. Branch
 `release/sunlit-redesign`, targeting master in PR #1276, after PR #1275. The database schema stays 84. The
 eight surfaces in `docs/roadmap.md` keep only the shared components; their flags stay off. Release notes,
-contents and verification: `docs/releases/4.3.3.md`. Not uploaded: a new Production release stops a running
-staged rollout (seen with 233 on 9 November 2026), so it waits for the owner's decision on 4.3.2's rollout.
+contents and verification: `docs/releases/4.3.3.md`. Not uploaded: a new Production release most likely stops a
+running staged rollout (233 halted when 234 was saved on 9 November 2026; Play doesn't state the cause), so it waits
+until 4.3.2's rollout is settled.
 
 ## Sun-lit neumorphism redesign and the approved badge — 8 November 2026
 

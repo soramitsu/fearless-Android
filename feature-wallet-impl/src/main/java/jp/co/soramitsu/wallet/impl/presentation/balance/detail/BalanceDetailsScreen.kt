@@ -193,8 +193,11 @@ fun BalanceDetailsScreen(
                             actionItemClicked = callback::actionItemClicked
                         )
                     }
-                }}
-                MarginVertical(margin = 16.dp)
+                }
+                // The scrolling column clips at its end: inside it, the card's light fades out instead of being cut.
+                if (FwRestyle.isEnabled(FwSurface.AssetDetails)) MarginVertical(margin = 28.dp)
+                }
+                if (!FwRestyle.isEnabled(FwSurface.AssetDetails)) MarginVertical(margin = 16.dp)
                 BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxHeight()

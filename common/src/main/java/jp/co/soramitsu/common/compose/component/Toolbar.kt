@@ -40,6 +40,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import jp.co.soramitsu.common.R
@@ -295,6 +296,8 @@ fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit, onScoreCli
                 IconButton(
                     painter = rememberAsyncImagePainter(model = state.walletIcon),
                     contentDescription = stringResource(R.string.ux_switch_wallet),
+                    // The avatar is the button's face: it fills the raised circle instead of sitting in it as an icon.
+                    sunlitIconSize = 40.dp,
                     onClick = onClick
                 )
                 state.score?.let {
@@ -341,11 +344,13 @@ fun IconButton(
     painter: Painter,
     contentDescription: String,
     tint: Color = LocalContentColor.current.copy(alpha = LocalContentAlpha.current),
+    sunlitIconSize: Dp = 22.dp,
     onClick: () -> Unit
 ) {
     if (FwRestyle.paletteEnabled) {
         FwIconButton(painter = painter, contentDescription = contentDescription, onClick = onClick, modifier = modifier,
-            tint = if (tint == Color.Unspecified) Color.Unspecified else LocalFwColors.current.textPrimary)
+            tint = if (tint == Color.Unspecified) Color.Unspecified else LocalFwColors.current.textPrimary,
+            iconSize = sunlitIconSize)
         return
     }
     IconButton(

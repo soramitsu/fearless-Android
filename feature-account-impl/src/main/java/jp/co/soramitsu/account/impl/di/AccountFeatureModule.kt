@@ -1,6 +1,7 @@
 package jp.co.soramitsu.account.impl.di
 
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
@@ -59,6 +60,8 @@ import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretAccessGuard
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore
 import jp.co.soramitsu.common.data.storage.envelope.WalletPinAuthority
+import jp.co.soramitsu.common.data.network.config.signed.RemoteConfigSnapshot
+import jp.co.soramitsu.common.domain.BundledFiatCurrencies
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
@@ -360,7 +363,13 @@ class AccountFeatureModule {
 
     @Provides
     @Singleton
-    fun provideSelectedFiatUseCase(preferences: Preferences) = SelectedFiat(preferences)
+    fun provideSelectedFiatUseCase(preferences: Preferences, @ApplicationContext context: Context): SelectedFiat {
+        val snapshot = RemoteConfigSnapshot { path -> runCatching { context.assets.open(path) }.getOrNull() }
+        val currencies = BundledFiatCurrencies {
+            snapshot.read("production/fiat/fiats.json") ?: snapshot.read("development/fiat/fiats.json")
+        }
+        return SelectedFiat(preferences, currencies::get)
+    }
 
     @Provides
     fun provideAssetNotNeedAccountUseCase(

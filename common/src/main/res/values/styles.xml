@@ -158,7 +158,7 @@
 
     <style name="bottomSheetStyleWrapper" parent="Widget.MaterialComponents.BottomSheet.Modal">
         <item name="behavior_peekHeight">600dp</item>
-        <item name="backgroundTint">@color/bottom_bar_grey</item>
+        <item name="backgroundTint">@color/fw_list_sheet_background</item>
         <item name="shapeAppearanceOverlay">@style/CustomShapeAppearanceBottomSheetDialog</item>
     </style>
 

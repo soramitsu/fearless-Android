@@ -48,6 +48,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.paint
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.addOutline
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.clipPath
@@ -260,7 +261,8 @@ fun FwIconButton(
     contentDescription: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    tint: Color = Color.Unspecified
+    tint: Color = Color.Unspecified,
+    iconSize: androidx.compose.ui.unit.Dp = 22.dp
 ) {
     val fx = LocalFwEffects.current
     val c = LocalFwColors.current
@@ -284,11 +286,32 @@ fun FwIconButton(
                 painter = painter,
                 contentDescription = null,
                 tint = tint,
-                modifier = Modifier.size(22.dp)
+                modifier = Modifier.size(iconSize)
             )
         }
     }
 }
+
+/**
+ * Content fades out over [length] at its top edge, so a page scrolling under a pinned header ends softly instead of in
+ * a straight line.
+ */
+fun Modifier.fwTopFade(length: androidx.compose.ui.unit.Dp = 20.dp): Modifier = this
+    .graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
+    .drawWithContent {
+        drawContent()
+        val fade = length.toPx().coerceAtMost(size.height)
+        drawRect(
+            brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                0f to Color.Transparent,
+                1f to Color.Black,
+                startY = 0f,
+                endY = fade
+            ),
+            size = androidx.compose.ui.geometry.Size(size.width, fade),
+            blendMode = androidx.compose.ui.graphics.BlendMode.DstIn
+        )
+    }
 
 /** Raised card on the page. Rims nearer the sun catch more of its light. */
 @Composable

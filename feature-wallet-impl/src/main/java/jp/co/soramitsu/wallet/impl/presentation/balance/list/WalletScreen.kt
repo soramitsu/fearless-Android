@@ -52,6 +52,7 @@ import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.fwTopFade
 import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.white64
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
@@ -186,7 +187,7 @@ fun WalletScreen(
         }
     }
 
-    Column(modifier = Modifier.padding(horizontal = if (sunlit) 20.dp else 16.dp)) {
+    Column(modifier = (if (sunlit) Modifier.fwTopFade() else Modifier).padding(horizontal = if (sunlit) 20.dp else 16.dp)) {
         when {
             // The NFT grid scrolls on its own: above it the page keeps only the switch back to currencies.
             sunlit && data.assetsState is WalletAssetsState.NftAssets -> if (data.showCurrenciesOrNftSelector) {

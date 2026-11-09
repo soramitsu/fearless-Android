@@ -109,7 +109,7 @@
   <string name="backup_wallet_replace_several_alert">You currently have several chain accounts that has been added by replacing the main key pair, and it possesses a specific one. However, please note that our current wallet backup (export) flow does not support the storage of multiple key pairs. As a result, you can only save your main key pair. \n \n To ensure the safety of your replaced chain account, we recommend that you first back it up separately before proceeding with the current flow. Once you have successfully backed up your replaced chain account, you can proceed to the current flow without any concerns.</string>
   <string name="backup_wallet_show_mnemonic_phrase">Show mnemonic phrase</string>
   <string name="backup_wallet_show_raw_seed">Show Raw Seed</string>
-  <string name="backup_wallet_warning_about_lose_phrase">If you loose access to this device, your funds will be lost, unless you back up!</string>
+  <string name="backup_wallet_warning_about_lose_phrase">If you lose access to this device, your funds will be lost, unless you back up!</string>
   <string name="balance_locks_blocked_row_title">Blocked</string>
   <string name="balance_locks_governance_row_title">Governance</string>
   <string name="balance_locks_nomination_pools_row_title">Nomination Pools</string>

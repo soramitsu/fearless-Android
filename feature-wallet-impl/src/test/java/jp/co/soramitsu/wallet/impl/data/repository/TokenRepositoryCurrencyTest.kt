@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.impl.data.repository
 
 import io.mockk.every
 import io.mockk.mockk
+import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.core.models.Asset
@@ -171,6 +172,17 @@ class TokenRepositoryCurrencyTest {
         val token = repository(dao, Selection("cad")).getToken(configuration())
         assertEquals("cad", token.fiatSymbol)
         assertEquals(BigDecimal("2.50"), token.fiatRate)
+    }
+
+    @Test fun getAndObserveShowMoneyWithTheSelectedCurrencysOwnSymbol() = runBlocking {
+        val dollar = FiatCurrency("usd", "$", "US Dollar", "")
+        val selection = Selection("usd") { id -> dollar.takeIf { it.id == id } }
+        val repository = repository(RawDao(), selection)
+        assertEquals("$", repository.getToken(configuration()).fiatSymbol)
+        assertEquals("$", repository.observeToken(configuration()).first().fiatSymbol)
+        // A currency the list does not know is still shown with its own id, never another currency's symbol.
+        selection.selected.set("cad")
+        assertEquals("cad", repository.getToken(configuration()).fiatSymbol)
     }
 
     @Test fun getAndObserveUntrustedPriceStayUnpriced() = runBlocking {
@@ -376,7 +388,7 @@ class TokenRepositoryCurrencyTest {
     /** Extra instance state prevents coroutine stack-recovery copies from weakening identity checks. */
     private class StorageFailure(val marker: Any) : RuntimeException("controlled storage failure")
 
-    private class Selection(initial: String) {
+    private class Selection(initial: String, metadata: (String) -> FiatCurrency? = { null }) {
         private val selectedFiatValue = AtomicReference(initial)
         private val changes = Channel<String?>(Channel.UNLIMITED)
         private val preferences = mockk<Preferences> {
@@ -392,7 +404,7 @@ class TokenRepositoryCurrencyTest {
                 flow<String?> { emit(selectedFiatValue.get()); emitAll(changes.receiveAsFlow()) }
             }
         }
-        val selected = SelectedFiat(preferences)
+        val selected = SelectedFiat(preferences, metadata)
     }
 
     /** Legacy and writer entries fail; each test exercises the real bounded get/observe wrappers. */

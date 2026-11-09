@@ -6,9 +6,10 @@
 
 The candidate is described in `docs/status.md` and `docs/releases/4.3.3.md`.
 
-- **Owner:** decide what happens with 4.3.2's 20% rollout before 4.3.3 is uploaded. Saving a new Production release
-  stopped 233's running staged rollout on 9 November 2026, and no device receives either version until the new one is
-  published. PR #1276 merges after PR #1275, which needs a code-owner approval.
+- **Owner:** decide what happens with 4.3.2's 20% rollout before 4.3.3 is uploaded. 233's running staged rollout went
+  to halted when 234 was saved on 9 November 2026, most likely because of the save (Play states no cause), and no device
+  receives either version until the new one is published. PR #1276 merges after PR #1275, which needs a code-owner
+  approval.
 - **Devices:** no physical phone has run the redesign. Shadow cost on API 26-27 and low-end GPUs is below.
 
 ## Sun-lit redesign: open items — 8 November 2026

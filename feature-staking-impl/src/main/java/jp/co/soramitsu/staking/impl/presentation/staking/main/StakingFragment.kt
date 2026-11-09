@@ -25,6 +25,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseFragment
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.AssetSelector
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -94,6 +96,8 @@ class StakingFragment : BaseFragment<StakingViewModel>(R.layout.fragment_staking
     }
 
     override fun initViews() {
+        // The sun-lit tab host pads for the bottom bar itself; a second padding ends the page in a straight line above it.
+        if (FwRestyle.paletteEnabled) binding.root.updatePadding(bottom = 0)
         with(binding) {
             stakingContainer.applyInsetter {
                 type(statusBars = true) {

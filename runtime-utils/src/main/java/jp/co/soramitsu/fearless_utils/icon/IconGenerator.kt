@@ -1,11 +1,31 @@
 package jp.co.soramitsu.fearless_utils.icon
 
+import android.graphics.Canvas
+import android.graphics.Picture
 import android.graphics.drawable.PictureDrawable
 import com.caverock.androidsvg.SVG
 import org.bouncycastle.jcajce.provider.digest.Blake2b
 import kotlin.math.absoluteValue
 import kotlin.math.floor
 import kotlin.math.sqrt
+
+/**
+ * A picture that fills its bounds. The platform's PictureDrawable draws the picture at its recorded size and clips it
+ * to the bounds, so an icon recorded at 40 dp and shown in a 24 dp box keeps only its top-left corner.
+ */
+private class FittedPictureDrawable(picture: Picture) : PictureDrawable(picture) {
+    override fun draw(canvas: Canvas) {
+        val source = picture ?: return
+        val area = bounds
+        if (source.width <= 0 || source.height <= 0 || area.isEmpty) return
+        val saved = canvas.save()
+        canvas.clipRect(area)
+        canvas.translate(area.left.toFloat(), area.top.toFloat())
+        canvas.scale(area.width().toFloat() / source.width, area.height().toFloat() / source.height)
+        canvas.drawPicture(source)
+        canvas.restoreToCount(saved)
+    }
+}
 
 class IconGenerator {
 
@@ -78,7 +98,7 @@ class IconGenerator {
         stringBuilder.append("</svg>")
         val str = stringBuilder.toString()
         val svg = SVG.getFromString(str)
-        return PictureDrawable(svg.renderToPicture())
+        return FittedPictureDrawable(svg.renderToPicture())
     }
 
     private fun generateIconCircles(
@@ -201,7 +221,7 @@ class IconGenerator {
         stringBuilder.append("</g>")
         stringBuilder.append("</svg>")
         val svg = SVG.getFromString(stringBuilder.toString())
-        return PictureDrawable(svg.renderToPicture())
+        return FittedPictureDrawable(svg.renderToPicture())
     }
 
     private fun getEthereumColors(id: ByteArray): List<String> {
