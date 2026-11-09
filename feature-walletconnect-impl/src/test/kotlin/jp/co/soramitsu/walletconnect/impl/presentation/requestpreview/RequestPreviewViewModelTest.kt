@@ -109,6 +109,53 @@ class RequestPreviewViewModelTest {
     }
 
     @Test
+    fun `a signed message opens the success sheet saying so`() {
+        coEvery { interactor.handleSignAction(any(), any(), any(), any(), any(), any()) } coAnswers {
+            arg<(String?, String?) -> Unit>(4).invoke(null, null)
+        }
+        val viewModel = viewModel(requestId = shown.request.id)
+
+        viewModel.onSignClick()
+
+        verify(timeout = 10_000) {
+            router.openOperationSuccessAndPopUpToNearestRelatedScreen(
+                operationHash = null,
+                chainId = null,
+                customMessage = "string:${R.string.walletconnect_message_signed_text}",
+                customTitle = "string:${R.string.walletconnect_message_signed_title}"
+            )
+        }
+    }
+
+    @Test
+    fun `a broadcast transaction keeps the sheet's own transaction sent text`() {
+        val send = sessionRequest(
+            id = 5,
+            method = "eth_sendTransaction",
+            params = """[{"from":"$evmAddress","to":"$evmAddress","data":"0x"}]""",
+            chainId = ethereumChain.caip2id
+        )
+        every { interactor.getPendingListOfSessionRequests(TEST_TOPIC) } returns listOf(send)
+        coEvery { interactor.handleSignAction(any(), any(), any(), any(), any(), any()) } coAnswers {
+            arg<(String?, String?) -> Unit>(4).invoke("0xhash", ethereumChain.id)
+        }
+        val summaries = mockk<WalletConnectRequestSummaries>()
+        coEvery { summaries.summary(any(), any()) } returns SigningSummaryViewState("send", emptyList(), emptyList(), false)
+        val viewModel = viewModel(requestId = send.request.id, summaries = summaries)
+
+        viewModel.onSignClick()
+
+        verify(timeout = 10_000) {
+            router.openOperationSuccessAndPopUpToNearestRelatedScreen(
+                operationHash = "0xhash",
+                chainId = ethereumChain.id,
+                customMessage = null,
+                customTitle = null
+            )
+        }
+    }
+
+    @Test
     fun `sign is refused once the request is no longer pending`() {
         val viewModel = viewModel(requestId = shown.request.id)
         every { interactor.getPendingListOfSessionRequests(TEST_TOPIC) } returns listOf(newer)

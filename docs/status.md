@@ -11,6 +11,32 @@ contents and verification: `docs/releases/4.3.3.md`. Not uploaded: a new Product
 running staged rollout (233 halted when 234 was saved on 9 November 2026; Play doesn't state the cause), so it waits
 until 4.3.2's rollout is settled.
 
+## 4.3.3: fixes from the 4.3.2 release smoke — 9 November 2026
+
+From `release/android-4.3.3` (`d5fdf9111`), based on `release/android-4.3.2`. Nothing here is in the 4.3.2 build on Play.
+No key, signing, storage or chain change.
+
+- **System Back in the liquidity pools and NFT sheets (Android 13+, also in 4.3.1):** Back went to the sheet dialog's
+  `OnBackPressedDispatcher`, so their `onBackPressed` override never ran: the nested `NavHost` popped to its Loading page,
+  and the next Back only collapsed the sheet. A `BackHandler` registered after the `NavHost` now takes system Back down
+  the toolbar icon's path: one page back (`popFlowPageOrExit`, common), out of the sheet from its first page, never to
+  Loading. The override and its pre-Android 13 key listener are gone, so every version has one path. Queued presses leave
+  only the sheet, and the Back icon on the Loading toolbar works. Checked on API 34 (Back key and edge gesture, both sheets,
+  including after the QR scanner) and API 26 (Back key, pools); the keyboard closes first on both.
+- **WalletConnect after signing:** the request's Preview sits in the tab's stack and `openOperationSuccessAndPopUpToNearestRelatedScreen`
+  popped only the root's, so closing the success sheet showed the answered Preview again. It now removes the Preview first.
+  A message signature says "Message signed", a transaction signed but not sent "Transaction signed"; only `eth_sendTransaction`,
+  which the wallet broadcasts itself, says "Transaction sent". Checked on API 34 with a live `personal_sign` the dApp verified.
+- **WalletConnect QR error:** the hard-coded Russian text is now `walletconnect_qr_invalid`, in all eight locales.
+- **New wallet home:** the total counts every network, while a new wallet's list starts on the Popular filter. Rows on other
+  networks whose first read ran out of time (`docs/roadmap.md`) made the total "Balance unavailable" while every listed row
+  was a known zero, so the list also said "No assets were found". It now says that only when every balance the total counts
+  has been read (`walletHasUnknownBalance`). How balances are read and totalled is unchanged, so the new wallet keeps
+  "Balance unavailable", now over its zero-balance networks. Checked on API 34 on the same wallet before and after.
+- **Validation (9 November 2026, local; receipts with the commit in `build/android-433/`):** 2,468 unit tests in common,
+  feature-liquiditypools-impl, feature-nft-impl, feature-walletconnect-impl, feature-wallet-impl and app: 0 failures, 2
+  skipped. `detektAll` passes. No physical phone.
+
 ## Sun-lit neumorphism redesign and the approved badge — 8 November 2026
 
 Owner, 8 November 2026: "the mobile apps are ugly and don't use our new logo branding. make the ui look

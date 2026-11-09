@@ -35,6 +35,17 @@ import jp.co.soramitsu.wallet.impl.domain.model.Asset as WalletAsset
 class AssetListHelperTest {
 
     @Test
+    fun `a detected token with an unread balance is no reason to doubt the total`() {
+        val reviewed = coreAsset("reviewed", "REV", null)
+        val detected = coreAsset("detected", "DET", null, type = ChainAssetType.Unknown)
+        val unread = { asset: Asset -> walletAsset(asset).let { it.copy(asset = it.asset.copy(freeInPlanksState = AssetAmountState.Missing)) } }
+
+        assertFalse(AssetListHelper.hasUnknownCountedBalance(listOf(walletAsset(reviewed), unread(detected))))
+        assertTrue(AssetListHelper.hasUnknownCountedBalance(listOf(walletAsset(reviewed), unread(reviewed))))
+        assertFalse(AssetListHelper.hasUnknownCountedBalance(emptyList()))
+    }
+
+    @Test
     fun `shadow mode keeps discovered data but suppresses automatic review rows`() {
         val detected = item(
             assetId = "detected",

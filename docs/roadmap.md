@@ -11,6 +11,19 @@ The candidate is described in `docs/status.md` and `docs/releases/4.3.3.md`.
   receives either version until the new one is published. PR #1276 merges after PR #1275, which needs a code-owner
   approval.
 - **Devices:** no physical phone has run the redesign. Shadow cost on API 26-27 and low-end GPUs is below.
+- **New wallet total (owner's call):** a brand-new wallet still shows "Balance unavailable". `WalletSyncService` gives each
+  network 15 s on the first read and stores no balance when that runs out, and a network that is not popular, funded or
+  needed for staking gets no background sync, so those rows are not read again: 75 rows on a new wallet on API 34 (55 on
+  mainnets such as Karura, Astar and Kaia), 72 after a restart and about 10 hours. The total counts unread rows as unknown
+  on purpose ("absence never becomes zero"). Reading them once is a sync change and was left out of the 4.3.3 fix.
+- **Other sheets and system Back:** 18 more sheets on `BaseComposeBottomSheetDialogFragment` keep its default
+  `isHideable = false` (`ConfirmSendFragment`, `ClaimRewardsFragment`, `ScoreDetailsFragment`, the pool and validator
+  setup sheets and others). On Android 13+ Material's back handler answers Back for them and can only collapse them, so
+  they should close or go back the way the pools and NFT sheets now do. Found by reading the code; not checked on a device.
+- **Sheets opened over a dApp request close the wrong one:** the Preview, raw data and optional networks sheets open in
+  the tab's stack, over a request or proposal sheet in the root's, and `Navigator.back()` pops the root's. Seen on API 34:
+  Preview's Back icon closes the request sheet under it and Preview stays until tapped again; "Done" in the optional
+  networks chooser closes the proposal under it and the chooser stays. System Back on Preview works.
 
 ## Sun-lit redesign: open items — 8 November 2026
 
@@ -44,16 +57,6 @@ The candidate is described in `docs/status.md` and `docs/releases/4.3.2.md`. The
   higher versionCode.
 - **Hosted release workflow:** its checksum-locked SDK lacks NDK r30, Rust 1.99.1 and cargo-ndk 4.1.2, so
   release AABs are built locally (AGENTS.md: no CI release gate).
-- **Small follow-ups from the release smoke:** after a WalletConnect `personal_sign`, closing the success sheet
-  returns to the Preview sheet (signing again is refused, 4.3.1 navigates the same way), and that success sheet says
-  "Transaction sent" for a message signature. The WalletConnect QR error text in `ConnectionsViewModel` is hard-coded
-  Russian. On a brand-new wallet the home shows "Balance unavailable" over "No assets were found"; the total logic is
-  unchanged since 4.3.1.
-- **System Back in the liquidity pools sheet (also in 4.3.1):** with `enableOnBackInvokedCallback=true`, Back on
-  Android 13+ goes to the dialog's `OnBackPressedDispatcher`, so `PoolsFlowFragment`'s `onBackPressed` override never
-  runs. The nested `NavHost` pops to its Loading page, whose `MainToolbarShimmer` Back icon has no click action, and
-  another Back only collapses the sheet. Tapping outside closes it; no data is at risk. `NFTFlowFragment` uses the same
-  override and should be checked with it.
 - **Limits by design:** Polkadot dApp payloads with Mode::Disabled commit to no metadata, so their call can
   only be shown as decoded; refusing them would break most dApps. Drive sign-in shares the iOS OAuth client
   (Google keeps 100 refresh tokens per account and client). Passkey backup needs an open attestation design.

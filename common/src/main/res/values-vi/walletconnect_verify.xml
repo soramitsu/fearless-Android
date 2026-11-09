@@ -4,4 +4,9 @@
     <string name="walletconnect_origin_mismatch">Yêu cầu này đến từ %1$s, không phải %2$s. Đây có thể là trang giả mạo.</string>
     <string name="walletconnect_scam_blocked">%1$s là trang lừa đảo đã biết. Fearless đã chặn trang này.</string>
     <string name="walletconnect_link_expired">Liên kết WalletConnect này đã hết hạn. Hãy lấy liên kết mới từ dApp.</string>
+    <string name="walletconnect_qr_invalid">Mã không hợp lệ. Vui lòng thử lại.</string>
+    <string name="walletconnect_message_signed_title">Đã ký tin nhắn</string>
+    <string name="walletconnect_message_signed_text">Chữ ký đã được gửi đến dApp.</string>
+    <string name="walletconnect_transaction_signed_title">Đã ký giao dịch</string>
+    <string name="walletconnect_transaction_signed_text">Giao dịch đã ký được gửi đến dApp; dApp sẽ gửi nó lên blockchain.</string>
 </resources>

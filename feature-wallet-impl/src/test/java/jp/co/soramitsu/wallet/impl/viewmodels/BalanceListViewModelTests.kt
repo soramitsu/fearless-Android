@@ -72,6 +72,7 @@ import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.AssetsLoadingState
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.BalanceListViewModel
+import jp.co.soramitsu.wallet.impl.presentation.balance.list.PortfolioListItem
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.PortfolioPresentationPreferences
 import jp.co.soramitsu.wallet.impl.presentation.bundledPortfolioVisibility
 import jp.co.soramitsu.common.utils.formatFiat
@@ -568,6 +569,52 @@ class BalanceListViewModelTests {
     }
 
     @Test
+    fun `new wallet on the popular filter is not called empty while another network is unread`() = runTest {
+        every { walletInteractor.observeSelectedAccountChainSelectFilter() } returns
+            flowOf(ChainSelectorViewStateWithFilters.Filter.Popular)
+        val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
+        val unread = portfolioAsset("unranked-utility", "TKN", TOKEN_CHAIN_ID, isUtility = true, priceId = "token")
+
+        val loaded = loadedPortfolio(
+            chains = listOf(portfolioChain(POLKADOT_CHAIN_ID, rank = 8, dot), portfolioChain(TOKEN_CHAIN_ID, rank = null, unread)),
+            assets = listOf(portfolioRow(dot, free = BigInteger.ZERO, enabled = null), portfolioRow(unread, free = null, enabled = null))
+        )
+
+        assertEquals(listOf(DOT_ASSET_ID), loaded.assets.map { it.chainAssetId })
+        assertTrue(loaded.walletHasUnknownBalance)
+        assertFalse(loaded.portfolioItems.contains(PortfolioListItem.EmptyWallet))
+    }
+
+    @Test
+    fun `new wallet with every balance read as zero is called empty`() = runTest {
+        every { walletInteractor.observeSelectedAccountChainSelectFilter() } returns
+            flowOf(ChainSelectorViewStateWithFilters.Filter.Popular)
+        val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
+        val other = portfolioAsset("unranked-utility", "TKN", TOKEN_CHAIN_ID, isUtility = true, priceId = "token")
+
+        val loaded = loadedPortfolio(
+            chains = listOf(portfolioChain(POLKADOT_CHAIN_ID, rank = 8, dot), portfolioChain(TOKEN_CHAIN_ID, rank = null, other)),
+            assets = listOf(portfolioRow(dot, free = BigInteger.ZERO, enabled = null), portfolioRow(other, free = BigInteger.ZERO, enabled = null))
+        )
+
+        assertFalse(loaded.walletHasUnknownBalance)
+        assertTrue(loaded.portfolioItems.contains(PortfolioListItem.EmptyWallet))
+    }
+
+    @Test
+    fun `a hidden row with an unread balance leaves the wallet empty`() = runTest {
+        val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
+        val hidden = portfolioAsset("hidden-token", "HID", POLKADOT_CHAIN_ID)
+
+        val loaded = loadedPortfolio(
+            chains = listOf(portfolioChain(POLKADOT_CHAIN_ID, rank = 8, dot, hidden)),
+            assets = listOf(portfolioRow(dot, free = BigInteger.ZERO, enabled = null), portfolioRow(hidden, free = null, enabled = false))
+        )
+
+        assertFalse(loaded.walletHasUnknownBalance)
+    }
+
+    @Test
     fun `hidden funded row is excluded from list and subtotal and loaded state reports it`() = runTest {
         val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
         val hiddenToken = portfolioAsset("hidden-token", "HID", POLKADOT_CHAIN_ID, priceId = "hidden")
@@ -891,7 +938,7 @@ class BalanceListViewModelTests {
 
     private fun portfolioRow(
         asset: Asset,
-        free: BigInteger,
+        free: BigInteger?,
         enabled: Boolean?,
         rate: String? = null
     ) = createWalletAsset(WALLET_ID, asset).let { row ->
@@ -899,7 +946,7 @@ class BalanceListViewModelTests {
             asset = row.asset.copy(
                 token = Token(asset, rate?.let(::BigDecimal).asAssetAmountState(), AssetAmountState.Known(BigDecimal.ZERO),
                     FiatValuationContext("usd", FiatCurrency("usd", "$", "Dollar", "")), "usd", asset.priceId),
-                freeInPlanksState = AssetAmountState.Known(free),
+                freeInPlanksState = free.asAssetAmountState(),
                 enabled = enabled
             )
         )

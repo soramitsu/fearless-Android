@@ -31,6 +31,7 @@ import jp.co.soramitsu.walletconnect.impl.presentation.message
 import jp.co.soramitsu.walletconnect.impl.presentation.originWarning
 import jp.co.soramitsu.walletconnect.impl.presentation.pendingRequest
 import jp.co.soramitsu.walletconnect.impl.presentation.scamNotice
+import jp.co.soramitsu.walletconnect.impl.presentation.signedRequestSuccessText
 import jp.co.soramitsu.walletconnect.impl.presentation.summary.WalletConnectRequestSummaries
 import jp.co.soramitsu.walletconnect.impl.presentation.walletConnectValueOrBack
 import jp.co.soramitsu.walletconnect.impl.presentation.walletFor
@@ -224,11 +225,13 @@ class RequestPreviewViewModel @Inject constructor(
 
     private fun onRespondSessionRequestSuccess(operationHash: String?, chainId: ChainId?) {
         isLoading.value = false
+        val successText = recentSession?.request?.method?.let(::signedRequestSuccessText)
         viewModelScope.launch(Dispatchers.Main) {
             walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
                 operationHash = operationHash,
                 chainId = chainId,
-                customMessage = null
+                customMessage = successText?.let { resourceManager.getString(it.text) },
+                customTitle = successText?.let { resourceManager.getString(it.title) }
             )
         }
     }

@@ -77,7 +77,7 @@ class ConnectionsViewModel @Inject constructor(
             if (content.startsWith(QR_PREFIX_WALLET_CONNECT)) {
                 sendWalletConnectPair(pairingUri = content)
             } else {
-                showError("Неверный код. Пожалуйста, попробуйте ещё раз")
+                showError(resourceManager.getString(R.string.walletconnect_qr_invalid))
             }
         }
     }
