@@ -246,7 +246,8 @@ fun MainToolbar(
 fun MainToolbarShimmer(
     homeIconState: ToolbarHomeIconState? = null,
     menuItems: List<MenuIconItem>? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onNavigationClick: () -> Unit = {}
 ) {
     Row(
         modifier = modifier
@@ -265,7 +266,7 @@ fun MainToolbarShimmer(
                     painter = painterResource(id = it.navigationIcon),
                     contentDescription = stringResource(toolbarActionLabel(it.navigationIcon)),
                     tint = Color.Unspecified,
-                    onClick = {}
+                    onClick = onNavigationClick
                 )
 
             }

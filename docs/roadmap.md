@@ -2,6 +2,13 @@
 
 # Roadmap & Technical Debt
 
+## 4.3.3: open items — 9 November 2026
+
+- **Other sheets and system Back:** 18 more sheets on `BaseComposeBottomSheetDialogFragment` keep its default
+  `isHideable = false` (`ConfirmSendFragment`, `ClaimRewardsFragment`, `ScoreDetailsFragment`, the pool and validator
+  setup sheets and others). On Android 13+ Material's back handler answers Back for them and can only collapse them, so
+  they should close or go back the way the pools and NFT sheets now do. Found by reading the code; not checked on a device.
+
 ## 4.3.2 (234): open items — 8 November 2026
 
 The candidate is described in `docs/status.md` and `docs/releases/4.3.2.md`. The migration/keyring replacement race is fixed in `07d06681c`; its three regressions failed on the preceding source. The final validation and artifact receipts are under `build/android-432/evidence/final-a168420d9b12/` in the workspace. The earlier `7dc7512e5` and `ba5642e46` signed bundles are superseded and must not be uploaded. Open before or after release:
@@ -26,11 +33,6 @@ The candidate is described in `docs/status.md` and `docs/releases/4.3.2.md`. The
   "Transaction sent" for a message signature. The WalletConnect QR error text in `ConnectionsViewModel` is hard-coded
   Russian. On a brand-new wallet the home shows "Balance unavailable" over "No assets were found"; the total logic is
   unchanged since 4.3.1.
-- **System Back in the liquidity pools sheet (also in 4.3.1):** with `enableOnBackInvokedCallback=true`, Back on
-  Android 13+ goes to the dialog's `OnBackPressedDispatcher`, so `PoolsFlowFragment`'s `onBackPressed` override never
-  runs. The nested `NavHost` pops to its Loading page, whose `MainToolbarShimmer` Back icon has no click action, and
-  another Back only collapses the sheet. Tapping outside closes it; no data is at risk. `NFTFlowFragment` uses the same
-  override and should be checked with it.
 - **Limits by design:** Polkadot dApp payloads with Mode::Disabled commit to no metadata, so their call can
   only be shown as decoded; refusing them would break most dApps. Drive sign-in shares the iOS OAuth client
   (Google keeps 100 refresh tokens per account and client). Passkey backup needs an open attestation design.

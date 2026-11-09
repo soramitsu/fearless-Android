@@ -2,6 +2,19 @@
 
 # Status Summary
 
+## Next release 4.3.3: fixes from the 4.3.2 release smoke — 9 November 2026
+
+On `release/android-4.3.3`, from `release/android-4.3.2`. The version is bumped when 4.3.3 is prepared; nothing here is
+in the 4.3.2 build on Play. No key, signing, storage or chain change.
+
+- **System Back in the liquidity pools and NFT sheets (Android 13+, also in 4.3.1):** Back went to the sheet dialog's
+  `OnBackPressedDispatcher`, so their `onBackPressed` override never ran: the nested `NavHost` popped to its Loading page,
+  and the next Back only collapsed the sheet. A `BackHandler` registered after the `NavHost` now takes system Back down
+  the toolbar icon's path: one page back (`popFlowPageOrExit`, common), out of the sheet from its first page, never to
+  Loading. The override and its pre-Android 13 key listener are gone, so every version has one path. Queued presses leave
+  only the sheet, and the Back icon on the Loading toolbar works. Checked on API 34 (Back key and edge gesture, both sheets,
+  including after the QR scanner) and API 26 (Back key, pools); the keyboard closes first on both.
+
 ## Production 4.3.2 (234): key safety and open-source libraries only — on Play at 20% since 9 November 2026
 
 Fixes every finding of the 2026-11-07 Android key-exposure audit of 4.3.1 (233) and removes every

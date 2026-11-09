@@ -73,6 +73,8 @@ dependencies {
     implementation(projects.featureWalletImpl)
     implementation(projects.coreApi)
     implementation(kotlin("script-runtime"))
+
+    testImplementation(projects.testShared)
 }
 
 fun readAlchemyApiKey(): String{
