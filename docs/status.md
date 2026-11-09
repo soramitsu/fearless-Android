@@ -11,6 +11,24 @@ contents and verification: `docs/releases/4.3.3.md`. Not uploaded: a new Product
 running staged rollout (233 halted when 234 was saved on 9 November 2026; Play doesn't state the cause), so it waits
 until 4.3.2's rollout is settled.
 
+Walking the first signed build found what the suites had missed, all fixed in this candidate:
+
+- **Wallet avatars:** `PictureDrawable` draws at its recorded size and clips to its bounds, so the home's 40 dp avatar in
+  a 22 dp icon box showed only its top-left corner, and smaller recordings sat off-centre in larger boxes. Generated
+  icons now scale to their bounds, and the toolbar's avatar fills its raised button.
+- **Currency symbol:** no `FiatValuationContext` was given its currency's metadata, so money read `usd0.09`. Same since
+  `86b658605`, so 4.3.0 to 4.3.2 show it. Contexts now carry the symbol from the currency list bundled with the remote
+  configuration; the id stays the currency's identity, and a currency the list does not know still shows its id.
+- **Manage assets crash and merged tokens:** rows were keyed by the runtime identity built from `currencyId`, which repeats
+  for three pairs in the shipped list (Acala's tDOT and GLMR, Karura's RMRK and taiKSM, Bifrost's vKSM and vsKSM). A
+  repeated key crashed Manage assets after two swipes on 4.3.1 and 4.3.2, and the home kept only one token of a pair even
+  when the other held the funds. Rows are now keyed by chain and registry id. `Asset.canonicalAssetId()` is unchanged.
+- **Pool staking crash:** opening Start staking for a pool crashed on every open on 4.3.2: the page's coroutine reached
+  `state` before the constructor had assigned it, since `86b658605`.
+- **Edges and sheets:** the home fades under its pinned toolbar, asset details no longer cuts its card's shadow, staking
+  no longer pads twice for the bottom bar, alert sheets (the one-time update notice among them) use the lit sheet, XML
+  list sheets are opaque, and the asset picker no longer says "nothing found" before its first list arrives.
+
 ## 4.3.3: fixes from the 4.3.2 release smoke — 9 November 2026
 
 From `release/android-4.3.3` (`d5fdf9111`), based on `release/android-4.3.2`. Nothing here is in the 4.3.2 build on Play.

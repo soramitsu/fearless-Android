@@ -19,7 +19,19 @@ All notable changes to this project will be documented in this file.
   before any Activity exists), and the launch art no longer hops when the wallet takes over.
 - Pages run to the bottom edge behind a transparent navigation bar and fade out above the
   bottom bar instead of ending in a straight line.
-- Presentation only: keys, the PIN envelope, signing, storage, networking, remote
+- Fixed: money shows its currency symbol again ($0.09, not usd0.09).
+- Fixed: Settings > Manage assets crashed when scrolled, and the home showed one token of
+  a pair that shares a currency id (Acala's tDOT and GLMR, Karura's RMRK and taiKSM,
+  Bifrost's vKSM and vsKSM). Each token now has its own row.
+- Fixed: Start staking for a pool crashed on every open.
+- Fixed: system Back in the liquidity pools and NFT sheets goes back a page instead of
+  sticking on Loading.
+- Fixed: closing the success sheet after a WalletConnect signature no longer shows the
+  answered request again, and a message signature says "Message signed".
+- Fixed: a new wallet no longer says "No assets were found" while balances it counts are
+  still unread.
+- Wallet avatars are whole and centred, and sheets are opaque with rounded tops.
+- Presentation only otherwise: keys, the PIN envelope, signing, storage, networking, remote
   configuration and chain logic are the code of 4.3.2. The database schema stays 84.
 
 ## 4.3.2 (234)

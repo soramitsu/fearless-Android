@@ -11,6 +11,10 @@ The candidate is described in `docs/status.md` and `docs/releases/4.3.3.md`.
   receives either version until the new one is published. PR #1276 merges after PR #1275, which needs a code-owner
   approval.
 - **Devices:** no physical phone has run the redesign. Shadow cost on API 26-27 and low-end GPUs is below.
+- **Eight surfaces (owner's call):** recovery, manage assets, pickers, unavailable, signing, appearance, mnemonic and
+  staking are not restyled in 4.3.3. Their restyle is a separate lane on `release/sunlit-redesign`; taking it means a new
+  build and new gates, and its shared changes need their own device pass even with the flags off. On the live pages the
+  most visible leftovers are the recovery centre's low-contrast buttons and Manage assets' flat band behind a group.
 - **New wallet total (owner's call):** a brand-new wallet still shows "Balance unavailable". `WalletSyncService` gives each
   network 15 s on the first read and stores no balance when that runs out, and a network that is not popular, funded or
   needed for staking gets no background sync, so those rows are not read again: 75 rows on a new wallet on API 34 (55 on
