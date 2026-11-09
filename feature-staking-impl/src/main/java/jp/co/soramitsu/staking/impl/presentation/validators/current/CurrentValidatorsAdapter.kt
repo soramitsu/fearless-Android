@@ -4,6 +4,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.fwListRow
 import jp.co.soramitsu.common.list.BaseGroupedDiffCallback
 import jp.co.soramitsu.common.list.GroupedListAdapter
 import jp.co.soramitsu.common.list.GroupedListHolder
@@ -58,6 +61,13 @@ private class CurrentValidatorsGroupHolder(view: View) : GroupedListHolder(view)
 }
 
 private class CurrentValidatorsChildHolder(view: View) : GroupedListHolder(view) {
+
+    init {
+        if (FwRestyle.isEnabled(FwSurface.Staking)) {
+            view.fwListRow(16)
+            view.findViewById<View>(R.id.itemCurrentValidatorDivider).setVisible(false)
+        }
+    }
 
     fun bind(child: NominatedValidatorModel, handler: CurrentValidatorsAdapter.Handler) = with(containerView) {
         findViewById<ImageView>(R.id.itemCurrentValidatorIcon).setImageDrawable(child.addressModel.image)

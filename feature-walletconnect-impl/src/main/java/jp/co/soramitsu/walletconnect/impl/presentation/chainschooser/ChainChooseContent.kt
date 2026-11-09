@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
@@ -39,6 +40,16 @@ import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.black4
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
+import jp.co.soramitsu.common.compose.theme.fw.FwCheckMark
+import jp.co.soramitsu.common.compose.theme.fw.FwEmptyState
+import jp.co.soramitsu.common.compose.theme.fw.FwIconWell
+import jp.co.soramitsu.common.compose.theme.fw.FwListRow
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.FwTextAction
+import jp.co.soramitsu.common.compose.theme.fw.FwTextRole
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
+import jp.co.soramitsu.common.compose.theme.fw.fwTextStyle
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -62,6 +73,10 @@ fun ChainSelectContent(
     onSelectAllClicked: () -> Unit = {},
     onDoneClicked: () -> Unit = {},
 ) {
+    if (FwRestyle.isEnabled(FwSurface.Pickers)) {
+        SunlitChainChooser(state, onChainSelected, onSearchInput, onSelectAllClicked, onDoneClicked)
+        return
+    }
     BottomSheetScreen(
         modifier = Modifier
             .padding(top = 106.dp)
@@ -137,6 +152,77 @@ fun ChainSelectContent(
                 }
             }
             MarginVertical(margin = 16.dp)
+        }
+    }
+}
+
+// The networks a dApp asked for, in the sun-lit design: raised rows with the same selection as the other pickers.
+@Composable
+private fun SunlitChainChooser(
+    state: ChainSelectScreenViewState,
+    onChainSelected: (ChainItemState?) -> Unit,
+    onSearchInput: (String) -> Unit,
+    onSelectAllClicked: () -> Unit,
+    onDoneClicked: () -> Unit
+) {
+    val c = LocalFwColors.current
+    BottomSheetScreen(modifier = Modifier.padding(top = 106.dp)) {
+        Column(Modifier.nestedScroll(rememberNestedScrollInteropConnection()).fillMaxWidth()) {
+            Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp), contentAlignment = Alignment.Center) {
+                if (state.isViewMode.not()) {
+                    FwTextAction(
+                        text = stringResource(
+                            if (state.chains?.any { it.isSelected.not() } == true) {
+                                R.string.common_select_all
+                            } else {
+                                R.string.staking_custom_deselect_button_title
+                            }
+                        ),
+                        onClick = onSelectAllClicked,
+                        modifier = Modifier.align(Alignment.CenterStart)
+                    )
+                }
+                val selectedAmount = state.chains?.count { it.isSelected } ?: 0
+                Text(
+                    stringResource(R.string.common_selected) + ": $selectedAmount",
+                    style = fwTextStyle(FwTextRole.TitleS),
+                    color = c.textPrimary
+                )
+                FwTextAction(stringResource(R.string.common_done), onDoneClicked, Modifier.align(Alignment.CenterEnd))
+            }
+            MarginVertical(margin = 8.dp)
+            CorneredInput(modifier = Modifier.padding(horizontal = 20.dp), state = state.searchQuery, onInput = onSearchInput)
+            when {
+                state.chains == null -> Unit
+                state.chains.isEmpty() -> FwEmptyState(
+                    title = stringResource(R.string.common_search_assets_alert_title),
+                    description = stringResource(R.string.common_empty_search),
+                    iconRes = R.drawable.ic_alert_24,
+                    modifier = Modifier.weight(1f)
+                )
+                else -> LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(state.chains) { chain ->
+                        FwListRow(
+                            selected = chain.isSelected,
+                            onClick = { onChainSelected(chain) }.takeUnless { state.isViewMode }
+                        ) {
+                            FwIconWell(size = 36.dp) {
+                                AsyncImage(
+                                    model = chain.imageUrl?.let { getImageRequest(LocalContext.current, it) },
+                                    contentDescription = null,
+                                    modifier = Modifier.testTag("ChainItem_image_${chain.caip2id}").size(22.dp)
+                                )
+                            }
+                            Text(chain.title, Modifier.weight(1f), style = fwTextStyle(FwTextRole.LabelL), color = c.textPrimary)
+                            if (chain.isSelected) FwCheckMark(Modifier.testTag("ChainItem_image_selected"))
+                        }
+                    }
+                }
+            }
         }
     }
 }

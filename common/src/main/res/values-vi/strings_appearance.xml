@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_title">Giao diện</string>
+    <string name="appearance_effects_title">Hiệu ứng hình ảnh</string>
+    <string name="appearance_effects_automatic">Tự động</string>
+    <string name="appearance_effects_reduced">Giảm bớt</string>
+    <string name="appearance_effects_automatic_description">Đầy đủ ánh sáng và bóng đổ, trừ khi thiết bị yêu cầu độ tương phản cao hơn.</string>
+    <string name="appearance_effects_reduced_description">Bề mặt phẳng, đặc, không có ánh sáng và bóng đổ.</string>
+    <string name="appearance_effects_kept_reduced">Cài đặt độ tương phản của thiết bị giữ hiệu ứng ở mức giảm bớt.</string>
+    <string name="appearance_contrast_title">Tăng độ tương phản</string>
+    <string name="appearance_contrast_description">Chữ sáng hơn và đường viền rõ nét. Hiệu ứng được giảm bớt khi bật tùy chọn này.</string>
+    <string name="appearance_preview_title">Xem trước</string>
+    <string name="appearance_save_failed">Không thể lưu lựa chọn này.</string>
+</resources>

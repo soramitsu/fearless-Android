@@ -277,6 +277,11 @@
         android:label="LanguagesFragment"
         tools:layout="@layout/fragment_languages" />
 
+    <fragment
+        android:id="@+id/appearanceFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.appearance.AppearanceFragment"
+        android:label="AppearanceFragment" />
+
     <action
         android:id="@+id/action_open_nodesFragment"
         app:destination="@+id/nodesFragment"

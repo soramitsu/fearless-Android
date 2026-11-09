@@ -31,6 +31,8 @@ import jp.co.soramitsu.common.compose.component.ToolbarBottomSheet
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.feature_wallet_impl.R
 
 data class ConfirmSendViewState(
@@ -114,7 +116,7 @@ fun ConfirmSendContent(
                             color = colorAccentDark,
                             modifier = Modifier
                                 .align(Alignment.CenterHorizontally)
-                                .shimmer()
+                                .then(if (FwRestyle.isEnabled(FwSurface.Signing)) Modifier else Modifier.shimmer())
                         )
                     } else {
                         GradientIcon(

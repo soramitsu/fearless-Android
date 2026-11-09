@@ -2,13 +2,22 @@
 
 # Roadmap & Technical Debt
 
-## Sun-lit redesign: open items — 8 November 2026
+## Sun-lit redesign: open items — 9 November 2026
 
 Described in `docs/status.md`. Not yet done on branch `release/sunlit-redesign`:
 
-- Surfaces still on the shared components only (their flags stay off until each is reviewed on device):
-  recovery, manage assets, pickers, unavailable, signing, appearance, mnemonic and staking; staking and
-  most account screens are XML and only take the page light and shared drawables.
+- **Fiat unit (shipped since #1261):** every fiat amount reads `usd0.09` instead of `$0.09`, on 4.3.2 (234) as well.
+  `TokenRepositoryImpl` and `CurrentAccountAssetReader` build `FiatValuationContext(selectedFiat.get())` without its
+  metadata, so `displayUnit` falls back to the currency id. Not part of the restyle; the redesign's screens show it too.
+- **Asset identity:** `Asset.canonicalAssetId()` ignores the asset type, so Acala tDOT and GLMR, Karura RMRK and taiKSM,
+  and Bifrost vKSM and vsKSM share a key. Manage assets no longer keys rows by it, but home's `distinctBy` and
+  `associateBy` may still merge those pairs (read in code, not reproduced).
+- **System Back on pool staking sheets:** two Back presses did not close the Join pool sheet on API 34; its own Back
+  button does. It looks like the liquidity pools sheet item under 4.3.2 below, but the cause was not traced, and 234 cannot
+  be compared because its pool page crashes.
+- **WalletConnect request sheets:** a transaction request is titled "Sign this message?". On Preview, the first Back tap
+  did nothing in both tries on API 34 under heavy host load and a second tap closed the sheet; not traced, and not
+  compared with 234. Back leaves the request unanswered until it expires instead of rejecting it.
 - The optional tilt-shifted key light (sensor) is not implemented.
 - The complete compile-time appearance rollback matrix remains separate from the default-palette
   local UI qualification. Paint expectations now describe the sun-lit surfaces; device checks include

@@ -43,6 +43,10 @@ import jp.co.soramitsu.common.compose.component.WarningInfo
 import jp.co.soramitsu.common.compose.component.WarningInfoState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
+import jp.co.soramitsu.common.compose.theme.fw.FwNotice
+import jp.co.soramitsu.common.compose.theme.fw.FwNoticeTone
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.xcm.domain.CrossChainRouteCapability
@@ -310,13 +314,24 @@ internal fun routeInventoryMinimumText(item: CrossChainRouteInventoryItem): Pair
     else -> R.string.cross_chain_route_inventory_minimum_not_supplied to emptyList()
 }
 
+/** Why a route cannot be used right now: a still notice in the sun-lit design. */
+@Composable
+private fun RouteNotice(message: String) {
+    if (FwRestyle.isEnabled(FwSurface.Unavailable)) {
+        MarginVertical(margin = 12.dp)
+        FwNotice(message = message, tone = FwNoticeTone.Neutral)
+    } else {
+        B0(text = message, color = white50)
+    }
+}
+
 @Composable
 private fun RouteDisclosure(
     capability: CrossChainRouteCapability?,
     fallbackMessage: String
 ) {
     if (capability == null) {
-        B0(text = fallbackMessage, color = white50)
+        RouteNotice(fallbackMessage)
         return
     }
 
@@ -324,7 +339,7 @@ private fun RouteDisclosure(
         text = stringResource(R.string.cross_chain_route_protocol, capability.protocol.displayName),
         color = white50
     )
-    capability.userFacingReason?.let { B0(text = it, color = white50) }
+    capability.userFacingReason?.let { RouteNotice(it) }
     if (capability.availability == CrossChainRouteAvailability.Available) {
         val minimum = capability.minimumAmount?.let { amount ->
             stringResource(

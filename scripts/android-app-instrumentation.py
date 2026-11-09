@@ -140,7 +140,7 @@ def prepare():
     source = checked(["git", "rev-parse", "HEAD"], capture=True).strip()
     arguments = {
         "notClass": ",".join(exclusions(value)),
-        "loadingExpectStill": "false",  # The production legacy rollback artifact animates.
+        "loadingExpectStill": "true",  # The default artifact is the v1 palette: reduced motion holds loading still.
         "fearlessArchiveGateOwnedUid": "exclusively-owned-disposable-app-uid",
         "fearlessArchiveGateOwnedSerial": identity["serial"],
         "fearlessArchiveGateOwnedAvd": identity["avd"],

@@ -73,9 +73,8 @@ def main():
 
     off = dict.fromkeys(FLAGS, 'false')
     on = dict.fromkeys(FLAGS, 'true')
-    # Shipped defaults (gradle.properties): the sun-lit palette with its qualified surfaces.
-    shipped = {**off, **{'FW_RESTYLE_' + s: 'true' for s in (
-        'PORTFOLIO', 'SEND', 'RECEIVE', 'WELCOME', 'NAVIGATION', 'LOADING', 'PIN', 'ASSET_DETAILS', 'HISTORY', 'SETTINGS')}}
+    # Shipped defaults (gradle.properties): the sun-lit palette with every surface qualified.
+    shipped = dict(on)
     run('default', {}, expected('v1', shipped), unit=True)
     run('all-v1', {'FW_PALETTE': 'v1', **on}, expected('v1', on), unit=True)
     run('global-rollback', {'FW_PALETTE': 'legacy', **on}, expected('legacy', on), unit=True)

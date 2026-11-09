@@ -416,7 +416,10 @@ fun FwSwitchIndicator(checked: Boolean, modifier: Modifier = Modifier) {
     ) {
         Box(
             Modifier.offset(x = position, y = 2.dp).size(28.dp)
-                .fwSurface(fx, c, CircleShape, if (checked) FwElevation.Emissive else FwElevation.Raised1, sunRim = 0f)
+                .fwSurface(
+                    fx, c, CircleShape, if (checked) FwElevation.Emissive else FwElevation.Raised1, sunRim = 0f,
+                    fill = if (checked) Color.Unspecified else c.thumbOff
+                )
         )
     }
 }

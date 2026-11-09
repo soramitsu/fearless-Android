@@ -27,6 +27,7 @@ import jp.co.soramitsu.common.compose.component.emptyClick
 import androidx.compose.runtime.CompositionLocalProvider
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.fw.LocalFwSecureSurface
+import jp.co.soramitsu.common.compose.theme.fw.fwSheetNavigationBar
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
@@ -153,6 +154,7 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomS
     private fun setupBottomSheet() {
         dialog?.setOnShowListener {
             val bottomSheetDialog = it as BottomSheetDialog
+            bottomSheetDialog.fwSheetNavigationBar()
             setupBehavior(bottomSheetDialog.behavior)
         }
     }

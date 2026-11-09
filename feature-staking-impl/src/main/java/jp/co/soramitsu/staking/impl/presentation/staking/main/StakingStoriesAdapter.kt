@@ -6,6 +6,11 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import jp.co.soramitsu.common.compose.theme.fw.FwElevation
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwShape
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.fwLightSurface
 import jp.co.soramitsu.common.presentation.StakingStoryModel
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_staking_impl.R
@@ -30,6 +35,10 @@ class StakingStoriesAdapter(
 }
 
 class StakingStoryHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+
+    init {
+        if (FwRestyle.isEnabled(FwSurface.Staking)) itemView.fwLightSurface(FwElevation.Raised1, FwShape.BUTTON.value)
+    }
 
     fun bind(story: StakingStoryModel, itemHandler: StakingStoriesAdapter.StoryItemHandler) = with(itemView) {
         findViewById<TextView>(R.id.stakingStoryItemIcon).text = story.iconSymbol

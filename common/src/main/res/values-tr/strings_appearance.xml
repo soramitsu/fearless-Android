@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_title">Görünüm</string>
+    <string name="appearance_effects_title">Görsel efektler</string>
+    <string name="appearance_effects_automatic">Otomatik</string>
+    <string name="appearance_effects_reduced">Azaltılmış</string>
+    <string name="appearance_effects_automatic_description">Cihazınız daha fazla kontrast istemedikçe tam ışık ve gölge kullanılır.</string>
+    <string name="appearance_effects_reduced_description">Parıltı ve gölge olmadan düz, opak yüzeyler.</string>
+    <string name="appearance_effects_kept_reduced">Cihazınızın kontrast ayarı efektleri azaltılmış tutuyor.</string>
+    <string name="appearance_contrast_title">Kontrastı artır</string>
+    <string name="appearance_contrast_description">Daha parlak metin ve belirgin çizgiler. Bu açıkken efektler azaltılmış kalır.</string>
+    <string name="appearance_preview_title">Önizleme</string>
+    <string name="appearance_save_failed">Bu seçim kaydedilemedi.</string>
+</resources>

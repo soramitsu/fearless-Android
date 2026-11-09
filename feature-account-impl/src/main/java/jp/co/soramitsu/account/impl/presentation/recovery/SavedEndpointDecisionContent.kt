@@ -187,8 +187,8 @@ internal fun LazyListScope.savedEndpointDecisionForm(
 
 @Composable
 private fun DecisionAction(text: String, action: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
-    if (enabled && FwRestyle.isEnabled(FwSurface.Recovery)) {
-        FwRecoveryButton(text, action, modifier = modifier)
+    if (FwRestyle.isEnabled(FwSurface.Recovery)) {
+        FwRecoveryButton(text, action, modifier = modifier, enabled = enabled)
     } else {
         TextButton(action, enabled = enabled, modifier = modifier.fillMaxWidth().heightIn(min = 48.dp)) {
             Text(text)
