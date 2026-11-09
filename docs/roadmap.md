@@ -4,11 +4,14 @@
 
 ## 4.3.3: open items — 9 November 2026
 
-- **New wallet total (owner's call):** a brand-new wallet still shows "Balance unavailable". `WalletSyncService` gives each
-  network 15 s on the first read and stores no balance when that runs out, and a network that is not popular, funded or
-  needed for staking gets no background sync, so those rows are not read again: 75 rows on a new wallet on API 34 (55 on
-  mainnets such as Karura, Astar and Kaia), 72 after a restart and about 10 hours. The total counts unread rows as unknown
-  on purpose ("absence never becomes zero"). Reading them once is a sync change and was left out of the 4.3.3 fix.
+- **New wallet total while Liberland is down (owner's call):** a new wallet now reads every network within a few minutes
+  (`docs/status.md`), but shows "Balance unavailable" while one network the total counts cannot be read. On 10
+  November that is Liberland: its only catalog node, `wss://mainnet.liberland.org`, refused connections on 9 November at
+  22:15 KST and on 10 November at 01:36 KST. Its other public endpoints tried on 9 November did not work either (HTTP 400,
+  a certificate mismatch; Dwellir's needs the release key and was not tried). The total counts the three unread rows as
+  unknown on purpose ("absence never becomes zero"). Two ways out, neither taken: a working node in the production
+  catalog (a signed remote-config change), or a total that treats a newly created wallet's unread rows as zero (a change
+  to how the total is computed). The daily sweep and pull-to-refresh read Liberland again once its node answers.
 - **Fiat unit:** the header total, wallet cards and pool values read "usd0.09" instead of "$0.09". Every
   `FiatValuationContext` in the app is built without its `FiatCurrency`, so `displayUnit` falls back to the currency id.
   Same since `86b658605`, so 4.3.1 and 4.3.2 have it too. Seen on debug builds; not touched here.

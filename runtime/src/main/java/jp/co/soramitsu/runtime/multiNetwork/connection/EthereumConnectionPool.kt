@@ -105,11 +105,13 @@ class EthereumChainConnection(
     companion object {
         private const val BLAST_NODE_KEYWORD = "blastapi"
         private const val WSS_NODE_PREFIX = "wss"
+        private const val CLIENT_POLL_MILLIS = 10L
     }
 
     private val nodes: List<ChainNode> = formatWithApiKeys(chain)
     private var nodesCycle = nodes.cycle().iterator()
 
+    @Volatile
     private var connection: EVMConnection? = null
     val web3j get() = connection?.web3j
     val service: Web3jService? get() = connection?.service
@@ -140,6 +142,19 @@ class EthereumChainConnection(
                 else -> Unit
             }
         }.launchIn(scope)
+    }
+
+    /**
+     * The client of the node in use, once a node has answered. A connection made a moment ago has no
+     * client yet: its first attempt starts a second later, and an HTTP node reports Connected just
+     * before its client is stored. Waits for as long as no node answers, so callers set their own limit.
+     */
+    suspend fun awaitWeb3j(): Web3j {
+        statusFlow.first { it is EvmConnectionStatus.Connected }
+        while (true) {
+            web3j?.let { return it }
+            delay(CLIENT_POLL_MILLIS)
+        }
     }
 
     private fun connectNextNode() {
