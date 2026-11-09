@@ -32,15 +32,21 @@ The candidate is described in `docs/status.md` and `docs/releases/4.3.3.md`.
   the one-time first-start scroll to Manage assets (FLW-4511) now hides the hero and total on the one-page home; the asset
   picker of Receive and Buy ends its list in a hard cut above the navigation bar (pickers surface); the liquidity pools list
   shows "APY" without a value while SORA's strategic-bonus APY is unavailable.
-- **Sheets opened over a dApp request close the wrong one:** the Preview, raw data and optional networks sheets open in
-  the tab's stack, over a request or proposal sheet in the root's, and `Navigator.back()` pops the root's. Seen on API 34:
-  Preview's Back icon closes the request sheet under it and Preview stays until tapped again; "Done" in the optional
-  networks chooser closes the proposal under it and the chooser stays. System Back on Preview works.
 - **A currency added to `fiats.json` after a build:** the chooser lists it, but money shows its id (`xyz0.09`) until a
   build bundles it, because symbols come only from the bundled list. No currency is affected today: the fetched file and
   the bundled one are the same (`56ba0460…`). Reading `GetAvailableFiatCurrencies` as well wouldn't settle it, since a
   context captured before its first fetch keeps its unit. `RemoteConfigStore.lastVerified` is available from the first
   frame, so read it before the bundled list if a currency is ever added between builds.
+- **Root-only dialogs while the tabs are mounted:** `controllerFor` gives no controller for a destination that only the
+  root's graph has while `MainFragment` is mounted, so these routes never open. Every TON Connect transaction, from the
+  bridge or the in-app dApp browser, is answered with an error (`openTonSignRequestWithResult`, since `51cf99580` in
+  4.3.2; by the same reading 4.3.0 and 4.3.1 wait forever instead). "Back up to Google" in a wallet's backup sheet does
+  nothing after sign-in (`openCreateBackupPasswordDialogAfterPinCheck` returns `emptyFlow()`, since `fdbb30d1b` in 4.3.2).
+  Found on 10 November 2026 by reading the code; not run, since TON needs a TON dApp and Drive a Google sign-in.
+- **Idle lock:** after the 20-minute idle lock and the PIN, a new `MainFragment` opens over the old one, which stays on the
+  root's back stack with its tab stack (a Connections sheet was still there on API 34). Taps inside sheets don't reset the
+  idle timer, because a dialog's touches never reach `Activity.onUserInteraction`, so 20 minutes spent in sheets locks the
+  wallet. Neither is new in 4.3.3.
 
 ## Sun-lit redesign: open items — 8 November 2026
 

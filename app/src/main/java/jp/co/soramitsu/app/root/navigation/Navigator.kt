@@ -7,10 +7,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.asFlow
+import androidx.navigation.FloatingWindow
 import androidx.navigation.NavBackStackEntry
 import androidx.core.os.bundleOf
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLinkRequest
+import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph
 import androidx.navigation.NavOptions
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
@@ -283,11 +285,7 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         navOptions: NavOptions? = null
     ) {
         val shellController = mainTabNavController
-        val targetController = checkNotNull(authenticatedDestinationTarget(
-            shellController = mainTabNavController,
-            shellContainsDestination = { it.graph.containsDestination(destinationId) },
-            parentController = { navController }
-        )) {
+        val targetController = checkNotNull(controllerFor(destinationId)) {
             "Destination $destinationId is not owned by the authenticated shell"
         }
 
@@ -308,11 +306,16 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         }
     }
 
+    /**
+     * The stack [destinationId] opens in. A sheet opened over a root sheet joins the root's stack: there it is
+     * what [activeAuthenticatedController] answers with, so Back and results reach it and not the sheet under it.
+     */
     private fun controllerFor(@IdRes destinationId: Int): NavController? {
         return authenticatedDestinationTarget(
             shellController = mainTabNavController,
             shellContainsDestination = { it.graph.containsDestination(destinationId) },
-            parentController = { navController }
+            parentController = { navController },
+            opensOverParentSheet = { it.opensSheetOverSheet(destinationId) }
         )
     }
 
@@ -902,7 +905,7 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         // Never over the PIN screen: RootViewModel holds dApp requests until the wallet is unlocked.
         if (WalletSessionLock.isLocked()) return
         val controller = navController ?: return
-        if (controller.currentDestination?.id == R.id.sessionProposalFragment) return
+        if (controller.currentDestination?.id in SESSION_PROPOSAL_SHEETS) return
         // RootViewModel waits for awaitDappRoutes; a dApp must still never crash the app from another screen.
         if (!controller.canReach(R.id.sessionProposalFragment)) return
 
@@ -914,7 +917,7 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
     override fun openWalletConnectSessionRequest(sessionRequestTopic: String) {
         if (WalletSessionLock.isLocked()) return
         val controller = navController ?: return
-        if (controller.currentDestination?.id == R.id.sessionRequestFragment) return
+        if (controller.currentDestination?.id in SESSION_REQUEST_SHEETS) return
         if (!controller.canReach(R.id.sessionRequestFragment)) return
 
         val bundle = WalletConnectSignMessageFragment.getBundle(sessionRequestTopic)
@@ -944,11 +947,13 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         return combine(resultFlow, backStackEntryFlow) { result, backStackEntry ->
             Pair(result, backStackEntry)
         }
-            .onStart { targetController?.navigate(destinationId, bundle) }
-            .filter {
-                val (_, backStackEntry) = it
-                backStackEntry.destination.id != destinationId
+            .onStart {
+                // Whatever is here came from an earlier sheet nobody waited on, such as the view-only networks list.
+                removeSavedStateHandle(resultKey, targetController)
+                targetController?.navigate(destinationId, bundle)
             }
+            // Closed, not just covered: a dApp request can open over this sheet in the root's stack.
+            .filter { targetController?.holdsDestination(destinationId) != true }
             .onEach { coroutineContext.job.cancel() }
             .map {
                 val (result, _) = it
@@ -1231,8 +1236,8 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         val bundle = SuccessFragment.getBundle(operationHash, chainId, customMessage, customTitle)
         val targetController = activeAuthenticatedController() ?: return
 
-        // A request's preview opens in the tab's stack while its request sheet is in the root's, so the
-        // pop below can miss it. An answered request must not come back when this sheet closes.
+        // A preview opened with the tab's stack in front stays there, where the pop below can miss it.
+        // An answered request must not come back when this sheet closes.
         mainTabNavController?.popBackStack(R.id.requestPreviewFragment, true)
 
         val latestAvailableWalletConnectRelatedDestinationId =
@@ -1886,10 +1891,29 @@ private val DAPP_REQUEST_DESTINATIONS = listOf(
     R.id.tonSignRequestFragment
 )
 
+/** A proposal and what it opens over itself: another proposal does not open over any of them. */
+private val SESSION_PROPOSAL_SHEETS = setOf(R.id.sessionProposalFragment, R.id.chainChooseFragment)
+
+/** A request and what it opens over itself: another request does not open over any of them. */
+private val SESSION_REQUEST_SHEETS = setOf(R.id.sessionRequestFragment, R.id.requestPreviewFragment, R.id.rawDataFragment)
+
+/** What [destinationId] resolves to from the current destination, the way NavController.navigate resolves an id. */
+private fun NavController.destinationFromHere(@IdRes destinationId: Int): NavDestination? {
+    val current = currentDestination ?: return null
+    val graph = current as? NavGraph ?: current.parent ?: return null
+    return graph.findNode(destinationId)
+}
+
 /** Whether [destinationId] resolves from the current destination the way NavController.navigate resolves it. */
 private fun NavController.canReach(@IdRes destinationId: Int): Boolean {
-    val current = currentDestination ?: return false
-    if (current.getAction(destinationId) != null) return true
-    val graph = current as? NavGraph ?: current.parent ?: return false
-    return graph.findNode(destinationId) != null
+    return currentDestination?.getAction(destinationId) != null || destinationFromHere(destinationId) != null
+}
+
+/** Whether a sheet shows at the top of this stack and [destinationId] would open over it as another sheet. */
+private fun NavController.opensSheetOverSheet(@IdRes destinationId: Int): Boolean {
+    return currentDestination is FloatingWindow && destinationFromHere(destinationId) is FloatingWindow
+}
+
+private fun NavController.holdsDestination(@IdRes destinationId: Int): Boolean {
+    return runCatching { getBackStackEntry(destinationId) }.isSuccess
 }

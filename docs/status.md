@@ -82,6 +82,33 @@ owner approved.
   also run through detekt on their own: no new findings beyond the import order and package name those modules already
   have. No physical phone.
 
+## 4.3.3: sheets opened over a dApp request — 10 November 2026
+
+On `f2810b7a3`. Navigation only: no key, signing, storage or chain change.
+
+- **Cause:** WalletConnect's request and proposal sheets open in the root's stack. Preview, raw data and the optional
+  networks chooser opened in the tab's stack through `navigateInMainTabOrRoot`, while `activeAuthenticatedController()`
+  answers with the root's whenever a root sheet shows. So `back()` and `backWithResult` closed the sheet underneath.
+  Preview's Back icon closed the request and left Preview, raw data's Back closed Preview, and "Done" in the chooser closed
+  the proposal, leaving the dApp unanswered and the chooser open. System Back worked: the dialog closed itself.
+- **Fix:** a sheet that would open over a sheet at the top of the root's stack now joins the root's stack, when the root's
+  graph has it as a sheet too (`authenticatedDestinationTarget` with `opensOverParentSheet`, through `controllerFor`).
+  Back, results and `openWithResult` then reach it. Routes still go through `navigateInMainTabOrRoot`, as
+  `MainNavigationContractTest` requires; full pages, and sheets with no root sheet under them, stay in the tab's stack.
+  `openWithResult` now waits until its sheet leaves the back stack, not until anything opens over it, so a dApp request
+  over the chooser no longer ends the choice. It also drops a result left by an earlier sheet: the view-only networks list
+  leaves one, which a chooser closed without Done would have applied. As before, no new request or proposal opens over the
+  Preview, raw data or chooser of the one in progress.
+- **Validation (10 November 2026, local; receipts in `build/android-433/evidence/dapp-sheets-*/`):**
+  `:app:testDebugUnitTest` 235 tests, 0 failures, with 14 new in `DappSheetNavigationTest` (the stacks a user sees, step
+  by step, on real graph lookups) and 3 new in `AuthenticatedShellNavigationTest`. `detektAll` passes. API 34 emulator,
+  the official sign-client 2.23.9 as the dApp over the live relay. The unfixed `d5fdf9111` build showed all three faults.
+  On the fix, Preview's Back icon and system Back return to the request; raw data's Back icon, Close and system Back
+  return to Preview. Signing leaves the flow: "Message signed", the dApp verified the `personal_sign` and received the
+  `eth_signTypedData_v4` signature, and closing the success sheet leaves the wallet tab with no sheet. "Done" keeps the
+  proposal and its choice, and the session holds just the chosen networks (Ethereum, Arbitrum One, OP Mainnet; BNB and
+  Polygon left out). No physical phone, no release build.
+
 ## Sun-lit neumorphism redesign and the approved badge — 8 November 2026
 
 Owner, 8 November 2026: "the mobile apps are ugly and don't use our new logo branding. make the ui look
