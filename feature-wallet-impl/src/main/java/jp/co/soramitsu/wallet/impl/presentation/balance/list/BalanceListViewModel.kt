@@ -494,7 +494,7 @@ class BalanceListViewModel @Inject constructor(
 
     private val assetStates = combine(freshAssetStates, portfolioUiFlow, tokenGroupRegistry.observeResolvedGroups()) { state, preference, groups ->
         if (state !is AssetsLoadingState.Loaded || state.walletId != preference.first) return@combine AssetsLoadingState.Loading()
-        val states = state.assets.associateBy { it.canonicalAssetKey }
+        val states = state.assets.associateBy { it.rowKey }
         val visible = state.portfolioAssets.map { it.copy(state = states[it.key] ?: it.state) }
         state.with(portfolioItems = PortfolioListBuilder.build(visible, state.availableAssets.filter { it.state.isHidden },
             groups, preference.second, state.selectedNetwork, state.walletHasPositiveBalance),
