@@ -32,6 +32,8 @@ android.defaultConfig {
     resValue 'drawable', 'fw_root_background', palette == 'v1' ? '@drawable/fw_page_sunlit' : '@color/black'
     // Transparent lets the window's page light run behind the navigation bar instead of ending in a black strip.
     resValue 'color', 'fw_navigation_bar', palette == 'v1' ? '@android:color/transparent' : '@color/black'
+    // Android paints no bar colour behind a floating window, which left a dark strip under these sheets.
+    resValue 'bool', 'fw_sheet_window_floating', palette == 'v1' ? 'false' : 'true'
     // XML list sheets: the legacy near-black is translucent, which lets the lit page's rows show through.
     resValue 'color', 'fw_list_sheet_background', palette == 'v1' ? '@color/fw_surface_raised2' : '@color/bottom_bar_grey'
 }

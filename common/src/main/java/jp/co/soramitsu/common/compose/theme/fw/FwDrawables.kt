@@ -16,6 +16,7 @@ import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.drawable.Drawable
 import android.os.Build
+import android.view.View
 import android.view.WindowManager
 import android.view.animation.OvershootInterpolator
 import androidx.compose.ui.geometry.Offset
@@ -36,8 +37,36 @@ object FwViews {
 /** A sheet continues behind the navigation bar instead of ending in a dark strip above it. */
 fun Dialog.fwSheetNavigationBar() {
     if (!FwRestyle.paletteEnabled) return
+    val fill = FwStandardOrHighContrast(context).surfaceRaised2.toArgb()
     window?.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-    window?.navigationBarColor = FwStandard.surfaceRaised2.toArgb()
+    window?.navigationBarColor = fill
+    // From Android 15 the system ignores that colour, and the sheet's container keeps the bar as its bottom padding.
+    findViewById<View>(com.google.android.material.R.id.container)?.let { it.background = BottomPaddingStrip(it, fill) }
+}
+
+/** Paints only the host's bottom padding, so that the rest of the host stays clear. */
+private class BottomPaddingStrip(private val host: View, color: Int) : Drawable() {
+    private val paint = Paint().apply { this.color = color }
+
+    override fun draw(canvas: Canvas) {
+        val strip = host.paddingBottom
+        if (strip > 0) {
+            canvas.drawRect(
+                bounds.left.toFloat(),
+                (bounds.bottom - strip).toFloat(),
+                bounds.right.toFloat(),
+                bounds.bottom.toFloat(),
+                paint
+            )
+        }
+    }
+
+    override fun setAlpha(alpha: Int) = Unit
+
+    override fun setColorFilter(colorFilter: ColorFilter?) = Unit
+
+    @Deprecated("Deprecated in Java")
+    override fun getOpacity(): Int = PixelFormat.TRANSLUCENT
 }
 
 /** The palette views paint with: high-contrast tokens when contrast is increased. */

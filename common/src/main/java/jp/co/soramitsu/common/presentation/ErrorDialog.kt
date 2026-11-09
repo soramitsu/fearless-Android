@@ -46,6 +46,7 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.fontSize
+import jp.co.soramitsu.common.compose.theme.fw.fwSheetNavigationBar
 import jp.co.soramitsu.common.compose.theme.soraTextStyle
 import jp.co.soramitsu.common.compose.theme.weight
 import jp.co.soramitsu.common.compose.theme.white
@@ -358,6 +359,7 @@ class ErrorDialog() : BottomSheetDialogFragment() {
     private fun setupBottomSheet() {
         dialog?.setOnShowListener {
             val bottomSheetDialog = it as BottomSheetDialog
+            bottomSheetDialog.fwSheetNavigationBar()
             bottomSheetDialog.setCanceledOnTouchOutside(
                 isHideable &&
                     resultRequestKey == null &&
