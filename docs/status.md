@@ -18,7 +18,11 @@ Walking the first signed build found what the suites had missed, all fixed in th
   icons now scale to their bounds, and the toolbar's avatar fills its raised button.
 - **Currency symbol:** no `FiatValuationContext` was given its currency's metadata, so money read `usd0.09`. Same since
   `86b658605`, so 4.3.0 to 4.3.2 show it. Contexts now carry the symbol from the currency list bundled with the remote
-  configuration; the id stays the currency's identity, and a currency the list does not know still shows its id.
+  configuration; the id stays the currency's identity, and a currency the list does not know still shows its id. It reads
+  the bundled list rather than `GetAvailableFiatCurrencies`, which stays empty until CoinGecko answers: a context captured
+  before that would keep the id for as long as it lives. Tests cover all four construction sites with and without
+  metadata, a captured result keeping its symbol after the selection moves, amounts staying the same, and the app's wiring
+  over the real list.
 - **Manage assets crash and merged tokens:** rows were keyed by the runtime identity built from `currencyId`, which repeats
   for three pairs in the shipped list (Acala's tDOT and GLMR, Karura's RMRK and taiKSM, Bifrost's vKSM and vsKSM). A
   repeated key crashed Manage assets after two swipes on 4.3.1 and 4.3.2, and the home kept only one token of a pair even

@@ -28,6 +28,11 @@ The candidate is described in `docs/status.md` and `docs/releases/4.3.3.md`.
   the tab's stack, over a request or proposal sheet in the root's, and `Navigator.back()` pops the root's. Seen on API 34:
   Preview's Back icon closes the request sheet under it and Preview stays until tapped again; "Done" in the optional
   networks chooser closes the proposal under it and the chooser stays. System Back on Preview works.
+- **A currency added to `fiats.json` after a build:** the chooser lists it, but money shows its id (`xyz0.09`) until a
+  build bundles it, because symbols come only from the bundled list. No currency is affected today: the fetched file and
+  the bundled one are the same (`56ba0460…`). Reading `GetAvailableFiatCurrencies` as well wouldn't settle it, since a
+  context captured before its first fetch keeps its unit. `RemoteConfigStore.lastVerified` is available from the first
+  frame, so read it before the bundled list if a currency is ever added between builds.
 
 ## Sun-lit redesign: open items — 8 November 2026
 
