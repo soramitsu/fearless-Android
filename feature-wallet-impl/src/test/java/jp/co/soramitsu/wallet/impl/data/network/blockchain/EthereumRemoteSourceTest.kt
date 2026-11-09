@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.data.network.blockchain
 
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import java.math.BigDecimal
@@ -12,16 +13,21 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.connection.EthereumConnectionPool
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.web3j.protocol.Web3j
+import org.web3j.protocol.core.DefaultBlockParameterName
 import org.web3j.protocol.core.Response
 import org.web3j.protocol.core.methods.request.Transaction
 import org.web3j.protocol.core.methods.response.EthBlock
 import org.web3j.protocol.core.methods.response.EthEstimateGas
+import org.web3j.protocol.core.methods.response.EthGetBalance
 import org.web3j.protocol.http.HttpService
 
 /** The fee shown for a wallet EVM transfer, read from a scripted node over HTTP; nothing is sent. */
@@ -65,6 +71,41 @@ class EthereumRemoteSourceTest {
         val pool = mockk<EthereumConnectionPool>()
         every { pool.getOrNull(CHAIN_ID) } returns connection
         EthereumRemoteSource(pool)
+    }
+
+    @Test
+    fun `a balance read waits for a connection opened a moment ago`() = runTest {
+        val balance = BigInteger.valueOf(42)
+        val request = mockk<org.web3j.protocol.core.Request<*, EthGetBalance>> {
+            every { send() } returns EthGetBalance().apply { result = "0x2a" }
+        }
+        val client = mockk<Web3j> {
+            every { ethGetBalance(ADDRESS, DefaultBlockParameterName.LATEST) } returns request
+        }
+        val connection = mockk<EthereumChainConnection> {
+            coEvery { awaitWeb3j() } coAnswers {
+                delay(CONNECTING_MILLIS)
+                client
+            }
+        }
+        val pool = mockk<EthereumConnectionPool> { coEvery { await(CHAIN_ID) } returns connection }
+
+        assertEquals(balance, EthereumRemoteSource(pool).fetchEthBalance(utilityAsset(), ADDRESS))
+    }
+
+    @Test
+    fun `a balance read still fails when no node answers`() = runTest {
+        val connection = mockk<EthereumChainConnection> { coEvery { awaitWeb3j() } coAnswers { awaitCancellation() } }
+        val pool = mockk<EthereumConnectionPool> { coEvery { await(CHAIN_ID) } returns connection }
+
+        val failure = runCatching { EthereumRemoteSource(pool).fetchEthBalance(utilityAsset(), ADDRESS) }.exceptionOrNull()
+
+        assertEquals("There is no connection created for chain $CHAIN_ID", failure?.message)
+    }
+
+    private fun utilityAsset() = mockk<Asset> {
+        every { chainId } returns CHAIN_ID
+        every { isUtility } returns true
     }
 
     @Test
@@ -155,6 +196,8 @@ class EthereumRemoteSourceTest {
 
     private companion object {
         const val CHAIN_ID = "1"
+        const val ADDRESS = "0x1111111111111111111111111111111111111111"
+        const val CONNECTING_MILLIS = 1_000L
         const val TOKEN_CONTRACT = "0x2222222222222222222222222222222222222222"
         const val ZERO_AMOUNT_GAS = 30_000L
         const val TOKEN_TRANSFER_GAS = 52_000L

@@ -47,8 +47,9 @@ release build and found one more:
 
 ## 4.3.3: fixes from the 4.3.2 release smoke — 9 November 2026
 
-From `release/android-4.3.3` (`d5fdf9111`), based on `release/android-4.3.2`. Nothing here is in the 4.3.2 build on Play.
-No key, signing, storage or chain change.
+From `release/android-4.3.3` (`5e34fc06e`), based on `release/android-4.3.2`. Nothing here is in the 4.3.2 build on
+Play. No key, signing, storage or chain catalog change; the new wallet's network reads below are a sync change the
+owner approved.
 
 - **System Back in the liquidity pools and NFT sheets (Android 13+, also in 4.3.1):** Back went to the sheet dialog's
   `OnBackPressedDispatcher`, so their `onBackPressed` override never ran: the nested `NavHost` popped to its Loading page,
@@ -63,13 +64,23 @@ No key, signing, storage or chain change.
   which the wallet broadcasts itself, says "Transaction sent". Checked on API 34 with a live `personal_sign` the dApp verified.
 - **WalletConnect QR error:** the hard-coded Russian text is now `walletconnect_qr_invalid`, in all eight locales.
 - **New wallet home:** the total counts every network, while a new wallet's list starts on the Popular filter. Rows on other
-  networks whose first read ran out of time (`docs/roadmap.md`) made the total "Balance unavailable" while every listed row
-  was a known zero, so the list also said "No assets were found". It now says that only when every balance the total counts
-  has been read (`walletHasUnknownBalance`). How balances are read and totalled is unchanged, so the new wallet keeps
-  "Balance unavailable", now over its zero-balance networks. Checked on API 34 on the same wallet before and after.
-- **Validation (9 November 2026, local; receipts with the commit in `build/android-433/`):** 2,468 unit tests in common,
-  feature-liquiditypools-impl, feature-nft-impl, feature-walletconnect-impl, feature-wallet-impl and app: 0 failures, 2
-  skipped. `detektAll` passes. No physical phone.
+  networks that had not been read made the total "Balance unavailable" while every listed row was a known zero, so the
+  list also said "No assets were found". It now says that only when every balance the total counts has been read
+  (`walletHasUnknownBalance`). Checked on API 34 on the same wallet before and after.
+- **A new wallet reads every network once (owner-approved, 9 November):** EVM networks outside background sync were never
+  read on a new wallet. The first scan's EVM loader waited for a connection nobody opened and stored no balance after 15 s,
+  and the discovery sweep opened the connection but read before the node's client existed ("There is no connection
+  created"). The loader now opens the network's connection itself, a read waits up to 15 s for the client
+  (`EthereumChainConnection.awaitWeb3j`), and the sweep waits for a Substrate network's runtime within its own 45 s
+  instead of failing at the loader's 15 s. On API 34 under heavy host load, a new wallet's first scan took 90 s and left 22
+  of 268 rows unread, and the sweep read Avail 78 s later; left are Liberland's 3 rows, whose node is down
+  (`docs/roadmap.md`), and 18 on the SORA testnet, which the total skips. The 75 unread rows seen before came from a debug build without the Dwellir key release
+  builds carry: 13 were EVM rows of this bug, and Karura's 29 were the missing key. How balances are totalled is unchanged.
+- **Validation (10 November 2026, local; receipts with the commit in `build/android-433/`):** 2,921 unit tests in common,
+  feature-liquiditypools-impl, feature-nft-impl, feature-walletconnect-impl, feature-wallet-impl, app and runtime: 0
+  failures, 12 skipped. `detektAll` passes; it leaves out runtime, app and feature-wallet-*, so the changed files were
+  also run through detekt on their own: no new findings beyond the import order and package name those modules already
+  have. No physical phone.
 
 ## Sun-lit neumorphism redesign and the approved badge — 8 November 2026
 

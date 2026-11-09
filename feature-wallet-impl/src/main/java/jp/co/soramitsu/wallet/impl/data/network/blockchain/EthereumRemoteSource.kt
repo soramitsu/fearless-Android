@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.yield
 import org.web3j.abi.DefaultFunctionReturnDecoder
 import org.web3j.abi.FunctionEncoder
@@ -43,6 +44,8 @@ import org.web3j.protocol.core.methods.response.EthSubscribe
 import org.web3j.protocol.http.HttpService
 import org.web3j.protocol.websocket.WebSocketService
 import org.web3j.utils.Numeric
+
+private const val CONNECTION_WAIT_MILLIS = 15_000L
 
 class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectionPool) {
     suspend fun getTotalBalance(
@@ -93,7 +96,8 @@ class EthereumRemoteSource(private val ethereumConnectionPool: EthereumConnectio
         address: String
     ): BigInteger {
         val connection = ethereumConnectionPool.await(asset.chainId)
-        val web3 = connection?.web3j
+        // A connection opened for this read has no client yet. A network no node answers for still fails.
+        val web3 = withTimeoutOrNull(CONNECTION_WAIT_MILLIS) { connection.awaitWeb3j() }
             ?: throw RuntimeException("There is no connection created for chain ${asset.chainId}")
 
         return web3.fetchEthBalance(asset, address)
