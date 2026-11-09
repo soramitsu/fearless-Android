@@ -24,10 +24,16 @@ The candidate is described in `docs/status.md` and `docs/releases/4.3.3.md`.
   `isHideable = false` (`ConfirmSendFragment`, `ClaimRewardsFragment`, `ScoreDetailsFragment`, the pool and validator
   setup sheets and others). On Android 13+ Material's back handler answers Back for them and can only collapse them, so
   they should close or go back the way the pools and NFT sheets now do. Found by reading the code; not checked on a device.
-- **Sheets opened over a dApp request close the wrong one:** the Preview, raw data and optional networks sheets open in
-  the tab's stack, over a request or proposal sheet in the root's, and `Navigator.back()` pops the root's. Seen on API 34:
-  Preview's Back icon closes the request sheet under it and Preview stays until tapped again; "Done" in the optional
-  networks chooser closes the proposal under it and the chooser stays. System Back on Preview works.
+- **Root-only dialogs while the tabs are mounted:** `controllerFor` gives no controller for a destination that only the
+  root's graph has while `MainFragment` is mounted, so these routes never open. Every TON Connect transaction, from the
+  bridge or the in-app dApp browser, is answered with an error (`openTonSignRequestWithResult`, since `51cf99580` in
+  4.3.2; by the same reading 4.3.0 and 4.3.1 wait forever instead). "Back up to Google" in a wallet's backup sheet does
+  nothing after sign-in (`openCreateBackupPasswordDialogAfterPinCheck` returns `emptyFlow()`, since `fdbb30d1b` in 4.3.2).
+  Found on 10 November 2026 by reading the code; not run, since TON needs a TON dApp and Drive a Google sign-in.
+- **Idle lock:** after the 20-minute idle lock and the PIN, a new `MainFragment` opens over the old one, which stays on the
+  root's back stack with its tab stack (a Connections sheet was still there on API 34). Taps inside sheets don't reset the
+  idle timer, because a dialog's touches never reach `Activity.onUserInteraction`, so 20 minutes spent in sheets locks the
+  wallet. Neither is new in 4.3.3.
 
 ## Sun-lit redesign: open items — 8 November 2026
 
