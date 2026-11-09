@@ -20,10 +20,13 @@ The candidate is described in `docs/status.md` and `docs/releases/4.3.3.md`.
   needed for staking gets no background sync, so those rows are not read again: 75 rows on a new wallet on API 34 (55 on
   mainnets such as Karura, Astar and Kaia), 72 after a restart and about 10 hours. The total counts unread rows as unknown
   on purpose ("absence never becomes zero"). Reading them once is a sync change and was left out of the 4.3.3 fix.
-- **Other sheets and system Back:** 18 more sheets on `BaseComposeBottomSheetDialogFragment` keep its default
-  `isHideable = false` (`ConfirmSendFragment`, `ClaimRewardsFragment`, `ScoreDetailsFragment`, the pool and validator
-  setup sheets and others). On Android 13+ Material's back handler answers Back for them and can only collapse them, so
-  they should close or go back the way the pools and NFT sheets now do. Found by reading the code; not checked on a device.
+- **A submission that never answers:** while a confirm sheet submits, system Back waits (`KeepSheetOpenOnBack`), and a
+  tap outside is the way out if the call hangs. Closing that way clears the ViewModel, so the result screen is lost; the
+  chain may still have the transaction. A timeout with a clear message on the submission would make the way out safe.
+- **Member pool confirmations during a submission:** `ConfirmCreatePoolFragment`, `ConfirmPoolBondMoreFragment`,
+  `ConfirmPoolClaimFragment`, `ConfirmPoolRedeemFragment` and `ConfirmPoolUnbondFragment` still close on system Back during
+  a submission. That is their reviewed policy (`PoolJoinRecoverySystemBackInstrumentedTest`, and their reviews revoke
+  and record a known success), so it was left as it is. They could take `KeepSheetOpenOnBack` for one rule everywhere.
 - **Sheets opened over a dApp request close the wrong one:** the Preview, raw data and optional networks sheets open in
   the tab's stack, over a request or proposal sheet in the root's, and `Navigator.back()` pops the root's. Seen on API 34:
   Preview's Back icon closes the request sheet under it and Preview stays until tapped again; "Done" in the optional

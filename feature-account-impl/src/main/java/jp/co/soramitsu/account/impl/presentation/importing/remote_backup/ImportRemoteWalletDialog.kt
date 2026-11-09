@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
+import androidx.activity.compose.BackHandler
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.PaddingValues
@@ -52,6 +53,8 @@ class ImportRemoteWalletDialog : BaseComposeBottomSheetDialogFragment<ImportRemo
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
+        // One sheet holds the wallet list, password and result pages: Back steps through them like the toolbar icon.
+        BackHandler(onBack = viewModel::backClicked)
         ImportRemoteWalletContent(
             state = state,
             callback = viewModel
@@ -70,7 +73,6 @@ class ImportRemoteWalletDialog : BaseComposeBottomSheetDialogFragment<ImportRemo
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        onBackPressed { viewModel.backClicked() }
 
         viewModel.requestGoogleAuth.onEach {
             it.getContentIfNotHandled()?.let { launcher.launch(it) }

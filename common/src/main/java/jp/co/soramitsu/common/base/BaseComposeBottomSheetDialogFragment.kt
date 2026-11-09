@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -159,19 +158,15 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomS
         }
     }
 
+    /**
+     * From Android 13 Material answers system Back on a sheet: it hides a hideable one, which cancels the dialog, and
+     * can only collapse any other. Before Android 13 Back cancels the dialog. A sheet whose Back does something else
+     * puts a `BackHandler` in [Content]: composition runs after the dialog attaches, so it runs ahead of Material's.
+     * The activity's dispatcher and `Dialog.onBackPressed` never see Back here.
+     */
     protected open fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.isDraggable = false
-        behavior.isHideable = false
-    }
-
-    protected inline fun onBackPressed(crossinline action: () -> Unit) {
-        val callback = object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                action()
-            }
-        }
-
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
+        behavior.isHideable = true
     }
 }

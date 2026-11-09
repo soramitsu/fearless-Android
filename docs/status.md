@@ -29,6 +29,38 @@ Walking the first signed build found what the suites had missed, all fixed in th
   no longer pads twice for the bottom bar, alert sheets (the one-time update notice among them) use the lit sheet, XML
   list sheets are opaque, and the asset picker no longer says "nothing found" before its first list arrives.
 
+## 4.3.3: system Back on every other sheet — 9 November 2026
+
+On Android 13+ (`enableOnBackInvokedCallback=true`) Back on a sheet goes to Material's `MaterialBackOrchestrator` or a
+callback on the dialog's `OnBackPressedDispatcher`. Material hides a hideable sheet, which cancels the dialog, and can only
+collapse any other, and `BaseComposeBottomSheetDialogFragment` made its sheets non-hideable. So 18 sheets, collapsed with
+dragging off, stayed stuck at their peek height. Before Android 13 the same Back cancelled them.
+
+- **Base class:** `isHideable` is now true by default, so Material closes these sheets on every version, through
+  `onCancel` and `onDismiss` like a tap outside. Dragging stays off. The `onBackPressed` helper is gone: it registered on
+  the activity's dispatcher, which a dialog never reaches.
+- **Sheets that only close:** `ScoreDetailsFragment`, `SelectPoolFragment`, `EditPoolFragment`, `PoolInfoOptionsFragment`,
+  `SetupStakingPoolFragment`, `StartStakingPoolFragment`, `CreatePoolSetupFragment`, `ValidatorsSettingsFragment`,
+  `SelectCustomValidatorsFragment`, `SelectValidatorsFragment`, `StartSelectValidatorsFragment` and
+  `SelectedValidatorsFragment`. Their toolbar's action is a plain back or the review revocation `onCancel` runs too.
+- **Confirm sheets keep their submission:** `ConfirmSendFragment`, `ClaimRewardsFragment`, `ConfirmJoinPoolFragment`,
+  `EditPoolConfirmFragment` and `ConfirmSelectValidatorsFragment` ignore Back while submitting (`KeepSheetOpenOnBack`):
+  closing would clear the ViewModel, cancel the work in its scope and lose the result screen. Claim Rewards keeps its
+  toolbar during a claim, so its toolbar action waits too. A tap outside still closes them: it is the way out of a call
+  that never answers (`docs/roadmap.md`).
+- **Sheets whose Back is an action:** `DappScreenFragment` goes back through the page history, then closes.
+  `ImportRemoteWalletDialog` steps through its pages; its `onBackPressed` never ran, so Back closed the whole sheet from the
+  password page. `WalletConnectSignMessageFragment` and `TonSignRequestFragment` set `isHideable = false` themselves: Back
+  now answers the dApp like their close icon (rejected, declined), because cancelling the dialog would leave it waiting.
+  Pressing it twice rejects a WalletConnect request once. `ChainChooseFragment` leaves the choice as it was, like a tap outside.
+  `CreateBackupPasswordDialog` is unchanged: once its wallet exists it is not cancelable, so Back does nothing there.
+- **The same bug outside this base class:** `ErrorDialog`'s `onBackPressed` override never ran on Android 13+: Back
+  skipped its `onBackClick` and collapsed a non-hideable dialog, leaving its buttons out of reach (the PIN biometrics offer, transfer
+  warnings, retry prompts). It now uses a `BackHandler`: a hideable dialog runs `onBackClick` and closes, and a non-hideable one
+  ignores Back, on every version. `BaseBottomSheetDialogFragment` (`ValidatorDetailsFragment`), `WebViewerFragment`,
+  `ServiceFragment` and `NftFiltersFragment` had `isHideable = false` too and now close on Back.
+- **Validation:** SHEET_BACK_VALIDATION
+
 ## 4.3.3: fixes from the 4.3.2 release smoke — 9 November 2026
 
 From `release/android-4.3.3` (`d5fdf9111`), based on `release/android-4.3.2`. Nothing here is in the 4.3.2 build on Play.

@@ -410,6 +410,45 @@ class ImportRemoteWalletViewModelTest {
         assertTrue(vm.state.value is WalletImportedState)
     }
 
+    @Test
+    fun `Back on the wallet list leaves the sheet`() = runTest(dispatcher) {
+        val vm = viewModel()
+        runCurrent()
+
+        vm.backClicked()
+
+        verify(exactly = 1) { router.back() }
+    }
+
+    @Test
+    fun `Back on the password page returns to the wallet list`() = runTest(dispatcher) {
+        val vm = viewModel()
+        runCurrent()
+        vm.onWalletSelected(WrappedBackupAccountMeta(appBackup))
+        runCurrent()
+        assertTrue(vm.state.value is EnterBackupPasswordState)
+
+        vm.backClicked()
+        runCurrent()
+
+        assertTrue(vm.state.value is RemoteWalletListState)
+        verify(exactly = 0) { router.back() }
+    }
+
+    @Test
+    fun `Back after an import opens the wallet, not the page before it`() = runTest(dispatcher) {
+        coEvery { backupService.importBackupAccount("5App", "pw") } returns phraseBackup
+        val vm = viewModel()
+        importWith(vm, WrappedBackupAccountMeta(appBackup), "pw")
+        assertTrue(vm.state.value is WalletImportedState)
+
+        vm.backClicked()
+        runCurrent()
+
+        verify(exactly = 1) { router.openMain() }
+        verify(exactly = 0) { router.back() }
+    }
+
     private fun TestScope.importWith(vm: ImportRemoteWalletViewModel, wallet: WrappedBackupAccountMeta, password: String) {
         runCurrent()
         vm.onWalletSelected(wallet)

@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.ViewGroup
 import android.webkit.WebResourceRequest
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -75,6 +76,9 @@ class DappScreenFragment : BaseComposeBottomSheetDialogFragment<DappScreenViewMo
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsStateWithLifecycle()
+
+        // Same as the toolbar icon: back through the page history, then out of the sheet.
+        BackHandler(onBack = ::back)
 
         FearlessAppTheme {
             BottomSheetScreen {

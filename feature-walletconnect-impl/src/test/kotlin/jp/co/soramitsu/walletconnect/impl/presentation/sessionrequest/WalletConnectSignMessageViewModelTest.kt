@@ -9,6 +9,7 @@ import co.jp.soramitsu.walletconnect.model.WalletConnectVerifyContext
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import io.mockk.verify
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
@@ -92,6 +93,48 @@ class WalletConnectSignMessageViewModelTest {
 
         verify { router.back() }
         verify(exactly = 0) { interactor.rejectSessionRequest(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `Back pressed twice while the rejection is on its way rejects once`() {
+        every { interactor.getPendingListOfSessionRequests(TEST_TOPIC) } returns listOf(personalSign(id = 9))
+        val viewModel = viewModel()
+
+        viewModel.onClose()
+        viewModel.onClose()
+
+        verify(exactly = 1) { interactor.rejectSessionRequest(TEST_TOPIC, 9, any(), any()) }
+        verify(exactly = 0) { router.back() }
+    }
+
+    @Test
+    fun `a rejected request closes the sheet once`() {
+        every { interactor.getPendingListOfSessionRequests(TEST_TOPIC) } returns listOf(personalSign(id = 9))
+        val onSuccess = slot<() -> Unit>()
+        every { interactor.rejectSessionRequest(TEST_TOPIC, 9, capture(onSuccess), any()) } returns Unit
+        val viewModel = viewModel()
+
+        viewModel.onClose()
+        onSuccess.captured()
+        viewModel.onClose()
+
+        verify(exactly = 1) { router.back() }
+        verify(exactly = 1) { interactor.rejectSessionRequest(TEST_TOPIC, 9, any(), any()) }
+    }
+
+    @Test
+    fun `a rejection that failed can be tried again`() {
+        every { interactor.getPendingListOfSessionRequests(TEST_TOPIC) } returns listOf(personalSign(id = 9))
+        val onError = slot<(Throwable) -> Unit>()
+        every { interactor.rejectSessionRequest(TEST_TOPIC, 9, any(), capture(onError)) } returns Unit
+        val viewModel = viewModel()
+
+        viewModel.onClose()
+        onError.captured(IllegalStateException("relay is down"))
+        viewModel.onClose()
+
+        verify(exactly = 2) { interactor.rejectSessionRequest(TEST_TOPIC, 9, any(), any()) }
+        verify(exactly = 0) { router.back() }
     }
 
     @Test
