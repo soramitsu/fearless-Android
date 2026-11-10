@@ -33,9 +33,12 @@ All notable changes to this project will be documented in this file.
   answered request again, and a message signature says "Message signed".
 - Fixed: a new wallet no longer says "No assets were found" while balances it counts are
   still unread.
+- Fixed: the first balance scan opens EVM network connections and waits for their clients.
+  Unreachable networks still show an unknown balance rather than zero.
+- Fixed: the PIN recovery warning no longer flashes during a normal cold start.
 - Wallet avatars are whole and centred, and sheets are opaque with rounded tops.
-- Presentation only otherwise: keys, the PIN envelope, signing, storage, networking, remote
-  configuration and chain logic are the code of 4.3.2. The database schema stays 84.
+- The database schema stays 84. Keys, the PIN envelope and stored asset identities are
+  unchanged; this release includes presentation, navigation and balance-read fixes.
 
 ## 4.3.2 (234)
 
