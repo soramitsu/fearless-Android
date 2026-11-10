@@ -1,22 +1,23 @@
 package jp.co.soramitsu.app.root.navigation
 
 import android.annotation.SuppressLint
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import androidx.annotation.IdRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.asFlow
+import androidx.navigation.FloatingWindow
 import androidx.navigation.NavBackStackEntry
+import androidx.core.os.bundleOf
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLinkRequest
+import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph
 import androidx.navigation.NavOptions
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import co.jp.soramitsu.walletconnect.model.ChainChooseResult
 import co.jp.soramitsu.walletconnect.model.ChainChooseState
-import it.airgap.beaconsdk.blockchain.substrate.data.SubstrateSignerPayload
 import jp.co.soramitsu.account.api.domain.model.AccountType
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
@@ -29,7 +30,6 @@ import jp.co.soramitsu.account.impl.presentation.account.details.AccountDetailsD
 import jp.co.soramitsu.account.impl.presentation.account.rename.RenameAccountDialog
 import jp.co.soramitsu.account.impl.presentation.backup_wallet.BackupWalletDialog
 import jp.co.soramitsu.account.impl.presentation.create_backup_password.CreateBackupPasswordDialog
-import jp.co.soramitsu.account.impl.presentation.experimental.SuccessfulFragment
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmFragment
 import jp.co.soramitsu.account.impl.presentation.exporting.json.confirm.ExportJsonConfirmPayload
 import jp.co.soramitsu.account.impl.presentation.exporting.json.password.ExportJsonPasswordFragment
@@ -64,6 +64,7 @@ import jp.co.soramitsu.app.root.presentation.stories.StoryFragment
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.navigation.DelayedNavigation
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import jp.co.soramitsu.common.navigation.payload.WalletSelectorPayload
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.utils.postToUiThread
@@ -132,10 +133,8 @@ import jp.co.soramitsu.tonconnect.impl.presentation.tonconnectiondetails.TonConn
 import jp.co.soramitsu.tonconnect.impl.presentation.tonsignrequest.TonSignRequestFragment
 import jp.co.soramitsu.wallet.api.domain.model.XcmChainType
 import jp.co.soramitsu.wallet.api.presentation.AssetSelectPurpose
-import jp.co.soramitsu.wallet.impl.domain.beacon.SignStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
-import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.addressbook.CreateContactFragment
@@ -150,10 +149,6 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.detail.legacy.LegacyCrow
 import jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletFragment
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectionMode
 import jp.co.soramitsu.wallet.impl.presentation.balance.walletselector.light.WalletSelectorFragment
-import jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment
-import jp.co.soramitsu.wallet.impl.presentation.beacon.main.DAppMetadataModel
-import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.SignBeaconTransactionFragment
-import jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment
 import jp.co.soramitsu.wallet.impl.presentation.contacts.ContactsFragment
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm.CrossChainConfirmFragment
@@ -164,7 +159,6 @@ import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment
 import jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment
-import jp.co.soramitsu.wallet.impl.presentation.send.setupcbdc.CBDCSendSetupFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailFragment
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.extrinsic.ExtrinsicDetailsPayload
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.reward.RewardDetailFragment
@@ -187,12 +181,14 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.job
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.parcelize.Parcelize
@@ -236,9 +232,24 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
     private var mainTabNavController: NavController? = null
     private var activity: AppCompatActivity? = null
 
+    // Whether the screens dApp requests open on can be reached from the current screen. They cannot from the
+    // PIN, onboarding or start screens; navigating there anyway throws and would crash the app at every start
+    // while a dApp request is pending.
+    private val dappRoutesReady = MutableStateFlow(false)
+    private val dappRouteListener = NavController.OnDestinationChangedListener { controller, _, _ ->
+        dappRoutesReady.value = DAPP_REQUEST_DESTINATIONS.all { controller.canReach(it) }
+    }
+
     fun attach(navController: NavController, activity: AppCompatActivity) {
+        this.navController?.removeOnDestinationChangedListener(dappRouteListener)
         this.navController = navController
         this.activity = activity
+        // Called at once with the current destination, then on every change.
+        navController.addOnDestinationChangedListener(dappRouteListener)
+    }
+
+    override suspend fun awaitDappRoutes() {
+        dappRoutesReady.first { it }
     }
 
     /** A host pause immediately invalidates private endpoint access, including queued PIN results. */
@@ -250,6 +261,8 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
     fun detach() {
         revokeSavedEndpointAccess()
         savedEndpointUnlock = null
+        navController?.removeOnDestinationChangedListener(dappRouteListener)
+        dappRoutesReady.value = false
         navController = null
         mainTabNavController = null
         activity = null
@@ -272,11 +285,7 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         navOptions: NavOptions? = null
     ) {
         val shellController = mainTabNavController
-        val targetController = checkNotNull(authenticatedDestinationTarget(
-            shellController = mainTabNavController,
-            shellContainsDestination = { it.graph.containsDestination(destinationId) },
-            parentController = { navController }
-        )) {
+        val targetController = checkNotNull(controllerFor(destinationId)) {
             "Destination $destinationId is not owned by the authenticated shell"
         }
 
@@ -297,11 +306,22 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         }
     }
 
+    /**
+     * The stack [destinationId] opens in. A sheet opened over a root sheet joins the root's stack: there it is
+     * what [activeAuthenticatedController] answers with, so Back and results reach it and not the sheet under it.
+     */
     private fun controllerFor(@IdRes destinationId: Int): NavController? {
+        // TON requests can start on any tab. Backup's PIN detour also runs on the root stack, so its
+        // result must be observed on the root entry that the password dialog will return to.
+        when (destinationId) {
+            R.id.tonSignRequestFragment, R.id.tonConnectionDetails, R.id.createBackupPasswordDialog ->
+                return navController?.takeIf { it.canReach(destinationId) }
+        }
         return authenticatedDestinationTarget(
             shellController = mainTabNavController,
             shellContainsDestination = { it.graph.containsDestination(destinationId) },
-            parentController = { navController }
+            parentController = { navController },
+            opensOverParentSheet = { it.opensSheetOverSheet(destinationId) }
         )
     }
 
@@ -385,6 +405,28 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         )
     }
 
+    /**
+     * The Google Drive backup of an existing wallet exports its secret like the phrase, seed and JSON
+     * exports do, so it goes through the same PIN check first. The password dialog reports back to the
+     * entry below it, as [openCreateBackupPasswordDialogWithResult] does.
+     */
+    override fun openCreateBackupPasswordDialogAfterPinCheck(payload: SaveBackupPayload, pinCodeTitleRes: Int?): Flow<Int> {
+        val destinationId = R.id.createBackupPasswordDialog
+        val resultKey = CreateBackupPasswordDialog.RESULT_BACKUP_KEY
+        val resultHandle = controllerFor(destinationId)?.currentBackStackEntry?.savedStateHandle ?: return emptyFlow()
+        resultHandle.remove<Int>(resultKey)
+        return resultHandle.getStateFlow<Int?>(resultKey, null)
+            .onStart {
+                withPinCodeCheckRequired(
+                    NavComponentDelayedNavigation(destinationId, CreateBackupPasswordDialog.getBundle(payload)),
+                    pinCodeTitleRes = pinCodeTitleRes
+                )
+            }
+            .filterNotNull()
+            .take(1)
+            .onEach { resultHandle.remove<Int>(resultKey) }
+    }
+
     override fun openMnemonicAgreementsDialogForGoogleBackup(
         accountName: String,
         accountTypes: List<WalletEcosystem>
@@ -440,12 +482,21 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         }
 
         val shouldOpenMain = delayedNavigation.globalActionId == R.id.action_open_main
+        val isBackupAfterPin = delayedNavigation.globalActionId == R.id.createBackupPasswordDialog
+        if (isBackupAfterPin) {
+            val controller = navController ?: return
+            // PIN is in root_nav_graph, while the password dialog is in the original product graph.
+            // Navigation resolves the destination before applying popUpTo, so restore that graph first.
+            // A stale completion outside the PIN screen must not open the export dialog again.
+            if (controller.currentDestination?.id != R.id.pincodeFragment || !controller.popBackStack()) return
+            if (!controller.canReach(delayedNavigation.globalActionId)) return
+        }
 
         val navOptions = NavOptions.Builder()
             .apply {
                 if (shouldOpenMain) {
                     setPopUpTo(R.id.root_nav_graph, false)
-                } else {
+                } else if (!isBackupAfterPin) {
                     setPopUpTo(R.id.pincodeFragment, true)
                 }
             }
@@ -866,31 +917,33 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
     }
 
     override fun openWalletConnectSessionProposal(pairingTopic: String?) {
-        if (navController?.currentDestination?.id == R.id.sessionProposalFragment) return
+        // Never over the PIN screen: RootViewModel holds dApp requests until the wallet is unlocked.
+        if (WalletSessionLock.isLocked()) return
+        val controller = navController ?: return
+        if (controller.currentDestination?.id in SESSION_PROPOSAL_SHEETS) return
+        // RootViewModel waits for awaitDappRoutes; a dApp must still never crash the app from another screen.
+        if (!controller.canReach(R.id.sessionProposalFragment)) return
 
         val bundle = SessionProposalFragment.getBundle(pairingTopic)
 
-        navController?.navigate(R.id.sessionProposalFragment, bundle)
+        controller.navigate(R.id.sessionProposalFragment, bundle)
     }
 
     override fun openWalletConnectSessionRequest(sessionRequestTopic: String) {
-        if (navController?.currentDestination?.id == R.id.sessionRequestFragment) return
+        if (WalletSessionLock.isLocked()) return
+        val controller = navController ?: return
+        if (controller.currentDestination?.id in SESSION_REQUEST_SHEETS) return
+        if (!controller.canReach(R.id.sessionRequestFragment)) return
 
         val bundle = WalletConnectSignMessageFragment.getBundle(sessionRequestTopic)
 
-        navController?.navigate(R.id.sessionRequestFragment, bundle)
+        controller.navigate(R.id.sessionRequestFragment, bundle)
     }
 
     override fun openLockedAmountSend(assetPayload: AssetPayload?, initialSendToAddress: String?, currencyId: String?, amount: BigDecimal?) {
         val bundle = SendSetupFragment.getBundle(assetPayload, initialSendToAddress, currencyId, amount, true)
 
         navigateInMainTabOrRoot(R.id.sendSetupFragment, bundle)
-    }
-
-    override fun openCBDCSend(cbdcQrInfo: QrContentCBDC) {
-        val bundle = CBDCSendSetupFragment.getBundle(cbdcQrInfo)
-
-        navigateInMainTabOrRoot(R.id.cbdcSendSetupFragment, bundle)
     }
 
     override fun openCrossChainSend(assetPayload: AssetPayload?) {
@@ -909,11 +962,13 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         return combine(resultFlow, backStackEntryFlow) { result, backStackEntry ->
             Pair(result, backStackEntry)
         }
-            .onStart { targetController?.navigate(destinationId, bundle) }
-            .filter {
-                val (_, backStackEntry) = it
-                backStackEntry.destination.id != destinationId
+            .onStart {
+                // Whatever is here came from an earlier sheet nobody waited on, such as the view-only networks list.
+                removeSavedStateHandle(resultKey, targetController)
+                targetController?.navigate(destinationId, bundle)
             }
+            // Closed, not just covered: a dApp request can open over this sheet in the root's stack.
+            .filter { targetController?.holdsDestination(destinationId) != true }
             .onEach { coroutineContext.job.cancel() }
             .map {
                 val (result, _) = it
@@ -1015,8 +1070,9 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         navigateInMainTabOrRoot(R.id.connectionInfoFragment, bundle)
     }
 
-    override fun openRequestPreview(topic: String) {
-        val bundle = RequestPreviewFragment.getBundle(topic)
+    override fun openRequestPreview(topic: String, requestId: Long) {
+        if (WalletSessionLock.isLocked()) return
+        val bundle = RequestPreviewFragment.getBundle(topic, requestId)
         navigateInMainTabOrRoot(R.id.requestPreviewFragment, bundle)
     }
 
@@ -1061,6 +1117,12 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
             xcmAssetSymbol = xcmAssetSymbol
         )
         navigateInMainTabOrRoot(R.id.chainSelectFragment, bundle)
+    }
+
+    override fun openSelectAssetForReceive() {
+        // Every listed asset, funded or not: receiving and buying need no balance.
+        val bundle = bundleOf(AssetSelectFragment.KEY_PURPOSE to AssetSelectPurpose.RECEIVE.name)
+        navigateInMainTabOrRoot(R.id.assetSelectFragment, bundle)
     }
 
     override fun openSelectAsset(selectedAssetId: String, selectedChainId: ChainId?) {
@@ -1189,6 +1251,10 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         val bundle = SuccessFragment.getBundle(operationHash, chainId, customMessage, customTitle)
         val targetController = activeAuthenticatedController() ?: return
 
+        // A preview opened with the tab's stack in front stays there, where the pop below can miss it.
+        // An answered request must not come back when this sheet closes.
+        mainTabNavController?.popBackStack(R.id.requestPreviewFragment, true)
+
         val latestAvailableWalletConnectRelatedDestinationId =
             targetController.currentBackStack.replayCache.firstOrNull()?.lastOrNull {
                 it.destination.id == R.id.connectionsFragment ||
@@ -1252,19 +1318,6 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         val bundle = ReceiveFragment.getBundle(assetPayload)
 
         navigateInMainTabOrRoot(R.id.receiveFragment, bundle)
-    }
-
-    override fun openSignBeaconTransaction(payload: SubstrateSignerPayload, dAppMetadata: DAppMetadataModel) {
-        navController?.navigate(R.id.signBeaconTransactionFragment, SignBeaconTransactionFragment.getBundle(payload, dAppMetadata))
-    }
-
-    override val beaconSignStatus: Flow<SignStatus>
-        get() = navController!!.currentBackStackEntry!!.savedStateHandle
-            .getLiveData<SignStatus>(SignBeaconTransactionFragment.SIGN_RESULT_KEY)
-            .asFlow()
-
-    override fun setBeaconSignStatus(status: SignStatus) {
-        navController!!.previousBackStackEntry!!.savedStateHandle.set(SignBeaconTransactionFragment.SIGN_RESULT_KEY, status)
     }
 
     override fun returnToWallet() {
@@ -1420,12 +1473,6 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         navigateInMainTabOrRoot(R.id.pincodeFragment, bundle)
     }
 
-    override fun openBeacon(qrContent: String?) {
-        qrContent?.let {
-            navController?.navigate(R.id.actionOpenBeaconFragment, BeaconFragment.getBundle(it))
-        } ?: navController?.navigate(R.id.actionOpenBeaconFragment)
-    }
-
     override fun withPinCodeCheckRequired(
         delayedNavigation: DelayedNavigation,
         createMode: Boolean,
@@ -1434,7 +1481,8 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         val action = if (createMode) {
             PinCodeAction.Create(delayedNavigation)
         } else {
-            PinCodeAction.Check(delayedNavigation, ToolbarConfiguration(pinCodeTitleRes, true))
+            // Exports and recovery screens take the PIN itself; a fingerprint cannot stand in for it.
+            PinCodeAction.Check(delayedNavigation, ToolbarConfiguration(pinCodeTitleRes, true), allowBiometric = false)
         }
 
         val extras = PincodeFragment.getPinCodeBundle(action)
@@ -1443,12 +1491,14 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
     }
 
     override fun openPincodeCheck() {
+        WalletSessionLock.lock()
         val action = PinCodeAction.Check(null, ToolbarConfiguration())
         val bundle = PincodeFragment.getPinCodeBundle(action)
         navController?.navigate(R.id.open_pincode_check, bundle)
     }
 
     override fun openNavGraph() {
+        WalletSessionLock.lock()
         val action = PinCodeAction.Check(null, ToolbarConfiguration())
         val bundle = PincodeFragment.getPinCodeBundle(action)
         navController?.navigate(R.id.root_nav_graph, bundle)
@@ -1515,20 +1565,6 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
     fun educationalStoriesCompleted() {
         navController?.previousBackStackEntry?.savedStateHandle?.set(StoryFragment.KEY_STORY, true)
         navController?.navigateUp()
-    }
-
-    override fun openExperimentalFeatures() {
-        navigateInMainTabOrRoot(R.id.experimentalFragment)
-    }
-
-    override fun openSuccessFragment(avatar: Drawable) {
-        SuccessfulFragment.avatar = avatar
-        navController?.navigate(R.id.successFragment)
-    }
-
-    override fun openTransactionRawData(rawData: String) {
-        val bundle = TransactionRawDataFragment.createBundle(rawData)
-        navController?.navigate(R.id.transactionRawDataFragment, bundle)
     }
 
     override fun setWalletSelectorPayload(payload: WalletSelectorPayload) {
@@ -1837,6 +1873,10 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         method: String,
         signRequest: TonConnectSignRequest
     ): Result<Pair<String, String>> {
+        if (WalletSessionLock.isLocked()) return Result.failure(IllegalStateException("The wallet is locked"))
+        if (controllerFor(R.id.tonSignRequestFragment)?.canReach(R.id.tonSignRequestFragment) != true) {
+            return Result.failure(IllegalStateException("The request screen cannot be opened from this screen"))
+        }
         val bundle = TonSignRequestFragment.getBundle(dapp, method, signRequest)
 
         val result = openAndWaitResult<Result<Pair<String, String>>>(
@@ -1848,6 +1888,10 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
     }
 
     override suspend fun openTonConnectionAndWaitForResult(app: AppEntity, proofPayload: String?): JSONObject {
+        check(!WalletSessionLock.isLocked()) { "The wallet is locked" }
+        check(controllerFor(R.id.tonConnectionDetails)?.canReach(R.id.tonConnectionDetails) == true) {
+            "The request screen cannot be opened from this screen"
+        }
         val bundle = TonConnectionDetailsFragment.getBundle(app, proofPayload)
 
         val result = openAndWaitResult<String>(
@@ -1857,4 +1901,38 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         )
         return JSONObject(result)
     }
+}
+
+/** The screens RootViewModel opens for dApp requests. */
+private val DAPP_REQUEST_DESTINATIONS = listOf(
+    R.id.sessionProposalFragment,
+    R.id.sessionRequestFragment,
+    R.id.tonSignRequestFragment
+)
+
+/** A proposal and what it opens over itself: another proposal does not open over any of them. */
+private val SESSION_PROPOSAL_SHEETS = setOf(R.id.sessionProposalFragment, R.id.chainChooseFragment)
+
+/** A request and what it opens over itself: another request does not open over any of them. */
+private val SESSION_REQUEST_SHEETS = setOf(R.id.sessionRequestFragment, R.id.requestPreviewFragment, R.id.rawDataFragment)
+
+/** What [destinationId] resolves to from the current destination, the way NavController.navigate resolves an id. */
+private fun NavController.destinationFromHere(@IdRes destinationId: Int): NavDestination? {
+    val current = currentDestination ?: return null
+    val graph = current as? NavGraph ?: current.parent ?: return null
+    return graph.findNode(destinationId)
+}
+
+/** Whether [destinationId] resolves from the current destination the way NavController.navigate resolves it. */
+private fun NavController.canReach(@IdRes destinationId: Int): Boolean {
+    return currentDestination?.getAction(destinationId) != null || destinationFromHere(destinationId) != null
+}
+
+/** Whether a sheet shows at the top of this stack and [destinationId] would open over it as another sheet. */
+private fun NavController.opensSheetOverSheet(@IdRes destinationId: Int): Boolean {
+    return currentDestination is FloatingWindow && destinationFromHere(destinationId) is FloatingWindow
+}
+
+private fun NavController.holdsDestination(@IdRes destinationId: Int): Boolean {
+    return runCatching { getBackStackEntry(destinationId) }.isSuccess
 }

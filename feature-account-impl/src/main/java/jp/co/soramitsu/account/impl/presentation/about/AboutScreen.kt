@@ -1,5 +1,8 @@
 package jp.co.soramitsu.account.impl.presentation.about
 
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwWingsHero
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -66,7 +69,12 @@ fun AboutScreenContent(items: List<AboutItemListModel>, backClick: () -> Unit) {
         ) {
             item {
                 MarginVertical(margin = 72.dp)
-                Image(res = R.drawable.fw_brand_hero)
+                if (FwRestyle.isEnabled(FwSurface.Settings)) {
+                    FwWingsHero(Modifier.padding(horizontal = 20.dp))
+                    MarginVertical(margin = 12.dp)
+                } else {
+                    Image(res = R.drawable.fw_brand_hero)
+                }
                 H2(
                     text = stringResource(id = R.string.about_title),
                     modifier = Modifier

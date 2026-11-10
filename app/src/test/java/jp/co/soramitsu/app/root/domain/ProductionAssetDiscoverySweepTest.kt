@@ -13,6 +13,8 @@ import jp.co.soramitsu.coredb.model.AssetBalanceUpdateItem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeProvider
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.wallet.api.data.BalanceLoader
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.balance.NetworkScanStateStore
 import org.junit.Assert.assertEquals
@@ -21,6 +23,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
+import org.mockito.ArgumentMatchers.anySet
+import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
@@ -103,6 +107,9 @@ class ProductionAssetDiscoverySweepTest {
         val registry = mock(ChainRegistry::class.java)
         `when`(registry.syncedChains).thenReturn(MutableStateFlow(emptyList()))
         `when`(registry.checkChainSyncedUp(chain)).thenReturn(false)
+        val runtimeProvider = mock(RuntimeProvider::class.java)
+        `when`(runtimeProvider.get()).thenReturn(mock(RuntimeSnapshot::class.java))
+        `when`(registry.awaitRuntimeProvider(chain.id)).thenReturn(runtimeProvider)
         val chainsRepository = mock(ChainsRepository::class.java)
         `when`(chainsRepository.getChains()).thenReturn(listOf(chain))
         val account = mock(MetaAccount::class.java).also { account ->
@@ -137,6 +144,69 @@ class ProductionAssetDiscoverySweepTest {
 
         verify(loader).loadBalance(setOf(account))
         verify(assetDao).updateBalanceOrInsertPreservingPreference(update, null)
+    }
+
+    @Test
+    fun `a substrate network's runtime is awaited within the sweep's budget before it is read`() = runTest {
+        val chain = scannableChain("slow-runtime")
+        val registry = mock(ChainRegistry::class.java)
+        `when`(registry.syncedChains).thenReturn(MutableStateFlow(emptyList()))
+        `when`(registry.checkChainSyncedUp(chain)).thenReturn(false)
+        val runtimeProvider = mock(RuntimeProvider::class.java)
+        `when`(runtimeProvider.get()).thenReturn(mock(RuntimeSnapshot::class.java))
+        `when`(registry.awaitRuntimeProvider(chain.id)).thenReturn(runtimeProvider)
+        val (sweep, loader) = sweepOf(chain, registry)
+
+        sweep.scanNextBatch(batchSize = 1)
+
+        val order = inOrder(registry, runtimeProvider, loader)
+        order.verify(registry).setupChain(chain)
+        order.verify(registry).awaitRuntimeProvider(chain.id)
+        order.verify(runtimeProvider).get()
+        order.verify(loader).loadBalance(anySet())
+    }
+
+    @Test
+    fun `an evm network has no runtime to wait for`() = runTest {
+        val chain = scannableChain("evm-network")
+        `when`(chain.isEthereumChain).thenReturn(true)
+        val registry = mock(ChainRegistry::class.java)
+        `when`(registry.syncedChains).thenReturn(MutableStateFlow(emptyList()))
+        `when`(registry.checkChainSyncedUp(chain)).thenReturn(false)
+        val (sweep, loader) = sweepOf(chain, registry)
+
+        sweep.scanNextBatch(batchSize = 1)
+
+        verify(registry, never()).awaitRuntimeProvider(chain.id)
+        verify(loader).loadBalance(anySet())
+    }
+
+    private suspend fun sweepOf(
+        chain: Chain,
+        registry: ChainRegistry
+    ): Pair<ProductionAssetDiscoverySweep, BalanceLoader> {
+        val chainsRepository = mock(ChainsRepository::class.java)
+        `when`(chainsRepository.getChains()).thenReturn(listOf(chain))
+        val account = mock(MetaAccount::class.java).also { account ->
+            `when`(account.id).thenReturn(7L)
+            `when`(account.initialized).thenReturn(true)
+        }
+        val accountRepository = mock(AccountRepository::class.java)
+        `when`(accountRepository.allMetaAccounts()).thenReturn(listOf(account))
+        val loader = mock(BalanceLoader::class.java)
+        `when`(loader.loadBalance(setOf(account))).thenReturn(emptyList())
+        val provider = mock(BalanceLoader.Provider::class.java)
+        `when`(provider.invoke(chain)).thenReturn(loader)
+        val sweep = ProductionAssetDiscoverySweep(
+            chainsRepository = chainsRepository,
+            accountRepository = accountRepository,
+            balanceLoaderProvider = provider,
+            assetDao = mock(AssetDao::class.java),
+            chainRegistry = registry,
+            networkScanStateStore = mock(NetworkScanStateStore::class.java),
+            preferences = mock(Preferences::class.java)
+        )
+        return sweep to loader
     }
 
     @Test

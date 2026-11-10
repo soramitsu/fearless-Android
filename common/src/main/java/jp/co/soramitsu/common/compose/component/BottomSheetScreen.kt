@@ -21,6 +21,9 @@ import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.theme.backgroundBlack
 import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.black72
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
+import jp.co.soramitsu.common.compose.theme.fw.fwSheet
 
 @Composable
 fun BottomSheetScreen(
@@ -30,7 +33,7 @@ fun BottomSheetScreen(
     Column(verticalArrangement = Arrangement.Bottom) {
         MarginVertical(margin = 12.dp)
         Column(
-            modifier = modifier.background(backgroundBlack, RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp))
+            modifier = if (FwRestyle.paletteEnabled) modifier.fwSheet() else modifier.background(backgroundBlack, RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp))
         ) {
             MarginVertical(margin = 2.dp)
             Grip(Modifier.align(Alignment.CenterHorizontally))
@@ -42,7 +45,8 @@ fun BottomSheetScreen(
 
 @Composable
 fun BottomSheetDialog(modifier: Modifier = Modifier, verticalArrangement: Arrangement.Vertical = Arrangement.Top, Content: @Composable ColumnScope.() -> Unit) {
-    val sheetBackgroundModifier = Modifier.background(backgroundBlack, RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp))
+    val sheetBackgroundModifier = if (FwRestyle.paletteEnabled) Modifier.fwSheet()
+    else Modifier.background(backgroundBlack, RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp))
     Column {
         MarginVertical(margin = 12.dp)
         Column(
@@ -72,8 +76,8 @@ fun BottomSheetLayout(
         modifier = modifier,
         sheetState = bottomSheetState,
         sheetShape = RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp),
-        sheetBackgroundColor = backgroundBlack,
-        scrimColor = black72,
+        sheetBackgroundColor = if (FwRestyle.paletteEnabled) LocalFwColors.current.surfaceRaised2 else backgroundBlack,
+        scrimColor = if (FwRestyle.paletteEnabled) LocalFwColors.current.scrim else black72,
         sheetContent = {
             Box(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -98,8 +102,8 @@ fun BottomSheetLayout(
         modifier = modifier,
         sheetState = bottomSheetState,
         sheetShape = RoundedCornerShape(topEnd = 24.dp, topStart = 24.dp),
-        sheetBackgroundColor = backgroundBlack,
-        scrimColor = black72,
+        sheetBackgroundColor = if (FwRestyle.paletteEnabled) LocalFwColors.current.surfaceRaised2 else backgroundBlack,
+        scrimColor = if (FwRestyle.paletteEnabled) LocalFwColors.current.scrim else black72,
         sheetGesturesEnabled = sheetGesturesEnabled,
         sheetContent = {
             Box(modifier = Modifier.fillMaxWidth()) {
@@ -119,6 +123,6 @@ fun Grip(modifier: Modifier) {
         modifier = modifier
             .height(2.dp)
             .width(35.dp)
-            .background(black1, RoundedCornerShape(80.dp))
+            .background(if (FwRestyle.paletteEnabled) LocalFwColors.current.strokeStrong else black1, RoundedCornerShape(80.dp))
     )
 }

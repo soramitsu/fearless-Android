@@ -9,11 +9,10 @@ RAMP_TOKEN_DEBUG=<your_ramp_debug_token>
 RAMP_TOKEN_RELEASE=<your_ramp_release_token>
 COINBASE_APP_ID=<your_coinbase_app_id>
 
-# Google Drive backup web client ID. Release builds must use the client 2.4.1-4.2.0 shipped
-# (SHA-256 pinned in .github/release/android-google-drive-web-client-sha256.txt); debug builds may
-# leave WEB_CLIENT_ID_DEBUG unset. See "Google Drive Backup" in docs/release-checklist.md.
-WEB_CLIENT_ID_DEBUG=<your_google_web_client_id_debug>
-WEB_CLIENT_ID_RELEASE=<your_google_web_client_id_release>
+# Google Drive backup OAuth client (public id, no secret). Optional: unset means project
+# 621183184145's iOS client, whose redirect works from Android with PKCE. Must belong to project
+# 621183184145. See "Google Drive Backup" in docs/release-checklist.md.
+# GOOGLE_DRIVE_OAUTH_CLIENT_ID=621183184145-<client>.apps.googleusercontent.com
 
 # Ethereum blast api nodes keys
 FL_BLAST_API_ETHEREUM_KEY=<your_blast_api_eth_key>
@@ -37,6 +36,9 @@ FL_ANDROID_OKX_PASSPHRASE=<your_okx_passphrase>
 FL_WALLET_CONNECT_PROJECT_ID=<your_wallet_connect_project_id>
 FL_ANDROID_ALCHEMY_API_ETHEREUM_KEY=<your_alchemy_api_eth_key>
 FL_DWELLIR_API_KEY=<your_dwellir_api_key>
+# Nomis multichain score API; sent only to the Nomis API as the X-API-Key and X-ClientId headers.
+FL_NOMIS_API_KEY=<your_nomis_api_key>
+FL_NOMIS_CLIENT_ID=<your_nomis_client_id>
 
 FL_ANDROID_TON_API_KEY=<your_ton_api_key>
 # Optional for local or non-mainnet TON testing. Mainnet always uses https://ti.soramitsu.io.
@@ -44,3 +46,6 @@ FL_ANDROID_TON_INDEXER_URL=<your_ton_indexer_base_url>
 # TON uses TI only after its service-info proves the network; until then the verified registry TonAPI node answers.
 # Set to false once TI serves TON mainnet to use TI only (default true).
 # FL_ANDROID_TON_REGISTRY_NODE_FALLBACK=true
+# Optional Solana mainnet JSON-RPC provider, asked before the selected node and the public nodes: an https
+# URL with a host, the provider key in its path or query. Empty means none; a malformed value fails the build.
+# FL_ANDROID_SOLANA_RPC_URL=https://<your_solana_mainnet_rpc_provider>/<key>

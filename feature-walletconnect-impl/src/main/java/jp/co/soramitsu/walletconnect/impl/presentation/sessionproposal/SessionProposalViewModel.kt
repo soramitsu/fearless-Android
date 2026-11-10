@@ -5,7 +5,8 @@ import co.jp.soramitsu.feature_walletconnect_impl.R
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
 import co.jp.soramitsu.walletconnect.model.ChainChooseResult
-import com.reown.walletkit.client.Wallet
+import co.jp.soramitsu.walletconnect.model.WalletConnectProposal
+import co.jp.soramitsu.walletconnect.model.WalletConnectVerifyContext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.impl.presentation.account.mixin.api.AccountListingMixin
@@ -15,11 +16,16 @@ import jp.co.soramitsu.common.compose.component.InfoItemSetViewState
 import jp.co.soramitsu.common.compose.component.InfoItemViewState
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import jp.co.soramitsu.walletconnect.impl.presentation.WalletConnectMethod
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
+import jp.co.soramitsu.walletconnect.impl.presentation.displayedHost
+import jp.co.soramitsu.walletconnect.impl.presentation.isFlaggedAsScam
+import jp.co.soramitsu.walletconnect.impl.presentation.originWarning
+import jp.co.soramitsu.walletconnect.impl.presentation.scamNotice
 import jp.co.soramitsu.walletconnect.impl.presentation.walletConnectValueOrBack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,10 +49,18 @@ class SessionProposalViewModel @Inject constructor(
 ) : SessionProposalScreenInterface, BaseViewModel() {
 
 //    private val pairingTopic: String? = savedStateHandle[SessionProposalFragment.PAIRING_TOPIC_KEY]
-    private val proposal: Wallet.Model.SessionProposal? = walletConnectValueOrBack(
-        value = WCDelegate.sessionProposalEvent?.first,
+    private val proposalEvent = WCDelegate.sessionProposalEvent
+    private val proposal: WalletConnectProposal? = walletConnectValueOrBack(
+        value = proposalEvent?.first,
         onUnavailable = walletConnectRouter::back
     )
+
+    // Where the dApp really runs, as WalletConnect Verify attested it; unknown without an attestation.
+    private val verifyContext: WalletConnectVerifyContext =
+        proposalEvent?.second ?: WalletConnectVerifyContext.unknown(proposal?.url)
+
+    // Verify reports the dApp's origin as a scam: the proposal is rejected and can never be approved.
+    private val isScamProposal = verifyContext.isFlaggedAsScam
 
     private val selectedOptionalNetworkIds = MutableStateFlow(
         proposal?.optionalNamespaces.orEmpty().flatMap {
@@ -160,6 +174,8 @@ class SessionProposalViewModel @Inject constructor(
 
         SessionProposalViewState(
             sessionProposal = activeProposal,
+            originHost = verifyContext.displayedHost,
+            originWarning = verifyContext.originWarning(resourceManager),
             requiredPermissions = requiredPermissions,
             optionalPermissions = optionalPermissions,
             requiredNetworksSelectorState = requiredNetworksSelectorState,
@@ -173,6 +189,10 @@ class SessionProposalViewModel @Inject constructor(
     init {
         launch {
             val activeProposal = proposal ?: return@launch
+            if (isScamProposal) {
+                rejectScamProposal(activeProposal)
+                return@launch
+            }
             walletConnectInteractor.checkChainsSupported(activeProposal).getOrNull()?.let { isSupported ->
                 if (isSupported.not()) {
                     showError(
@@ -218,9 +238,15 @@ class SessionProposalViewModel @Inject constructor(
     }
 
     private fun callSessionApprove() {
+        // A wallet that re-locked meanwhile approves nothing; the proposal waits for the PIN.
+        if (WalletSessionLock.isLocked()) return
         if (isApproving.value) return
         val activeProposal = proposal ?: run {
             walletConnectRouter.back()
+            return
+        }
+        if (isScamProposal) {
+            rejectScamProposal(activeProposal)
             return
         }
         isApproving.value = true
@@ -238,9 +264,7 @@ class SessionProposalViewModel @Inject constructor(
         }
     }
 
-    private fun onApproveSessionSuccess(
-        activeProposal: Wallet.Model.SessionProposal
-    ): (Wallet.Params.SessionApprove) -> Unit = {
+    private fun onApproveSessionSuccess(activeProposal: WalletConnectProposal): () -> Unit = {
         viewModelScope.launch(Dispatchers.Main.immediate) {
             walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(
                 null,
@@ -250,20 +274,30 @@ class SessionProposalViewModel @Inject constructor(
             )
         }
         isApproving.value = false
-        WCDelegate.refreshConnections()
     }
 
-    private fun onApproveSessionError(error: Wallet.Model.Error) {
+    private fun onApproveSessionError(error: Throwable) {
         isApproving.value = false
         viewModelScope.launch(Dispatchers.Main.immediate) {
             showError(
                 title = resourceManager.getString(R.string.common_error_general_title),
-                message = error.throwable.message.orEmpty(),
+                message = error.message.orEmpty(),
                 positiveButtonText = resourceManager.getString(R.string.common_close),
                 positiveClick = ::callSilentRejectSession,
                 onBackClick = ::callSilentRejectSession
             )
         }
+    }
+
+    private fun rejectScamProposal(activeProposal: WalletConnectProposal) {
+        walletConnectInteractor.rejectSession(proposal = activeProposal, onError = {})
+        showError(
+            title = resourceManager.getString(R.string.common_error_general_title),
+            message = verifyContext.scamNotice(resourceManager),
+            positiveButtonText = resourceManager.getString(R.string.common_close),
+            positiveClick = ::onClose,
+            onBackClick = ::onClose
+        )
     }
 
     override fun onRejectClicked() {
@@ -287,8 +321,7 @@ class SessionProposalViewModel @Inject constructor(
         )
     }
 
-    private fun onRejectSessionSuccess(): (Wallet.Params.SessionReject) -> Unit = {
-        WCDelegate.refreshConnections()
+    private fun onRejectSessionSuccess(): () -> Unit = {
         isRejecting.value = false
         viewModelScope.launch(Dispatchers.Main.immediate) {
             walletConnectRouter.openOperationSuccessAndPopUpToNearestRelatedScreen(

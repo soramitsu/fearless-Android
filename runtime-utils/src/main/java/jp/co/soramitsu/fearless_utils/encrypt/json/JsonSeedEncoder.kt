@@ -8,7 +8,7 @@ import jp.co.soramitsu.fearless_utils.encrypt.json.coders.type.TypeCoderFactory
 import jp.co.soramitsu.fearless_utils.encrypt.json.coders.type.encode
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.fearless_utils.encrypt.model.JsonAccountData
-import org.spongycastle.util.encoders.Base64
+import org.bouncycastle.util.encoders.Base64
 
 @Suppress("EXPERIMENTAL_API_USAGE")
 class JsonSeedEncoder(

@@ -16,9 +16,10 @@ import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.reown.walletkit.client.Wallet
+import co.jp.soramitsu.walletconnect.model.WalletConnectProposal
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
+import jp.co.soramitsu.common.compose.component.AttentionMessage
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.compose.component.CollapsibleView
 import jp.co.soramitsu.common.compose.component.GrayButton
@@ -36,7 +37,11 @@ import jp.co.soramitsu.common.compose.component.WalletNameItemViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 
 data class SessionProposalViewState(
-    val sessionProposal: Wallet.Model.SessionProposal?,
+    val sessionProposal: WalletConnectProposal?,
+    /** The site shown for the dApp: the verified origin, or the claimed URL when it is unverified. */
+    val originHost: String?,
+    /** One short warning when the site is unverified or differs from what the dApp claims. */
+    val originWarning: String?,
     val requiredPermissions: InfoItemSetViewState?,
     val optionalPermissions: InfoItemSetViewState?,
     val requiredNetworksSelectorState: SelectorState?,
@@ -49,6 +54,8 @@ data class SessionProposalViewState(
     companion object {
         val default = SessionProposalViewState(
             sessionProposal = null,
+            originHost = null,
+            originWarning = null,
             requiredPermissions = null,
             optionalPermissions = null,
             requiredNetworksSelectorState = null,
@@ -92,11 +99,15 @@ fun SessionProposalContent(state: SessionProposalViewState, callback: SessionPro
                 InfoItem(
                     state = InfoItemViewState(
                         title = state.sessionProposal?.name,
-                        subtitle = state.sessionProposal?.url,
-                        imageUrl = state.sessionProposal?.icons?.firstOrNull()?.toString(),
+                        subtitle = state.originHost,
+                        imageUrl = state.sessionProposal?.icons?.firstOrNull(),
                         placeholderIcon = R.drawable.ic_dapp_connection
                     )
                 )
+
+                state.originWarning?.let { warning ->
+                    AttentionMessage(message = warning)
+                }
 
                 state.requiredNetworksSelectorState?.let {
                     SelectorWithBorder(
@@ -177,6 +188,8 @@ fun SessionProposalContent(state: SessionProposalViewState, callback: SessionPro
 private fun SessionProposalPreview() {
     val state = SessionProposalViewState(
         sessionProposal = null,
+        originHost = "app.example.org",
+        originWarning = "This site could not be verified. Continue only if you trust it.",
         requiredPermissions = InfoItemSetViewState(
             title = "Some required chain name",
             infoItems = listOf(

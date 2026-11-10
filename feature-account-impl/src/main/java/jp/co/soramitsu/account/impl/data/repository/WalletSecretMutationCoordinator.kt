@@ -23,12 +23,20 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalSt
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore.SubstrateCryptoType
 import jp.co.soramitsu.common.data.storage.encrypt.TonConnectStorageKeys
 import jp.co.soramitsu.common.data.storage.encrypt.WalletCrossStoreMutationMutex
+import jp.co.soramitsu.common.data.storage.encrypt.WalletTonRootReplacementMutex
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelope
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelopes
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretLockedException
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSealPolicy
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSession
 import jp.co.soramitsu.common.utils.SolanaKeyDerivation
 import jp.co.soramitsu.common.utils.TonKeyDerivation
+import jp.co.soramitsu.common.utils.UniversalWalletPassphrase
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.substrateAccountId
+import jp.co.soramitsu.core.crypto.SubstratePasswordRule
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
@@ -45,11 +53,12 @@ import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypair
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
+import jp.co.soramitsu.fearless_utils.encrypt.ton.TonEd25519
+import jp.co.soramitsu.fearless_utils.encrypt.ton.TonMnemonic
 import jp.co.soramitsu.fearless_utils.scale.toHexString
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.withLock
-import org.ton.api.pk.PrivateKeyEd25519
 
 /**
  * Generates collision-resistant identifiers for durable wallet mutations.
@@ -85,7 +94,10 @@ enum class WalletMutationFailureReason {
     IDENTITY_CONFLICT,
     STATE_CONFLICT,
     RECOVERY_REQUIRED,
-    DURABILITY_UNKNOWN
+    DURABILITY_UNKNOWN,
+
+    /** TON Connect apps are connected to the TON key a replacement would change. */
+    CONNECTED_APPS
 }
 
 /**
@@ -206,7 +218,7 @@ class WalletSecretMutationCoordinator private constructor(
             ?: throw IllegalArgumentException("A retained wallet record is required")
         val current = checkNotNull(encryptedPreferences.getDecryptedStringSnapshot(archiveKey))
         check(current.matchesExactSnapshot(expected)) { "Retained data changed after its preview" }
-        val candidate = ArchivedWalletMaterialDecoder().decode(source, current.plaintext)
+        val candidate = ArchivedWalletMaterialDecoder().decode(source, WalletSecretEnvelopes.open(current.plaintext))
             .candidates.single { it.scope == scope }
         currentCoroutineContext().ensureActive()
         val prototype = MetaAccountLocal(
@@ -269,6 +281,19 @@ class WalletSecretMutationCoordinator private constructor(
         tonSecretPlaintext: String
     ): Long = addRoot(existing, after, tonSecretPlaintext, Operation.ADD_TON, TON_SECRET_SUFFIX)
 
+    /**
+     * Swaps a password wallet's universal TON root for its counterpart: the key its words derive
+     * without the BIP39 passphrase for the one the passphrase derives once the old account is
+     * confirmed empty, or back when funds reached the old address while the new one stayed
+     * empty. Both keys come from the words its Substrate or Ethereum secret keeps, and nothing
+     * but the TON identity changes.
+     */
+    suspend fun replaceUniversalTon(
+        existing: MetaAccountLocal,
+        after: MetaAccountLocal,
+        tonSecretPlaintext: String
+    ): Long = addRoot(existing, after, tonSecretPlaintext, Operation.REPLACE_TON, TON_SECRET_SUFFIX)
+
     private suspend fun addRoot(
         existing: MetaAccountLocal,
         after: MetaAccountLocal,
@@ -288,6 +313,17 @@ class WalletSecretMutationCoordinator private constructor(
         )
         requireArgument(operation != Operation.ADD_TON || !encryptedPreferences.hasKey(secretKey(existing.id, TON_SECRET_SUFFIX))) {
             "An existing TON secret must never be replaced by automatic enrollment"
+        }
+        if (operation == Operation.REPLACE_TON) {
+            requireReplaceableUniversalTon(existing, secretPlaintext)
+            // A TON Connect save staged but cancelled before its row insert still told an app
+            // the current address. The TON Connect repository stages under the same mutex.
+            if (journalCall { journalStore.hasTonConnectMutationJournal() }) {
+                throw WalletSecretMutationCoordinatorException(
+                    reason = WalletMutationFailureReason.CONNECTED_APPS,
+                    message = "A pending TON Connect mutation uses the TON key a replacement would change"
+                )
+            }
         }
         val journal = Journal(
             operationId = identifierSource.nextOperationId(),
@@ -317,17 +353,35 @@ class WalletSecretMutationCoordinator private constructor(
             )
             requireExpectedSelection(accounts, current)
             requireNoDedicatedTonAccount(journal)
+            // A connected app knows the old TON address; it must be disconnected first.
+            if (operation == Operation.REPLACE_TON && getTonConnectionSecretOwners(existing.id).isNotEmpty()) {
+                throw WalletSecretMutationCoordinatorException(
+                    reason = WalletMutationFailureReason.CONNECTED_APPS,
+                    message = "TON Connect apps use the TON key a replacement would change"
+                )
+            }
         }
-        stage(journal, secretPlaintexts)
-        reconcileStagedMutation(
-            StagedMutation(
-                journal = journal,
-                secretPlaintexts = secretPlaintexts
+        whileTonRootChanges(operation) {
+            stage(journal, secretPlaintexts)
+            reconcileStagedMutation(
+                StagedMutation(
+                    journal = journal,
+                    secretPlaintexts = secretPlaintexts
+                )
             )
-        )
+        }
 
         existing.id
     }
+
+    // TON readers re-check a stale identity under this lock (TonSecretStore.readForIdentity),
+    // so it spans the whole swap: staged key, Room row and cleared journal.
+    private suspend inline fun <T> whileTonRootChanges(operation: Operation, block: () -> T): T =
+        if (operation == Operation.REPLACE_TON) {
+            WalletTonRootReplacementMutex.instance.withLock { block() }
+        } else {
+            block()
+        }
 
     /**
      * Removes the wallet from active use and durably retains its exact active
@@ -377,10 +431,16 @@ class WalletSecretMutationCoordinator private constructor(
             )
         }
 
-    /** Replays and finalizes the one active mutation, if present. */
+    /**
+     * Replays and finalizes the one active mutation, if present. A replay that
+     * needs SK while the wallet is locked (staged values sealed while it was
+     * unlocked, a sealed root the binding reads, or sealed values a deletion
+     * would archive) leaves the journal exactly as it is and returns; it runs
+     * again after the next unlock. It never reports that as needing recovery.
+     */
     suspend fun reconcilePendingMutation() =
         WalletCrossStoreMutationMutex.instance.withLock {
-            reconcilePendingMutationLocked()
+            reconcilePendingMutationLocked(deferWhileLocked = true)
         }
 
     private suspend fun prepareCreate(prototype: MetaAccountLocal): PreparedCreate {
@@ -564,14 +624,45 @@ class WalletSecretMutationCoordinator private constructor(
         }
     }
 
-    private suspend fun reconcilePendingMutationLocked() {
+    private suspend fun reconcilePendingMutationLocked(deferWhileLocked: Boolean = false) {
         requireDurableStorageHealthy()
-        val staged = journalCall {
-            journalStore.loadStagedMutation()
+        val staged = try {
+            journalCall {
+                journalStore.loadStagedMutation()
+            }
+        } catch (failure: WalletSecretLockedException) {
+            if (deferWhileLocked) return else throw failure
         } ?: return
+        if (deferWhileLocked && removesSealedValuesWhileLocked(staged.journal)) return
 
-        reconcileStagedMutation(staged)
+        try {
+            whileTonRootChanges(staged.journal.operation) { reconcileStagedMutation(staged) }
+        } catch (failure: WalletSecretLockedException) {
+            // Every replay step is idempotent; the rest runs after the next unlock.
+            if (deferWhileLocked) return else throw failure
+        }
     }
+
+    /**
+     * Before the PIN no pass archives a sealed value: a pending deletion that
+     * would move one waits for the next unlock. Its Room change, if already
+     * committed, stays; the orphan pass leaves the keys of a pending journal alone.
+     */
+    private fun removesSealedValuesWhileLocked(journal: Journal): Boolean {
+        if (journal.operation != Operation.DELETE || WalletSecretSession.isOpen()) return false
+        if (journal.secretKeysToRemove.any(::holdsSealedValue)) return true
+        // Replay also discovers V2 keys an early journal did not list; they share the wallet's prefix.
+        return encryptedPreferences.keysWithPrefixes(
+            prefixes = setOf("${journal.metaId}:"),
+            maxResultCount = MAX_SCANNED_KEYS,
+            maxKeyBytes = MAX_SCANNED_KEY_BYTES,
+            maxTotalKeyBytes = MAX_SCANNED_TOTAL_KEY_BYTES
+        ).any { key -> WalletSecretSealPolicy.isSealable(key) && holdsSealedValue(key) }
+    }
+
+    private fun holdsSealedValue(key: String): Boolean =
+        encryptedPreferences.hasKey(key) &&
+            WalletSecretEnvelope.isSealed(encryptedPreferences.getDecryptedStringSnapshot(key)?.plaintext)
 
     private suspend fun reconcileStagedMutation(staged: StagedMutation) {
         requireDurableStorageHealthy()
@@ -582,7 +673,7 @@ class WalletSecretMutationCoordinator private constructor(
 
         when (staged.journal.operation) {
             Operation.CREATE, Operation.RESTORE_ARCHIVE -> applyCreate(staged.journal)
-            Operation.ADD_EVM, Operation.ADD_TON -> applyAddRoot(staged.journal)
+            Operation.ADD_EVM, Operation.ADD_TON, Operation.REPLACE_TON -> applyAddRoot(staged.journal)
             Operation.DELETE -> applyDelete(staged.journal)
         }
 
@@ -593,7 +684,7 @@ class WalletSecretMutationCoordinator private constructor(
                 }
                 Operation.CREATE,
                 Operation.RESTORE_ARCHIVE,
-                Operation.ADD_EVM, Operation.ADD_TON -> {
+                Operation.ADD_EVM, Operation.ADD_TON, Operation.REPLACE_TON -> {
                     journalStore.clear(staged)
                 }
             }
@@ -671,7 +762,7 @@ class WalletSecretMutationCoordinator private constructor(
     }
 
     private suspend fun WalletMutationDatabase.requireNoDedicatedTonAccount(journal: Journal) {
-        if (journal.operation != Operation.ADD_TON) return
+        if (journal.operation != Operation.ADD_TON && journal.operation != Operation.REPLACE_TON) return
         requireState(getAccountChainIds(journal.metaId).none { it.lowercase() in TON_CHAIN_ALIASES }) {
             "A dedicated TON account must not be shadowed by automatic enrollment"
         }
@@ -947,7 +1038,11 @@ class WalletSecretMutationCoordinator private constructor(
                         image = afterImage,
                         plaintext = secretPlaintexts[
                             secretKey(journal.metaId, TON_SECRET_SUFFIX)
-                        ]
+                        ],
+                        universalPassphrases = universalPassphrases(
+                            substratePlaintext = secretPlaintexts[secretKey(journal.metaId, SUBSTRATE_SECRET_SUFFIX)],
+                            ethereumPlaintext = secretPlaintexts[secretKey(journal.metaId, ETHEREUM_SECRET_SUFFIX)]
+                        )
                     )
                 }
                 Operation.ADD_EVM -> {
@@ -960,10 +1055,11 @@ class WalletSecretMutationCoordinator private constructor(
                         ]
                     )
                 }
-                Operation.ADD_TON -> {
+                Operation.ADD_TON, Operation.REPLACE_TON -> {
                     bindOptionalTon(
                         image = journal.afterImage ?: recoveryRequired("A TON journal has no after-image"),
-                        plaintext = secretPlaintexts[secretKey(journal.metaId, TON_SECRET_SUFFIX)]
+                        plaintext = secretPlaintexts[secretKey(journal.metaId, TON_SECRET_SUFFIX)],
+                        universalPassphrases = storedUniversalPassphrases(journal.metaId)
                     )
                 }
                 Operation.DELETE -> {
@@ -973,6 +1069,9 @@ class WalletSecretMutationCoordinator private constructor(
                 }
             }
         } catch (failure: WalletSecretMutationCoordinatorException) {
+            throw failure
+        } catch (failure: WalletSecretLockedException) {
+            // A sealed root the binding reads opens after the PIN; this is no binding failure.
             throw failure
         } catch (failure: Throwable) {
             if (failure is VirtualMachineError || failure is ThreadDeath) {
@@ -1145,7 +1244,8 @@ class WalletSecretMutationCoordinator private constructor(
 
     private fun bindOptionalTon(
         image: PublicAfterImage,
-        plaintext: String?
+        plaintext: String?,
+        universalPassphrases: List<String>
     ) {
         val publicKeyHex = image.tonPublicKeyHex
         if (publicKeyHex == null) {
@@ -1199,20 +1299,84 @@ class WalletSecretMutationCoordinator private constructor(
             MnemonicCreator.fromWords(mnemonicText).words == mnemonicText
         }.getOrDefault(false)
         val validTonMnemonic = runCatching {
-            org.ton.mnemonic.Mnemonic.isValid(mnemonicWords)
+            TonMnemonic.isValid(mnemonicWords)
         }.getOrDefault(false)
         requireSecretBinding(validBip39Mnemonic || validTonMnemonic) {
             "A TON mnemonic is invalid"
         }
-        val mnemonicSeed = org.ton.mnemonic.Mnemonic.toSeed(mnemonicWords)
-        val derivedPrivateKey = PrivateKeyEd25519(mnemonicSeed)
-        val matchesNative = derivedPrivateKey.key.toByteArray().contentEquals(privateKey) &&
-            derivedPrivateKey.publicKey().key.toByteArray().contentEquals(publicKey)
+        val derivedPrivateKey = TonMnemonic.toSeed(mnemonicWords)
+        val matchesNative = try {
+            derivedPrivateKey.contentEquals(privateKey) &&
+                TonEd25519.publicKey(derivedPrivateKey).contentEquals(publicKey)
+        } finally {
+            derivedPrivateKey.fill(0)
+        }
+        // A password wallet's universal TON key derives with its BIP39 passphrase.
         requireSecretBinding(
-            matchesNative || validBip39Mnemonic &&
-                TonKeyDerivation.matchesUniversalMnemonicKeypair(mnemonicText, privateKey, publicKey)
+            matchesNative || validBip39Mnemonic && (listOf("") + universalPassphrases).distinct().any { passphrase ->
+                TonKeyDerivation.matchesUniversalMnemonicKeypair(mnemonicText, privateKey, publicKey, passphrase)
+            }
         ) {
             "A TON mnemonic derives a different keypair"
+        }
+    }
+
+    /** The BIP39 passphrase that the wallet's Substrate or Ethereum path assigns its words. */
+    private fun universalPassphrases(substratePlaintext: String?, ethereumPlaintext: String?): List<String> {
+        val substrate = substratePlaintext?.let { runCatching { SubstrateSecrets.read(it) }.getOrNull() }
+        val ethereum = ethereumPlaintext?.let { runCatching { EthereumSecrets.read(it) }.getOrNull() }
+        val substrateEntropy = substrate?.get(SubstrateSecrets.Entropy)
+        val passphrase = when {
+            substrateEntropy != null -> UniversalWalletPassphrase.resolve(
+                substrate[SubstrateSecrets.SubstrateDerivationPath],
+                ethereum?.get(EthereumSecrets.EthereumDerivationPath),
+                ethereum?.get(EthereumSecrets.Entropy)?.contentEquals(substrateEntropy) == true
+            )
+            ethereum?.get(EthereumSecrets.Entropy) != null ->
+                UniversalWalletPassphrase.ethereumPassword(ethereum[EthereumSecrets.EthereumDerivationPath])
+            else -> ""
+        }
+        return listOfNotNull(passphrase.takeIf(String::isNotEmpty))
+    }
+
+    private fun storedUniversalPassphrases(metaId: Long): List<String> = universalPassphrases(
+        substratePlaintext = storedRootPlaintext(secretKey(metaId, SUBSTRATE_SECRET_SUFFIX)),
+        ethereumPlaintext = storedRootPlaintext(secretKey(metaId, ETHEREUM_SECRET_SUFFIX))
+    )
+
+    /** A stored root, opened. A sealed root while locked throws [WalletSecretLockedException], never "absent". */
+    private fun storedRootPlaintext(key: String): String? {
+        val stored = runCatching { encryptedPreferences.getDecryptedString(key) }.getOrNull() ?: return null
+        return WalletSecretEnvelopes.open(stored)
+    }
+
+    /**
+     * Only a universal root of the same words may be replaced, and only by its counterpart: the
+     * key the passphrase derives for the one the words alone derive, or the reverse. Nothing
+     * else is lost or newly trusted.
+     */
+    private fun requireReplaceableUniversalTon(existing: MetaAccountLocal, replacementPlaintext: String) {
+        val passphrase = storedUniversalPassphrases(existing.id).singleOrNull()
+        requireArgument(passphrase != null) { "Only a password wallet's universal TON root can be replaced" }
+        val current = encryptedPreferences.getDecryptedString(secretKey(existing.id, TON_SECRET_SUFFIX))
+            ?.let { WalletSecretEnvelopes.open(it) }
+        requireArgument(current != null) { "Only an existing TON root can be replaced" }
+        val before = decodeCanonicalSecret(checkNotNull(current), WalletSecretScalePreflight::requireTonV3, TonSecrets::read) { it.toHexString() }
+        val after = decodeCanonicalSecret(replacementPlaintext, WalletSecretScalePreflight::requireTonV3, TonSecrets::read) { it.toHexString() }
+        val words = before[TonSecrets.Seed].decodeToString(throwOnInvalidSequence = true)
+        requireArgument(after[TonSecrets.Seed].contentEquals(before[TonSecrets.Seed])) {
+            "A TON replacement must keep the same words"
+        }
+        val password = checkNotNull(passphrase)
+        fun derivesWith(secret: jp.co.soramitsu.fearless_utils.scale.EncodableStruct<TonSecrets>, bip39Passphrase: String) =
+            TonKeyDerivation.matchesUniversalMnemonicKeypair(words, secret[TonSecrets.PrivateKey], secret[TonSecrets.PublicKey], bip39Passphrase)
+        requireArgument(
+            existing.tonPublicKey?.contentEquals(before[TonSecrets.PublicKey]) == true && (
+                derivesWith(before, "") && derivesWith(after, password) ||
+                    derivesWith(before, password) && derivesWith(after, "")
+                )
+        ) {
+            "A TON replacement must swap a universal key for its counterpart"
         }
     }
 
@@ -1235,40 +1399,51 @@ class WalletSecretMutationCoordinator private constructor(
             ?.takeIf(String::isNotEmpty)
             ?.let(SubstrateJunctionDecoder::decode)
 
-        val entropySeed = entropy?.let {
+        // An import may have opened the account an earlier browser extension made from the path's
+        // password (SubstratePasswordRule); the entropy binds the seed one of the rules gives.
+        val entropySeeds = entropy?.let {
             val mnemonic = MnemonicCreator.fromEntropy(it)
-            SubstrateSeedFactory.deriveSeed32(
-                mnemonicWords = mnemonic.words,
-                password = decodedPath?.password
-            ).seed
-        }
-        if (entropySeed != null && storedSeed != null) {
-            requireSecretBinding(entropySeed.contentEquals(storedSeed)) {
-                "Substrate entropy and seed describe different recovery material"
+            SubstratePasswordRule.distinctFor(decodedPath?.password).map { rule ->
+                SubstrateSeedFactory.deriveSeed32(
+                    mnemonicWords = mnemonic.words,
+                    password = decodedPath?.password,
+                    rule = rule
+                ).seed
             }
         }
-
-        val recoverySeed = entropySeed ?: storedSeed ?: return
-        requireSecretBinding(recoverySeed.size == PRIVATE_KEY_BYTES) {
+        val recoverySeeds = when {
+            entropySeeds == null -> listOfNotNull(storedSeed)
+            storedSeed == null -> entropySeeds
+            else -> {
+                requireSecretBinding(entropySeeds.any { it.contentEquals(storedSeed) }) {
+                    "Substrate entropy and seed describe different recovery material"
+                }
+                listOf(storedSeed)
+            }
+        }
+        if (recoverySeeds.isEmpty()) return
+        requireSecretBinding(recoverySeeds.all { it.size == PRIVATE_KEY_BYTES }) {
             "A Substrate recovery seed has an invalid length"
         }
-        val recoveredKeypair = SubstrateKeypairFactory.generate(
-            encryptionType = encryptionType,
-            seed = recoverySeed,
-            junctions = decodedPath?.junctions.orEmpty()
-        )
-        // schnorrkel draws a fresh random nonce for every soft junction
-        // (`/0`, `//polkadot/0`), so an SR25519 nonce cannot be re-derived.
-        // Any 32-byte nonce signs correctly: the stored one is kept verbatim
-        // and only its shape is checked, by bindOptionalSubstrate.
-        val recoveredNonce = (recoveredKeypair as? Sr25519Keypair)?.nonce
         requireSecretBinding(
-            recoveredKeypair.privateKey.contentEquals(expectedPrivateKey) &&
-                recoveredKeypair.publicKey.contentEquals(expectedPublicKey) &&
-                (
-                    encryptionType == EncryptionType.SR25519 ||
-                        recoveredNonce.contentEqualsNullable(expectedNonce)
-                    )
+            recoverySeeds.any { recoverySeed ->
+                val recoveredKeypair = SubstrateKeypairFactory.generate(
+                    encryptionType = encryptionType,
+                    seed = recoverySeed,
+                    junctions = decodedPath?.junctions.orEmpty()
+                )
+                // schnorrkel draws a fresh random nonce for every soft junction
+                // (`/0`, `//polkadot/0`), so an SR25519 nonce cannot be re-derived.
+                // Any 32-byte nonce signs correctly: the stored one is kept verbatim
+                // and only its shape is checked, by bindOptionalSubstrate.
+                val recoveredNonce = (recoveredKeypair as? Sr25519Keypair)?.nonce
+                recoveredKeypair.privateKey.contentEquals(expectedPrivateKey) &&
+                    recoveredKeypair.publicKey.contentEquals(expectedPublicKey) &&
+                    (
+                        encryptionType == EncryptionType.SR25519 ||
+                            recoveredNonce.contentEqualsNullable(expectedNonce)
+                        )
+            }
         ) {
             "Substrate recovery material derives a different keypair"
         }
@@ -1623,6 +1798,9 @@ class WalletSecretMutationCoordinator private constructor(
         private const val MAX_TON_MNEMONIC_CHARS = 8_192
         private const val MAX_DERIVATION_PATH_CHARS = 2_048
         private const val MAX_SECRET_PLAINTEXT_CHARS = 1_048_576
+        private const val MAX_SCANNED_KEY_BYTES = 1_024
+        private const val MAX_SCANNED_KEYS = 8_192
+        private const val MAX_SCANNED_TOTAL_KEY_BYTES = 1_048_576
         private const val HEX_RADIX = 16
 
         private val KEYPAIR_BINDING_MESSAGE =

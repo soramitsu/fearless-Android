@@ -36,7 +36,6 @@ import jp.co.soramitsu.polkamarkt.api.PolkamarktRouter
 import jp.co.soramitsu.polkamarkt.api.PolkamarktInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
-import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.model.DeFiAccountRequirement
 import jp.co.soramitsu.common.model.DeFiAvailability
@@ -281,14 +280,9 @@ class MainHubViewModel @Inject constructor(
         val recoveryRequired = chainsWithAccount.isNotEmpty() && chainsWithAccount.all { chain ->
             accountRepository.isSigningRecoveryRequired(wallet.id, chain)
         }
+        // Key names only: sealed secrets stay closed while the wallet is locked.
         val hasSigningMaterial = chainsWithAccount.any { chain ->
-            runCatching {
-                if (wallet.hasChainAccount(chain.id)) {
-                    accountRepository.getChainAccountSecrets(wallet.id, chain.id) != null
-                } else {
-                    accountRepository.getSubstrateSecrets(wallet.id) != null
-                }
-            }.getOrDefault(false)
+            runCatching { accountRepository.hasSigningMaterial(wallet.id, chain) }.getOrDefault(false)
         }
         val runtimeReady = chainsWithAccount.any { chain ->
             chainRegistry.getRuntimeOrNull(chain.id) != null
@@ -419,12 +413,9 @@ class MainHubViewModel @Inject constructor(
         val wallet = accountRepository.getSelectedMetaAccount()
         val hasAccount = wallet.accountId(chain) != null
         val recoveryRequired = hasAccount && accountRepository.isSigningRecoveryRequired(wallet.id, chain)
+        // Key names only: sealed secrets stay closed while the wallet is locked.
         val hasSigningMaterial = hasAccount && !recoveryRequired && runCatching {
-            if (wallet.hasChainAccount(chain.id)) {
-                accountRepository.getChainAccountSecrets(wallet.id, chain.id) != null
-            } else {
-                accountRepository.getSubstrateSecrets(wallet.id) != null
-            }
+            accountRepository.hasSigningMaterial(wallet.id, chain)
         }.getOrDefault(false)
         val reason = when {
             !hasAccount -> "Add a SORA account to continue."

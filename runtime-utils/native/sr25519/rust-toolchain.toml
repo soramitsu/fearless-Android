@@ -1,0 +1,11 @@
+# The exact Rust toolchain that builds libsr25519java.so. Changing it changes
+# the binaries: rebuild and update reproducible-build.json in the same commit.
+[toolchain]
+channel = "1.99.1"
+profile = "minimal"
+targets = [
+    "aarch64-linux-android",
+    "armv7-linux-androideabi",
+    "i686-linux-android",
+    "x86_64-linux-android",
+]

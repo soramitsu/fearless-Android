@@ -161,11 +161,13 @@ enum class SwapStatusAppearance(
 ) {
     COMPLETED(greenText, R.string.all_done_alert_success_stub),
     PENDING(white, R.string.transaction_status_pending),
-    FAILED(white, R.string.transaction_status_failed)
+    FAILED(white, R.string.transaction_status_failed),
+    UNKNOWN(white, R.string.common_unknown)
 }
 
 fun Operation.Status.mapToStatusAppearance() = when (this) {
     Operation.Status.COMPLETED -> SwapStatusAppearance.COMPLETED
     Operation.Status.PENDING -> SwapStatusAppearance.PENDING
     Operation.Status.FAILED -> SwapStatusAppearance.FAILED
+    Operation.Status.UNKNOWN -> SwapStatusAppearance.UNKNOWN
 }

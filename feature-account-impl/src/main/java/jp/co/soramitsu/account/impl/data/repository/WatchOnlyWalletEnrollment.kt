@@ -137,7 +137,7 @@ internal class DefaultWatchEnrollmentSecretInventory(
 ) : WatchEnrollmentSecretInventory {
     override fun requireReady() {
         encryptedPreferences.requireDurableStorageHealthy()
-        check(journalStore.load() == null) { "A wallet mutation is pending" }
+        check(journalStore.loadIntent() == null) { "A wallet mutation is pending" }
         check(!encryptedPreferences.hasKey(PortableWalletCohortJournalStore.JOURNAL_KEY)) {
             "A portable cohort stage is pending"
         }

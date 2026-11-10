@@ -71,6 +71,51 @@ class CrossChainSubmissionJournalTest {
     }
 
     @Test
+    fun `an included transfer stays on record until it is dismissed`() {
+        val journal = store.journal()
+        val retained = journal.retain(SCOPE, DETAILS, SIGNED, INTENT, ANCHOR, VALIDITY)
+
+        journal.settleIncluded(retained)
+
+        // The scope is free for a new transfer, and a restarted process still knows this one was sent.
+        assertNull(journal.read(SCOPE))
+        journal.requireAvailable(SCOPE)
+        assertEquals(retained, store.journal().readIncluded(SCOPE))
+        assertNull(journal.readIncluded(SCOPE.copy(walletId = 2)))
+        assertThrows(IllegalStateException::class.java) { journal.dismissIncluded(retained.copy(acknowledged = true)) }
+
+        journal.dismissIncluded(retained)
+
+        assertNull(store.journal().readIncluded(SCOPE))
+        journal.dismissIncluded(retained) // already gone: nothing to do
+        assertTrue(store.values.isEmpty())
+    }
+
+    @Test
+    fun `the next transfer of the scope supersedes the included record`() {
+        val journal = store.journal()
+        journal.settleIncluded(journal.retain(SCOPE, DETAILS, SIGNED, INTENT, ANCHOR, VALIDITY))
+
+        val next = journal.retain(SCOPE, DETAILS, OTHER_SIGNED, INTENT, ANCHOR, VALIDITY)
+
+        assertNull(journal.readIncluded(SCOPE))
+        assertEquals(next, journal.read(SCOPE))
+    }
+
+    @Test
+    fun `an inclusion that is not durably recorded blocks the scope`() {
+        val journal = store.journal()
+        val retained = journal.retain(SCOPE, DETAILS, SIGNED, INTENT, ANCHOR, VALIDITY)
+        store.failCommit = true
+
+        assertThrows(IllegalStateException::class.java) { journal.settleIncluded(retained) }
+        store.failCommit = false
+
+        assertThrows(IllegalStateException::class.java) { journal.read(SCOPE) }
+        assertThrows(IllegalStateException::class.java) { journal.readIncluded(SCOPE) }
+    }
+
+    @Test
     fun `details with any text and a missing validity window round trip`() {
         val details = DETAILS.copy(recipient = "0x" + "ab".repeat(20), symbol = "xcDOT ünïcode")
         val retained = store.journal().retain(SCOPE, details, SIGNED, INTENT, ANCHOR, null)

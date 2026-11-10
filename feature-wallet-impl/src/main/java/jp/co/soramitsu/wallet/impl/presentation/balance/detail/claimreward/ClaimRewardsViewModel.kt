@@ -55,6 +55,7 @@ class ClaimRewardsViewModel @Inject constructor(
     private val chainId = savedStateHandle.get<ChainId>(ClaimRewardsFragment.KEY_CHAIN_ID) ?: error("Required data not provided for reward claiming")
 
     private val claimRewardsRequestInProgressFlow = MutableStateFlow(false)
+    val isClaimInProgress: StateFlow<Boolean> = claimRewardsRequestInProgressFlow
 
     private val defaultButtonState = ButtonViewState(
         resourceManager.getString(R.string.common_confirm),
@@ -164,6 +165,8 @@ class ClaimRewardsViewModel @Inject constructor(
     }.stateIn(this, SharingStarted.Eagerly, ClaimRewardsViewState.default)
 
     override fun onNavigationClick() {
+        // This screen keeps its toolbar during a claim, and leaving would cancel the claim and drop its result.
+        if (claimRewardsRequestInProgressFlow.value) return
         router.back()
     }
 

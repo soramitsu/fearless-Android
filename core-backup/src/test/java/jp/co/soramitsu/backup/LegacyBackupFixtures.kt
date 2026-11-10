@@ -84,6 +84,7 @@ internal class FakeStorage : Storage {
     val savedFileIds = mutableListOf<String>()
     var appListCalls = 0
     var webListCalls = 0
+    var session = false
     var signInCalls = 0
     var logoutCalls = 0
     var touched = false
@@ -114,6 +115,8 @@ internal class FakeStorage : Storage {
         signInCalls++
         return true
     }
+
+    override suspend fun hasSession(): Boolean = session
 
     override suspend fun saveFile(
         name: String,

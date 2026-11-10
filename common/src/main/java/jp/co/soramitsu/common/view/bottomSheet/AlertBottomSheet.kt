@@ -1,17 +1,25 @@
 package jp.co.soramitsu.common.view.bottomSheet
 
 import android.content.Context
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.CallSuper
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.view.isVisible
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwShape
+import jp.co.soramitsu.common.compose.theme.fw.FwStandard
+import jp.co.soramitsu.common.compose.theme.fw.fwSheetNavigationBar
 import jp.co.soramitsu.common.view.PrimaryButton
 
 class AlertBottomSheet(
@@ -40,6 +48,8 @@ class AlertBottomSheet(
     override fun onCreate(savedInstanceState: Bundle?) {
         setContentView(R.layout.bottom_sheet_alert)
         super.onCreate(savedInstanceState)
+        fwSheetNavigationBar()
+        if (FwRestyle.paletteEnabled) paintSunlitSheet()
 
         findViewById<TextView>(R.id.alertTitle)?.text = title
         findViewById<TextView>(R.id.alertMessage)?.text = message
@@ -62,6 +72,20 @@ class AlertBottomSheet(
             dismissCallback()
         }
         setCancelable(cancelable)
+    }
+
+    // Startup and network alerts sit on the same lit sheet as every other sheet, with a rounded top.
+    private fun paintSunlitSheet() {
+        val radius = FwShape.SHEET_TOP.value * context.resources.displayMetrics.density
+        findViewById<View>(R.id.alertScroll)?.background = null
+        findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.background = GradientDrawable().apply {
+            cornerRadii = floatArrayOf(radius, radius, radius, radius, 0f, 0f, 0f, 0f)
+            setColor(FwStandard.surfaceRaised2.toArgb())
+        }
+        // The confirm button's glow falls outside its bounds: its parents must not cut it into a square.
+        val buttons = findViewById<ViewGroup>(R.id.alertButtons)
+        buttons?.clipChildren = false
+        (buttons?.parent as? ViewGroup)?.clipChildren = false
     }
 
     class Builder(private val context: Context) {

@@ -1,391 +1,436 @@
-#![cfg(target_os = "android")]
-#![allow(non_snake_case)]
+//! JNI bindings for sr25519 (schnorrkel), the signature scheme of Polkadot,
+//! Kusama and SORA accounts in Fearless Wallet.
+//!
+//! The ABI is unchanged from the library shipped up to Android 4.3.1: every
+//! export below exists under both `jp.co.soramitsu.fearless_utils.encrypt.Sr25519`
+//! and `jp.co.soramitsu.shared_utils.encrypt.Sr25519`, takes and returns the same
+//! byte-array layouts, and throws `java.lang.Exception` with the same messages
+//! (see `keys.rs`). Changes against the legacy library:
+//! - a refused keypair no longer puts the keypair bytes into the exception text;
+//! - a chain code that is not 32 bytes throws instead of aborting the process;
+//! - an Ed25519-form secret whose scalar is not canonical returns `null` from
+//!   `fromEd25519Bytes` instead of an unusable secret;
+//! - secret inputs and outputs are wiped from native memory before returning.
 
-use jni::JNIEnv;
-use jni::objects::{JClass, JString, JObject};
-use jni::sys::{jbyteArray, jboolean, jsize};
-use jni::errors::{Result as JniResult, Error as JniError, ErrorKind};
-use schnorrkel::{
-    derive::{CHAIN_CODE_LENGTH, ChainCode, Derivation}, ExpansionMode, Keypair, MiniSecretKey, PublicKey,
-    SecretKey, Signature};
-use std::ptr;
+mod keys;
 
-const SIGNING_CTX: &'static [u8] = b"substrate";
+use std::any::Any;
+use std::panic::{AssertUnwindSafe, catch_unwind};
 
-/// Size of input SEED for derivation, bytes
-pub const SR25519_SEED_SIZE: jsize = 32;
+use jni::errors::{Error as JniError, ErrorPolicy};
+use jni::objects::{JByteArray, JString};
+use jni::strings::{JNIStr, JNIString};
+use jni::sys::{jboolean, jclass};
+use jni::{Env, EnvUnowned, jni_str};
+use zeroize::Zeroizing;
 
-/// Size of CHAINCODE, bytes
-pub const SR25519_CHAINCODE_SIZE: jsize = 32;
+use keys::Rejection;
 
-/// Size of SR25519 PUBLIC KEY, bytes
-pub const SR25519_PUBLIC_SIZE: jsize = 32;
+/// Why a native call failed.
+#[derive(Debug)]
+enum NativeError {
+    /// A JNI call failed, for example on a `null` argument.
+    Jni(JniError),
+    /// The input was refused by the sr25519 layer.
+    Rejected(Rejection),
+}
 
-/// Size of SR25519 PRIVATE (SECRET) KEY, which consists of [32 bytes key | 32 bytes nonce]
-pub const SR25519_SECRET_SIZE: jsize = 64;
+impl From<JniError> for NativeError {
+    fn from(error: JniError) -> Self {
+        NativeError::Jni(error)
+    }
+}
 
-/// Size of SR25519 SIGNATURE, bytes
-pub const SR25519_SIGNATURE_SIZE: jsize = 64;
+impl From<Rejection> for NativeError {
+    fn from(rejection: Rejection) -> Self {
+        NativeError::Rejected(rejection)
+    }
+}
 
-/// Size of SR25519 KEYPAIR. [32 bytes key | 32 bytes nonce | 32 bytes public]
-pub const SR25519_KEYPAIR_SIZE: jsize = 96;
-
-macro_rules! r#try_or_throw {
-    ($jni_env: ident, $expr:expr, $ret: expr) => {
-        match $expr {
-            JniResult::Ok(val) => val,
-            JniResult::Err(err) => {
-                $jni_env.throw_new("java/lang/Exception", err.description()).unwrap();
-                return $ret;
-            }
+impl NativeError {
+    fn message(&self) -> JNIString {
+        match self {
+            NativeError::Rejected(rejection) => JNIString::from(rejection.message()),
+            // The legacy library reported a null argument as "null pointer".
+            NativeError::Jni(JniError::NullPtr(_)) => JNIString::from("null pointer"),
+            NativeError::Jni(_) => JNIString::from("JNI error"),
         }
-    };
-    ($expr:expr,) => {
-        $crate::r#try!($expr)
-    };
-}
-
-macro_rules! r#try_or_throw_null {
-    ($jni_env: ident, $expr:expr) => {
-        try_or_throw!($jni_env, $expr, ptr::null_mut());
     }
 }
 
-/// ChainCode construction helper
-fn create_cc(data: &[u8]) -> ChainCode {
-    let mut cc = [0u8; CHAIN_CODE_LENGTH];
+type NativeResult<T> = Result<T, NativeError>;
 
-    cc.copy_from_slice(&data);
-
-    ChainCode(cc)
-}
-
-/// Keypair helper function.
-fn create_from_seed(seed: &[u8]) -> JniResult<Keypair> {
-    match MiniSecretKey::from_bytes(seed) {
-        Ok(mini) => return JniResult::Ok(mini.expand_to_keypair(ExpansionMode::Ed25519)),
-        Err(_) => return JniResult::Err(
-            JniError::from_kind(ErrorKind::Msg("Provided seed is invalid".to_string()))),
+/// Throws `java.lang.Exception` unless an exception is already pending.
+fn throw_exception(env: &mut Env, message: impl AsRef<JNIStr>) {
+    if !env.exception_check() {
+        // throw_new reports the thrown exception as Err(JavaException).
+        let _ = env.throw_new(jni_str!("java/lang/Exception"), message.as_ref());
     }
 }
 
-/// Keypair helper function.
-fn create_from_pair(pair: &[u8]) -> JniResult<Keypair> {
-    match Keypair::from_bytes(pair) {
-        Ok(pair) => return JniResult::Ok(pair),
-        Err(_) => return JniResult::Err(
-            JniError::from_kind(ErrorKind::Msg(format!("Provided pair is invalid: {:?}", pair)))),
+/// Maps errors and panics to `java.lang.Exception`, returning `null`/`false`.
+/// Panic payloads are never formatted: they could describe secret input.
+struct ThrowException;
+
+impl<T: Default> ErrorPolicy<T, NativeError> for ThrowException {
+    type Captures<'unowned_env_local: 'native_method, 'native_method> = ();
+
+    fn on_error<'unowned_env_local: 'native_method, 'native_method>(
+        env: &mut Env<'unowned_env_local>,
+        _captures: &mut Self::Captures<'unowned_env_local, 'native_method>,
+        error: NativeError,
+    ) -> jni::errors::Result<T> {
+        throw_exception(env, error.message());
+        Ok(T::default())
+    }
+
+    fn on_panic<'unowned_env_local: 'native_method, 'native_method>(
+        env: &mut Env<'unowned_env_local>,
+        _captures: &mut Self::Captures<'unowned_env_local, 'native_method>,
+        payload: Box<dyn Any + Send + 'static>,
+    ) -> jni::errors::Result<T> {
+        if let Err(drop_panic) = catch_unwind(AssertUnwindSafe(|| drop(payload))) {
+            std::mem::forget(drop_panic);
+        }
+        throw_exception(env, jni_str!("sr25519 native failure"));
+        Ok(T::default())
     }
 }
 
-/// PublicKey helper
-fn create_public(public: &[u8]) -> JniResult<PublicKey> {
-    match PublicKey::from_bytes(public) {
-        Ok(public) => return JniResult::Ok(public),
-        Err(_) => return JniResult::Err(
-            JniError::from_kind(ErrorKind::Msg("Provided public key is invalid.".to_string()))),
-    }
+/// Copies a Java byte array into a buffer that is wiped when dropped.
+fn read_bytes(env: &Env, array: &JByteArray) -> NativeResult<Zeroizing<Vec<u8>>> {
+    let length = array.len(env)?;
+    let mut bytes = Zeroizing::new(vec![0u8; length]);
+    // SAFETY: i8 and u8 have the same size, alignment and validity, so the
+    // buffer can be viewed as the jbyte slice that GetByteArrayRegion fills.
+    let region = unsafe { &mut *(bytes.as_mut_slice() as *mut [u8] as *mut [i8]) };
+    array.get_region(env, 0, region)?;
+    Ok(bytes)
 }
 
-/// SecretKey helper
-fn create_secret(secret: &[u8]) -> JniResult<SecretKey> {
-    match SecretKey::from_bytes(secret) {
-        Ok(secret) => return JniResult::Ok(secret),
-        Err(_) => return JniResult::Err(
-            JniError::from_kind(ErrorKind::Msg("Provided private key is invalid.".to_string()))),
-    }
+fn new_byte_array<'local>(env: &mut Env<'local>, bytes: &[u8]) -> NativeResult<JByteArray<'local>> {
+    Ok(env.byte_array_from_slice(bytes)?)
 }
 
-#[no_mangle]
-pub unsafe extern "system" fn Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_test<'a>(
-    jni_env: JNIEnv<'a>,
-    _: JClass,
-    hello_what: JString) -> JString<'a> {
-    let hello_what_str = try_or_throw!(jni_env, jni_env.get_string(hello_what), JObject::null().into());
-    let s = format!("Hello, {}!", hello_what_str.to_str().unwrap_or("<invalid string>"));
-    println!("{}", s);
-    try_or_throw!(jni_env, jni_env.new_string(s), JObject::null().into())
+fn greeting<'local>(mut env: EnvUnowned<'local>, name: JString<'local>) -> JString<'local> {
+    env.with_env(|env| -> NativeResult<JString<'local>> {
+        let name = name.try_to_string(env)?;
+        Ok(env.new_string(keys::greeting(&name))?)
+    })
+    .resolve::<ThrowException>()
 }
 
-/**
- * Verify a message and its corresponding against a public key;
- *
- * @param signature:  verify this signature
- * @param message:    arbitrary message
- * @param public_key: verify with this public key
- * @return true if signature is valid, false otherwise
- */
-#[no_mangle]
-pub unsafe extern "system" fn Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_verify(
-    jni_env: JNIEnv,
-    _: JClass,
-    signature_bytes: jbyteArray, message: jbyteArray, public_key: jbyteArray) -> jboolean {
-
-    let public_key_vec = try_or_throw!(jni_env, jni_env.convert_byte_array(public_key), 0);
-    let message_vec = try_or_throw!(jni_env, jni_env.convert_byte_array(message), 0);
-    let signature_vec = try_or_throw!(jni_env, jni_env.convert_byte_array(signature_bytes), 0);
-    let signature = match Signature::from_bytes(signature_vec.as_slice()) {
-        Ok(signature) => signature,
-        Err(_) => return 0,
-    };
-    let public = try_or_throw!(jni_env, create_public(public_key_vec.as_slice()), 0);
-    let res = public.verify_simple(SIGNING_CTX, message_vec.as_slice(), &signature);
-    if res.is_ok() { 1 } else { 0 }
-}
-
-/**
- * Sign a message
- * The combination of both public and private key must be provided.
- * This is effectively equivalent to a keypair.
- *
- * @param public_key: public key
- * @param secret:     private key (secret)
- * @param message:    Arbitrary message
- * @return the signature
- */
-#[no_mangle]
-pub unsafe extern "system" fn Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_sign(
-    jni_env: JNIEnv,
-    _: JClass,
-    public_key: jbyteArray, secret: jbyteArray, message: jbyteArray) -> jbyteArray {
-
-    let public_key_vec = try_or_throw_null!(jni_env, jni_env.convert_byte_array(public_key));
-    let secret_vec = try_or_throw_null!(jni_env, jni_env.convert_byte_array(secret));
-    let message_vec = try_or_throw_null!(jni_env, jni_env.convert_byte_array(message));
-
-    let secret = try_or_throw_null!(jni_env, create_secret(secret_vec.as_slice()));
-    let public = try_or_throw_null!(jni_env, create_public(public_key_vec.as_slice()));
-    let signature = secret.sign_simple(SIGNING_CTX, message_vec.as_slice(),
-                     &public);
-
-    try_or_throw_null!(jni_env, jni_env.byte_array_from_slice(signature.to_bytes().as_ref()))
-}
-
-/**
- * Perform a derivation on a secret
- *
- * @param pair: existing keypair - input buffer of SR25519_KEYPAIR_SIZE bytes
- * @param cc:   chaincode - input buffer of SR25519_CHAINCODE_SIZE bytes
- * @return pre-allocated output buffer of SR25519_KEYPAIR_SIZE bytes
- */
-#[no_mangle]
-pub unsafe extern "system" fn Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_deriveKeypairHard(
-    jni_env: JNIEnv,
-    _: JClass,
-   pair: jbyteArray, cc: jbyteArray,
-) -> jbyteArray {
-    let pair_vec = try_or_throw_null!(jni_env, jni_env.convert_byte_array(pair));
-    let cc_vec = try_or_throw_null!(jni_env, jni_env.convert_byte_array(cc));
-    let kp = try_or_throw_null!(jni_env, create_from_pair(pair_vec.as_slice()));
-    let mini_secret_key = kp.secret.hard_derive_mini_secret_key(
-        Some(create_cc(cc_vec.as_slice())), &[]).0;
-    let res_kp = mini_secret_key.expand_to_keypair(ExpansionMode::Ed25519);
-    try_or_throw_null!(jni_env, jni_env.byte_array_from_slice(res_kp.to_bytes().as_ref()))
-}
-
-/**
- * Perform a derivation on a secret
- *
- * @param pair: existing keypair - input buffer of SR25519_KEYPAIR_SIZE bytes
- * @param cc:   chaincode - input buffer of SR25519_CHAINCODE_SIZE bytes
- * @return keypair: pre-allocated output buffer of SR25519_KEYPAIR_SIZE bytes
- */
-#[no_mangle]
-pub unsafe extern "system" fn Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_deriveKeypairSoft(
-    jni_env: JNIEnv,
-    _: JClass,
-    pair: jbyteArray,
-    cc: jbyteArray,
-) -> jbyteArray {
-    let pair_vec = try_or_throw_null!(jni_env, jni_env.convert_byte_array(pair));
-    let cc_vec = try_or_throw_null!(jni_env, jni_env.convert_byte_array(cc));
-    let kp = try_or_throw_null!(jni_env, create_from_pair(pair_vec.as_slice()));
-    let mini_secret_key = kp.derived_key_simple(
-        create_cc(cc_vec.as_slice()), &[]).0;
-    try_or_throw_null!(jni_env, jni_env.byte_array_from_slice(mini_secret_key.to_bytes().as_ref()))
-}
-
-/**
- * Perform a derivation on a publicKey
- *
- * @param public_key: public key - input buffer of SR25519_PUBLIC_SIZE bytes
- * @param cc:         chaincode - input buffer of SR25519_CHAINCODE_SIZE bytes
- * @return pre-allocated output buffer of SR25519_PUBLIC_SIZE bytes
- */
-#[no_mangle]
-pub unsafe extern "system" fn Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_derivePublicSoft(
-    jni_env: JNIEnv,
-    _: JClass,
-    pair: jbyteArray,
-    cc: jbyteArray,
-) -> jbyteArray {
-    let pair_vec = try_or_throw_null!(jni_env, jni_env.convert_byte_array(pair));
-    let cc_vec = try_or_throw_null!(jni_env, jni_env.convert_byte_array(cc));
-    let public_key = try_or_throw_null!(jni_env, create_public(pair_vec.as_slice()));
-    let derived_key = public_key.derived_key_simple(create_cc(cc_vec.as_slice()), &[]).0;
-    try_or_throw_null!(jni_env, jni_env.byte_array_from_slice(derived_key.to_bytes().as_ref()))
-}
-
-/**
- * Generate a key pair.
- *
- * @param seed: generation seed - input buffer of SR25519_SEED_SIZE bytes
- * @return keypair [32b key | 32b nonce | 32b public], pre-allocated output buffer of SR25519_KEYPAIR_SIZE bytes
- */
-#[no_mangle]
-pub unsafe extern "system" fn Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_keypairFromSeed(
-    jni_env: JNIEnv,
-    _: JClass,
-    seed: jbyteArray) -> jbyteArray {
-    let seed_vec = try_or_throw_null!(jni_env, jni_env.convert_byte_array(seed));
-    let kp = try_or_throw_null!(jni_env, create_from_seed(&seed_vec));
-    try_or_throw_null!(jni_env, jni_env.byte_array_from_slice(kp.to_bytes().as_ref()))
-}
-
-/**
- * Converts a secret key, provided as an array of 64 bytes,
- * to a corresponding ed25519 expanded secret key
- * @return an array of 64 bytes, with the first 32 bytes being the secret scalar shifted ed25519 style,
- * and the last 32 bytes being the seed for nonces
- */
-#[no_mangle]
-pub unsafe extern "system" fn Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_toEd25519Bytes(
-    jni_env: JNIEnv,
-    _: JClass,
-    secret: jbyteArray
-) -> jbyteArray {
-    let secret_vec = try_or_throw_null!(jni_env, jni_env.convert_byte_array(secret));
-    let secret = try_or_throw_null!(jni_env, create_secret(secret_vec.as_slice()));
-    let secret_ed_bytes = secret.to_ed25519_bytes();
-    try_or_throw_null!(jni_env, jni_env.byte_array_from_slice(&secret_ed_bytes))
-}
-
-/**
- * Converts an ed25519 expanded secret key to a corresponding sr25519 secret key.
- * @return an array of 64 bytes, with the first 32 bytes being the secret scalar
- * represented canonically, and the last 32 bytes being the seed for nonces
- */
-#[no_mangle]
-pub unsafe extern "system" fn Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_fromEd25519Bytes(
-    jni_env: JNIEnv,
-    _: JClass,
-    expanded_ed_secret: jbyteArray
-) -> jbyteArray {
-    let ed_secret_vec = try_or_throw_null!(jni_env, jni_env.convert_byte_array(expanded_ed_secret));
-    let secret = match SecretKey::from_ed25519_bytes(ed_secret_vec.as_slice()) {
-        Ok(s) => s,
-        Err(_) => return ptr::null_mut()
-    };
-    try_or_throw_null!(jni_env, jni_env.byte_array_from_slice(secret.to_bytes().as_ref()))
-}
-
-// Backward-compatible JNI exports for shared_utils package names used by downstream apps.
-#[no_mangle]
-pub unsafe extern "system" fn Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_test<'a>(
-    jni_env: JNIEnv<'a>,
-    clazz: JClass,
-    hello_what: JString,
-) -> JString<'a> {
-    Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_test(jni_env, clazz, hello_what)
-}
-
-#[no_mangle]
-pub unsafe extern "system" fn Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_verify(
-    jni_env: JNIEnv,
-    clazz: JClass,
-    signature_bytes: jbyteArray,
-    message: jbyteArray,
-    public_key: jbyteArray,
+fn verify<'local>(
+    mut env: EnvUnowned<'local>,
+    signature: JByteArray<'local>,
+    message: JByteArray<'local>,
+    public_key: JByteArray<'local>,
 ) -> jboolean {
-    Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_verify(
-        jni_env,
-        clazz,
-        signature_bytes,
-        message,
-        public_key,
-    )
+    env.with_env(|env| -> NativeResult<jboolean> {
+        let public_key = read_bytes(env, &public_key)?;
+        let message = read_bytes(env, &message)?;
+        let signature = read_bytes(env, &signature)?;
+        Ok(keys::verify(&signature, &message, &public_key)?)
+    })
+    .resolve::<ThrowException>()
 }
 
-#[no_mangle]
-pub unsafe extern "system" fn Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_sign(
-    jni_env: JNIEnv,
-    clazz: JClass,
-    public_key: jbyteArray,
-    secret: jbyteArray,
-    message: jbyteArray,
-) -> jbyteArray {
-    Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_sign(
-        jni_env,
-        clazz,
-        public_key,
-        secret,
-        message,
-    )
+fn sign<'local>(
+    mut env: EnvUnowned<'local>,
+    public_key: JByteArray<'local>,
+    secret: JByteArray<'local>,
+    message: JByteArray<'local>,
+) -> JByteArray<'local> {
+    env.with_env(|env| -> NativeResult<JByteArray<'local>> {
+        let public_key = read_bytes(env, &public_key)?;
+        let secret = read_bytes(env, &secret)?;
+        let message = read_bytes(env, &message)?;
+        let signature = keys::sign(&public_key, &secret, &message)?;
+        new_byte_array(env, &signature)
+    })
+    .resolve::<ThrowException>()
 }
 
-#[no_mangle]
-pub unsafe extern "system" fn Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_deriveKeypairHard(
-    jni_env: JNIEnv,
-    clazz: JClass,
-    pair: jbyteArray,
-    cc: jbyteArray,
-) -> jbyteArray {
-    Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_deriveKeypairHard(
-        jni_env, clazz, pair, cc,
-    )
+fn derive_keypair_hard<'local>(
+    mut env: EnvUnowned<'local>,
+    keypair: JByteArray<'local>,
+    chain_code: JByteArray<'local>,
+) -> JByteArray<'local> {
+    env.with_env(|env| -> NativeResult<JByteArray<'local>> {
+        let keypair = read_bytes(env, &keypair)?;
+        let chain_code = read_bytes(env, &chain_code)?;
+        let child = keys::derive_keypair_hard(&keypair, &chain_code)?;
+        new_byte_array(env, &child[..])
+    })
+    .resolve::<ThrowException>()
 }
 
-#[no_mangle]
-pub unsafe extern "system" fn Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_deriveKeypairSoft(
-    jni_env: JNIEnv,
-    clazz: JClass,
-    pair: jbyteArray,
-    cc: jbyteArray,
-) -> jbyteArray {
-    Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_deriveKeypairSoft(
-        jni_env, clazz, pair, cc,
-    )
+fn derive_keypair_soft<'local>(
+    mut env: EnvUnowned<'local>,
+    keypair: JByteArray<'local>,
+    chain_code: JByteArray<'local>,
+) -> JByteArray<'local> {
+    env.with_env(|env| -> NativeResult<JByteArray<'local>> {
+        let keypair = read_bytes(env, &keypair)?;
+        let chain_code = read_bytes(env, &chain_code)?;
+        let child = keys::derive_keypair_soft(&keypair, &chain_code)?;
+        new_byte_array(env, &child[..])
+    })
+    .resolve::<ThrowException>()
 }
 
-#[no_mangle]
-pub unsafe extern "system" fn Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_derivePublicSoft(
-    jni_env: JNIEnv,
-    clazz: JClass,
-    pair: jbyteArray,
-    cc: jbyteArray,
-) -> jbyteArray {
-    Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_derivePublicSoft(
-        jni_env, clazz, pair, cc,
-    )
+fn derive_public_soft<'local>(
+    mut env: EnvUnowned<'local>,
+    public_key: JByteArray<'local>,
+    chain_code: JByteArray<'local>,
+) -> JByteArray<'local> {
+    env.with_env(|env| -> NativeResult<JByteArray<'local>> {
+        let public_key = read_bytes(env, &public_key)?;
+        let chain_code = read_bytes(env, &chain_code)?;
+        let child = keys::derive_public_soft(&public_key, &chain_code)?;
+        new_byte_array(env, &child)
+    })
+    .resolve::<ThrowException>()
 }
 
-#[no_mangle]
-pub unsafe extern "system" fn Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_keypairFromSeed(
-    jni_env: JNIEnv,
-    clazz: JClass,
-    seed: jbyteArray,
-) -> jbyteArray {
-    Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_keypairFromSeed(jni_env, clazz, seed)
+fn keypair_from_seed<'local>(
+    mut env: EnvUnowned<'local>,
+    seed: JByteArray<'local>,
+) -> JByteArray<'local> {
+    env.with_env(|env| -> NativeResult<JByteArray<'local>> {
+        let seed = read_bytes(env, &seed)?;
+        let keypair = keys::keypair_from_seed(&seed)?;
+        new_byte_array(env, &keypair[..])
+    })
+    .resolve::<ThrowException>()
 }
 
-#[no_mangle]
-pub unsafe extern "system" fn Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_toEd25519Bytes(
-    jni_env: JNIEnv,
-    clazz: JClass,
-    secret: jbyteArray,
-) -> jbyteArray {
-    Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_toEd25519Bytes(jni_env, clazz, secret)
+fn to_ed25519_bytes<'local>(
+    mut env: EnvUnowned<'local>,
+    secret: JByteArray<'local>,
+) -> JByteArray<'local> {
+    env.with_env(|env| -> NativeResult<JByteArray<'local>> {
+        let secret = read_bytes(env, &secret)?;
+        let expanded = keys::to_ed25519_bytes(&secret)?;
+        new_byte_array(env, &expanded[..])
+    })
+    .resolve::<ThrowException>()
 }
 
-#[no_mangle]
-pub unsafe extern "system" fn Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_fromEd25519Bytes(
-    jni_env: JNIEnv,
-    clazz: JClass,
-    expanded_ed_secret: jbyteArray,
-) -> jbyteArray {
-    Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_fromEd25519Bytes(
-        jni_env,
-        clazz,
-        expanded_ed_secret,
-    )
+fn from_ed25519_bytes<'local>(
+    mut env: EnvUnowned<'local>,
+    expanded: JByteArray<'local>,
+) -> JByteArray<'local> {
+    env.with_env(|env| -> NativeResult<JByteArray<'local>> {
+        let expanded = read_bytes(env, &expanded)?;
+        // A refused key returns null without an exception, as before.
+        match keys::from_ed25519_bytes(&expanded) {
+            Some(secret) => new_byte_array(env, &secret[..]),
+            None => Ok(JByteArray::default()),
+        }
+    })
+    .resolve::<ThrowException>()
+}
+
+// Exports for jp.co.soramitsu.fearless_utils.encrypt.Sr25519.
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_test<'local>(
+    env: EnvUnowned<'local>,
+    _class: jclass,
+    hello_what: JString<'local>,
+) -> JString<'local> {
+    greeting(env, hello_what)
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_verify<'local>(
+    env: EnvUnowned<'local>,
+    _class: jclass,
+    signature: JByteArray<'local>,
+    message: JByteArray<'local>,
+    public_key: JByteArray<'local>,
+) -> jboolean {
+    verify(env, signature, message, public_key)
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_sign<'local>(
+    env: EnvUnowned<'local>,
+    _class: jclass,
+    public_key: JByteArray<'local>,
+    secret: JByteArray<'local>,
+    message: JByteArray<'local>,
+) -> JByteArray<'local> {
+    sign(env, public_key, secret, message)
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_deriveKeypairHard<
+    'local,
+>(
+    env: EnvUnowned<'local>,
+    _class: jclass,
+    keypair: JByteArray<'local>,
+    chain_code: JByteArray<'local>,
+) -> JByteArray<'local> {
+    derive_keypair_hard(env, keypair, chain_code)
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_deriveKeypairSoft<
+    'local,
+>(
+    env: EnvUnowned<'local>,
+    _class: jclass,
+    keypair: JByteArray<'local>,
+    chain_code: JByteArray<'local>,
+) -> JByteArray<'local> {
+    derive_keypair_soft(env, keypair, chain_code)
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_derivePublicSoft<
+    'local,
+>(
+    env: EnvUnowned<'local>,
+    _class: jclass,
+    public_key: JByteArray<'local>,
+    chain_code: JByteArray<'local>,
+) -> JByteArray<'local> {
+    derive_public_soft(env, public_key, chain_code)
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_keypairFromSeed<
+    'local,
+>(
+    env: EnvUnowned<'local>,
+    _class: jclass,
+    seed: JByteArray<'local>,
+) -> JByteArray<'local> {
+    keypair_from_seed(env, seed)
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_toEd25519Bytes<
+    'local,
+>(
+    env: EnvUnowned<'local>,
+    _class: jclass,
+    secret: JByteArray<'local>,
+) -> JByteArray<'local> {
+    to_ed25519_bytes(env, secret)
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_jp_co_soramitsu_fearless_1utils_encrypt_Sr25519_fromEd25519Bytes<
+    'local,
+>(
+    env: EnvUnowned<'local>,
+    _class: jclass,
+    expanded_ed_secret: JByteArray<'local>,
+) -> JByteArray<'local> {
+    from_ed25519_bytes(env, expanded_ed_secret)
+}
+
+// Exports for jp.co.soramitsu.shared_utils.encrypt.Sr25519, kept for apps that
+// load this library under the shared_utils package name.
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_test<'local>(
+    env: EnvUnowned<'local>,
+    _class: jclass,
+    hello_what: JString<'local>,
+) -> JString<'local> {
+    greeting(env, hello_what)
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_verify<'local>(
+    env: EnvUnowned<'local>,
+    _class: jclass,
+    signature: JByteArray<'local>,
+    message: JByteArray<'local>,
+    public_key: JByteArray<'local>,
+) -> jboolean {
+    verify(env, signature, message, public_key)
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_sign<'local>(
+    env: EnvUnowned<'local>,
+    _class: jclass,
+    public_key: JByteArray<'local>,
+    secret: JByteArray<'local>,
+    message: JByteArray<'local>,
+) -> JByteArray<'local> {
+    sign(env, public_key, secret, message)
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_deriveKeypairHard<
+    'local,
+>(
+    env: EnvUnowned<'local>,
+    _class: jclass,
+    keypair: JByteArray<'local>,
+    chain_code: JByteArray<'local>,
+) -> JByteArray<'local> {
+    derive_keypair_hard(env, keypair, chain_code)
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_deriveKeypairSoft<
+    'local,
+>(
+    env: EnvUnowned<'local>,
+    _class: jclass,
+    keypair: JByteArray<'local>,
+    chain_code: JByteArray<'local>,
+) -> JByteArray<'local> {
+    derive_keypair_soft(env, keypair, chain_code)
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_derivePublicSoft<
+    'local,
+>(
+    env: EnvUnowned<'local>,
+    _class: jclass,
+    public_key: JByteArray<'local>,
+    chain_code: JByteArray<'local>,
+) -> JByteArray<'local> {
+    derive_public_soft(env, public_key, chain_code)
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_keypairFromSeed<
+    'local,
+>(
+    env: EnvUnowned<'local>,
+    _class: jclass,
+    seed: JByteArray<'local>,
+) -> JByteArray<'local> {
+    keypair_from_seed(env, seed)
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_toEd25519Bytes<'local>(
+    env: EnvUnowned<'local>,
+    _class: jclass,
+    secret: JByteArray<'local>,
+) -> JByteArray<'local> {
+    to_ed25519_bytes(env, secret)
+}
+
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_jp_co_soramitsu_shared_1utils_encrypt_Sr25519_fromEd25519Bytes<
+    'local,
+>(
+    env: EnvUnowned<'local>,
+    _class: jclass,
+    expanded_ed_secret: JByteArray<'local>,
+) -> JByteArray<'local> {
+    from_ed25519_bytes(env, expanded_ed_secret)
 }

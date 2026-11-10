@@ -18,7 +18,9 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
 import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
-import jp.co.soramitsu.common.compose.theme.fw.LocalFwEffects
+import jp.co.soramitsu.common.compose.theme.fw.FwMotionKind
+import jp.co.soramitsu.common.compose.theme.fw.FwMotionMode
+import jp.co.soramitsu.common.compose.theme.fw.fwMotion
 import jp.co.soramitsu.common.compose.theme.fw.FwTextRole
 import jp.co.soramitsu.common.compose.theme.fw.fwTextStyle
 import androidx.compose.foundation.border
@@ -45,7 +47,7 @@ import jp.co.soramitsu.common.compose.theme.white08
 fun FearlessProgress(modifier: Modifier = Modifier) {
     if (FwRestyle.isEnabled(FwSurface.Loading)) {
         val c = LocalFwColors.current
-        val still = LocalFwEffects.current.reduceMotion
+        val still = fwMotion.mode(FwMotionKind.SyncSweep) != FwMotionMode.Full
         Row(
             modifier = modifier.widthIn(max = 280.dp).fillMaxWidth()
                 .background(c.surfaceRaised, RoundedCornerShape(16.dp))

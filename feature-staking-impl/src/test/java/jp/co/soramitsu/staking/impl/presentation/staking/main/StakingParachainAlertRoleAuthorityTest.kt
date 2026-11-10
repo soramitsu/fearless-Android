@@ -68,6 +68,7 @@ class StakingParachainAlertRoleAuthorityTest {
     private val selected = mock<StakingSharedState> {
         on { selectionRevision } doReturn revision
         on { selectionItem } doReturn selections
+        on { settledSelection } doReturn selections
         on { currentAssetFlow() } doReturn assets
         on { assetWithChain } doReturn metadata
     }

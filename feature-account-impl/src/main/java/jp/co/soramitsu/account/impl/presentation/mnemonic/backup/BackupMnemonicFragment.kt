@@ -3,11 +3,13 @@ package jp.co.soramitsu.account.impl.presentation.mnemonic.backup
 import android.app.Activity
 import android.os.Bundle
 import android.text.method.DigitsKeyListener
+import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.account.impl.presentation.common.SecureScreenGuard
 import jp.co.soramitsu.account.impl.presentation.view.advanced.AdvancedBlockView.FieldState
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.EncryptionTypeChooserBottomSheetDialog
 import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.CryptoTypeModel
@@ -16,7 +18,7 @@ import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
-import jp.co.soramitsu.common.utils.isGooglePlayServicesAvailable
+import jp.co.soramitsu.common.utils.canOpenHttpsLinks
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_account_impl.R
@@ -45,6 +47,10 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
 
     private val binding by viewBinding(FragmentBackupMnemonicBinding::bind)
 
+    // The recovery phrase must never reach a screenshot, a recording, a cast
+    // or the recents thumbnail.
+    private val secureScreen = SecureScreenGuard(this, warnAboutScreenReaders = true)
+
     override val viewModel: BackupMnemonicViewModel by viewModels()
 
     private val launcher = registerForActivityResult(
@@ -55,6 +61,26 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
         } else {
             viewModel.onGoogleSignInFailed(GoogleSignInResult.parse(result.resultCode, result.data))
         }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        secureScreen.onViewCreated()
+        super.onViewCreated(view, savedInstanceState)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        secureScreen.onStart()
+    }
+
+    override fun onStop() {
+        secureScreen.onStop()
+        super.onStop()
+    }
+
+    override fun onDestroyView() {
+        secureScreen.onDestroyView()
+        super.onDestroyView()
     }
 
     override fun initViews() {
@@ -99,11 +125,12 @@ class BackupMnemonicFragment : BaseFragment<BackupMnemonicViewModel>(R.layout.fr
                     launcher
                 )
             }
-            val isGoogleAvailable = context?.isGooglePlayServicesAvailable() == true
+            val isGoogleAvailable = context?.canOpenHttpsLinks() == true
             googleBackupLayout.isVisible = isGoogleAvailable && viewModel.isShowBackupWithGoogle
             googleBackupButton.setOnClickListener {
                 viewModel.onGoogleBackupClick(
                     advancedBlockView.getSubstrateDerivationPath(),
+                    advancedBlockView.getEthereumDerivationPath(),
                     launcher
                 )
             }

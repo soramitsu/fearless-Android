@@ -2,7 +2,6 @@ package jp.co.soramitsu.common.utils
 
 import io.ktor.util.decodeBase64Bytes
 import io.ktor.util.encodeBase64
-import org.ton.api.pub.PublicKeyEd25519
 import org.ton.block.AddrStd
 import org.ton.block.StateInit
 import org.ton.boc.BagOfCells
@@ -32,13 +31,17 @@ fun initializeTonAddressCode() {
     v4r2Code
 }
 
+private const val TON_PUBLIC_KEY_SIZE = 32
+
 private fun v4r2SmartContractAddress(publicKey: ByteArray): AddrStd {
-    val pubkey = PublicKeyEd25519.decode(publicKey)
+    // The first 32 bytes, as the TL decoding of the key this replaced read them.
+    require(publicKey.size >= TON_PUBLIC_KEY_SIZE) { "TON public key must be $TON_PUBLIC_KEY_SIZE bytes" }
+    val pubkey = publicKey.copyOf(TON_PUBLIC_KEY_SIZE)
 
     val v4r2StateCell = CellBuilder.createCell {
         storeUInt(0, 32)
         storeUInt(walletId, 32)
-        storeBytes(pubkey.key.toByteArray())
+        storeBytes(pubkey)
         storeBit(false)
     }
 

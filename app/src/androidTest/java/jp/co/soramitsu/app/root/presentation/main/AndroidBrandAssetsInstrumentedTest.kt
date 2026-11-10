@@ -28,6 +28,7 @@ class AndroidBrandAssetsInstrumentedTest {
     @Test fun mergedBrandResourcesRenderAtShippedIconAndHeroSizes() {
         val resources = listOf(
             Triple("colour-hero", R.drawable.fw_brand_hero, Pair(738, 152)),
+            Triple("wide-wings-badge-mark", R.drawable.fw_brand_wings, Pair(1113, 306)),
             Triple("line-badge-48", R.drawable.fw_brand_badge, Pair(48, 48)),
             Triple("solid-badge-24", R.drawable.fw_brand_badge_small, Pair(24, 24)),
             Triple("compact-mark-24", R.drawable.ic_fearless_bird, Pair(24, 24)),
@@ -64,8 +65,19 @@ class AndroidBrandAssetsInstrumentedTest {
             val theme = ContextThemeWrapper(context, jp.co.soramitsu.app.R.style.Theme_Soramitsu_Fearless_Starting)
             val attributes = theme.obtainStyledAttributes(intArrayOf(android.R.attr.windowSplashScreenAnimatedIcon))
             try {
-                assertEquals(R.drawable.fw_brand_badge, attributes.getResourceId(0, 0))
-                save("android12-starting-icon", render(attributes.getDrawable(0)!!, 288, 288))
+                assertEquals(R.drawable.fw_splash_icon, attributes.getResourceId(0, 0))
+                val icon = render(attributes.getDrawable(0)!!, 288, 288)
+                // Android keeps only the centre 192 dp of this 288 dp icon: the whole badge must fit inside.
+                for (y in 0 until 288) for (x in 0 until 288) {
+                    val outside = (x - 144) * (x - 144) + (y - 144) * (y - 144) > 98 * 98
+                    if (outside) assertEquals("The badge leaves the system's mask at $x/$y", 0, Color.alpha(icon.getPixel(x, y)))
+                }
+                fun whiteBetween(from: Int, until: Int) = (120 until 170).sumOf { y ->
+                    (from until until).count { x -> Color.red(icon.getPixel(x, y)) > 200 && Color.green(icon.getPixel(x, y)) > 200 }
+                }
+                assertTrue("The left wing tip must show", whiteBetween(50, 66) > 0)
+                assertTrue("The right wing tip must show", whiteBetween(222, 238) > 0)
+                save("android12-starting-icon", icon)
             } finally { attributes.recycle() }
         }
     }

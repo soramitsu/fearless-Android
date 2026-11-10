@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.job
 import kotlinx.coroutines.runBlocking
@@ -35,11 +36,15 @@ import org.mockito.kotlin.whenever
 import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 class StakingCatalogAvailabilityTest {
-    private fun chain(name: String = "Initial chain", withAsset: Boolean = true): Chain {
+    private fun chain(
+        name: String = "Initial chain",
+        withAsset: Boolean = true,
+        staking: CoreAsset.StakingType = CoreAsset.StakingType.RELAYCHAIN
+    ): Chain {
         val asset = mock(CoreAsset::class.java)
         whenever(asset.id).thenReturn("0")
         whenever(asset.chainId).thenReturn("a")
-        whenever(asset.staking).thenReturn(CoreAsset.StakingType.RELAYCHAIN)
+        whenever(asset.staking).thenReturn(staking)
         val chain = mock(Chain::class.java)
         whenever(chain.id).thenReturn("a")
         whenever(chain.name).thenReturn(name)
@@ -133,6 +138,22 @@ class StakingCatalogAvailabilityTest {
         Fixture().use {
             it.catalog.value = emptyList()
             assertEquals(emptyList<String>(), withTimeoutOrNull(150) { it.state.availableToSelect().map { item -> item.chainId } })
+        }
+    }
+
+    @Test
+    fun removedStakingSettlesTheStoredChoiceAsUnavailableWithoutReplacingIt() = runBlocking {
+        Fixture().use {
+            assertEquals("a", it.state.settledSelectionOrNull()?.chainId)
+            // Relay staking left the catalog (as on Polkadot and Kusama after the Asset Hub migration).
+            it.catalog.value = listOf(chain(staking = CoreAsset.StakingType.UNSUPPORTED))
+            val settledUnavailable = withTimeoutOrNull(1_000) {
+                it.state.settledSelection.first { selection -> selection == null }
+                true
+            }
+            assertEquals(true, settledUnavailable)
+            assertNull(it.state.settledSelectionOrNull())
+            assertEquals(emptyList<String>(), it.state.availableToSelect().map { item -> item.chainId })
         }
     }
 }

@@ -44,6 +44,7 @@ import jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.account.impl.presentation.recovery.SavedEndpointsFragment
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.InitializationStep
+import jp.co.soramitsu.common.data.storage.envelope.PinVerification
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.app.root.presentation.WalletRootActivity
 import jp.co.soramitsu.app.root.presentation.RootViewModel
@@ -128,7 +129,7 @@ class SavedEndpointAttachmentAuthenticationInstrumentedTest {
         var expectedSql = retainedSql83
         assertPersistentEquals(expectedSql, captureSnapshot("after-startup"))
         assertEquals(PinHealth.HEALTHY, runBlocking(Dispatchers.IO) { graph.accountRepository().getPinHealth() })
-        assertEquals(PUBLIC_PIN, runBlocking(Dispatchers.IO) { graph.accountRepository().getPinCode() })
+        assertEquals(PinVerification.CORRECT, runBlocking(Dispatchers.IO) { graph.accountRepository().verifyPinCode(PUBLIC_PIN) })
         val title = text(R.string.saved_endpoints_title)
         compose.waitUntil(15_000) { compose.onAllNodesWithText(title).fetchSemanticsNodes().size == 1 }
         compose.onNodeWithText(title).performScrollTo().assertIsDisplayed().performClick()
@@ -305,7 +306,7 @@ class SavedEndpointAttachmentAuthenticationInstrumentedTest {
             }
             baselinePreferences = diagnostic.getJSONObject("afterPreferences")
         }
-        heartbeatEvidence = SavedEndpointHeartbeatEvidence(baselinePreferences, args)
+        heartbeatEvidence = SavedEndpointHeartbeatEvidence(baselinePreferences)
         val path = context.getDatabasePath("app.db")
         check(path.isFile && path.length() in 1..67_108_864)
         val sql = SQLiteDatabase.openDatabase(path.path, null, SQLiteDatabase.OPEN_READONLY).use { db ->
@@ -358,7 +359,7 @@ class SavedEndpointAttachmentAuthenticationInstrumentedTest {
         result
     }
 
-    /** Exact SQL and preferences except the explicit PIN counter and validated one-day Firebase append. */
+    /** Exact SQL and preferences except the explicit PIN counter; a Firebase heartbeat an older version left must stay unchanged. */
     private fun assertPersistentEquals(expectedSql: JSONObject, observed: JSONObject, failedAttempts: Int = 0, exactPreferenceBytes: Boolean = false) {
         try { heartbeatEvidence.observe(observed) }
         finally { writeProof(observed.getString("phase"), observed) }

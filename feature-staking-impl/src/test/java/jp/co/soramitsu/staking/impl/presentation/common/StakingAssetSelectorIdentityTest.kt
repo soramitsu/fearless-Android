@@ -9,11 +9,13 @@ import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
@@ -51,6 +53,7 @@ class StakingAssetSelectorIdentityTest {
         for (rows in listOf(listOf(a, b), listOf(b, a))) {
             val shared = mock<StakingSharedState>()
             whenever(shared.selectionItem).thenReturn(flowOf(selections[1]))
+            whenever(shared.settledSelectionOrNull()).thenReturn(selections[1])
             whenever(shared.currentAssetFlow()).thenReturn(flowOf(b))
             whenever(shared.availableToSelect()).thenReturn(selections)
             whenever(shared.availableAssetsToSelect()).thenReturn(rows)
@@ -78,6 +81,7 @@ class StakingAssetSelectorIdentityTest {
         val foreign = StakingAssetSelection.Pool("beta", "native")
         val shared = mock<StakingSharedState>()
         whenever(shared.selectionItem).thenReturn(flowOf(selected))
+        whenever(shared.settledSelectionOrNull()).thenReturn(selected)
         whenever(shared.currentAssetFlow()).thenReturn(flowOf(alpha))
         whenever(shared.availableToSelect()).thenReturn(listOf(foreign, selected))
         whenever(shared.availableAssetsToSelect()).thenReturn(listOf(alpha))
@@ -96,6 +100,7 @@ class StakingAssetSelectorIdentityTest {
         val selected = StakingAssetSelection.RelayChainStaking("alpha", "native")
         val shared = mock<StakingSharedState>()
         whenever(shared.selectionItem).thenReturn(flowOf(selected))
+        whenever(shared.settledSelectionOrNull()).thenReturn(selected)
         whenever(shared.currentAssetFlow()).thenReturn(flowOf(exact))
         whenever(shared.availableToSelect()).thenReturn(listOf(selected))
         whenever(shared.availableAssetsToSelect()).thenReturn(listOf(wrong, exact))
@@ -141,6 +146,25 @@ class StakingAssetSelectorIdentityTest {
         assertEquals("unavailable", current.assetBalance)
         assertEquals("", current.imageUrl)
         assertEquals("", current.chainName)
+    }
+
+    @Test fun storedChoiceThatIsNoLongerOfferedStillOpensTheChooser() = runTest {
+        val beta = asset("beta", "native", 500)
+        val offered = StakingAssetSelection.RelayChainStaking("beta", "native")
+        val shared = mock<StakingSharedState>()
+        // The stored choice (for example Polkadot relay staking) left the catalog: no selection ever arrives.
+        whenever(shared.selectionItem).thenReturn(emptyFlow())
+        whenever(shared.currentAssetFlow()).thenReturn(emptyFlow())
+        whenever(shared.settledSelectionOrNull()).thenReturn(null)
+        whenever(shared.availableToSelect()).thenReturn(listOf(offered))
+        whenever(shared.availableAssetsToSelect()).thenReturn(listOf(beta))
+        val selector = StakingAssetSelector(shared, backgroundScope)
+        selector.assetSelectorClicked()
+        runCurrent()
+        val payload = requireNotNull(selector.showAssetChooser.value).peekContent()
+        assertEquals(listOf(offered), payload.data.map { it.selectionItem })
+        assertNull(payload.selected)
+        verify(shared, never()).update(any())
     }
 
 }

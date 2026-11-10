@@ -54,7 +54,9 @@ data class Operation(
     }
 
     enum class Status {
-        PENDING, COMPLETED, FAILED;
+        PENDING, COMPLETED, FAILED,
+        /** Closed without a verifiable outcome; the user checks the balance and explorer. */
+        UNKNOWN;
 
         companion object {
             fun fromSuccess(success: Boolean): Status {

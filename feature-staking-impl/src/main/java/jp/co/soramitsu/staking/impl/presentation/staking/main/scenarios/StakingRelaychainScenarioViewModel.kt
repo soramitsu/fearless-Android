@@ -21,6 +21,7 @@ import jp.co.soramitsu.common.validation.CompositeValidation
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.ValidationSystem
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.runtime.assethub.AssetHubStaking
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.api.data.StakingType
@@ -139,7 +140,11 @@ class StakingRelaychainScenarioViewModel(
     }.stateIn(baseViewModel.stakingStateScope, SharingStarted.WhileSubscribed(5_000), defaultAmountInputState)
 
     private val estimatedEarnings = combine(enteredAmountFlow, currentAssetFlow) { amount, asset ->
-        calculateReturns(asset, amount.orZero())
+        // Reward data that cannot be read (an unreachable Hub, say) leaves the estimate unknown, not the app closed.
+        runCatching { calculateReturns(asset, amount.orZero()) }.getOrElse { error ->
+            if (error is CancellationException) throw error
+            ReturnsModel.default
+        }
     }.stateIn(baseViewModel.stakingStateScope, SharingStarted.WhileSubscribed(5_000), ReturnsModel.default)
 
     private val welcomeStakingValidationSystem = ValidationSystem(
@@ -436,7 +441,7 @@ class StakingRelaychainScenarioViewModel(
     }
 
     override suspend fun networkInfo(): Flow<LoadingState<StakingNetworkInfoModel>> {
-        return combine(
+        val info: Flow<StakingNetworkInfoModel> = combine(
             scenarioInteractor.observeNetworkInfoState().map { it as NetworkInfo.RelayChain },
             stakingInteractor.currentAssetFlow()
         ) { networkInfo, asset ->
@@ -471,7 +476,13 @@ class StakingRelaychainScenarioViewModel(
                 totalStakeFiat,
                 networkInfo.nominatorsCount.toString()
             )
-        }.withLoading()
+        }
+        return info.withLoading().catch { error ->
+            // An Asset Hub period that cannot be read is reported; the screen keeps loading instead of crashing.
+            if (error is CancellationException) throw error
+            emit(LoadingState.Loading())
+            baseViewModel.showError(error)
+        }
     }
 
     override suspend fun alerts(): Flow<LoadingState<List<AlertModel>>> {
@@ -626,7 +637,14 @@ internal fun mapStashNoneStakeStatus(status: StashNoneStatus, eraDisplay: String
     }
 }
 
-private fun StakingState.Stash.supportsPayouts(): Boolean {
+private fun StakingState.Stash.supportsPayouts(): Boolean = relayPayoutsSupported(chain)
+
+/**
+ * A staking Asset Hub finds pending payouts on chain and has no staking indexer, so it always offers Payouts; other
+ * networks find them through their staking indexer.
+ */
+internal fun relayPayoutsSupported(chain: Chain): Boolean {
+    if (AssetHubStaking.isHub(chain.id)) return true
     val supportedTypes = setOf(
         Chain.ExternalApi.Section.Type.SUBQUERY,
         Chain.ExternalApi.Section.Type.SUBSQUID,

@@ -23,7 +23,7 @@ class UniversalWalletRegistryContractTest {
         val json = Gson().toJson(registry)
         assertTrue(json.contains("\"ecosystem\":\"solana\""))
         assertTrue(json.contains("\"kind\":\"indexer\""))
-        assertTrue(json.contains("\"kind\":\"torii-mcp\""))
+        assertTrue(json.contains("\"kind\":\"torii\""))
         assertTrue(json.contains("\"readOnly\":true"))
         assertTrue(json.contains("\"features\":[\"transfer\"]"))
     }
@@ -82,8 +82,9 @@ class UniversalWalletRegistryContractTest {
         val taira = registry.chains.first { it.id == "taira-testnet" }
         assertTrue(taira.features == listOf("transfer"))
         assertTrue(taira.endpoints.any {
-            it.kind == UniversalWalletRegistryEndpointKind.ToriiMcp &&
-                it.url == "https://taira.sora.org/v1/mcp" &&
+            it.id == "taira-testnet-torii" &&
+                it.kind == UniversalWalletRegistryEndpointKind.Torii &&
+                it.url == "https://taira.sora.org" &&
                 !it.readOnly
         })
 
@@ -91,10 +92,27 @@ class UniversalWalletRegistryContractTest {
         assertTrue(!nexus.enabledByDefault)
         assertTrue(nexus.features == listOf("transfer", "offline-cash", "sccp", "governance"))
         assertTrue(nexus.endpoints.any {
-            it.kind == UniversalWalletRegistryEndpointKind.ToriiMcp &&
-                it.url == "https://minamoto.sora.org/v1/mcp" &&
+            it.id == "sora-nexus-mainnet-torii" &&
+                it.kind == UniversalWalletRegistryEndpointKind.Torii &&
+                it.url == "https://minamoto.sora.org" &&
                 !it.readOnly
         })
+
+        // Wallet calls go straight to Torii REST routes; no default endpoint is an MCP tool endpoint.
+        val endpoints = registry.chains.flatMap { it.endpoints }
+        assertTrue(endpoints.none { it.kind == UniversalWalletRegistryEndpointKind.ToriiMcp })
+        assertTrue(endpoints.none { it.url.contains("/mcp") })
+    }
+
+    @Test
+    fun `reads torii-mcp endpoints from older registries`() {
+        val endpoint = Gson().fromJson(
+            """{"id":"taira-torii-mcp","kind":"torii-mcp","url":"https://taira.sora.org","readOnly":false}""",
+            UniversalWalletRegistryEndpoint::class.java
+        )
+
+        assertTrue(endpoint.kind == UniversalWalletRegistryEndpointKind.ToriiMcp)
+        assertTrue(endpoint.validationErrors().isEmpty())
     }
 
     @Test
@@ -196,9 +214,9 @@ class UniversalWalletRegistryContractTest {
         features = listOf("transfer"),
         endpoints = listOf(
             UniversalWalletRegistryEndpoint(
-                id = "taira-torii-mcp",
-                kind = UniversalWalletRegistryEndpointKind.ToriiMcp,
-                url = "https://taira.sora.org/v1/mcp",
+                id = "taira-torii",
+                kind = UniversalWalletRegistryEndpointKind.Torii,
+                url = "https://taira.sora.org",
                 readOnly = false
             )
         )

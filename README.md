@@ -49,14 +49,31 @@ COINBASE_APP_ID=stub
 Partner identifiers are loaded from `local.properties` or environment variables
 so public builds do not require committed release config.
 
-### Firebase properties
+### Google Drive backup sign-in (no Firebase, no Play services)
 
-The checked-in `app/src/*/google-services.json` files are public placeholders
-with real package names but no live Firebase project IDs, API keys, OAuth
-clients, or certificate hashes. Governed production release and Play-track
-distribution builds must replace them from the private CI overlay before
-publishing. The IAS smoke lane below is the explicit exception: it accepts only
-the public placeholder and must not receive the private overlay.
+The app's own code uses no Google Play services, Play Core, Firebase, `googleid`
+or Google API client library, and no `google-services.json` is processed (the
+Firebase Messaging and Play services libraries still in the release graph come
+only from the Reown WalletConnect SDK). Google Drive wallet backup signs in with the app's
+own OAuth 2.0 authorization-code flow with PKCE (S256) in the user's browser
+(`core-backup` `oauth/`, screens in `feature-account-impl` `google_signin/`) and
+talks to the Drive v3 REST API over OkHttp (`core-backup` `GoogleDriveApi`). The
+refresh token is kept only in the app's encrypted preferences; access tokens
+live in memory. Backups keep the layout every earlier version, iOS and the
+browser extension use: `<address>.json` files of type `text/json` in the
+`backupFolder` folder of the Drive app data space.
+
+```
+# Optional. Unset means project 621183184145's public iOS client, whose
+# custom-scheme redirect Google accepts from Android with PKCE.
+GOOGLE_DRIVE_OAUTH_CLIENT_ID=621183184145-....apps.googleusercontent.com
+```
+
+The client must belong to Cloud project 621183184145, where existing backups
+are kept; the build refuses any other. The redirect scheme is the reversed
+client id. `.github/release/android-google-drive-web-client-sha256.txt` pins the
+client's SHA-256 for the release verifier. No `google-services.json` may exist
+under `app/`: the public-artifact audit and the IAS build refuse one.
 
 ### Play testing releases
 
@@ -65,7 +82,7 @@ produces the only approved upload artifact through three fresh-runner jobs:
 
 1. credential-free `release-controls` validates the signed tag, exact
    `master` source tree, prior CI, governance, and adversarial release suites;
-2. `release-build` (`android-release-build`) restores only Firebase, runs the
+2. `release-build` (`android-release-build`) restores no credential, runs the
    exact CI-only/source-bound unsigned `:app:bundleRelease`, and uploads an
    exact, individually attested four-file unsigned artifact: AAB, checksum,
    provenance, and the bounded verified Gradle/R8 build log;
@@ -122,18 +139,17 @@ with another Gradle task, using an unqualified/alternate task, supplying
 release-signing inputs, or supplying Play/Firebase distribution credentials
 fails closed. CI also binds the original runtime import provenance and complete app source tree.
 
-The `processInternalAppSharingGoogleServices` task has its typed JSON input
-finalized directly to the checksum-pinned, reviewed public placeholder at
-`app/src/release/google-services.json`. The build validates that exact
-single-link, non-symlink file and its public-only Firebase identity. It never
-creates, copies into, owns, or cleans an `app/src/internalAppSharing` tree; that
-path must remain absent. Real Firebase configuration is forbidden in this lane.
-Consequently, IAS can qualify install/fresh launch, cold start, onboarding,
-navigation, local-only disposable-wallet flows, and screens that do not depend
-on the disabled services. It cannot qualify live Firebase behavior, Google
-OAuth/sign-in, Google Drive or passkey backup/restore, Play upgrade, production
-database migration, or production signing. Empty or fake placeholder values
-must never be interpreted as successful coverage of those integrations.
+IAS builds carry no Firebase or Google Services configuration: Gradle fails if a
+`google-services.json` exists under `app/` or a Google Services task is
+registered, and the AAB verifier fails if Firebase resources are compiled in.
+The build never creates, copies into, owns, or cleans an
+`app/src/internalAppSharing` tree; that path must remain absent. IAS can qualify
+install/fresh launch, cold start, onboarding, navigation, local-only
+disposable-wallet flows, and screens that need no production service. Google
+Drive sign-in no longer depends on the signing certificate, so IAS builds can
+exercise Drive backup with a test account. IAS cannot qualify passkey backup
+(compiled off), Play upgrade, production database migration, or production
+signing.
 
 Pull-request validation is also deliberately WalletConnect-secretless and
 non-distributable. Only an eligible protected-`master` manual dispatch binds
@@ -155,7 +171,7 @@ AAB, and then run `scripts/verify-android-internal-app-sharing-aab.sh` plus
 `scripts/test-android-internal-app-sharing-aab.sh` against those exact bytes.
 The artifact verifier checks the debug certificate and complete JAR signature,
 embedded `RELEASE_COMMIT`, package/version/SDK identity, component and
-permission surface, native payloads, and compiled public Firebase placeholders.
+permission surface, native payloads, and the absence of Firebase resources.
 The supported verifier invocation is workflow-only under the workflow's
 `CI=true` and source-bound `RELEASE_COMMIT`. Unsigned mode accepts no signer
 input. Signed and `--signed-from` modes bind the checksum-pinned
@@ -172,12 +188,12 @@ source/output bytes, ZIP entry count, per-entry and aggregate expansion,
 encrypted or unsupported entries, duplicate canonical metadata, symlinks, and
 exclusive output creation.
 
-The frozen suites must report dependency provenance 2 positive / 65
+The frozen suites must report dependency provenance 2 positive / 66
 adversarial, bounded Gradle coverage cleanup 4 positive / 12
-negative/adversarial, IAS Gradle 8 positive / 39 behavioral negative / 645
+negative/adversarial, IAS Gradle 8 positive / 37 behavioral negative / 645
 static adversarial assertions, and the workflow's Linux public-certificate IAS
 AAB suite 7 positive / 78 adversarial artifacts. The AAB suite additionally
-expects 7/76 in macOS certificate mode, 7/84 in macOS keystore mode, and 7/86
+expects 7/76 in macOS certificate mode, 7/82 in macOS keystore mode, and 7/84
 in Linux keystore mode. A changed total is a review event, not an automatic
 pass.
 
@@ -194,8 +210,8 @@ AAB in Play Console's Internal App Sharing page. The workflow has no Gradle
 Play Publisher integration, uploads nothing to Google or Play, changes no Play
 track, and consumes no Play service-account credential.
 
-The handoff filename and verifier currently pin `4.2.0-ias` / version code
-`231`. Any change to either value in `versioning/version.properties` must update
+The handoff filename and verifier currently pin `4.3.3-ias` / version code
+`235`. Any change to either value in `versioning/version.properties` must update
 and review every IAS hardcode in the same commit before a new handoff is
 eligible; never relabel old bytes with a new filename.
 
@@ -287,6 +303,7 @@ the same reviewed Utils commit; its output path targets `runtime-utils`.
 ```
 python3 scripts/test-android-runtime-source-pins.py
 bash scripts/verify-android-runtime-sources.sh
+python3 scripts/test-remote-config-signing.py
 python3 scripts/test-owned-remote-config.py
 python3 scripts/verify-owned-remote-config.py
 ./gradlew :app:assembleDebug
@@ -300,22 +317,27 @@ fallbacks are recorded in `config/remote-config-imports.json`. Historical migrat
 fixtures intentionally retain their original bytes. Existing installed clients
 still require the old configuration host; do not remove it as part of migration.
 
-Native libraries are unchanged by this import. For an intentional sr25519 rebuild,
-set `ANDROID_NDK_HOME` and run `scripts/build-sr25519.sh` with cargo-ndk installed.
-It builds the owned Rust source with its Cargo.lock and 16 KB linker alignment.
-Rebuilt binaries require refreshed provenance and device qualification.
+### Native sr25519 library (built from source)
 
-### Rebuild libsodium with 16 KB alignment
-
-We vendor libsodium sources under `third_party/libsodium` and ship aligned binaries under `app/src/main/jniLibs`.  
-If you need to refresh them (e.g., after pulling upstream changes), run:
+`libsr25519java.so`, which holds every sr25519 key operation (Polkadot, Kusama,
+SORA), is compiled from `runtime-utils/native/sr25519` during the Gradle build;
+the repository contains no prebuilt native library of its own. Install once:
 
 ```
-ANDROID_NDK_HOME=/Users/<you>/Library/Android/sdk/ndk/28.0.12674087 \
-./scripts/build-libsodium.sh
+# rustup from https://rustup.rs; rust-toolchain.toml then installs Rust 1.99.1
+# with the four Android targets on first use
+cargo install cargo-ndk --version 4.1.2 --locked
+sdkmanager "ndk;30.0.16248370"
 ```
 
-The script rebuilds `libsodium.so` for arm64-v8a, armeabi-v7a, x86, and x86_64 with the Google Play-required `-Wl,-z,common-page-size=4096 -Wl,-z,max-page-size=16384` flags and copies them into `app/src/main/jniLibs`.
+`./gradlew :app:assembleDebug` then runs `:runtime-utils:buildSr25519AndroidLibraries`
+(all four ABIs, API 26, 16 KB page alignment) and fails if a binary differs from
+`runtime-utils/native/sr25519/reproducible-build.json`. Unit tests of
+`runtime-utils` load a host build of the same crate and are skipped, with the
+reason, when cargo is missing. After an intended change to the crate, its
+`Cargo.lock` or the toolchain, run `./gradlew :runtime-utils:recordSr25519NativeHashes`
+and `./gradlew :runtime-utils:verifySr25519ReproducibleBuild`, and commit the
+updated manifest with the runtime source pins.
 
 Tracked native/vendor binary provenance is documented in
 `docs/binary-provenance.md`.

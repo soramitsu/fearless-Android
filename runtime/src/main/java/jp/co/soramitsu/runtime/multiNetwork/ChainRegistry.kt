@@ -16,6 +16,7 @@ import jp.co.soramitsu.coredb.dao.AssetReadOnlyCache
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
+import jp.co.soramitsu.runtime.assethub.AssetHubStaking
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChainOrNull
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapNodeLocalToNode
@@ -90,8 +91,11 @@ internal fun selectChainsForBackgroundSync(
     }
     val requiredIdentityChainIds = chains.mapNotNull(Chain::identityChain).toSet()
     val identityHolders = chains.filter { it.id in requiredIdentityChainIds }
+    // Hub staking reads its era clock (Babe and Session) from the relay chain.
+    val stakingClockIds = chainsWithStaking.mapNotNull { AssetHubStaking.relay(it.id) }.toSet()
+    val stakingClocks = chains.filter { it.id in stakingClockIds }
 
-    return (popularChains + enabledChains + chainsWithStaking + identityHolders)
+    return (popularChains + enabledChains + chainsWithStaking + identityHolders + stakingClocks)
         .distinctBy(Chain::id)
         .filter { it.nodes.isNotEmpty() || it.isUniversalWalletBitcoin() }
 }

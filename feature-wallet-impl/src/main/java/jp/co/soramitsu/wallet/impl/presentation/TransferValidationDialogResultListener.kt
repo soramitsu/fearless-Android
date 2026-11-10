@@ -49,11 +49,6 @@ enum class TransferValidationDialogContract(
         setOf(ErrorDialog.Action.POSITIVE, ErrorDialog.Action.NEGATIVE),
         setOf(ErrorDialog.Action.POSITIVE)
     ),
-    CBDC_SEND_SETUP(
-        "cbdc_send_setup_validation_dialog_result",
-        setOf(ErrorDialog.Action.POSITIVE, ErrorDialog.Action.NEGATIVE),
-        setOf(ErrorDialog.Action.POSITIVE)
-    ),
     CROSS_CHAIN_CONFIRM(
         "cross_chain_confirm_validation_dialog_result",
         setOf(ErrorDialog.Action.POSITIVE, ErrorDialog.Action.NEGATIVE),

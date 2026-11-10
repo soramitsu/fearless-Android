@@ -171,7 +171,8 @@ class IrohaBalanceLoader(
         network: jp.co.soramitsu.common.model.UniversalWalletRegistry.IrohaNetwork
     ): List<IrohaAccountAssetListItem> {
         val result = mutableListOf<IrohaAccountAssetListItem>()
-        var offset = 0L
+        val seenCursors = mutableSetOf<String>()
+        var cursor: String? = null
         var pages = 0
 
         do {
@@ -179,14 +180,13 @@ class IrohaBalanceLoader(
                 accountId = address,
                 baseUrl = baseUrl,
                 limit = IrohaToriiRoutes.MAX_LIMIT,
-                offset = offset,
-                countMode = IrohaToriiRoutes.CountMode.Bounded,
+                cursor = cursor,
                 network = network
             )
-            result += response.items
-            if (!response.hasMore) break
-            check(response.items.isNotEmpty()) { "Iroha pagination returned an empty continuation page" }
-            offset += response.items.size
+            val items = checkNotNull(response.items) { "Iroha asset page is missing items" }
+            result += items
+            cursor = response.nextCursor ?: break
+            check(seenCursors.add(cursor)) { "Iroha pagination repeated a cursor" }
             pages += 1
             check(pages < MAX_PAGES) { "Iroha pagination exceeded the safety limit" }
         } while (true)
@@ -199,22 +199,24 @@ class IrohaBalanceLoader(
     ): List<IrohaAssetDefinitionListItem> {
         val result = mutableListOf<IrohaAssetDefinitionListItem>()
         val seenPageSignatures = mutableSetOf<List<String>>()
-        var offset = 0L
+        val seenCursors = mutableSetOf<String>()
+        var cursor: String? = null
         var pages = 0
 
         do {
             val response = toriiClient.assetDefinitionsPage(
                 baseUrl = baseUrl,
                 limit = IrohaToriiRoutes.MAX_LIMIT,
-                offset = offset,
-                countMode = IrohaToriiRoutes.CountMode.Bounded
+                cursor = cursor
             )
-            val signature = response.items.map(IrohaAssetDefinitionListItem::id)
-            check(seenPageSignatures.add(signature)) { "Iroha definition pagination repeated a page" }
-            result += response.items
-            if (!response.hasMore) break
-            check(response.items.isNotEmpty()) { "Iroha definition pagination returned an empty continuation page" }
-            offset += response.items.size
+            val items = checkNotNull(response.items) { "Iroha definition page is missing items" }
+            val signature = items.map(IrohaAssetDefinitionListItem::id)
+            if (signature.isNotEmpty()) {
+                check(seenPageSignatures.add(signature)) { "Iroha definition pagination repeated a page" }
+            }
+            result += items
+            cursor = response.nextCursor ?: break
+            check(seenCursors.add(cursor)) { "Iroha definition pagination repeated a cursor" }
             pages += 1
             check(pages < MAX_PAGES) { "Iroha definition pagination exceeded the safety limit" }
         } while (true)

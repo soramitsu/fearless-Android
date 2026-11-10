@@ -25,7 +25,7 @@ class FwContrastContractTest {
 
     @Test fun sharedContractBytesAndFullNativePairInventoryArePinned() {
         val sha = MessageDigest.getInstance("SHA-256").digest(contractFile.readBytes()).joinToString("") { "%02x".format(it) }
-        assertEquals("c1cda5d513e1095459004426104ef8d2e80f4bb3dc96d6b2012904ccfd180737", sha)
+        assertEquals("aed1f56112b860fe84c9a6de4d04f7516eb3e54932072a03b7b56bf265fc4b0f", sha)
         assertEquals("fearless.contrast-pairs", contract.get("format").asString)
         assertEquals(1, contract.get("version").asInt)
         assertEquals(33, contract.getAsJsonArray("pairs").size())
@@ -38,10 +38,11 @@ class FwContrastContractTest {
     @Test fun nativeWorstBackdropsAndControlCompositesRetainReferenceContrast() {
         // Compose alpha is stored as an 8-bit channel; these differ from the unquantized reference.
         val recipes = Recipes(FwStandard)
-        assertEquals(listOf(71.0, 50.0, 107.0), recipes.resolve("peakAllDither").single().rgb)
-        assertEquals(7, recipes.resolve("chromeSurface").size)
+        assertEquals(listOf(72.0, 31.0, 85.0), recipes.resolve("peakAllDither").single().rgb)
+        assertEquals(6, recipes.resolve("chromeSurface").size)
         val glass = recipes.resolve("glassSurface").last()
-        assertEquals(listOf(43.0, 40.0, 74.0), glass.rgb)
+        // Sun-lit cards are opaque page-base surfaces: the worst glass backdrop is the base itself.
+        assertEquals(listOf(21.0, 24.0, 49.0), glass.rgb)
         val stroke = recipes.resolve("strokeControl").single()
         assertTrue(contrast(paint(stroke, glass), glass.rgb) >= 3.5)
         val high = Recipes(FwHighContrast).resolve("strokeControl").single()
@@ -59,7 +60,7 @@ class FwContrastContractTest {
         assertEquals(40.0, pair.get("minimumDeltaE76").asDouble, 0.0)
         val up = recipes.resolve("priceUp").single().rgb
         val down = recipes.resolve("priceDown").single().rgb
-        for ((simulation, expected) in listOf("protan" to 54, "deutan" to 67)) {
+        for ((simulation, expected) in listOf("protan" to 53, "deutan" to 67)) {
             val result = deltaE(up, down, simulation)
             assertTrue(result >= pair.get("minimumDeltaE76").asDouble)
             assertEquals(expected, result.roundToInt())

@@ -43,6 +43,9 @@ import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.bold
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
+import jp.co.soramitsu.common.compose.theme.fw.FwCard
+import jp.co.soramitsu.common.compose.theme.fw.FwElevation
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
 import jp.co.soramitsu.common.compose.theme.white16
 import jp.co.soramitsu.common.compose.theme.white64
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
@@ -55,11 +58,16 @@ fun AssetListItem(
     modifier: Modifier = Modifier,
     onClick: (AssetListItemViewState) -> Unit
 ) {
-    BackgroundCornered(
-        modifier = modifier
-            .testTag("AssetListItem_${state.assetSymbol}_${state.assetName}")
-            .clickable(onClick = { onClick(state) })
-    ) {
+    val rowModifier = modifier
+        .testTag("AssetListItem_${state.assetSymbol}_${state.assetName}")
+        .clickable(onClick = { onClick(state) })
+    // List rows are Raised-1 in the sun-lit palette (cards are Raised-2).
+    val container: @Composable (@Composable () -> Unit) -> Unit = if (FwRestyle.paletteEnabled) {
+        { content -> FwCard(modifier = rowModifier, level = FwElevation.Raised1) { content() } }
+    } else {
+        { content -> BackgroundCornered(modifier = rowModifier) { content() } }
+    }
+    container {
         val assetRateColor = if (state.assetTokenRate.orEmpty().startsWith("+")) {
             MaterialTheme.customColors.greenText
         } else {

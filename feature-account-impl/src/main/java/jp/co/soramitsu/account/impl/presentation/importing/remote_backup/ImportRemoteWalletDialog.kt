@@ -1,10 +1,13 @@
 package jp.co.soramitsu.account.impl.presentation.importing.remote_backup
 
 import android.app.Activity
+import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.WindowManager
 import android.widget.FrameLayout
+import androidx.activity.compose.BackHandler
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,6 +21,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.backup.GoogleSignInResult
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
+import jp.co.soramitsu.common.view.protectSensitiveContent
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -25,6 +29,15 @@ import kotlinx.coroutines.flow.onEach
 class ImportRemoteWalletDialog : BaseComposeBottomSheetDialogFragment<ImportRemoteWalletViewModel>() {
 
     override val viewModel: ImportRemoteWalletViewModel by viewModels()
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        // The sheet takes the backup password in its own window, which never inherits the
+        // Activity window flags; keep it out of screenshots and the recents preview.
+        return super.onCreateDialog(savedInstanceState).apply {
+            window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            window?.decorView?.protectSensitiveContent()
+        }
+    }
 
     private val launcher: ActivityResultLauncher<Intent> = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -40,6 +53,8 @@ class ImportRemoteWalletDialog : BaseComposeBottomSheetDialogFragment<ImportRemo
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
+        // One sheet holds the wallet list, password and result pages: Back steps through them like the toolbar icon.
+        BackHandler(onBack = viewModel::backClicked)
         ImportRemoteWalletContent(
             state = state,
             callback = viewModel
@@ -58,7 +73,6 @@ class ImportRemoteWalletDialog : BaseComposeBottomSheetDialogFragment<ImportRemo
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        onBackPressed { viewModel.backClicked() }
 
         viewModel.requestGoogleAuth.onEach {
             it.getContentIfNotHandled()?.let { launcher.launch(it) }

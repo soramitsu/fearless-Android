@@ -75,7 +75,7 @@ class BalanceLoaderProvider(
                 metadataDescriptorStore = metadataDescriptorStore,
                 scanStateStore = scanStateStore
             )
-            chain.ecosystem == Ecosystem.Ethereum -> EthereumBalanceLoader(chain, ethereumRemoteSource, scanStateStore)
+            chain.ecosystem == Ecosystem.Ethereum -> EthereumBalanceLoader(chain, ethereumRemoteSource, scanStateStore, chainRegistry)
             isEquilibriumTypeChain -> EquilibriumBalanceLoader(chain, chainRegistry, remoteStorageSource)
 
             chain.ecosystem == Ecosystem.EthereumBased

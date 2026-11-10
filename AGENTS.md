@@ -63,6 +63,13 @@
 ## Security & Configuration
 - Secrets are read via `scripts/secrets.gradle`; set in env vars or `local.properties` (see `README.md`).
 - Do not commit keys, keystores, provisioning files, or `local.properties`.
+- No closed Google SDK (Play services, Play Core/Integrity, Firebase, `googleid`, Google API
+  client libraries) and no `google-services.json`. Google Drive backup uses the in-repo OAuth 2.0
+  + PKCE browser sign-in (`core-backup/.../oauth`, `feature-account-impl/.../google_signin`) and
+  Drive v3 REST client (`core-backup/.../data/GoogleDriveApi.kt`); keep the backup file layout
+  (`backupFolder`, `<address>.json`, `text/json`) byte-compatible with iOS and the extension.
+  `GOOGLE_DRIVE_OAUTH_CLIENT_ID` (scripts/secrets.gradle) must stay a client of project
+  621183184145; changing it also changes the release pin and the AAB identity redirect scheme.
 - Internal App Sharing must run only through the dedicated
   `android-internal-app-sharing.yml` CI path. Generate a new mode-`0600` JKS and
   bind its certificate SHA-256 for that run; never commit or reuse the private
@@ -70,10 +77,10 @@
   artifact. Only a manual run of the first-party workflow from the protected,
   merged, current `master` head may retain a seven-day verified GitHub Actions
   handoff. The workflow must never upload to Google/Play or mutate a Play track.
-  Because IAS uses fake/empty public Firebase and OAuth values, do not claim it
-  qualifies live Firebase, Google sign-in, Drive/passkey backup, or restore.
+  IAS builds carry no Firebase configuration; do not claim IAS qualifies
+  passkey backup, Play upgrade, production migration or production signing.
   When versioning changes, update the workflow/verifier hardcodes for
-  `4.2.0-ias` / `231` in the same reviewed commit.
+  `4.3.3-ias` / `235` in the same reviewed commit.
 - Polkadot runtime sources: to align debug builds with a specific Polkadot SDK release (e.g., `polkadot-stable2503`), you can override chain/type registries without code changes:
   - `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_DEBUG_OVERRIDE`
   - Release chain discovery is intentionally pinned to the canonical production URL and does not accept a chain-registry override.
@@ -97,10 +104,11 @@
 - Update owned file digests in `config/android-runtime-source-pins.json` with reviewed changes and run its verifier and adversarial tests. No external runtime checkout or published internal library override is supported.
 - `remote-config` is owned by Android; update its manifest and URL-closure tests with data changes. Publish on public `master` before shipping consumer URLs. Keep the legacy host available to installed clients.
 
-## Native Crypto (libsodium)
-- `app/src/main/jniLibs/*/libsodium.so` is built from `third_party/libsodium` using `scripts/build-libsodium.sh`.
-- The script enforces Google Play’s 16 KB page requirements via `-Wl,-z,common-page-size=4096 -Wl,-z,max-page-size=16384`.
-- Run it after pulling upstream changes or bumping libsodium to refresh all ABIs (arm64-v8a, armeabi-v7a, x86, x86_64).
+## Native crypto (sr25519)
+- `libsr25519java.so` (all sr25519 keys: Polkadot, Kusama, SORA) is built from `runtime-utils/native/sr25519` during every Gradle build by `:runtime-utils:buildSr25519AndroidLibraries` (`scripts/build-sr25519.py`, cargo-ndk, API 26, 16 KB pages). No prebuilt `.so` is committed; the repository ships no other native code of its own.
+- Builds need rustup (the toolchain in `runtime-utils/native/sr25519/rust-toolchain.toml` installs itself), `cargo install cargo-ndk --version 4.1.2 --locked`, and NDK `30.0.16248370`.
+- Every build checks each ABI against `runtime-utils/native/sr25519/reproducible-build.json`. After an intended Rust, `Cargo.lock` or toolchain change, run `:runtime-utils:recordSr25519NativeHashes` and `:runtime-utils:verifySr25519ReproducibleBuild`, then commit the manifest and the runtime source pins. `-Psr25519.allowHashMismatch=true` is for local debug builds only.
+- Keep the JNI ABI (function names, byte layouts, exception messages) and the derivation behaviour unchanged; `scripts/verify-sr25519-legacy-compatibility.sh` compares the library with the one Android 4.3.1 shipped.
 
 ## Documentation
 - Status: see `docs/status.md` for current health, coverage, and risks.

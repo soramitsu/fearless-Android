@@ -3,10 +3,13 @@ package jp.co.soramitsu.wallet.impl.data.repository.tranfser
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
-import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
-import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
-import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
+import jp.co.soramitsu.account.api.domain.universalWalletRoot
+import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerRoutes
+import jp.co.soramitsu.common.utils.BitcoinKeyDerivation
+import jp.co.soramitsu.common.utils.SolanaKeyDerivation
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
+import jp.co.soramitsu.runtime.ext.universalWalletBitcoinIndexerNetwork
+import kotlinx.coroutines.CancellationException
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.ext.universalWalletSolanaIndexerNetwork
 import jp.co.soramitsu.common.data.network.send.SolanaSendNetworkIdentity
@@ -50,21 +53,51 @@ class NativeSendAccountGuard(
         }
     }
 
-    /** Returns authorized root material transiently; the protocol signer independently proves its address. */
-    suspend fun mnemonic(binding: NativeSendBinding): String {
+    /**
+     * Returns authorized root material transiently; the protocol signer independently proves its
+     * address. A password wallet's account may derive with its BIP39 passphrase or, for an address
+     * an earlier version showed, without it: the passphrase is the one that reproduces the sender.
+     */
+    suspend fun root(binding: NativeSendBinding): NativeSendRoot {
         requireCurrent(binding)
         accounts.getChainAccountSecrets(binding.metaId, chain.id)?.get(ChainAccountSecrets.Entropy)?.let {
-            return MnemonicCreator.fromEntropy(it.clone()).words
+            return NativeSendRoot(MnemonicCreator.fromEntropy(it.clone()).words, "")
         }
-        accounts.getSubstrateSecrets(binding.metaId)?.get(SubstrateSecrets.Entropy)?.let {
-            return MnemonicCreator.fromEntropy(it.clone()).words
-        }
-        accounts.getEthereumSecrets(binding.metaId)?.get(EthereumSecrets.Entropy)?.let {
-            return MnemonicCreator.fromEntropy(it.clone()).words
-        }
-        accounts.getTonSecrets(binding.metaId)?.get(TonSecrets.Seed)?.decodeToString()?.trim()?.takeIf { it.isNotEmpty() }?.let {
-            return it.split(Regex("\\s+")).joinToString(" ")
-        }
-        throw NativeSendException(NativeSendException.Code.UNSUPPORTED_ACCOUNT)
+        val root = accounts.universalWalletRoot(binding.metaId)
+            ?: throw NativeSendException(NativeSendException.Code.UNSUPPORTED_ACCOUNT)
+        val candidates = root.passphraseCandidates
+        val passphrase = candidates.singleOrNull()
+            ?: candidates.firstOrNull { reproducesSender(root.mnemonic, it, binding.sender) }
+            ?: candidates.first()
+        return NativeSendRoot(root.mnemonic, passphrase)
     }
+
+    private fun reproducesSender(mnemonic: String, passphrase: String, sender: String): Boolean = try {
+        val bitcoin = chain.universalWalletBitcoinIndexerNetwork()
+        if (bitcoin != null) {
+            val network = if (bitcoin == BitcoinIndexerRoutes.Network.Mainnet) {
+                BitcoinKeyDerivation.Network.Mainnet
+            } else {
+                BitcoinKeyDerivation.Network.Testnet
+            }
+            val account = BitcoinKeyDerivation.deriveAccount(mnemonic, passphrase, network)
+            account.privateKey.fill(0)
+            account.chainCode.fill(0)
+            account.firstReceiveAddress == sender.lowercase()
+        } else {
+            val account = SolanaKeyDerivation.deriveAccount(mnemonic, passphrase)
+            account.privateKey.fill(0)
+            account.chainCode.fill(0)
+            account.address == sender
+        }
+    } catch (failure: CancellationException) {
+        throw failure
+    } catch (_: Exception) {
+        false
+    }
+}
+
+/** Transient signing root; never logged. */
+class NativeSendRoot(val mnemonic: String, val passphrase: String) {
+    override fun toString(): String = "NativeSendRoot(redacted)"
 }

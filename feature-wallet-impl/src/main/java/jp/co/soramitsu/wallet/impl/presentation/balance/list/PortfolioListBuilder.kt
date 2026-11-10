@@ -11,12 +11,15 @@ object PortfolioListBuilder {
         groups: ResolvedTokenGroups,
         ui: PortfolioUiState,
         selectedNetwork: String?,
-        walletHasPositiveBalance: Boolean
+        walletHasPositiveBalance: Boolean,
+        walletHasUnknownBalance: Boolean = false
     ): List<PortfolioListItem> {
         val rows = visible.filterNot { it.state.isHidden }.distinctBy { it.key }
         if (selectedNetwork != null) return rows.sortedWith(assetOrder).map { PortfolioListItem.AssetRow(it) }
         val result = mutableListOf<PortfolioListItem>()
-        if (!walletHasPositiveBalance && rows.all { it.total != null }) result += PortfolioListItem.EmptyWallet
+        if (!walletHasPositiveBalance && !walletHasUnknownBalance && rows.all { it.total != null }) {
+            result += PortfolioListItem.EmptyWallet
+        }
         if (ui.lens == PortfolioLens.ByNetwork) {
             val networks = rows.groupBy { it.state.chainId }.values.sortedWith(
                 compareByDescending<List<PortfolioAsset>> { list -> list.sumOf { trustedFiat(it) ?: BigDecimal.ZERO } }

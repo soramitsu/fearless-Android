@@ -1,9 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -53,6 +51,9 @@ import jp.co.soramitsu.common.compose.component.MultiToggleButton
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.fwTopFade
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.white64
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.utils.rememberForeverLazyListState
@@ -88,6 +89,9 @@ interface WalletScreenInterface : AssetsListInterface {
     fun onPortfolioMemberAction(walletId: Long, chainId: String, assetId: String, action: ActionItemType) {}
     fun onPortfolioHideGroup(walletId: Long, groupId: String) {}
     fun onWalletRecoveryClick()
+
+    /** Send, Receive, Buy or Swap from the sun-lit hero; asset choice happens in the opened flow. */
+    fun onHeroAction(action: ActionItemType) {}
 }
 
 @Composable
@@ -127,15 +131,28 @@ fun WalletScreen(
 
 
     val largeText = LocalDensity.current.fontScale > 1.3f
-    val scrollHeaderWithAssets = largeText && data.assetsState is WalletAssetsState.Assets
+    val sunlit = FwRestyle.isEnabled(FwSurface.Portfolio)
+    // The sun-lit hero takes most of a phone's height, so the page scrolls as one at every text size.
+    val scrollingHeader = largeText || sunlit
+    val scrollHeaderWithAssets = scrollingHeader && data.assetsState is WalletAssetsState.Assets
     val walletHeader: @Composable () -> Unit = {
         Column {
-            MarginVertical(margin = 16.dp)
-            AssetBalance(
-                state = data.balance,
-                onAddressClick = callback::onAddressClick,
-                onBalanceClick = callback::onBalanceClicked
-            )
+            if (sunlit) {
+                SunlitWalletHero(
+                    state = data.balance,
+                    sync = walletSyncState(data),
+                    onBalanceClick = callback::onBalanceClicked,
+                    onAddressClick = callback::onAddressClick,
+                    onAction = callback::onHeroAction
+                )
+            } else {
+                MarginVertical(margin = 16.dp)
+                AssetBalance(
+                    state = data.balance,
+                    onAddressClick = callback::onAddressClick,
+                    onBalanceClick = callback::onBalanceClicked
+                )
+            }
 
             MarginVertical(margin = 16.dp)
             when {
@@ -170,8 +187,19 @@ fun WalletScreen(
         }
     }
 
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        if (!scrollHeaderWithAssets && !(largeText && data.assetsState is WalletAssetsState.NetworkIssue)) walletHeader()
+    Column(modifier = (if (sunlit) Modifier.fwTopFade() else Modifier).padding(horizontal = if (sunlit) 20.dp else 16.dp)) {
+        when {
+            // The NFT grid scrolls on its own: above it the page keeps only the switch back to currencies.
+            sunlit && data.assetsState is WalletAssetsState.NftAssets -> if (data.showCurrenciesOrNftSelector) {
+                MarginVertical(margin = 8.dp)
+                MultiToggleButton(
+                    state = data.multiToggleButtonState,
+                    onToggleChange = callback::assetTypeChanged,
+                    stacked = largeText
+                )
+            }
+            !scrollHeaderWithAssets && !(scrollingHeader && data.assetsState is WalletAssetsState.NetworkIssue) -> walletHeader()
+        }
         when (data.assetsState) {
             is WalletAssetsState.NftAssets -> {
                 NFTScreen(collectionsScreen = data.assetsState.collectionScreenModel)
@@ -231,7 +259,7 @@ fun WalletScreen(
             }
 
             is WalletAssetsState.NetworkIssue -> {
-                if (largeText) {
+                if (scrollingHeader) {
                     Column(Modifier.verticalScroll(rememberScrollState())) {
                         walletHeader()
                         NetworkIssue(data.assetsState.retryButtonLoading, callback::onRetry)
@@ -392,15 +420,10 @@ fun WalletScreenFooter(
 ) {
     GrayButton(
         text = stringResource(id = R.string.wallet_manage_assets),
+        // No animateContentSize here: the size never changes, and its clip cut the button's shadow square.
         modifier = Modifier
             .scale(scale)
             .fillMaxWidth()
-            .animateContentSize(
-                animationSpec = tween(
-                    durationMillis = 300,
-                    easing = LinearOutSlowInEasing
-                )
-            )
             .height(48.dp),
         onClick = onManageAssetsClick
     )
