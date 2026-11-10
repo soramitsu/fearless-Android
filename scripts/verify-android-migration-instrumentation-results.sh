@@ -194,9 +194,9 @@ compatibility_contracts = {
         },
     },
     "app": {
-        "exact": 29,
+        "exact": 30,
         "class_counts": {
-            gate_class: 23,
+            gate_class: 24,
             restart_class: 3,
             security_warning_class: 3,
         },
@@ -304,7 +304,7 @@ try:
         exact_total = False
     elif profile == "compatibility":
         contracts = compatibility_contracts
-        required_total = 44
+        required_total = 45
         exact_total = True
     else:
         fail(f"unsupported result profile: {profile}")
