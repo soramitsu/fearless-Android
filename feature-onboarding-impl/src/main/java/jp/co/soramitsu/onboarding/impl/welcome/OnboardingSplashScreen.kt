@@ -15,7 +15,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.paint
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,7 +25,8 @@ import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
-import jp.co.soramitsu.common.compose.theme.fw.FwWingsHero
+import jp.co.soramitsu.common.compose.theme.fw.FwBrandTagline
+import jp.co.soramitsu.common.compose.theme.fw.FwLockupHero
 import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.fw.fwPageBackground
 import jp.co.soramitsu.feature_onboarding_impl.R
@@ -61,24 +61,18 @@ private fun OnboardingSplashScreenContent() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Onboarding start is a full-page brand screen: the stacked lockup, then the brand line.
+            FwLockupHero(Modifier.padding(horizontal = 20.dp))
+            MarginVertical(margin = 24.dp)
             if (FwRestyle.isEnabled(FwSurface.Welcome)) {
-                // The winged sun at full span as the emissive sun of the page light.
-                FwWingsHero(Modifier.padding(horizontal = 20.dp))
-                MarginVertical(margin = 24.dp)
+                FwBrandTagline()
             } else {
                 Image(
                     modifier = Modifier.fillMaxWidth(),
-                    painter = painterResource(id = R.drawable.fearless_bird_glossy),
-                    contentDescription = null,
-                    contentScale = ContentScale.FillWidth
+                    painter = painterResource(id = R.drawable.defi_wallet_title),
+                    contentDescription = null
                 )
             }
-
-            Image(
-                modifier = Modifier.fillMaxWidth(),
-                painter = painterResource(id = R.drawable.defi_wallet_title),
-                contentDescription = null
-            )
         }
 
 

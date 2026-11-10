@@ -38,11 +38,11 @@ class FwContrastContractTest {
     @Test fun nativeWorstBackdropsAndControlCompositesRetainReferenceContrast() {
         // Compose alpha is stored as an 8-bit channel; these differ from the unquantized reference.
         val recipes = Recipes(FwStandard)
-        assertEquals(listOf(72.0, 31.0, 85.0), recipes.resolve("peakAllDither").single().rgb)
+        assertEquals(listOf(68.0, 22.0, 81.0), recipes.resolve("peakAllDither").single().rgb)
         assertEquals(6, recipes.resolve("chromeSurface").size)
         val glass = recipes.resolve("glassSurface").last()
-        // Sun-lit cards are opaque page-base surfaces: the worst glass backdrop is the base itself.
-        assertEquals(listOf(21.0, 24.0, 49.0), glass.rgb)
+        // Sun-lit cards are opaque page-base surfaces: the worst glass backdrop is the base itself (brand ink).
+        assertEquals(listOf(18.0, 10.0, 46.0), glass.rgb)
         val stroke = recipes.resolve("strokeControl").single()
         assertTrue(contrast(paint(stroke, glass), glass.rgb) >= 3.5)
         val high = Recipes(FwHighContrast).resolve("strokeControl").single()
@@ -60,7 +60,7 @@ class FwContrastContractTest {
         assertEquals(40.0, pair.get("minimumDeltaE76").asDouble, 0.0)
         val up = recipes.resolve("priceUp").single().rgb
         val down = recipes.resolve("priceDown").single().rgb
-        for ((simulation, expected) in listOf("protan" to 53, "deutan" to 67)) {
+        for ((simulation, expected) in listOf("protan" to 42, "deutan" to 53)) {
             val result = deltaE(up, down, simulation)
             assertTrue(result >= pair.get("minimumDeltaE76").asDouble)
             assertEquals(expected, result.roundToInt())

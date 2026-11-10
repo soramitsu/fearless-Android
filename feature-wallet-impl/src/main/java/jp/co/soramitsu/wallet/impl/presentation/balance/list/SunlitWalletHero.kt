@@ -59,7 +59,7 @@ private const val ADDRESS_SHORT_LIMIT = 16
 private const val ADDRESS_EDGE = 6
 
 /**
- * Sun-lit wallet hero: the approved badge as the emissive sun (its sync arc tracks the real asset
+ * Sun-lit wallet hero: the crest badge as the emissive sun (its sync arc tracks the real asset
  * loading), the total that rolls to new values, today's change, the address chip, then the round
  * Send / Receive / Buy / Swap actions. Test tags of the legacy header are kept.
  */

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.Soramitsu.Fearless.Starting" parent="Theme.Soramitsu.Fearless">
-        <item name="android:windowSplashScreenBackground">@color/fw_bg_base</item>
+        <item name="android:windowSplashScreenBackground">@color/fw_brand_ink</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/fw_splash_icon</item>
         <item name="android:windowSplashScreenAnimationDuration">0</item>
     </style>

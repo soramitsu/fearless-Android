@@ -7,6 +7,8 @@ import android.view.View
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -27,6 +29,9 @@ import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreat
 import jp.co.soramitsu.backup.GoogleSignInResult
 import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.presentation.askPermissionsSafely
 import jp.co.soramitsu.common.scan.ScanTextContract
@@ -78,6 +83,15 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
 
     private fun handleAuthorizeGoogleEvent() {
         viewModel.authorizeGoogle(launcher = launcher)
+    }
+
+    // Brand ink behind the status bar: the welcome crow's sky fades into it instead of meeting the page light
+    // in a hard line. The other onboarding pages paint their own page below the bar.
+    @Composable
+    override fun Background() {
+        if (FwRestyle.isEnabled(FwSurface.Welcome)) {
+            Box(Modifier.fillMaxSize().background(LocalFwColors.current.brandInk))
+        }
     }
 
     @ExperimentalMaterialApi

@@ -1,7 +1,7 @@
 ### Fearless Wallet Android
 [![Google Play](https://img.shields.io/badge/Google%20Play-Android-green?logo=google%20play)](https://play.google.com/store/apps/details?id=jp.co.soramitsu.fearless) [![Android CI](https://github.com/soramitsu/fearless-Android/actions/workflows/android-ci.yml/badge.svg)](https://github.com/soramitsu/fearless-Android/actions/workflows/android-ci.yml)
 
-![logo](/docs/fearlesswallet_promo.png)
+![Fearless on Android in the Yatagarasu brand: welcome, PIN, wallet and About](/docs/brand/android-yatagarasu-screens.webp)
 
 ## About
 Fearless Wallet is a mobile wallet designed for the decentralized future on the Kusama network, with support on iOS and Android platforms. The best user experience, fast performance, and secure storage for your accounts. Development of Fearless Wallet is supported by Kusama Treasury grant.
@@ -296,9 +296,10 @@ The owned Ed25519 verifier additionally incorporates the canonical-signature gua
 and regression tests from reviewed Utils PR154 (`db86fdf14ba0d32a28df70ef97406f7317150b06`).
 Signing bytes and native artifacts are unchanged; the manifest retains original
 import provenance and hashes the current owned files.
-Run `python3 scripts/generate-avatar-brand.py` to reproduce `WingedSunClip.kt`
-from the checksum-pinned approved badge. This app-owned helper is preserved from
-the same reviewed Utils commit; its output path targets `runtime-utils`.
+Run `python3 scripts/generate-avatar-brand.py` to reproduce `CrestClip.kt`, the
+wallet avatar's luminance mask, from the checksum-pinned Yatagarasu crest badge in
+`brand/yatagarasu` (see its README for the brand kit). Its output path targets
+`runtime-utils`.
 
 ```
 python3 scripts/test-android-runtime-source-pins.py

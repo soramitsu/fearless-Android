@@ -1,8 +1,6 @@
 package jp.co.soramitsu.account.impl.presentation.about
 
-import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
-import jp.co.soramitsu.common.compose.theme.fw.FwWingsHero
-import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.FwLockupHero
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -69,12 +67,9 @@ fun AboutScreenContent(items: List<AboutItemListModel>, backClick: () -> Unit) {
         ) {
             item {
                 MarginVertical(margin = 72.dp)
-                if (FwRestyle.isEnabled(FwSurface.Settings)) {
-                    FwWingsHero(Modifier.padding(horizontal = 20.dp))
-                    MarginVertical(margin = 12.dp)
-                } else {
-                    Image(res = R.drawable.fw_brand_hero)
-                }
+                // The stacked lockup, the full-page brand mark, in both palettes.
+                FwLockupHero(Modifier.padding(horizontal = 20.dp))
+                MarginVertical(margin = 12.dp)
                 H2(
                     text = stringResource(id = R.string.about_title),
                     modifier = Modifier

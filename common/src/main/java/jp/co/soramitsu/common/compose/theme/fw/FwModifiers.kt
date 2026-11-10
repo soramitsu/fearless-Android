@@ -197,8 +197,15 @@ private class FwSurfacePaint(
     fun drawBehind(scope: DrawScope, rim: Float) = with(scope) {
         if (emissive) {
             drawGlow()
-            drawOutline(outline, if (spec.fill.isSpecified) SolidColor(spec.fill) else FwBrush.PrimaryFill)
-            if (spec.pressed) drawOutline(outline, c.insetShadow.copy(alpha = 0.22f))
+            when {
+                spec.fill.isSpecified -> {
+                    drawOutline(outline, SolidColor(spec.fill))
+                    if (spec.pressed) drawOutline(outline, c.insetShadow.copy(alpha = 0.22f))
+                }
+                // The brand's pressed pink (#D6006A) replaces the gradient while a primary action is held.
+                spec.pressed -> drawOutline(outline, c.brandPressed)
+                else -> drawOutline(outline, FwBrush.PrimaryFill)
+            }
             return@with
         }
         drawOuterShadows()

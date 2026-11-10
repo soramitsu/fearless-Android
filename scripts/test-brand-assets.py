@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Regress the AAPT path overflow without changing any approved contour or hole."""
+"""The Android brand artwork is the pinned Yatagarasu kit, converted without touching a contour."""
 import hashlib
 import importlib.util
 from decimal import Decimal
+import json
+import math
 from pathlib import Path
 import re
 import unittest
@@ -13,160 +15,225 @@ SPEC = importlib.util.spec_from_file_location("brand_assets", ROOT / "scripts/ge
 GENERATOR = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(GENERATOR)
 
+ANDROID = "{http://schemas.android.com/apk/res/android}"
+SVG = "{http://www.w3.org/2000/svg}"
+KIT = ROOT / "brand/yatagarasu"
+# The approved kit (design package r3, 2026-11-10): its manifest.json, as recorded by the brand session.
+APPROVED_KIT_MANIFEST = "4575466317061cc9147056fcbdf02725d2fa3aa9f7173de987d6b899fc8d5028"
+RETIRED = [
+    "brand/sun-disc",
+    "common/src/main/res/drawable/fw_brand_wings.xml",
+    "common/src/main/res/drawable/fw_brand_hero.xml",
+    "common/src/main/res/drawable/drawable_fearless_logo.xml",
+    "common/src/main/res/drawable/fearless_bird_glossy.xml",
+    "common/src/main/res/drawable/fw_splash_sunlit.xml",
+    "runtime-utils/src/main/java/jp/co/soramitsu/fearless_utils/icon/WingedSunClip.kt",
+]
 
-def vertices(path):
-    # Independent SVG token stream reader, including implicit repeated commands.
-    tokens = re.findall(r"[A-Za-z]|[-+]?(?:\d*\.\d+|\d+)(?:[eE][-+]?\d+)?", path)
-    result, position, origin = [], (Decimal(0), Decimal(0)), None
-    index, command = 0, None
+
+def sha256(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def drawable(relative):
+    return ET.parse(ROOT / relative).getroot()
+
+
+def path_data(root):
+    return [p.get(ANDROID + "pathData") for p in root.iter("path")]
+
+
+def svg_paths(name):
+    return [p.get("d") for p in ET.parse(KIT / name).getroot().iter(SVG + "path")]
+
+
+def cubic_points(data, samples=24):
+    """Points along an absolute M/C/L/Z path (the kit's only commands), sampled on every curve."""
+    tokens = re.findall(r"[MCLZmclz]|-?\d*\.?\d+(?:[eE][-+]?\d+)?", data)
+    points, index, command, current, start = [], 0, None, (0.0, 0.0), (0.0, 0.0)
     while index < len(tokens):
         if tokens[index].isalpha():
             command = tokens[index]
             index += 1
-        if command in ("Z", "z"):
-            result.append(("close", origin))
-            position = origin
-            command = None
-            continue
-        count = {"M": 2, "m": 2, "L": 2, "l": 2, "H": 1, "h": 1, "V": 1, "v": 1}[command]
-        numbers = [Decimal(n) for n in tokens[index:index + count]]
-        index += count
-        x, y = position
-        if command in ("M", "L"):
-            position = tuple(numbers)
-        elif command in ("m", "l"):
-            position = (x + numbers[0], y + numbers[1])
-        elif command == "H":
-            position = (numbers[0], y)
-        elif command == "h":
-            position = (x + numbers[0], y)
-        elif command == "V":
-            position = (x, numbers[0])
+            if command in "Zz":
+                current = start
+                continue
+        if command == "M":
+            current = start = (float(tokens[index]), float(tokens[index + 1]))
+            index += 2
+            command = "L"
+            points.append(current)
+        elif command == "L":
+            current = (float(tokens[index]), float(tokens[index + 1]))
+            index += 2
+            points.append(current)
+        elif command == "C":
+            c1 = (float(tokens[index]), float(tokens[index + 1]))
+            c2 = (float(tokens[index + 2]), float(tokens[index + 3]))
+            end = (float(tokens[index + 4]), float(tokens[index + 5]))
+            index += 6
+            for step in range(1, samples + 1):
+                t = step / samples
+                u = 1 - t
+                points.append(tuple(u ** 3 * p0 + 3 * u * u * t * p1 + 3 * u * t * t * p2 + t ** 3 * p3
+                                    for p0, p1, p2, p3 in zip(current, c1, c2, end)))
+            current = end
         else:
-            position = (x, y + numbers[0])
-        move = command in ("M", "m")
-        result.append(("move" if move else "line", position))
-        if move:
-            origin = position
-            command = "l" if command == "m" else "L"
-    return result
-
-
-ANDROID = "{http://schemas.android.com/apk/res/android}"
-APPROVED = {
-    # fearless-wallet-web 1275e1a6 src/assets/brand: SORA disc radius 64, no cobras, original wings.
-    "winged-sun-badge-lines.svg": "9756447ca43921b8098a52cd860e08dc78910bf23fcfe0e04ec1be036853d4d8",
-    "winged-sun-badge.svg": "ff65329596da5e829c1b704fb8bb89d59ae8065fe6f72d68ba30e368f3b00e89",
-}
-
-
-def master_path(name, path_id):
-    return next(p.get("d") for p in ET.parse(ROOT / "brand/sun-disc" / name).iter() if p.get("id") == path_id)
+            raise ValueError("Unexpected path command " + str(command))
+    return points
 
 
 class BrandAssetsTests(unittest.TestCase):
-    def test_badge_masters_are_the_approved_ones(self):
-        for name, digest in APPROVED.items():
-            self.assertEqual(digest, GENERATOR.PINS[name])
-            self.assertEqual(digest, hashlib.sha256((ROOT / "brand/sun-disc" / name).read_bytes()).hexdigest())
+    def test_kit_copies_are_the_pinned_approved_files(self):
+        self.assertEqual(APPROVED_KIT_MANIFEST, GENERATOR.KIT_MANIFEST_SHA256)
+        self.assertGreaterEqual(len(GENERATOR.PINS), 24)
+        for name, digest in GENERATOR.PINS.items():
+            self.assertEqual(digest, sha256(KIT / name), name)
+        manifest = json.loads((KIT / "android-assets.json").read_text())
+        self.assertEqual(APPROVED_KIT_MANIFEST, manifest["kitManifestSha256"])
+        self.assertEqual(GENERATOR.PINS, manifest["inputs"])
 
-    def test_oversized_master_keeps_every_exact_vertex_and_closed_contour(self):
-        paths = [p.get("d") for p in ET.parse(ROOT / "brand/sun-disc/winged-sun-badge-lines.svg").iter() if p.get("d")]
-        original = max(paths, key=len)
-        self.assertGreater(len(original), 32767)  # Actual previously crashing master.
-        compact = GENERATOR.compact_polygon_path(original)
-        self.assertLessEqual(len(compact.encode("utf-8")), 32767)
-        self.assertEqual(vertices(original), vertices(compact))
-        self.assertEqual(110, sum(kind == "close" for kind, _ in vertices(compact)))
+    def test_committed_outputs_are_what_the_generator_writes(self):
+        outputs = json.loads((KIT / "android-assets.json").read_text())["outputs"]
+        self.assertEqual(54, len(outputs))
+        for relative, digest in outputs.items():
+            self.assertEqual(digest, sha256(ROOT / relative), relative)
+        for name, destination, (width, height), recolour, viewport_width in GENERATOR.VECTORS:
+            text = (KIT / name).read_text()
+            self.assertEqual(GENERATOR.vector(text, width, height, recolour, viewport_width), (ROOT / destination).read_text(), destination)
+        for name, destination in GENERATOR.COPIES:
+            self.assertEqual(GENERATOR.PINS[name], sha256(ROOT / destination), destination)
 
-    def test_generated_wings_keep_the_master_contours_exactly(self):
-        for drawable, master in [("common/src/main/res/drawable/ic_fearless_logo.xml", "winged-sun-badge-lines.svg"),
-                                 ("common/src/main/res/drawable/fw_brand_badge.xml", "winged-sun-badge-lines.svg"),
-                                 ("common/src/main/res/drawable/fw_brand_wings.xml", "winged-sun-badge-lines.svg"),
-                                 ("common/src/main/res/drawable/fw_splash_icon.xml", "winged-sun-badge-lines.svg"),
-                                 ("app/src/main/res/drawable/ic_launcher_foreground.xml", "winged-sun-badge-lines.svg"),
-                                 ("app/src/main/res/drawable/ic_launcher_monochrome.xml", "winged-sun-badge.svg"),
-                                 ("common/src/main/res/drawable/ic_fearless.xml", "winged-sun-badge.svg")]:
-            wings = vertices(master_path(master, "badge-wings"))
-            generated = [vertices(p.get(ANDROID + "pathData")) for p in ET.parse(ROOT / drawable).iter()
-                         if p.tag == "path" and not re.search(r"[^MLHVZmlhvz0-9. ,\-]", p.get(ANDROID + "pathData"))]
-            self.assertIn(wings, generated, drawable)
+    def test_every_vector_keeps_the_master_path_data_verbatim(self):
+        for name, destination, *_ in GENERATOR.VECTORS:
+            generated = path_data(drawable(destination))
+            for data in svg_paths(name):
+                self.assertIn(data, generated, destination)
+            self.assertTrue(all(len(d.encode("utf-8")) <= 32767 for d in generated), destination)
 
-    def test_tinted_marks_cut_the_keyline_gap_with_a_clip_not_by_editing_the_wings(self):
-        keyline = master_path("winged-sun-badge.svg", "badge-disc-keyline")
-        for drawable in ("common/src/main/res/drawable/ic_fearless_logo.xml", "common/src/main/res/drawable/ic_fearless.xml",
-                         "app/src/main/res/drawable/ic_launcher_monochrome.xml"):
-            clips = [c.get(ANDROID + "pathData") for c in ET.parse(ROOT / drawable).iter() if c.tag == "clip-path"]
-            self.assertEqual(["M0 0H512V512H0Z" + keyline], clips, drawable)
-            fills = {p.get(ANDROID + "fillColor") for p in ET.parse(ROOT / drawable).iter() if p.tag == "path"}
-            self.assertEqual({"#FFFFFFFF"}, fills, drawable)
+    def test_groups_carry_the_masters_own_transforms(self):
+        root = drawable("common/src/main/res/drawable/fw_brand_lockup.xml")
+        groups = [(g.get(ANDROID + "translateX"), g.get(ANDROID + "translateY"), g.get(ANDROID + "scaleX")) for g in root.iter("group")]
+        self.assertEqual(("120", "0", "0.78"), groups[0], "crest placement of the stacked lockup")
+        self.assertEqual(("19.33", "412", "0.93"), groups[1], "wordmark placement of the stacked lockup")
+        self.assertEqual(["80.5", "168", "256.5", "343", "421.5", "502", "586.5"], [g[0] for g in groups[2:]], "glyph advances")
+        badge = drawable("common/src/main/res/drawable/fw_brand_badge.xml")
+        self.assertEqual("M0 256A256 256 0 1 0 512 256A256 256 0 1 0 0 256Z", path_data(badge)[0], "the badge circle")
+        gradient = next(badge.iter("gradient"))
+        self.assertEqual(("radial", "256", "215.04", "378.88"), tuple(gradient.get(ANDROID + k) for k in ("type", "centerX", "centerY", "gradientRadius")))
+        self.assertEqual(["#FFFF7A2E", "#FFE0126E", "#FF4A1160", "#FF120A2E"], [i.get(ANDROID + "color") for i in gradient])
 
-    def test_launcher_keyline_meets_the_background_gradient_without_a_seam(self):
-        def gradient(path):
-            return next(g for g in ET.parse(ROOT / path).iter() if g.tag == "gradient")
-        background = gradient("app/src/main/res/drawable/ic_launcher_background.xml")
-        foreground = gradient("app/src/main/res/drawable/ic_launcher_foreground.xml")
-        for key in ("startX", "startY", "endX", "endY"):
-            mapped = Decimal(foreground.get(ANDROID + key)) * Decimal(".60") + Decimal("102.4")
-            self.assertLess(abs(mapped - Decimal(background.get(ANDROID + key))), Decimal("0.0001"), key)
-        self.assertEqual([i.get(ANDROID + "color") for i in background], [i.get(ANDROID + "color") for i in foreground])
+    def test_lockup_keeps_its_proportions(self):
+        root = drawable("common/src/main/res/drawable/fw_brand_lockup.xml")
+        view_box = ET.parse(KIT / "masters/fearless-lockup-stacked.svg").getroot().get("viewBox").split()
+        self.assertEqual(view_box[2:], [root.get(ANDROID + "viewportWidth"), root.get(ANDROID + "viewportHeight")])
+        aspect = Decimal(view_box[2]) / Decimal(view_box[3])
+        size = Decimal(root.get(ANDROID + "width")[:-2]) / Decimal(root.get(ANDROID + "height")[:-2])
+        self.assertLess(abs(aspect - size), Decimal("0.0005"))
+        # FwLockup.ASPECT in FwSun.kt is the same ratio.
+        source = (ROOT / "common/src/main/java/jp/co/soramitsu/common/compose/theme/fw/FwSun.kt").read_text()
+        self.assertIn("const val ASPECT = 640f / 505.30324f", source)
+        self.assertIn("const val MAX_WIDTH_DP = 280", source)
+        self.assertIn("const val WIDTH_FRACTION = 0.56f", source)
+
+    def test_system_splash_crest_stays_inside_the_centre_192_dp_circle(self):
+        root = drawable("common/src/main/res/drawable/fw_splash_icon.xml")
+        self.assertEqual(("288dp", "288dp", "288", "288"), tuple(root.get(ANDROID + k) for k in ("width", "height", "viewportWidth", "viewportHeight")))
+        group = next(root.iter("group"))
+        scale, dx, dy = (float(group.get(ANDROID + k)) for k in ("scaleX", "translateX", "translateY"))
+        reach = 0.0
+        for data in path_data(root):
+            for x, y in cubic_points(data):
+                reach = max(reach, math.hypot(dx + scale * x - 144, dy + scale * y - 144))
+        # Android 12+ keeps only the centre 192 dp of the 288 dp icon: the whole crest must sit inside it.
+        self.assertLess(reach, 96.0)
+        self.assertGreater(reach, 80.0, "the crest fills the circle rather than shrinking")
+
+    def test_launch_art_puts_the_lockup_crest_where_the_system_splash_drew_it(self):
+        dimens = {d.get("name"): d.text for d in ET.parse(ROOT / "common/src/main/res/values/fw_splash_dimens.xml").getroot()}
+        width = float(dimens["fw_launch_lockup_width"][:-2])
+        height = float(dimens["fw_launch_lockup_height"][:-2])
+        drop = float(dimens["fw_launch_lockup_drop"][:-2])
+        self.assertLessEqual(width, 280)
+        self.assertAlmostEqual(width * 505.3032355154251 / 640, height, places=2)
+        unit = width / 640
+        crest_centre = 0.78 * 256 * unit
+        self.assertAlmostEqual(height / 2 - crest_centre, drop / 2, places=2)
+        launch = (ROOT / "common/src/main/res/drawable/fw_splash_launch.xml").read_text()
+        self.assertIn('android:drawable="@color/fw_brand_ink"', launch)
+        self.assertIn('android:top="@dimen/fw_launch_lockup_drop"', launch)
+        starting = (ROOT / "app/src/main/res/values-v31/brand_starting_theme.xml").read_text()
+        self.assertIn("@color/fw_brand_ink", starting)
+        self.assertIn("@drawable/fw_splash_icon", starting)
+
+    def test_launcher_icons_development_gold_store_white_and_themed(self):
         for variant in ("main", "debug", "release"):
-            icon = (ROOT / f"app/src/{variant}/res/mipmap-anydpi-v33/ic_launcher.xml").read_text()
-            self.assertIn('<monochrome android:drawable="@drawable/ic_launcher_monochrome" />', icon)
+            fills = {p.get(ANDROID + "fillColor") for p in drawable(f"app/src/{variant}/res/drawable/ic_launcher_foreground.xml").iter("path")}
+            self.assertEqual({"#FFFFC24A"} if variant == "debug" else {"#FFFFFFFF"}, fills, variant)
+            mono = {p.get(ANDROID + "fillColor") for p in drawable(f"app/src/{variant}/res/drawable/ic_launcher_monochrome.xml").iter("path")}
+            self.assertEqual({"#FFFFFFFF"}, mono, variant)
+            for icon in ("ic_launcher", "ic_launcher_round"):
+                themed = (ROOT / f"app/src/{variant}/res/mipmap-anydpi-v33/{icon}.xml").read_text()
+                self.assertIn('<monochrome android:drawable="@drawable/ic_launcher_monochrome" />', themed)
+                self.assertTrue((ROOT / f"app/src/{variant}/res/mipmap-anydpi/{icon}.xml").is_file())
+        manifest = (ROOT / "app/src/main/AndroidManifest.xml").read_text()
+        self.assertIn('android:icon="@mipmap/ic_launcher"', manifest)
+        self.assertIn('android:roundIcon="@mipmap/ic_launcher_round"', manifest)
+        # The adaptive foreground keeps the crest inside the 66 dp safe zone of the 108 dp canvas.
+        group = next(drawable("app/src/main/res/drawable/ic_launcher_foreground.xml").iter("group"))
+        self.assertEqual(("0.5", "88"), (group.get(ANDROID + "scaleX"), group.get(ANDROID + "translateX")))
 
-    def test_wide_mark_is_the_badge_without_its_circle(self):
-        root = ET.parse(ROOT / "common/src/main/res/drawable/fw_brand_wings.xml").getroot()
-        paths = [p for p in root.iter() if p.tag == "path"]
-        self.assertEqual(3, len(paths), "wings, keyline and disc; never the circle")
-        circle = next(p.get("d") for p in ET.parse(ROOT / "brand/sun-disc/winged-sun-badge-lines.svg").iter() if p.get("d", "").startswith("M256 512C"))
-        for path in paths:
-            self.assertNotEqual(circle, path.get(ANDROID + "pathData"))
-        for path_id, path in zip(("badge-wings", "badge-disc-keyline", "badge-disc"), paths):
-            master = master_path("winged-sun-badge-lines.svg", path_id)
-            if path_id == "badge-disc-keyline":
-                self.assertEqual(master, path.get(ANDROID + "pathData"))
-            else:
-                self.assertEqual(vertices(master), vertices(path.get(ANDROID + "pathData")), path_id)
-        wings = [position for kind, position in vertices(master_path("winged-sun-badge-lines.svg", "badge-wings")) if position]
-        group = next(g for g in root.iter() if g.tag == "group")
-        left, top = -Decimal(group.get(ANDROID + "translateX")), -Decimal(group.get(ANDROID + "translateY"))
-        width, height = Decimal(root.get(ANDROID + "viewportWidth")), Decimal(root.get(ANDROID + "viewportHeight"))
-        self.assertLessEqual(left, min(x for x, _ in wings), "no wing tip is cut off")
-        self.assertGreaterEqual(left + width, max(x for x, _ in wings), "no wing tip is cut off")
-        self.assertEqual(Decimal("257.7"), top + height / 2, "the disc's centre is the frame's centre")
-        self.assertEqual(Decimal("66.2"), height / 2, "the frame holds the whole keyline disc")
-        # The aspect the views size the mark with (FwWings.ASPECT).
-        self.assertLess(abs(width / height - Decimal(root.get(ANDROID + "width")[:-2]) / Decimal(root.get(ANDROID + "height")[:-2])), Decimal("0.001"))
+    def test_brand_tokens_follow_the_kit_colours(self):
+        kit = json.loads((KIT / "tokens/colors.json").read_text())["colors"]
+        semantic = json.loads((ROOT / "design/fw.tokens.json").read_text())["color"]["semantic"]
+        hexes = {name: token["$value"]["hex"].upper() for name, token in semantic.items() if not name.startswith("$")}
+        for token, key in [("brand", "pink"), ("fillTop", "pink"), ("brandPressed", "pinkActive"), ("brandInk", "ink"),
+                           ("bgBase", "ink"), ("brandNight", "night"), ("surfaceRaised2", "night"), ("brandPlum", "plum"),
+                           ("brandGold", "gold"), ("selectEdge", "gold"), ("sunCore", "gold"),
+                           ("textPrimary", "text"), ("textSecondary", "textMuted")]:
+            self.assertEqual(kit[key].upper(), hexes[token], token)
+        # Gains use the brand mint nudged toward aqua: the kit's #4FF0B8 sits only deltaE 32 from priceDown for protan
+        # viewers, below the contrast contract's 40 (FwContrastContractTest checks the pair itself).
+        self.assertEqual("#4FF0B8", kit["mint"].upper())
+        self.assertEqual("#4BFCD5", hexes["priceUp"])
+        # Semantic colours stay.
+        for token, value in [("success", "#3DF2B0"), ("warning", "#FFC452"), ("danger", "#FF6B5E"), ("info", "#2EE6FF")]:
+            self.assertEqual(value, hexes[token], token)
 
-    def test_splash_icon_fits_the_whole_badge_inside_the_systems_circle(self):
-        root = ET.parse(ROOT / "common/src/main/res/drawable/fw_splash_icon.xml").getroot()
-        self.assertEqual("288dp", root.get(ANDROID + "width"))
-        self.assertEqual("768", root.get(ANDROID + "viewportWidth"))
-        group = next(g for g in root.iter() if g.tag == "group")
-        self.assertEqual("128", group.get(ANDROID + "translateX"))
-        self.assertEqual("128", group.get(ANDROID + "translateY"))
-        # The badge's 512 units fill the middle two thirds, the only part of the icon Android keeps.
-        self.assertEqual(Decimal(512) / Decimal(768), Decimal(2) / Decimal(3))
-        self.assertEqual(4, sum(1 for p in root.iter() if p.tag == "path"), "circle, wings, keyline and disc")
+    def test_wallet_avatar_mask_is_the_crest_badge(self):
+        clip = (ROOT / "runtime-utils/src/main/java/jp/co/soramitsu/fearless_utils/icon/CrestClip.kt").read_text()
+        badge = ET.parse(KIT / "svg/crest-badge-small.svg").getroot()
+        group = next(g for g in badge.iter(SVG + "g") if g.get("transform"))
+        self.assertIn(f'internal const val CREST_TRANSFORM = "{group.get("transform")}"', clip)
+        self.assertIn(f'internal const val CREST_PATH = "{svg_paths("svg/crest-badge-small.svg")[0]}"', clip)
 
-    def test_retired_bird_artwork_is_gone(self):
-        for retired in ("common/src/main/res/drawable-xxxhdpi/ic_wallet.png", "common/src/main/res/drawable/animated_bird.gif",
-                        "common/src/main/res/drawable/background_story_wallet.png"):
+    def test_winged_sun_artwork_and_its_code_are_retired(self):
+        for retired in RETIRED:
             self.assertFalse((ROOT / retired).exists(), retired)
-        for generated in ("ic_wallet", "ic_qr_code_logo"):
-            self.assertIn("Generated from approved Figma masters", (ROOT / f"common/src/main/res/drawable/{generated}.xml").read_text())
+        pattern = re.compile(r"fw_brand_wings|fw_brand_hero|FwWings|FwSunGlowDrawable|WINGED_SUN|winged-sun|fearless_bird_glossy|drawable_fearless_logo|fw_splash_sunlit")
+        for module in ROOT.iterdir():
+            source = module / "src"
+            if not source.is_dir():
+                continue
+            for path in source.rglob("*"):
+                if path.suffix in (".kt", ".java", ".xml") and path.is_file():
+                    self.assertIsNone(pattern.search(path.read_text(errors="ignore")), str(path.relative_to(ROOT)))
 
-    def test_all_generated_vector_attributes_fit_aapt_string_pool(self):
-        count = 0
-        for folder in (ROOT / "common/src/main/res/drawable", *(ROOT / f"app/src/{v}/res/drawable" for v in ("main", "debug", "release"))):
-            for path in folder.glob("*.xml"):
-                if "Generated from approved Figma masters" not in path.read_text():
-                    continue
-                for element in ET.parse(path).iter():
-                    for value in element.attrib.values():
-                        self.assertLessEqual(len(value.encode("utf-8")), 32767, str(path))
-                count += 1
-        self.assertEqual(21, count)
+    def test_welcome_media_is_the_kit_hero(self):
+        raw = ROOT / "feature-onboarding-impl/src/main/res/raw"
+        self.assertEqual(GENERATOR.PINS["hero/welcome-idle.mp4"], sha256(raw / "fw_welcome_idle.mp4"))
+        self.assertEqual(GENERATOR.PINS["hero/welcome-caw.mp4"], sha256(raw / "fw_welcome_caw.mp4"))
+        self.assertEqual(GENERATOR.PINS["audio/caw.m4a"], sha256(raw / "fw_welcome_caw_sound.m4a"))
+        poster = ROOT / "feature-onboarding-impl/src/main/res/drawable-nodpi/fw_welcome_poster.webp"
+        self.assertEqual(GENERATOR.PINS["hero/welcome-poster.webp"], sha256(poster))
+
+    def test_transform_parser_refuses_what_it_cannot_express(self):
+        self.assertEqual({"scaleX": "0.5", "scaleY": "0.5", "translateX": "88", "translateY": "88"},
+                         GENERATOR.parse_transform("translate(88 88) scale(0.5)"))
+        self.assertEqual({}, GENERATOR.parse_transform("translate(0 0)"))
+        for unsupported in ("rotate(45)", "scale(2) translate(1 1)", "matrix(1 0 0 1 0 0)"):
+            with self.assertRaises(ValueError):
+                GENERATOR.parse_transform(unsupported)
 
 
 if __name__ == "__main__":

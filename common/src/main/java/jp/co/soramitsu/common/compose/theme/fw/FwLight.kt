@@ -9,7 +9,7 @@ import kotlin.math.hypot
  * One world, one light (sun-lit neumorphism, DESIGN-SPEC 2026-11-08 section 2).
  *
  * The key light shines from the top-left along [KEY_X], [KEY_Y]; neumorphic highlights fall toward
- * it and shadows away from it. The brand sun (hero badge, splash and PIN logo) is an emissive light
+ * it and shadows away from it. The brand sun (the wallet hero's crest badge) is an emissive light
  * whose warm bounce reaches the top rims of nearby surfaces. Everything here is pure arithmetic so
  * the model can be tested without a renderer.
  */
