@@ -59,7 +59,18 @@ dragging off, stayed stuck at their peek height. Before Android 13 the same Back
   warnings, retry prompts). It now uses a `BackHandler`: a hideable dialog runs `onBackClick` and closes, and a non-hideable one
   ignores Back, on every version. `BaseBottomSheetDialogFragment` (`ValidatorDetailsFragment`), `WebViewerFragment`,
   `ServiceFragment` and `NftFiltersFragment` had `isHideable = false` too and now close on Back.
-- **Validation:** SHEET_BACK_VALIDATION
+- **Validation (10 November 2026, local; receipts in `build/android-sheet-back/` in the parent workspace):** 5,391 unit
+  tests in common, feature-account-impl, feature-staking-impl, feature-wallet-impl, feature-walletconnect-impl,
+  feature-tonconnect-impl, app, feature-liquiditypools-impl and feature-nft-impl: 0 failures, 2 skipped. `detektAll` passes. `SheetSystemBackPolicyTest` reads every sheet on
+  the base class. `SheetSystemBackInstrumentedTest` sends a real Back key to real Material dialogs: every sheet above that
+  Material closes, plus the four outside the base class, closes on API 34 and API 26; a submitting sheet stays until it
+  is done; a tap outside still closes it; a sheet's own Back runs ahead of Material; `ErrorDialog` runs `onBackClick` or
+  stays expanded. Without the fix 5 of its 8 tests fail on API 34, and all 21 sheets stay open.
+  `PoolJoinRecoverySystemBackInstrumentedTest` (11) and `BaseFragmentErrorDialogContractTest` (4) pass on API 26.
+  Real screens before the fix, API 34: Back only pushed Score Details down, twice. After: Score Details (Back key and edge
+  gesture), Join pool (the keyboard closes first), Start staking and the invalid-phrase error sheet close on API 34;
+  Score Details, Join pool and Start staking on API 26. No physical phone. The test wallet has nothing to send, so no
+  confirmation was submitted on a network: the hold during a submission is checked by the device test only.
 
 ## 4.3.3: fixes from the 4.3.2 release smoke — 9 November 2026
 
