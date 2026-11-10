@@ -9,12 +9,15 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.theme.fw.FwAppearance
 import jp.co.soramitsu.common.compose.theme.fw.FwAppearancePreferences
 import jp.co.soramitsu.common.compose.theme.fw.FwTierChoice
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 data class AppearanceState(
     val appearance: FwAppearance,
@@ -28,12 +31,16 @@ data class AppearanceState(
  * Lite paints exactly like Full, so offering it would be a control that changes nothing.
  */
 @HiltViewModel
-class AppearanceViewModel @Inject constructor(
+class AppearanceViewModel internal constructor(
     private val router: AccountRouter,
-    context: Context
+    private val preferences: FwAppearancePreferences,
+    private val persistenceDispatcher: CoroutineDispatcher
 ) : BaseViewModel() {
 
-    private val preferences = FwAppearancePreferences(context)
+    @Inject constructor(router: AccountRouter, context: Context) : this(router, FwAppearancePreferences(context), Dispatchers.IO)
+
+    private val saveMutex = Mutex()
+    private var saveRevision = 0L
     private val mutableState = MutableStateFlow(AppearanceState(displayed(preferences.read())))
     val state: StateFlow<AppearanceState> = mutableState.asStateFlow()
 
@@ -49,10 +56,15 @@ class AppearanceViewModel @Inject constructor(
     fun retry() = save(state.value.appearance)
 
     private fun save(next: FwAppearance) {
+        val revision = ++saveRevision
         mutableState.value = AppearanceState(next)
         viewModelScope.launch {
-            val saved = withContext(Dispatchers.IO) { preferences.save(next) }
-            if (!saved && state.value.appearance == next) mutableState.value = AppearanceState(next, saveFailed = true)
+            // Take the lock on Main, before dispatching IO, to persist rapid choices in tap order.
+            saveMutex.withLock {
+                val saved = withContext(persistenceDispatcher) { preferences.save(next) }
+                // An older failed write must not replace a later choice or retry of the same value.
+                if (revision == saveRevision) mutableState.value = AppearanceState(next, saveFailed = !saved)
+            }
         }
     }
 

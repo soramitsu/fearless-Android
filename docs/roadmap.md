@@ -4,10 +4,13 @@
 
 ## Sun-lit redesign: open items — 9 November 2026
 
-Described in `docs/status.md`. Not yet done on branch `release/sunlit-redesign`:
+Described in `docs/status.md`.
 
 Recovery button painting and accessibility now share the same paragraph layout; the Japanese double-size regression
-and the clipping-negative controls remain part of the local device qualification.
+and the clipping-negative controls remain part of the local device qualification. Appearance saves preserve tap order,
+and deterministic tests cover competing writes, stale failure reports and retry.
+
+Not yet done on branch `release/sunlit-redesign`:
 
 - **Fiat unit (shipped since #1261):** every fiat amount reads `usd0.09` instead of `$0.09`, on 4.3.2 (234) as well.
   `TokenRepositoryImpl` and `CurrentAccountAssetReader` build `FiatValuationContext(selectedFiat.get())` without its

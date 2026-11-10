@@ -37,7 +37,8 @@ storage, signing, seed handling, networking, remote configuration and chain logi
   previews use the same notice and wallet rows. They remain secure motion surfaces: no shimmer, only press feedback.
 - **Appearance:** a new Settings page, because Android had no such screen: Automatic or Reduced visual effects, Increase
   contrast, a still preview and a retry when saving fails. Lite is not offered because it paints exactly like Full on
-  Android. Strings are translated into all shipped languages.
+  Android. Strings are translated into all shipped languages. Saves run in tap order so rapid changes preserve the final
+  combined selection; a failed older write cannot mark a later successful choice or retry as failed.
 - **Mnemonic:** words sit in one still well, in one column at large text, with two-digit numbers kept on one line.
   Confirmation words have no layout transitions, and the agreements and backup rows follow the design. The real phrase
   screens were never captured, on any wallet: review and tests use masked public fixtures only.
