@@ -36,6 +36,8 @@ All notable changes to this project will be documented in this file.
 - Fixed: the first balance scan opens EVM network connections and waits for their clients.
   Unreachable networks still show an unknown balance rather than zero.
 - Fixed: the PIN recovery warning no longer flashes during a normal cold start.
+- Fixed: TON signing and pairing open from the wallet tabs, and Google backup reaches its
+  password screen after the required PIN check.
 - Wallet avatars are whole and centred, and sheets are opaque with rounded tops.
 - The database schema stays 84. Keys, the PIN envelope and stored asset identities are
   unchanged; this release includes presentation, navigation and balance-read fixes.

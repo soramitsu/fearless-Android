@@ -9,6 +9,14 @@ coverage (`6b1b3987a`) and dApp sheet/result fix (`fff99c2c9`). This candidate i
 `docs/releases/4.3.3.md` describes the behavior and remaining validation. The final artifact and gates are
 being rebuilt after the remaining sheet navigation work is integrated.
 
+The integrated candidate also routes TON signing, TON pairing from any tab and Google backup password dialogs
+through their explicit root destinations. Backup still requires a PIN without biometric substitution; after
+verification the root restores the originating product graph before resolving the password dialog. A stale PIN
+completion cannot reopen it. TON requests are refused while locked or when the root cannot reach the destination.
+Ten new navigation cases plus the existing 14 sheet cases cover stack ownership, one-shot results, Portfolio
+preservation, locked/unreachable requests and the PIN graph boundary. Baseline and fixed-run results are pending
+in workspace `build/android-433/evidence/root-dialog-routing/`; no final validation pass is claimed yet.
+
 The Play read at approximately 09:10 KST found 234 still at 20%, one user-perceived crash affecting one user,
 no 234 crash/ANR rates or active-device count, and no low-star reviews or pending publication changes.
 Android Vitals' app-version selector cannot yet find 234. The existing rollout gate is not satisfied;

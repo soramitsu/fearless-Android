@@ -35,12 +35,11 @@ The candidate is described in `docs/status.md` and `docs/releases/4.3.3.md`.
   the bundled one are the same (`56ba0460…`). Reading `GetAvailableFiatCurrencies` as well wouldn't settle it, since a
   context captured before its first fetch keeps its unit. `RemoteConfigStore.lastVerified` is available from the first
   frame, so read it before the bundled list if a currency is ever added between builds.
-- **Root-only dialogs while the tabs are mounted:** `controllerFor` gives no controller for a destination that only the
-  root's graph has while `MainFragment` is mounted, so these routes never open. Every TON Connect transaction, from the
-  bridge or the in-app dApp browser, is answered with an error (`openTonSignRequestWithResult`, since `51cf99580` in
-  4.3.2; by the same reading 4.3.0 and 4.3.1 wait forever instead). "Back up to Google" in a wallet's backup sheet does
-  nothing after sign-in (`openCreateBackupPasswordDialogAfterPinCheck` returns `emptyFlow()`, since `fdbb30d1b` in 4.3.2).
-  Found on 10 November 2026 by reading the code; not run, since TON needs a TON dApp and Drive a Google sign-in.
+- **Root-dialog regression qualification:** the candidate explicitly routes TON signing, TON pairing and Google
+  backup through the root stack, and restores the product graph after the backup PIN check. This fixes the routes
+  previously refused while tabs were mounted, including pairing from Portfolio. The 24-case navigation suite and
+  final artifact validation are pending; live TON bridge and Google-account OAuth behavior are separate from the
+  tested navigation boundary.
 - **Idle lock:** after the 20-minute idle lock and the PIN, a new `MainFragment` opens over the old one, which stays on the
   root's back stack with its tab stack (a Connections sheet was still there on API 34). Taps inside sheets don't reset the
   idle timer, because a dialog's touches never reach `Activity.onUserInteraction`, so 20 minutes spent in sheets locks the

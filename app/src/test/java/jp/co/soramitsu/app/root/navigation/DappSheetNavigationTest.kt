@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.FloatingWindow
+import androidx.navigation.NavAction
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
@@ -18,16 +19,23 @@ import io.mockk.mockkObject
 import io.mockk.unmockkObject
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
+import jp.co.soramitsu.account.api.presentation.create_backup_password.SaveBackupPayload
+import jp.co.soramitsu.account.impl.presentation.create_backup_password.CreateBackupPasswordDialog
 import jp.co.soramitsu.account.impl.presentation.nomis_scoring.ScoreDetailsFragment
+import jp.co.soramitsu.account.impl.presentation.pincode.PinCodeAction
+import jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import jp.co.soramitsu.common.data.storage.pin.WalletViewOnlyAccess
 import jp.co.soramitsu.success.presentation.SuccessFragment
+import jp.co.soramitsu.tonconnect.impl.presentation.tonconnectiondetails.TonConnectionDetailsFragment
+import jp.co.soramitsu.tonconnect.impl.presentation.tonsignrequest.TonSignRequestFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.chainschooser.ChainChooseFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.requestpreview.RequestPreviewFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal.SessionProposalFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.WalletConnectSignMessageFragment
 import jp.co.soramitsu.walletconnect.impl.presentation.transactionrawdata.RawDataFragment
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -86,13 +94,10 @@ class DappSheetNavigationTest {
         }
 
         init {
-            doAnswer { push(it.getArgument(0)) }.whenever(controller).navigate(any<Int>(), anyOrNull<Bundle>())
-            doAnswer {
-                it.getArgument<NavOptions?>(2)?.let { options ->
-                    popTo(options.popUpToId, options.isPopUpToInclusive())
-                }
-                push(it.getArgument(0))
-            }.whenever(controller).navigate(any<Int>(), anyOrNull<Bundle>(), anyOrNull<NavOptions>())
+            doAnswer { navigate(it.getArgument(0), null) }
+                .whenever(controller).navigate(any<Int>(), anyOrNull<Bundle>())
+            doAnswer { navigate(it.getArgument(0), it.getArgument(2)) }
+                .whenever(controller).navigate(any<Int>(), anyOrNull<Bundle>(), anyOrNull<NavOptions>())
             destinationIds.forEach(::push)
         }
 
@@ -106,8 +111,21 @@ class DappSheetNavigationTest {
             pop()
         }
 
+        private fun navigate(destinationId: Int, options: NavOptions?) {
+            val current = requireNotNull(entries.lastOrNull()).destination
+            val resolvedId = current.getAction(destinationId)?.destinationId ?: destinationId
+            val currentGraph = (current as? NavGraph) ?: requireNotNull(current.parent)
+            // AndroidX resolves the destination before popUpTo; it searches parents, not sibling graph children.
+            val node = requireNotNull(currentGraph.findNode(resolvedId)) { "Unreachable destination $destinationId" }
+            options?.let { popTo(it.popUpToId, it.isPopUpToInclusive()) }
+            push(node)
+        }
+
         private fun push(destinationId: Int) {
-            val node = requireNotNull(navGraph.findRecursively(destinationId)) { "Unknown destination $destinationId" }
+            push(requireNotNull(navGraph.findRecursively(destinationId)) { "Unknown destination $destinationId" })
+        }
+
+        private fun push(node: NavDestination) {
             val entryHandle = SavedStateHandle()
             entries += mock<NavBackStackEntry> {
                 on { destination } doReturn node
@@ -147,18 +165,26 @@ class DappSheetNavigationTest {
 
     /** The parts of main_nav_graph these routes use. */
     private fun rootGraph() = graph(
+        R.id.root_nav_graph,
         R.id.main_nav_graph,
-        R.id.mainFragment,
-        page(R.id.mainFragment),
-        page(R.id.aboutFragment),
-        page(R.id.scoreDetailsFragment),
-        Sheet(R.id.sessionProposalFragment),
-        Sheet(R.id.sessionRequestFragment),
-        Sheet(R.id.requestPreviewFragment),
-        Sheet(R.id.rawDataFragment),
-        Sheet(R.id.chainChooseFragment),
-        Sheet(R.id.successSheetFragment)
-    )
+        graph(
+            R.id.main_nav_graph,
+            R.id.mainFragment,
+            page(R.id.mainFragment),
+            page(R.id.aboutFragment),
+            page(R.id.scoreDetailsFragment),
+            Sheet(R.id.sessionProposalFragment),
+            Sheet(R.id.sessionRequestFragment),
+            Sheet(R.id.requestPreviewFragment),
+            Sheet(R.id.rawDataFragment),
+            Sheet(R.id.chainChooseFragment),
+            Sheet(R.id.successSheetFragment),
+            Sheet(R.id.tonSignRequestFragment),
+            Sheet(R.id.tonConnectionDetails),
+            Sheet(R.id.createBackupPasswordDialog)
+        ),
+        page(R.id.pincodeFragment)
+    ).apply { putAction(R.id.open_pincode_check, NavAction(R.id.pincodeFragment)) }
 
     /** The parts of bottom_nav_graph these routes use. */
     private fun tabGraph() = graph(
@@ -171,8 +197,10 @@ class DappSheetNavigationTest {
             page(R.id.aboutFragment),
             Sheet(R.id.requestPreviewFragment),
             Sheet(R.id.rawDataFragment),
-            Sheet(R.id.chainChooseFragment)
+            Sheet(R.id.chainChooseFragment),
+            Sheet(R.id.tonConnectionDetails)
         ),
+        graph(R.id.portfolioGraph, R.id.walletFragment, page(R.id.walletFragment)),
         Sheet(R.id.scoreDetailsFragment),
         Sheet(R.id.successSheetFragment)
     )
@@ -184,7 +212,13 @@ class DappSheetNavigationTest {
         attachMainTabs(tabs.controller)
     }
 
+    private var pinAction: PinCodeAction? = null
+
     private val bundleOwners = listOf(
+        TonSignRequestFragment.Companion,
+        TonConnectionDetailsFragment.Companion,
+        CreateBackupPasswordDialog.Companion,
+        PincodeFragment.Companion,
         RequestPreviewFragment.Companion,
         RawDataFragment.Companion,
         ChainChooseFragment.Companion,
@@ -206,6 +240,13 @@ class DappSheetNavigationTest {
         every { WalletConnectSignMessageFragment.getBundle(any()) } returns mockk()
         every { SuccessFragment.getBundle(any(), any(), any(), any()) } returns mockk()
         every { ScoreDetailsFragment.getBundle(any()) } returns mockk()
+        every { TonSignRequestFragment.getBundle(any(), any(), any()) } returns mockk()
+        every { TonConnectionDetailsFragment.getBundle(any(), any()) } returns mockk()
+        every { CreateBackupPasswordDialog.getBundle(any()) } returns mockk()
+        every { PincodeFragment.getPinCodeBundle(any()) } answers {
+            pinAction = firstArg()
+            mockk()
+        }
     }
 
     @After
@@ -419,6 +460,168 @@ class DappSheetNavigationTest {
             listOf(R.id.mainFragment, R.id.sessionRequestFragment),
             listOf(R.id.profileFragment, R.id.scoreDetailsFragment)
         )
+    }
+
+    @Test
+    fun `TON pairing from portfolio keeps that tab and returns the connection from its root dialog`() = runTest {
+        val portfolio = FakeStack(tabGraph(), R.id.walletFragment)
+        navigator.attachMainTabs(portfolio.controller)
+        val received = async { navigator.openTonConnectionAndWaitForResult(mock(), "proof-payload") }
+        runCurrent()
+        assertEquals(listOf(R.id.mainFragment, R.id.tonConnectionDetails), root.ids)
+        assertEquals(listOf(R.id.walletFragment), portfolio.ids)
+
+        navigator.backWithResult(TonConnectionDetailsFragment.TON_CONNECT_RESULT_KEY to "{\"event\":\"connect\"}")
+        runCurrent()
+
+        assertEquals("connect", received.await().getString("event"))
+        assertEquals(listOf(R.id.mainFragment), root.ids)
+        assertEquals(listOf(R.id.walletFragment), portfolio.ids)
+        assertNull(root.entry(R.id.mainFragment).savedStateHandle[TonConnectionDetailsFragment.TON_CONNECT_RESULT_KEY])
+        assertNull(portfolio.entry(R.id.walletFragment).savedStateHandle[TonConnectionDetailsFragment.TON_CONNECT_RESULT_KEY])
+    }
+
+    @Test
+    fun `a locked wallet cannot open a TON connection request`() = runTest {
+        WalletSessionLock.lock()
+
+        val attempt = async { runCatching { navigator.openTonConnectionAndWaitForResult(mock(), null) } }
+        runCurrent()
+
+        assertTrue("A refused request must not wait for a dialog result", attempt.isCompleted)
+        assertTrue(attempt.await().exceptionOrNull() is IllegalStateException)
+        assertStacks(listOf(R.id.mainFragment))
+    }
+
+    @Test
+    fun `a TON connection request cannot escape the PIN graph through stale mounted tabs`() = runTest {
+        val startId = R.id.pincodeFragment
+        val lockedRoot = FakeStack(graph(R.id.root_nav_graph, startId, page(startId)), startId)
+        navigator.attach(lockedRoot.controller, mock<AppCompatActivity>())
+
+        val attempt = async { runCatching { navigator.openTonConnectionAndWaitForResult(mock(), null) } }
+        runCurrent()
+
+        assertTrue("A refused request must not wait for a dialog result", attempt.isCompleted)
+        assertTrue(attempt.await().exceptionOrNull() is IllegalStateException)
+        assertEquals(listOf(startId), lockedRoot.ids)
+        assertEquals(listOf(R.id.profileFragment), tabs.ids)
+    }
+
+    @Test
+    fun `TON signing opens its root dialog with tabs mounted and returns its result to the original entry`() = runTest {
+        val received = async { navigator.openTonSignRequestWithResult(mock(), "sendTransaction", mock()) }
+        runCurrent()
+        assertStacks(listOf(R.id.mainFragment, R.id.tonSignRequestFragment))
+
+        val signed = Result.success("request-id" to "signed-boc")
+        navigator.backWithResult(TonSignRequestFragment.TON_SIGN_RESULT_KEY to signed)
+        runCurrent()
+
+        assertEquals(signed, received.await())
+        assertStacks(listOf(R.id.mainFragment))
+        assertNull(root.entry(R.id.mainFragment).savedStateHandle[TonSignRequestFragment.TON_SIGN_RESULT_KEY])
+        assertNull(tabs.entry(R.id.profileFragment).savedStateHandle[TonSignRequestFragment.TON_SIGN_RESULT_KEY])
+    }
+
+    @Test
+    fun `a locked wallet cannot open a TON signing dialog even though the root owns it`() = runTest {
+        WalletSessionLock.lock()
+
+        val result = navigator.openTonSignRequestWithResult(mock(), "sendTransaction", mock())
+
+        assertTrue(result.isFailure)
+        assertStacks(listOf(R.id.mainFragment))
+    }
+
+    @Test
+    fun `an unreachable TON dialog remains refused while tabs are mounted`() = runTest {
+        val startId = R.id.pincodeFragment
+        val lockedRoot = FakeStack(graph(R.id.root_nav_graph, startId, page(startId)), startId)
+        navigator.attach(lockedRoot.controller, mock<AppCompatActivity>())
+
+        val result = navigator.openTonSignRequestWithResult(mock(), "sendTransaction", mock())
+
+        assertTrue(result.isFailure)
+        assertEquals(listOf(startId), lockedRoot.ids)
+        assertEquals(listOf(R.id.profileFragment), tabs.ids)
+    }
+
+    @Test
+    fun `Google backup keeps PIN and password on the root stack and returns its result once`() = runTest {
+        val key = CreateBackupPasswordDialog.RESULT_BACKUP_KEY
+        val origin = root.entry(R.id.mainFragment).savedStateHandle
+        origin[key] = -1
+        val received = mutableListOf<Int>()
+        val collecting = launch {
+            navigator.openCreateBackupPasswordDialogAfterPinCheck(SaveBackupPayload(7L, null), null)
+                .collect { received += it }
+        }
+        runCurrent()
+        assertStacks(listOf(R.id.mainFragment, R.id.pincodeFragment))
+        assertEquals(emptyList<Int>(), received)
+        assertNull(origin[key])
+        val check = pinAction as PinCodeAction.Check
+        assertFalse(check.allowBiometric)
+
+        navigator.openAfterPinCode(requireNotNull(check.delayedNavigation))
+        runCurrent()
+        assertStacks(listOf(R.id.mainFragment, R.id.createBackupPasswordDialog))
+        navigator.backWithResult(key to 1)
+        runCurrent()
+
+        assertStacks(listOf(R.id.mainFragment))
+        assertEquals(listOf(1), received)
+        assertFalse(collecting.isActive)
+        assertNull(origin[key])
+        assertNull(tabs.entry(R.id.profileFragment).savedStateHandle[key])
+    }
+
+    @Test
+    fun `backup completion restores the PIN origin graph before resolving its dialog and ignores a replay`() {
+        root.controller.navigate(R.id.open_pincode_check, mock<Bundle>())
+        val delayed = NavComponentDelayedNavigation(R.id.createBackupPasswordDialog, mock<Bundle>())
+        assertStacks(listOf(R.id.mainFragment, R.id.pincodeFragment))
+
+        navigator.openAfterPinCode(delayed)
+        assertStacks(listOf(R.id.mainFragment, R.id.createBackupPasswordDialog))
+        navigator.back()
+        navigator.openAfterPinCode(delayed)
+        assertStacks(listOf(R.id.mainFragment))
+    }
+
+    @Test
+    fun `backup without a PIN detour uses the same root result owner`() = runTest {
+        val key = CreateBackupPasswordDialog.RESULT_BACKUP_KEY
+        val received = mutableListOf<Int>()
+        launch {
+            navigator.openCreateBackupPasswordDialogWithResult(null).collect { received += it }
+        }
+        runCurrent()
+        assertStacks(listOf(R.id.mainFragment, R.id.createBackupPasswordDialog))
+
+        navigator.backWithResult(key to 2)
+        runCurrent()
+
+        assertStacks(listOf(R.id.mainFragment))
+        assertEquals(listOf(2), received)
+        assertNull(root.entry(R.id.mainFragment).savedStateHandle[key])
+    }
+
+    @Test
+    fun `root-only product dialogs remain explicit root destinations in the production graphs`() {
+        val rootDialogs = dialogs("main_nav_graph.xml")
+            .filter { it.parentNode === it.ownerDocument.documentElement }
+            .map { it.destinationName }.toSet()
+        val tabDialogs = dialogs("bottom_nav_graph.xml").map { it.destinationName }.toSet()
+
+        listOf("tonSignRequestFragment", "createBackupPasswordDialog").forEach { name ->
+            assertTrue(name in rootDialogs)
+            assertFalse(name in tabDialogs)
+        }
+        assertTrue("tonConnectionDetails" in rootDialogs)
+        val tabConnection = dialogs("bottom_nav_graph.xml").single { it.destinationName == "tonConnectionDetails" }
+        assertEquals("settingsGraph", (tabConnection.parentNode as Element).destinationName)
     }
 
     @Test

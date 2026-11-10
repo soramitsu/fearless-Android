@@ -311,6 +311,12 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
      * what [activeAuthenticatedController] answers with, so Back and results reach it and not the sheet under it.
      */
     private fun controllerFor(@IdRes destinationId: Int): NavController? {
+        // TON requests can start on any tab. Backup's PIN detour also runs on the root stack, so its
+        // result must be observed on the root entry that the password dialog will return to.
+        when (destinationId) {
+            R.id.tonSignRequestFragment, R.id.tonConnectionDetails, R.id.createBackupPasswordDialog ->
+                return navController?.takeIf { it.canReach(destinationId) }
+        }
         return authenticatedDestinationTarget(
             shellController = mainTabNavController,
             shellContainsDestination = { it.graph.containsDestination(destinationId) },
@@ -476,12 +482,21 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         }
 
         val shouldOpenMain = delayedNavigation.globalActionId == R.id.action_open_main
+        val isBackupAfterPin = delayedNavigation.globalActionId == R.id.createBackupPasswordDialog
+        if (isBackupAfterPin) {
+            val controller = navController ?: return
+            // PIN is in root_nav_graph, while the password dialog is in the original product graph.
+            // Navigation resolves the destination before applying popUpTo, so restore that graph first.
+            // A stale completion outside the PIN screen must not open the export dialog again.
+            if (controller.currentDestination?.id != R.id.pincodeFragment || !controller.popBackStack()) return
+            if (!controller.canReach(delayedNavigation.globalActionId)) return
+        }
 
         val navOptions = NavOptions.Builder()
             .apply {
                 if (shouldOpenMain) {
                     setPopUpTo(R.id.root_nav_graph, false)
-                } else {
+                } else if (!isBackupAfterPin) {
                     setPopUpTo(R.id.pincodeFragment, true)
                 }
             }
@@ -1873,6 +1888,10 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
     }
 
     override suspend fun openTonConnectionAndWaitForResult(app: AppEntity, proofPayload: String?): JSONObject {
+        check(!WalletSessionLock.isLocked()) { "The wallet is locked" }
+        check(controllerFor(R.id.tonConnectionDetails)?.canReach(R.id.tonConnectionDetails) == true) {
+            "The request screen cannot be opened from this screen"
+        }
         val bundle = TonConnectionDetailsFragment.getBundle(app, proofPayload)
 
         val result = openAndWaitResult<String>(
