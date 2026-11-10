@@ -6,6 +6,9 @@
 
 Described in `docs/status.md`. Not yet done on branch `release/sunlit-redesign`:
 
+Recovery button painting and accessibility now share the same paragraph layout; the Japanese double-size regression
+and the clipping-negative controls remain part of the local device qualification.
+
 - **Fiat unit (shipped since #1261):** every fiat amount reads `usd0.09` instead of `$0.09`, on 4.3.2 (234) as well.
   `TokenRepositoryImpl` and `CurrentAccountAssetReader` build `FiatValuationContext(selectedFiat.get())` without its
   metadata, so `displayUnit` falls back to the currency id. Not part of the restyle; the redesign's screens show it too.

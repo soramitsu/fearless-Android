@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 
 /** Recovery uses opaque Calm presentation. Both compile-time rollback controls preserve legacy content. */
@@ -87,7 +88,9 @@ fun FwRecoveryButton(text: String, onClick: () -> Unit, modifier: Modifier = Mod
             .padding(horizontal = 16.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text, modifier = Modifier.fillMaxWidth(), style = fwTextStyle(FwTextRole.LabelL),
+        // Keep painting and accessibility on the same paragraph layout. Compose 1.7's
+        // String fast path reconstructs different Japanese line breaks for semantics.
+        Text(AnnotatedString(text), modifier = Modifier.fillMaxWidth(), style = fwTextStyle(FwTextRole.LabelL),
             color = if (enabled) c.textPrimary else c.textDisabled, textAlign = TextAlign.Center)
     }
 }

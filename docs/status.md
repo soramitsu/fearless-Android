@@ -21,6 +21,9 @@ storage, signing, seed handling, networking, remote configuration and chain logi
   strip itself. Checked by pixel on API 34 and API 36.
 - **Recovery:** recovery centre, PIN recovery, retained data, saved endpoints and key-loss export use flat, opaque cards in
   the Calm palette. Nothing moves except press feedback, and disabled actions stay in the design.
+  Recovery button labels use one paragraph layout for painting and accessibility. Compose 1.7's String fast path could
+  report a third Japanese line against a two-line measured height at double text size when the app language was English.
+  The locale/size checks retain their assertions, including deliberately height-clipped and ellipsized controls.
 - **Manage assets:** raised rows with the asset in a well and the lit switch; group rows carry a tri-state check. At large
   text the amount goes under the name. **Crash fix (both paths):** rows were keyed by `canonicalAssetKey`, which is not
   unique (Acala tDOT and GLMR share currency id 0), so scrolling past such a pair killed the app with `Key … was already
