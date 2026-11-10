@@ -395,6 +395,10 @@
             android:name="jp.co.soramitsu.account.impl.presentation.language.LanguagesFragment"
             android:label="Language" />
         <fragment
+            android:id="@+id/appearanceFragment"
+            android:name="jp.co.soramitsu.account.impl.presentation.appearance.AppearanceFragment"
+            android:label="Appearance" />
+        <fragment
             android:id="@+id/pincodeFragment"
             android:name="jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment"
             android:label="Security" />

@@ -5,6 +5,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.fwListRow
 
 typealias HolderCreator<T> = (parentView: ViewGroup) -> DynamicListSheetAdapter.Holder<T>
 
@@ -20,7 +23,9 @@ class DynamicListSheetAdapter<T : Any>(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder<T> {
-        return holderCreator(parent)
+        val holder = holderCreator(parent)
+        if (FwRestyle.isEnabled(FwSurface.Pickers)) holder.itemView.fwListRow()
+        return holder
     }
 
     override fun onBindViewHolder(holder: Holder<T>, position: Int) {

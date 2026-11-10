@@ -171,6 +171,54 @@ On `f2810b7a3`. Navigation only: no key, signing, storage or chain change.
   proposal and its choice, and the session holds just the chosen networks (Ethereum, Arbitrum One, OP Mainnet; BNB and
   Polygon left out). No physical phone, no release build.
 
+## Sun-lit design on the remaining surfaces — 9 November 2026
+
+Continues the redesign below on branch `release/sunlit-redesign`. The eight surfaces that stayed on shared components
+are now in the design and on by default: recovery, manage assets, pickers, unavailable, signing, appearance, mnemonic
+and staking. UI only, apart from one presentation-layer crash fix each in Manage assets and the pool page (below): keys,
+storage, signing, seed handling, networking, remote configuration and chain logic are unchanged, and no library was added.
+
+- **Rollback:** each surface keeps its legacy path behind its `FW_RESTYLE_*` flag, and `FW_PALETTE=legacy` restores all of
+  them. XML surfaces read per-flag colours through `resValue` aliases in `scripts/fw-appearance.gradle`.
+- **Shared controls:** `FwSurfaceControls.kt` (list row, section label, check mark, tag, icon well, filter chip, selector
+  pill, text action, expand chevron, tri-state check, notice) and the XML helpers `fwLightSurface`, `fwListRow` and
+  `fwSheetNavigationBar` in `FwDrawables.kt`. The chosen wallet now shows a brand rim, tint and check; the palette had
+  been hiding the selection, including on session approval.
+- **Sheets:** a sheet's colour now continues behind the navigation bar on every sheet checked. List sheets and the error
+  sheet were floating windows, behind which Android paints no bar colour, so they ended in a dark strip; they are not
+  floating under the v1 palette. From Android 15 the system ignores the bar colour for this target, so the sheet paints the
+  strip itself. Checked by pixel on API 34 and API 36.
+- **Recovery:** recovery centre, PIN recovery, retained data, saved endpoints and key-loss export use flat, opaque cards in
+  the Calm palette. Nothing moves except press feedback, and disabled actions stay in the design.
+  Recovery button labels use one paragraph layout for painting and accessibility. Compose 1.7's String fast path could
+  report a third Japanese line against a two-line measured height at double text size when the app language was English.
+  The locale/size checks retain their assertions, including deliberately height-clipped and ellipsized controls.
+- **Manage assets:** raised rows with the asset in a well and the lit switch; group rows carry a tri-state check. At large
+  text the amount goes under the name. **Crash fix (both paths):** rows were keyed by `canonicalAssetKey`, which is not
+  unique (Acala tDOT and GLMR share currency id 0), so scrolling past such a pair killed the app with `Key … was already
+  used`. Rows are now keyed by chain and asset id, which are unique across all 245 catalogue assets. The shipped 4.3.1 (233)
+  and 4.3.2 (234) reproduce the crash; this branch survives the same scrolling.
+- **Pickers:** chain, asset and wallet pickers, currency, language and the WalletConnect chain chooser. The asset picker
+  shows progress while loading instead of a false "nothing found", and its amount moves under the name at large text.
+- **Unavailable:** alert sheets, error dialogs, cross-chain route notices and Earn hub reasons use one still notice, so a
+  paused feature reads the same everywhere.
+- **Signing:** session proposal and request, request preview, send and cross-chain confirmations, swap preview and TON
+  previews use the same notice and wallet rows. They remain secure motion surfaces: no shimmer, only press feedback.
+- **Appearance:** a new Settings page, because Android had no such screen: Automatic or Reduced visual effects, Increase
+  contrast, a still preview and a retry when saving fails. Lite is not offered because it paints exactly like Full on
+  Android. Strings are translated into all shipped languages. Saves run in tap order so rapid changes preserve the final
+  combined selection; a failed older write cannot mark a later successful choice or retry as failed.
+- **Mnemonic:** words sit in one still well, in one column at large text, with two-digit numbers kept on one line.
+  Confirmation words have no layout transitions, and the agreements and backup rows follow the design. The real phrase
+  screens were never captured, on any wallet: review and tests use masked public fixtures only.
+- **Staking:** cards, balance and unbonding panels, validator, payout and delegation rows, filters, stories and the bottom
+  panels of ten flow pages. **Crash fix:** the pool welcome page's first coroutine reached `state.update` inside the
+  constructor, before `state` existed, so Start staking crashed on every open. It came with #1261 and also reproduces on the
+  shipped 4.3.2 (234); `StartStakingPoolInitOrderTest` fails on the old order.
+- **Outside the eight flags:** the sheet navigation bar, the big status icon well, the off switch's thumb and the paste chip
+  follow `FW_PALETTE`. Two small fixes reach the legacy palette too: bottom padding on the Language list, and no white
+  placeholder behind the staking avatar.
+
 ## Sun-lit neumorphism redesign and the approved badge — 8 November 2026
 
 Owner, 8 November 2026: "the mobile apps are ugly and don't use our new logo branding. make the ui look

@@ -14,12 +14,19 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.compose.ui.graphics.toArgb
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import jp.co.soramitsu.common.compose.theme.fw.FwElevation
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwShape
+import jp.co.soramitsu.common.compose.theme.fw.FwStandard
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.FwViews
 import jp.co.soramitsu.app.root.domain.WalletDatabaseStartupGate
 import jp.co.soramitsu.app.root.domain.WalletStartupSession
 import jp.co.soramitsu.app.root.domain.keyloss.WalletPublicSnapshotReader
@@ -76,7 +83,7 @@ class WalletKeyLossRecoveryActivity : AppCompatActivity() {
         content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(20), dp(24), dp(20), dp(24))
-            setBackgroundColor(Color.rgb(16, 17, 25))
+            setBackgroundColor(if (restyled) FwStandard.bgBase.toArgb() else Color.rgb(16, 17, 25))
         }
         setContentView(ScrollView(this).apply { isFillViewport = true; addView(content) })
         showHome()
@@ -232,17 +239,31 @@ class WalletKeyLossRecoveryActivity : AppCompatActivity() {
         content.addView(TextView(this).apply {
             text = value
             textSize = size
-            setTextColor(Color.WHITE)
+            setTextColor(if (restyled) FwStandard.textPrimary.toArgb() else Color.WHITE)
             setTextIsSelectable(true)
             setPadding(0, dp(8), 0, dp(12))
         })
     }
 
     private fun button(label: Int, action: () -> Unit) {
-        content.addView(Button(this).apply { setText(label); isAllCaps = false; setOnClickListener { action() } })
+        content.addView(Button(this).apply {
+            setText(label)
+            isAllCaps = false
+            setOnClickListener { action() }
+            if (restyled) {
+                // A flat, still control with a solid edge, as on the recovery centre.
+                background = FwViews.surface(context, FwElevation.Raised1, FwShape.BUTTON.value, calm = true)
+                stateListAnimator = null
+                setTextColor(FwStandard.textPrimary.toArgb())
+                minHeight = dp(48)
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                    .apply { topMargin = dp(12) }
+            }
+        })
     }
 
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
+    private val restyled: Boolean get() = FwRestyle.isEnabled(FwSurface.Recovery)
     private enum class CredentialPurpose { VIEW, START }
 
     companion object {

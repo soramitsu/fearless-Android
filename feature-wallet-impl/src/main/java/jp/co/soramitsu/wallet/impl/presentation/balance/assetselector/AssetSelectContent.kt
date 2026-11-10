@@ -40,6 +40,8 @@ import jp.co.soramitsu.common.compose.component.TestnetBadge
 import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.black4
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -79,6 +81,10 @@ fun AssetSelectContent(
     state: AssetSelectScreenViewState,
     callback: AssetSelectContentInterface
 ) {
+    if (FwRestyle.isEnabled(FwSurface.Pickers)) {
+        AssetSelectSunlitContent(state, callback)
+        return
+    }
     Column(
         modifier = Modifier
             .padding(horizontal = 16.dp)

@@ -48,6 +48,8 @@ import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.black4
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customColors
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.compose.theme.white64
@@ -60,6 +62,10 @@ fun ChainSelectContent(
     state: ChainSelectScreenContract.State,
     contract: ChainSelectScreenContract
 ) {
+    if (FwRestyle.isEnabled(FwSurface.Pickers)) {
+        ChainSelectSunlitContent(state, contract)
+        return
+    }
     Column(
         modifier = Modifier
             .nestedScroll(rememberNestedScrollInteropConnection())

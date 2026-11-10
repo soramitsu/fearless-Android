@@ -63,6 +63,8 @@ import jp.co.soramitsu.common.compose.theme.black3
 import jp.co.soramitsu.common.compose.theme.black4
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.darkButtonBackground
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.compose.theme.transparent
 import jp.co.soramitsu.common.compose.theme.white
@@ -107,6 +109,10 @@ fun ManageAssetsContent(
     state: ManageAssetsScreenViewState,
     callback: ManageAssetsContentInterface
 ) {
+    if (FwRestyle.isEnabled(FwSurface.ManageAssets)) {
+        ManageAssetsSunlitContent(state, callback)
+        return
+    }
     Column(Modifier.nestedScroll(rememberNestedScrollInteropConnection()).padding(horizontal = 16.dp).fillMaxWidth()) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = CenterVertically) {
             B0(text = stringResource(R.string.common_done), color = colorAccentDark,

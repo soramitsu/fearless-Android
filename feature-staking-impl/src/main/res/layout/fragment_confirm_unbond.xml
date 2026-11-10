@@ -84,7 +84,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/black4"
+        android:background="@color/fw_staking_panel_black"
         android:orientation="vertical">
 
         <jp.co.soramitsu.wallet.api.presentation.view.FeeView

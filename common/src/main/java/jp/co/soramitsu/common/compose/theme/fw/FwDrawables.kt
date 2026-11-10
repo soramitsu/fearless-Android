@@ -17,11 +17,13 @@ import android.graphics.Shader
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.animation.OvershootInterpolator
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.toArgb
+import androidx.core.view.doOnAttach
 import kotlin.math.max
 import kotlin.math.min
 
@@ -32,6 +34,37 @@ import kotlin.math.min
 object FwViews {
     /** Effects for views outside Compose: system animator scale and the saved display preferences. */
     fun effects(context: Context): FwEffects = readFwEffectsSnapshot(context)
+
+    /** A lit surface for XML cards, rows and wells. Pressed states sink by themselves. */
+    fun surface(
+        context: Context,
+        level: FwElevation = FwElevation.Raised2,
+        cornerDp: Float = FwShape.CARD.value,
+        calm: Boolean = false
+    ): Drawable {
+        val density = context.resources.displayMetrics.density
+        val fx = effects(context).let { if (calm) it.copy(calm = true) else it }
+        return FwNeuDrawable(FwStandardOrHighContrast(context), fx, density, level, cornerRadius = cornerDp * density)
+    }
+}
+
+/** Gives an XML view a lit surface and lets its light fall outside its bounds. */
+fun View.fwLightSurface(level: FwElevation = FwElevation.Raised2, cornerDp: Float = FwShape.CARD.value) {
+    background = FwViews.surface(context, level, cornerDp)
+    doOnAttach { (parent as? ViewGroup)?.clipChildren = false }
+}
+
+/** A raised list row for XML pickers: the same row as the Compose lists, with the page gutter as its margin. */
+fun View.fwListRow(marginHorizontalDp: Int = 20, marginVerticalDp: Int = 4) {
+    val density = resources.displayMetrics.density
+    fwLightSurface(FwElevation.Raised1, FwShape.BUTTON.value)
+    val params = layoutParams as? ViewGroup.MarginLayoutParams
+        ?: ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+    params.setMargins(
+        (marginHorizontalDp * density).toInt(), (marginVerticalDp * density).toInt(),
+        (marginHorizontalDp * density).toInt(), (marginVerticalDp * density).toInt()
+    )
+    layoutParams = params
 }
 
 /** A sheet continues behind the navigation bar instead of ending in a dark strip above it. */

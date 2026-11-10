@@ -1314,6 +1314,10 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         navigateInMainTabOrRoot(R.id.languagesFragment)
     }
 
+    override fun openAppearance() {
+        navigateInMainTabOrRoot(R.id.appearanceFragment)
+    }
+
     override fun openReceive(assetPayload: AssetPayload) {
         val bundle = ReceiveFragment.getBundle(assetPayload)
 

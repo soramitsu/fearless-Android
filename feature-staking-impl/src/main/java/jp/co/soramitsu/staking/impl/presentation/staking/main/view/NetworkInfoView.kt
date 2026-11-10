@@ -7,6 +7,7 @@ import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import jp.co.soramitsu.staking.impl.presentation.common.stakingCard
 import jp.co.soramitsu.common.presentation.StakingStoryModel
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
@@ -43,9 +44,7 @@ abstract class NetworkInfoView @JvmOverloads constructor(
     protected abstract val collapsibleView: ConstraintLayout
 
     init {
-        with(context) {
-            background = getCutCornerDrawable(R.color.blurColor)
-        }
+        stakingCard { context.getCutCornerDrawable(R.color.blurColor) }
 
         orientation = VERTICAL
     }

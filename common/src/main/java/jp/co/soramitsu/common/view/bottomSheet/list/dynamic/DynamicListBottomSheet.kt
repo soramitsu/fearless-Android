@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.view.bottomSheet.list.dynamic
 
 import android.content.Context
 import android.os.Bundle
+import android.view.View
 import android.widget.TextView
 import androidx.annotation.CallSuper
 import androidx.recyclerview.widget.DiffUtil
@@ -9,6 +10,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.fw.fwSheetNavigationBar
 
 typealias ClickHandler<T> = (T) -> Unit
@@ -45,6 +48,12 @@ abstract class DynamicListBottomSheet<T : Any>(
 
         val listContent = findViewById<RecyclerView>(R.id.dynamicListSheetContent)
         fwSheetNavigationBar()
+        if (FwRestyle.isEnabled(FwSurface.Pickers)) {
+            // Rows are raised surfaces now, so the title needs no rule, and their light needs the list's padding.
+            findViewById<View>(R.id.dynamicListSheetDivider)?.visibility = View.GONE
+            listContent?.clipToPadding = false
+            listContent?.setPadding(0, (8 * context.resources.displayMetrics.density).toInt(), 0, 0)
+        }
 
         val adapter = DynamicListSheetAdapter(payload.selected, this, diffCallback, holderCreator())
         listContent?.adapter = adapter

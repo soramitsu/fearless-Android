@@ -19,6 +19,7 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
 import jp.co.soramitsu.common.compose.theme.fw.FwShape
 import jp.co.soramitsu.common.compose.theme.fw.FwStandard
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.fw.fwSheetNavigationBar
 import jp.co.soramitsu.common.view.PrimaryButton
 
@@ -49,7 +50,7 @@ class AlertBottomSheet(
         setContentView(R.layout.bottom_sheet_alert)
         super.onCreate(savedInstanceState)
         fwSheetNavigationBar()
-        if (FwRestyle.paletteEnabled) paintSunlitSheet()
+        if (FwRestyle.isEnabled(FwSurface.Unavailable)) paintSunlitSheet()
 
         findViewById<TextView>(R.id.alertTitle)?.text = title
         findViewById<TextView>(R.id.alertMessage)?.text = message

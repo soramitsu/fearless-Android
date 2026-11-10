@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.EditText
 import androidx.constraintlayout.widget.ConstraintLayout
 import coil.ImageLoader
+import jp.co.soramitsu.staking.impl.presentation.common.stakingCard
 import jp.co.soramitsu.common.view.shape.addRipple
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
@@ -28,9 +29,7 @@ class EstimateEarningView @JvmOverloads constructor(
         inflate(context, R.layout.view_estimate_earning, this)
         binding = ViewEstimateEarningBinding.bind(this)
 
-        with(context) {
-            background = addRipple(getCutCornerDrawable(R.color.blurColor))
-        }
+        stakingCard { with(context) { addRipple(getCutCornerDrawable(R.color.blurColor)) } }
 
 //        attrs?.let { applyAttributes(it) }
     }

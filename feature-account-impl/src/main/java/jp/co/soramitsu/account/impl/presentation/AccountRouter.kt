@@ -76,6 +76,8 @@ interface AccountRouter : SecureRouter {
 
     fun openLanguages()
 
+    fun openAppearance()
+
     fun openAccountDetails(metaAccountId: Long)
 
     fun openNodeDetails(payload: NodeDetailsPayload)

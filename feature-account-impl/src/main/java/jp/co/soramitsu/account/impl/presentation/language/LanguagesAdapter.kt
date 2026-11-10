@@ -8,6 +8,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.fwListRow
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.account.impl.presentation.language.model.LanguageModel
 
@@ -54,6 +57,10 @@ class LanguageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private val languageNameTv: TextView = itemView.findViewById(R.id.languageNameTv)
     private val languageNativeNameTv: TextView = itemView.findViewById(R.id.languageNativeNameTv)
     private val languageCheck: ImageView = itemView.findViewById(R.id.languageCheck)
+
+    init {
+        if (FwRestyle.isEnabled(FwSurface.Pickers)) itemView.fwListRow()
+    }
 
     fun bind(language: LanguageModel, handler: LanguagesAdapter.LanguagesItemHandler, isChecked: Boolean) {
         with(itemView) {

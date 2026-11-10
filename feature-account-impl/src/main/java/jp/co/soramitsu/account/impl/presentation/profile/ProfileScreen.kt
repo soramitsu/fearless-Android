@@ -45,6 +45,7 @@ interface ProfileScreenInterface {
     fun onManageAssetsClick()
     fun currencyClicked()
     fun languagesClicked()
+    fun appearanceClicked()
 
     fun onNomisMultichainScoreContainerClick()
     fun polkaswapDisclaimerClicked()
@@ -166,6 +167,14 @@ fun ProfileScreen(
                 onClick = callback::languagesClicked
             )
             SettingsDivider()
+            if (FwRestyle.isEnabled(FwSurface.Appearance)) {
+                SettingsItem(
+                    icon = painterResource(jp.co.soramitsu.common.R.drawable.ic_appearance_24),
+                    text = stringResource(R.string.appearance_title),
+                    onClick = callback::appearanceClicked
+                )
+                SettingsDivider()
+            }
             if (state.walletState.onlyTonSupported.not()) {
                 SettingsItem(
                     icon = painterResource(R.drawable.ic_score_star_full_24_pink),
@@ -230,6 +239,7 @@ fun ProfileScreenPreview() {
                 override fun onManageAssetsClick() = Unit
                 override fun currencyClicked() = Unit
                 override fun languagesClicked() = Unit
+                override fun appearanceClicked() = Unit
                 override fun onNomisMultichainScoreContainerClick() = Unit
                 override fun polkaswapDisclaimerClicked() = Unit
                 override fun changePinCodeClicked() = Unit

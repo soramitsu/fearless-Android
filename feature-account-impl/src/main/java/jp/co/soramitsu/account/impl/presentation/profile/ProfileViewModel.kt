@@ -171,6 +171,10 @@ class ProfileViewModel @Inject constructor(
         router.openLanguages()
     }
 
+    override fun appearanceClicked() {
+        router.openAppearance()
+    }
+
     override fun changePinCodeClicked() {
         router.openChangePinCode()
     }

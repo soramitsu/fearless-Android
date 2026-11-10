@@ -9,13 +9,12 @@ The candidate is described in `docs/status.md` and `docs/releases/4.3.3.md`.
 - **Rollout:** the owner approved raising 234 after its Vitals gate passes. The 10 November read has one crash but
   lacks rates and a 234 active-device count, so the gate is not established and 234 remains at 20%. 233's running staged rollout went
   to halted when 234 was saved on 9 November 2026, most likely because of the save (Play states no cause), and no device
-  receives either version until the new one is published. PR #1276 merges after PR #1275, which needs a code-owner
-  approval.
+  receives either version until the new one is published. Every open Android PR is folded into one PR from
+  `release/consolidated-20261110`, which needs a code-owner approval.
 - **Devices:** no physical phone has run the redesign. Shadow cost on API 26-27 and low-end GPUs is below.
-- **Eight surfaces (owner's call):** recovery, manage assets, pickers, unavailable, signing, appearance, mnemonic and
-  staking are not restyled in 4.3.3. Their restyle is a separate lane on `release/sunlit-redesign`; taking it means a new
-  build and new gates, and its shared changes need their own device pass even with the flags off. On the live pages the
-  most visible leftovers are the recovery centre's low-contrast buttons and Manage assets' flat band behind a group.
+- **Eight surfaces:** recovery, manage assets, pickers, unavailable, signing, appearance, mnemonic and staking are
+  restyled in 4.3.3 too, because `release/consolidated-20261110` folds in PR #1276. The walks of the signed 4.3.3
+  builds above were made without them, so they need a new signed build and their own device pass.
 - **New wallet total while Liberland is down (owner's call):** a new wallet now reads every network within a few minutes
   (`docs/status.md`), but shows "Balance unavailable" while one network the total counts cannot be read. On 10
   November that is Liberland: its only catalog node, `wss://mainnet.liberland.org`, refused connections on 9 November at
@@ -52,13 +51,19 @@ The candidate is described in `docs/status.md` and `docs/releases/4.3.3.md`.
   a submission. That is their reviewed policy (`PoolJoinRecoverySystemBackInstrumentedTest`, and their reviews revoke
   and record a known success), so it was left as it is. They could take `KeepSheetOpenOnBack` for one rule everywhere.
 
-## Sun-lit redesign: open items — 8 November 2026
+## Sun-lit redesign: open items — 9 November 2026
 
-Described in `docs/status.md`. Not yet done on branch `release/sunlit-redesign`:
+Described in `docs/status.md`.
 
-- Surfaces still on the shared components only (their flags stay off until each is reviewed on device):
-  recovery, manage assets, pickers, unavailable, signing, appearance, mnemonic and staking; staking and
-  most account screens are XML and only take the page light and shared drawables.
+Recovery button painting and accessibility now share the same paragraph layout; the Japanese double-size regression
+and the clipping-negative controls remain part of the local device qualification. Appearance saves preserve tap order,
+and deterministic tests cover competing writes, stale failure reports and retry.
+
+Not yet done (the 4.3.3 line fixed the fiat unit in `35c768411`, the asset row identity in `2d4da42b0` and system Back
+on the pool staking sheets in its sheet Back work):
+
+- **WalletConnect request sheets:** a transaction request is titled "Sign this message?", and Back leaves the request
+  unanswered until it expires instead of rejecting it. (Preview's Back closing the request is fixed by `fff99c2c9`.)
 - The optional tilt-shifted key light (sensor) is not implemented.
 - The complete compile-time appearance rollback matrix remains separate from the default-palette
   local UI qualification. Paint expectations now describe the sun-lit surfaces; device checks include

@@ -6,6 +6,11 @@ import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import coil.ImageLoader
 import coil.load
+import jp.co.soramitsu.common.compose.theme.fw.FwElevation
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwShape
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.fwLightSurface
 import jp.co.soramitsu.common.utils.getEnum
 import jp.co.soramitsu.common.utils.useAttributes
 import jp.co.soramitsu.common.view.shape.addRipple
@@ -43,6 +48,10 @@ class AssetSelectorView @JvmOverloads constructor(
     }
 
     fun setBackgroundStyle(style: BackgroundStyle) = with(context) {
+        if (FwRestyle.isEnabled(FwSurface.Pickers)) {
+            fwLightSurface(FwElevation.Raised1, FwShape.BUTTON.value)
+            return@with
+        }
         val baseBackground = when (style) {
             BackgroundStyle.BLURRED -> getCutCornerDrawable(R.color.blurColor)
             BackgroundStyle.BORDERED -> getIdleDrawable()

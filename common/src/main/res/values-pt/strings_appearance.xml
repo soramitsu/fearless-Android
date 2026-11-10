@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_title">Aparência</string>
+    <string name="appearance_effects_title">Efeitos visuais</string>
+    <string name="appearance_effects_automatic">Automático</string>
+    <string name="appearance_effects_reduced">Reduzidos</string>
+    <string name="appearance_effects_automatic_description">Luz e sombras completas, a menos que o dispositivo peça mais contraste.</string>
+    <string name="appearance_effects_reduced_description">Superfícies sólidas e planas, sem brilho nem sombras.</string>
+    <string name="appearance_effects_kept_reduced">A definição de contraste do dispositivo mantém os efeitos reduzidos.</string>
+    <string name="appearance_contrast_title">Aumentar o contraste</string>
+    <string name="appearance_contrast_description">Texto mais brilhante e contornos sólidos. Os efeitos ficam reduzidos enquanto isto estiver ativo.</string>
+    <string name="appearance_preview_title">Pré-visualização</string>
+    <string name="appearance_save_failed">Não foi possível guardar esta escolha.</string>
+</resources>
