@@ -216,6 +216,9 @@ class WalletConnectSignMessageViewModel @Inject constructor(
     private fun WalletConnectRequest.isTransaction(): Boolean = request.method in TRANSACTION_METHODS
 
     override fun onClose() {
+        // Rejecting takes a network call, and system Back is easier to press twice than the close icon.
+        if (isClosing) return
+        isClosing = true
         val requestId = recentSession?.request?.id
         val isRequestPending = requestId != null &&
             walletConnectInteractor.getPendingListOfSessionRequests(topic).pendingRequest(requestId) != null
@@ -227,8 +230,6 @@ class WalletConnectSignMessageViewModel @Inject constructor(
                 sessionTopic = topic,
                 requestId = requestId,
                 onSuccess = {
-                    isClosing = false
-
                     viewModelScope.launch(Dispatchers.Main.immediate) {
                         walletConnectRouter.back()
                     }

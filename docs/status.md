@@ -56,6 +56,48 @@ release build and found one more:
 - **Sheet strip:** floating sheets (Currency, the paused-network `ErrorDialog`) kept a dark strip above the navigation
   bar, and Android 15+ ignores `navigationBarColor`. From the restyle lane, verified there on API 34 and 36: list sheets
   stop floating under the sun-lit palette and the sheet's container paints its own bottom padding.
+## 4.3.3: system Back on every other sheet — 9 November 2026
+
+On Android 13+ (`enableOnBackInvokedCallback=true`) Back on a sheet goes to Material's `MaterialBackOrchestrator` or a
+callback on the dialog's `OnBackPressedDispatcher`. Material hides a hideable sheet, which cancels the dialog, and can only
+collapse any other, and `BaseComposeBottomSheetDialogFragment` made its sheets non-hideable. So 18 sheets, collapsed with
+dragging off, stayed stuck at their peek height. Before Android 13 the same Back cancelled them.
+
+- **Base class:** `isHideable` is now true by default, so Material closes these sheets on every version, through
+  `onCancel` and `onDismiss` like a tap outside. Dragging stays off. The `onBackPressed` helper is gone: it registered on
+  the activity's dispatcher, which a dialog never reaches.
+- **Sheets that only close:** `ScoreDetailsFragment`, `SelectPoolFragment`, `EditPoolFragment`, `PoolInfoOptionsFragment`,
+  `SetupStakingPoolFragment`, `StartStakingPoolFragment`, `CreatePoolSetupFragment`, `ValidatorsSettingsFragment`,
+  `SelectCustomValidatorsFragment`, `SelectValidatorsFragment`, `StartSelectValidatorsFragment` and
+  `SelectedValidatorsFragment`. Their toolbar's action is a plain back or the review revocation `onCancel` runs too.
+- **Confirm sheets keep their submission:** `ConfirmSendFragment`, `ClaimRewardsFragment`, `ConfirmJoinPoolFragment`,
+  `EditPoolConfirmFragment` and `ConfirmSelectValidatorsFragment` ignore Back while submitting (`KeepSheetOpenOnBack`):
+  closing would clear the ViewModel, cancel the work in its scope and lose the result screen. Claim Rewards keeps its
+  toolbar during a claim, so its toolbar action waits too. A tap outside still closes them: it is the way out of a call
+  that never answers (`docs/roadmap.md`).
+- **Sheets whose Back is an action:** `DappScreenFragment` goes back through the page history, then closes.
+  `ImportRemoteWalletDialog` steps through its pages; its `onBackPressed` never ran, so Back closed the whole sheet from the
+  password page. `WalletConnectSignMessageFragment` and `TonSignRequestFragment` set `isHideable = false` themselves: Back
+  now answers the dApp like their close icon (rejected, declined), because cancelling the dialog would leave it waiting.
+  Pressing it twice rejects a WalletConnect request once. `ChainChooseFragment` leaves the choice as it was, like a tap outside.
+  `CreateBackupPasswordDialog` is unchanged: once its wallet exists it is not cancelable, so Back does nothing there.
+- **The same bug outside this base class:** `ErrorDialog`'s `onBackPressed` override never ran on Android 13+: Back
+  skipped its `onBackClick` and collapsed a non-hideable dialog, leaving its buttons out of reach (the PIN biometrics offer, transfer
+  warnings, retry prompts). It now uses a `BackHandler`: a hideable dialog runs `onBackClick` and closes, and a non-hideable one
+  ignores Back, on every version. `BaseBottomSheetDialogFragment` (`ValidatorDetailsFragment`), `WebViewerFragment`,
+  `ServiceFragment` and `NftFiltersFragment` had `isHideable = false` too and now close on Back.
+- **Validation (10 November 2026, local; receipts in `build/android-sheet-back/` in the parent workspace):** 5,391 unit
+  tests in common, feature-account-impl, feature-staking-impl, feature-wallet-impl, feature-walletconnect-impl,
+  feature-tonconnect-impl, app, feature-liquiditypools-impl and feature-nft-impl: 0 failures, 2 skipped. `detektAll` passes. `SheetSystemBackPolicyTest` reads every sheet on
+  the base class. `SheetSystemBackInstrumentedTest` sends a real Back key to real Material dialogs: every sheet above that
+  Material closes, plus the four outside the base class, closes on API 34 and API 26; a submitting sheet stays until it
+  is done; a tap outside still closes it; a sheet's own Back runs ahead of Material; `ErrorDialog` runs `onBackClick` or
+  stays expanded. Without the fix 5 of its 8 tests fail on API 34, and all 21 sheets stay open.
+  `PoolJoinRecoverySystemBackInstrumentedTest` (11) and `BaseFragmentErrorDialogContractTest` (4) pass on API 26.
+  Real screens before the fix, API 34: Back only pushed Score Details down, twice. After: Score Details (Back key and edge
+  gesture), Join pool (the keyboard closes first), Start staking and the invalid-phrase error sheet close on API 34;
+  Score Details, Join pool and Start staking on API 26. No physical phone. The test wallet has nothing to send, so no
+  confirmation was submitted on a network: the hold during a submission is checked by the device test only.
 
 ## 4.3.3: fixes from the 4.3.2 release smoke — 9 November 2026
 

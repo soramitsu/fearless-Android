@@ -404,6 +404,20 @@ class TonSignRequestPortfolioAdoptionTest {
         coVerify(exactly = 0) { interactor.signMessage(any(), any(), any(), any()) }
     }
 
+    @Test
+    fun closingTellsTheDappTheRequestWasDeclined() = runTest(dispatcher) {
+        val vm = create(dapp(7))
+        runCurrent()
+
+        vm.onClose()
+
+        val result = slot<Pair<String, Any?>>()
+        verify(exactly = 1) { router.backWithResult(capture(result)) }
+        assertEquals(TonSignRequestFragment.TON_SIGN_RESULT_KEY, result.captured.first)
+        assertTrue((result.captured.second as Result<*>).isFailure)
+        coVerify(exactly = 0) { interactor.signMessage(any(), any(), any(), any()) }
+    }
+
     private fun create(
         dapp: DappModel,
         summaries: TonSignRequestSummaries = TonSignRequestSummaries(resources) { _, _ -> emptyMap() }

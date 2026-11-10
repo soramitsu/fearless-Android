@@ -11,6 +11,7 @@ import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.presentation.actions.setupExternalActions
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
+import jp.co.soramitsu.common.navigation.KeepSheetOpenOnBack
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingType
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import jp.co.soramitsu.wallet.impl.presentation.TransferValidationDialogContract
@@ -67,6 +68,7 @@ class ConfirmSendFragment : BaseComposeBottomSheetDialogFragment<ConfirmSendView
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
+        KeepSheetOpenOnBack(submitting = state.isLoading)
         ConfirmSendContent(
             state = state,
             callback = viewModel

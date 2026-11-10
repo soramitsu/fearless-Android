@@ -1,7 +1,6 @@
 package jp.co.soramitsu.common.presentation
 
 import android.annotation.SuppressLint
-import android.app.Dialog
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.LayoutInflater
@@ -9,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -216,18 +216,6 @@ class ErrorDialog() : BottomSheetDialogFragment() {
         }
     }
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return object : BottomSheetDialog(requireContext(), theme) {
-            @Deprecated("Deprecated in Java")
-            override fun onBackPressed() {
-                if (isHideable) {
-                    dispatchAction(Action.BACK, onBackClick)
-                    super.onBackPressed()
-                }
-            }
-        }
-    }
-
     @Suppress("DEPRECATION")
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     override fun onCreateView(
@@ -239,6 +227,14 @@ class ErrorDialog() : BottomSheetDialogFragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 FearlessTheme {
+                    // From Android 13 Back never reaches Dialog.onBackPressed, and Material's handler skips onBackClick
+                    // and collapses a sheet that can't be hidden, leaving its buttons out of reach.
+                    BackHandler {
+                        if (isHideable) {
+                            dispatchAction(Action.BACK, onBackClick)
+                            dismiss()
+                        }
+                    }
                     BottomSheetScreen {
                         Column(
                             modifier = Modifier

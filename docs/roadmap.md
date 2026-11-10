@@ -24,10 +24,7 @@ The candidate is described in `docs/status.md` and `docs/releases/4.3.3.md`.
   unknown on purpose ("absence never becomes zero"). Two ways out, neither taken: a working node in the production
   catalog (a signed remote-config change), or a total that treats a newly created wallet's unread rows as zero (a change
   to how the total is computed). The daily sweep and pull-to-refresh read Liberland again once its node answers.
-- **Other sheets and system Back:** 18 more sheets on `BaseComposeBottomSheetDialogFragment` keep its default
-  `isHideable = false` (`ConfirmSendFragment`, `ClaimRewardsFragment`, `ScoreDetailsFragment`, the pool and validator
-  setup sheets and others). On Android 13+ Material's back handler answers Back for them and can only collapse them, so
-  they should close or go back the way the pools and NFT sheets now do. Found by reading the code; not checked on a device.
+
 - **Seen in the walk of the second signed build, not changed:** the staking page's scrolled content runs under the
   transparent status bar (its container pads for the status bar inside the scroll view, as in 4.3.2; staking surface);
   the one-time first-start scroll to Manage assets (FLW-4511) now hides the hero and total on the one-page home; the asset
@@ -48,6 +45,13 @@ The candidate is described in `docs/status.md` and `docs/releases/4.3.3.md`.
   root's back stack with its tab stack (a Connections sheet was still there on API 34). Taps inside sheets don't reset the
   idle timer, because a dialog's touches never reach `Activity.onUserInteraction`, so 20 minutes spent in sheets locks the
   wallet. Neither is new in 4.3.3.
+- **A submission that never answers:** while a confirm sheet submits, system Back waits (`KeepSheetOpenOnBack`), and a
+  tap outside is the way out if the call hangs. Closing that way clears the ViewModel, so the result screen is lost; the
+  chain may still have the transaction. A timeout with a clear message on the submission would make the way out safe.
+- **Member pool confirmations during a submission:** `ConfirmCreatePoolFragment`, `ConfirmPoolBondMoreFragment`,
+  `ConfirmPoolClaimFragment`, `ConfirmPoolRedeemFragment` and `ConfirmPoolUnbondFragment` still close on system Back during
+  a submission. That is their reviewed policy (`PoolJoinRecoverySystemBackInstrumentedTest`, and their reviews revoke
+  and record a known success), so it was left as it is. They could take `KeepSheetOpenOnBack` for one rule everywhere.
 
 ## Sun-lit redesign: open items — 8 November 2026
 

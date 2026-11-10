@@ -26,6 +26,9 @@ All notable changes to this project will be documented in this file.
 - Fixed: Start staking for a pool crashed on every open.
 - Fixed: system Back in the liquidity pools and NFT sheets goes back a page instead of
   sticking on Loading.
+- Fixed: on Android 13 and later system Back closes the sheets it only pushed down (Send
+  confirmation, pool and validator staking sheets, wallet score, error sheets and others).
+  A confirmation being submitted stays open; Back on a dApp request declines it.
 - Fixed: closing the success sheet after a WalletConnect signature no longer shows the
   answered request again, and a message signature says "Message signed".
 - Fixed: a new wallet no longer says "No assets were found" while balances it counts are

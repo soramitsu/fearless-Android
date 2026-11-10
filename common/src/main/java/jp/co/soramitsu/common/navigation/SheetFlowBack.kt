@@ -1,5 +1,7 @@
 package jp.co.soramitsu.common.navigation
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 
 /**
@@ -13,4 +15,14 @@ fun NavController.popFlowPageOrExit(loadingRoute: String, exitFlow: () -> Unit) 
     } else {
         popBackStack()
     }
+}
+
+/**
+ * Keeps a sheet open through system Back while [submitting]. Closing it would clear its ViewModel, which cancels the
+ * submission running in its scope and drops the result screen. A tap outside still closes the sheet, so a submission
+ * that never answers cannot trap the user.
+ */
+@Composable
+fun KeepSheetOpenOnBack(submitting: Boolean) {
+    BackHandler(enabled = submitting) { /* Back is spent here; the sheet stays. */ }
 }

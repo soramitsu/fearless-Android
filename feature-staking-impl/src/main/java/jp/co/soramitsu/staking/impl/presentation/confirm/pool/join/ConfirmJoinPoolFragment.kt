@@ -7,6 +7,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
+import jp.co.soramitsu.common.navigation.KeepSheetOpenOnBack
 
 @AndroidEntryPoint
 class ConfirmJoinPoolFragment : BaseComposeBottomSheetDialogFragment<ConfirmJoinPoolViewModel>() {
@@ -25,6 +26,7 @@ class ConfirmJoinPoolFragment : BaseComposeBottomSheetDialogFragment<ConfirmJoin
     @Composable
     override fun Content(padding: PaddingValues) {
         val state = viewModel.viewState.collectAsState()
+        KeepSheetOpenOnBack(submitting = state.value.isLoading)
         ConfirmJoinPoolScreen(state = state.value, onNavigationClick = viewModel::onBackClick, onConfirm = viewModel::onConfirm,
             onCheckPending = viewModel::onCheckPending, onReturnToPool = viewModel::onReturnToPool)
     }
