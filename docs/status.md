@@ -11,7 +11,7 @@ eagle-and-crow call. It replaces the winged-sun badge everywhere. Branch `releas
 UI only: keys, signing, storage, networking and chain logic are unchanged, and no library was added.
 
 - **Source:** the shared brand kit (design package `design/yatagarasu-20261110`, r3; kit manifest SHA-256
-  `4575466317061cc9147056fcbdf02725d2fa3aa9f7173de987d6b899fc8d5028`). The 24 files the app uses are copied byte for byte
+  `70771ec29c8607b1964a966066affb15bb02a2032973227d7f7d2ae3c80c048b`). The 24 files the app uses are copied byte for byte
   into `brand/yatagarasu/` and pinned in `scripts/generate-brand-assets.py`, which converts the SVG path data verbatim
   into VectorDrawables and copies rasters, video and sound as they are. `scripts/test-brand-assets.py` checks the pins,
   that the committed outputs are what the generator writes, the splash circle, the lockup proportions and the retirement
@@ -36,13 +36,17 @@ UI only: keys, signing, storage, networking and chain logic are unchanged, and n
   status bar and the crow's sky fades into it. The loop pauses in the background and once scrolled away. Tapping the crow (a button labelled "Play the crow's call") crossfades into the call
   with sound in 250 ms and back; silent or vibrate ringer modes play it muted, and taps during the call are ignored. Remove
   animations and the Reduced appearance show the poster only and play the call's sound alone on a tap.
-- **Colour:** brand pink `#E6006F` for primary actions and the active tab (primary fill `#E6006F` → `#BE0060`, pressed
-  `#D6006A`); ink `#120A2E`, night `#1A0E3E` and darker ink wells for surfaces; text `#FAF6FF` / `#CFC4E6` / `#978ABA`;
-  gold `#FFC24A` marks selection and the sun core; mint marks price gains. Gains use `#4BFCD5`, the brand mint `#4FF0B8`
-  nudged toward aqua: the kit's mint sits only ΔE 32 from the loss orange for protan viewers, below the contrast
-  contract's 40, and the nudged one keeps 42 (protan) and 53 (deutan). Semantic colours (success, warning, danger, info)
-  and the fonts are unchanged. New tokens: `brandPressed`, `brandInk`, `brandNight`, `brandPlum`,
-  `brandGold`. The frozen legacy palette (`FW_PALETTE=legacy`) keeps its colours; its marks follow the new brand.
+- **Colour:** applied through the tokens with the brand kit's `tools/apply-tokens.mjs` (spec item 9), so Android, iOS and
+  the extension share the same pinks: brand mark, glow and active tab `#E6006F`; primary buttons fill `#D6006A` → `#A8005A`
+  and press to `#A8005A` (white labels 5.2:1; `#E6006F` stays off buttons with text); brand text, links, selection and accent
+  edges `#FF4FA3`. Ink `#120A2E`, night `#1A0E3E` and darker ink wells for surfaces; text `#FAF6FF` / `#CFC4E6` / `#978ABA`;
+  gold `#FFC24A` for the sun core. Gains use `#4BFCD5`, the brand mint `#4FF0B8` nudged toward aqua: the kit's mint sits only
+  ΔE 32 from the loss orange for protan viewers, below the contrast contract's 40, and the nudged one keeps 42 (protan) and
+  53 (deutan). Semantic colours (success, warning, danger, info) and the fonts are unchanged. New tokens: `brandPressed`,
+  `brandInk`, `brandNight`, `brandPlum`, `brandGold`; the winged sun's raw palette is retired. The legacy palette
+  (`design/fw.legacy.android.json`, still painting the screens not yet restyled) moves its accents the same way, as do the
+  icon drawables that hard-coded the old magenta; Polkaswap's own logos keep theirs, and `Colors.Pink40` stays as a raw
+  literal the colour ratchet forbids changing (it feeds only the unused legacy night accent).
 - **Screens:** `docs/brand/android-yatagarasu-screens.webp` (welcome, PIN, wallet, About; also the README image) and
   `docs/brand/android-yatagarasu-launch.webp` (system splash, launch art, debug and themed launcher icons), from the API 36
   emulator walk. The old 2020 promo image is retired.

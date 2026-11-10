@@ -4,7 +4,8 @@ The owner approved the Yatagarasu brand on 2026-11-10: the three-legged crow cre
 animated crow with its eagle-and-crow call. It replaces the winged-sun badge. The shared kit
 (`fearless-yatagarasu-brand-kit`, generated from the design package `design/yatagarasu-20261110`, package r3) is not
 committed anywhere; its `manifest.json` has SHA-256
-`4575466317061cc9147056fcbdf02725d2fa3aa9f7173de987d6b899fc8d5028`.
+`70771ec29c8607b1964a966066affb15bb02a2032973227d7f7d2ae3c80c048b` (regenerated 2026-11-10 12:16; against the first r3 kit
+`4575466317…5028` only `audio/caw.m4a` changed, as container bytes with identical decoded audio).
 
 The files below are byte-for-byte copies at their kit paths. `scripts/generate-brand-assets.py` pins each one and the
 kit manifest, and derives every Android brand resource from them; `android-assets.json` records the hashes of what it
@@ -29,7 +30,7 @@ python3 scripts/test-brand-assets.py
 | `masters/fearless-crest.svg`, `masters/fearless-crest-small.svg` | tintable crest marks `ic_fearless_logo` (64 dp), `ic_fearless_bird` and `ic_fearless` (24 dp) |
 | `hero/welcome-idle.mp4`, `hero/welcome-caw.mp4`, `audio/caw.m4a` | `raw/fw_welcome_idle`, `raw/fw_welcome_caw`, `raw/fw_welcome_caw_sound` (feature-onboarding-impl) |
 | `hero/welcome-poster.webp` | `drawable-nodpi/fw_welcome_poster`: the loop's first pose, and the whole hero under reduced motion |
-| `tokens/colors.json` | checked against `design/fw.tokens.json` (brand pink `#E6006F`, pressed `#D6006A`, ink, night, plum, gold, mint, text) |
+| `tokens/colors.json` | checked against `design/fw.tokens.json`; the pinks follow spec item 9 via the kit's `tools/apply-tokens.mjs` (mark and glow `#E6006F`, button fill `#D6006A` → `#A8005A`, brand text and edges `#FF4FA3`), plus ink, night, plum, gold and text |
 
 The Play listing icon (`png/android/play-store-512.png`) is not in this repository, because no listing assets are; it is
 uploaded in Play Console with the release.

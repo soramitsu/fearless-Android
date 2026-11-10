@@ -2,7 +2,7 @@
   "format": "fearless.android.brand-assets",
   "version": 2,
   "kit": "fearless-yatagarasu-brand-kit",
-  "kitManifestSha256": "4575466317061cc9147056fcbdf02725d2fa3aa9f7173de987d6b899fc8d5028",
+  "kitManifestSha256": "70771ec29c8607b1964a966066affb15bb02a2032973227d7f7d2ae3c80c048b",
   "inputs": {
     "masters/fearless-crest.svg": "0dddb03fc97971d0c9226e6ed052565dfe52e75681b1df99f5b3c356f75bede5",
     "masters/fearless-crest-small.svg": "e5fdf61cbe6300ff4242c603d273b316b9866d770897cbf31cdc8aeec32a5910",
@@ -26,7 +26,7 @@
     "hero/welcome-idle.mp4": "5a58764e1f06f5825bb5acba26832286ba8c3718b307cb37260b3c4e392cf114",
     "hero/welcome-caw.mp4": "48ae947b681e9e801f09211779bbb9973234d3a79101b53a61b4939d77dbca1f",
     "hero/welcome-poster.webp": "d15dc23aabf7972e807816d80fe9419eb3e3a8e46db4541656d3bc201f7a3eed",
-    "audio/caw.m4a": "e7ea28763f25c445b89f38304f34073df16d6038e787c9f5cce9001ca019b452",
+    "audio/caw.m4a": "5094385060c15d02a391fc082b255d78a966434b7a22e1aa6151e21d79371fc6",
     "tokens/colors.json": "defdad74f63dec6421a9a5d8d3ef4042d6292eb51ebb044bf725cb18528cf4e9"
   },
   "outputs": {
@@ -82,7 +82,7 @@
     "common/src/main/res/drawable/ic_wallet.xml": "e81f5d266d5d26f0f83871a86bafeee8b458585271fcb85f15d99d757a6a86a4",
     "feature-onboarding-impl/src/main/res/drawable-nodpi/fw_welcome_poster.webp": "d15dc23aabf7972e807816d80fe9419eb3e3a8e46db4541656d3bc201f7a3eed",
     "feature-onboarding-impl/src/main/res/raw/fw_welcome_caw.mp4": "48ae947b681e9e801f09211779bbb9973234d3a79101b53a61b4939d77dbca1f",
-    "feature-onboarding-impl/src/main/res/raw/fw_welcome_caw_sound.m4a": "e7ea28763f25c445b89f38304f34073df16d6038e787c9f5cce9001ca019b452",
+    "feature-onboarding-impl/src/main/res/raw/fw_welcome_caw_sound.m4a": "5094385060c15d02a391fc082b255d78a966434b7a22e1aa6151e21d79371fc6",
     "feature-onboarding-impl/src/main/res/raw/fw_welcome_idle.mp4": "5a58764e1f06f5825bb5acba26832286ba8c3718b307cb37260b3c4e392cf114"
   }
 }

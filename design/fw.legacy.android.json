@@ -11,13 +11,13 @@
       "argb": "FF004CB7"
     },
     "colorSelected": {
-      "argb": "66FF009A"
+      "argb": "66E6006F"
     },
     "colorPrimaryDark": {
       "argb": "80004CB7"
     },
     "colorAccent": {
-      "argb": "FFFF009A"
+      "argb": "FFE6006F"
     },
     "colorHint": {
       "argb": "FFCCCCCC"
@@ -170,7 +170,7 @@
       "argb": "00FFFFFF"
     },
     "colorAccentDark": {
-      "argb": "FFEE0077"
+      "argb": "FFE6006F"
     },
     "colorAccentSecondary": {
       "argb": "FFD5D5D5"
@@ -184,7 +184,7 @@
   },
   "gradients": {
     "borderGradientColors": [
-      "FFEE0077",
+      "FFE6006F",
       "FFEE7700",
       "FF7700EE",
       "FFC800EE"
@@ -217,11 +217,11 @@
   },
   "xml": {
     "colorPrimary": "#004CB7",
-    "colorSelected": "#66FF009A",
+    "colorSelected": "#66E6006F",
     "colorPrimaryDark": "#80004CB7",
-    "colorAccent": "#FF009A",
-    "colorAccentDark": "#EE0077",
-    "colorAccent_50": "#80FF009A",
+    "colorAccent": "#E6006F",
+    "colorAccentDark": "#E6006F",
+    "colorAccent_50": "#80E6006F",
     "white": "#fff",
     "colorHint": "#ccc",
     "black": "#000",

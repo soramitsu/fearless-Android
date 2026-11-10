@@ -114,10 +114,10 @@
             "colorSpace": "srgb",
             "components": [
               1,
-              0.302,
-              0.7216
+              0.3098,
+              0.6392
             ],
-            "hex": "#FF4DB8"
+            "hex": "#FF4FA3"
           }
         },
         "500": {
@@ -125,11 +125,11 @@
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              1,
+              0.902,
               0,
-              0.6039
+              0.4353
             ],
-            "hex": "#FF009A"
+            "hex": "#E6006F"
           }
         },
         "600": {
@@ -139,9 +139,9 @@
             "components": [
               0.8392,
               0,
-              0.498
+              0.4157
             ],
-            "hex": "#D6007F"
+            "hex": "#D6006A"
           }
         },
         "700": {
@@ -149,11 +149,11 @@
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.6392,
+              0.6588,
               0,
-              0.4157
+              0.3529
             ],
-            "hex": "#A3006A"
+            "hex": "#A8005A"
           }
         }
       },
@@ -489,80 +489,6 @@
           }
         }
       },
-      "sun": {
-        "brand": {
-          "$type": "color",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              0.9333,
-              0.0,
-              0.4667
-            ],
-            "hex": "#EE0077"
-          }
-        },
-        "rim": {
-          "$type": "color",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              1.0,
-              0.2392,
-              0.5569
-            ],
-            "hex": "#FF3D8E"
-          }
-        },
-        "disc": {
-          "$type": "color",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              0.9333,
-              0.1333,
-              0.2
-            ],
-            "hex": "#EE2233"
-          }
-        },
-        "badgeStart": {
-          "$type": "color",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              0.9608,
-              0.0157,
-              0.4196
-            ],
-            "hex": "#F5046B"
-          }
-        },
-        "badgeEnd": {
-          "$type": "color",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              0.4706,
-              0.0,
-              0.2471
-            ],
-            "hex": "#78003F"
-          }
-        },
-        "fillTop": {
-          "$type": "color",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              0.8902,
-              0.0118,
-              0.3686
-            ],
-            "hex": "#E3035E"
-          }
-        }
-      },
       "black": {
         "base": {
           "$type": "color",
@@ -651,7 +577,7 @@
             "hex": "#E6006F"
           }
         },
-        "pinkActive": {
+        "fillTop": {
           "$type": "color",
           "$value": {
             "colorSpace": "srgb",
@@ -663,16 +589,16 @@
             "hex": "#D6006A"
           }
         },
-        "pinkDeep": {
+        "fillBottom": {
           "$type": "color",
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.7451,
+              0.6588,
               0.0,
-              0.3765
+              0.3529
             ],
-            "hex": "#BE0060"
+            "hex": "#A8005A"
           }
         },
         "pinkLight": {
@@ -1294,7 +1220,7 @@
           ],
           "hex": "#E6006F"
         },
-        "$description": "Primary actions and the active tab (Fearless pink).",
+        "$description": "Brand mark and glow, the active tab (Fearless pink #E6006F); kept off buttons with text (4.6:1).",
         "$extensions": {
           "fw": {
             "semantic": "accent.glow",
@@ -1309,17 +1235,17 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.902,
+            0.8392,
             0.0,
-            0.4353
+            0.4157
           ],
-          "hex": "#E6006F"
+          "hex": "#D6006A"
         },
-        "$description": "Primary fill, top-left stop of the 135 degree CTA (brand pink); white labels keep 4.5:1.",
+        "$description": "Primary fill top (brand rollout spec item 9): white labels read 5.2:1.",
         "$extensions": {
           "fw": {
             "semantic": "accent.fill.top",
-            "raw": "crest.pink",
+            "raw": "crest.fillTop",
             "ios": "fwFillTop",
             "css": "--fw-fill-top"
           }
@@ -1330,17 +1256,17 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.7451,
+            0.6588,
             0.0,
-            0.3765
+            0.3529
           ],
-          "hex": "#BE0060"
+          "hex": "#A8005A"
         },
-        "$description": "Primary fill gradient bottom (the design's button gradient).",
+        "$description": "Primary fill bottom and pressed primary (spec item 9): white labels read 7.5:1.",
         "$extensions": {
           "fw": {
             "semantic": "accent.fill.bottom",
-            "raw": "crest.pinkDeep",
+            "raw": "crest.fillBottom",
             "ios": "fwFillBottom",
             "css": "--fw-fill-bottom"
           }
@@ -1585,16 +1511,16 @@
           "colorSpace": "srgb",
           "components": [
             1.0,
-            0.7608,
-            0.2902
+            0.3098,
+            0.6392
           ],
-          "hex": "#FFC24A"
+          "hex": "#FF4FA3"
         },
-        "$description": "Selected row, chip and pill edge: brand gold marks selection (non-text 3:1).",
+        "$description": "Selected row, chip and pill edge: brand text pink (spec item 9; non-text 3:1).",
         "$extensions": {
           "fw": {
             "semantic": "select.edge",
-            "raw": "crest.gold",
+            "raw": "crest.pinkLight",
             "ios": "fwSelectEdge",
             "css": "--fw-select-edge"
           }
@@ -1605,18 +1531,18 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            1.0,
-            0.7608,
-            0.2902
+            0.902,
+            0.0,
+            0.4353
           ],
           "alpha": 0.1,
-          "hex": "#FFC24A"
+          "hex": "#E6006F"
         },
-        "$description": "Selected list row on glass: a gold tint.",
+        "$description": "Selected list row on glass: a brand-pink tint.",
         "$extensions": {
           "fw": {
             "semantic": "row.selected",
-            "raw": "crest.gold",
+            "raw": "crest.pink",
             "ios": "fwRowSelected",
             "css": "--fw-row-selected"
           }
@@ -2104,16 +2030,16 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.8392,
+            0.6588,
             0.0,
-            0.4157
+            0.3529
           ],
-          "hex": "#D6006A"
+          "hex": "#A8005A"
         },
-        "$description": "Pressed primary action (brand pink, pressed).",
+        "$description": "Pressed primary action: the fill bottom, solid (spec item 9).",
         "$extensions": {
           "fw": {
-            "raw": "crest.pinkActive",
+            "raw": "crest.fillBottom",
             "ios": "fwBrandPressed",
             "css": "--fw-brand-pressed"
           }
@@ -2403,11 +2329,11 @@
           "color": {
             "colorSpace": "srgb",
             "components": [
-              0.902,
+              0.8392,
               0.0,
-              0.4353
+              0.4157
             ],
-            "hex": "#E6006F"
+            "hex": "#D6006A"
           },
           "position": 0
         },
@@ -2415,16 +2341,16 @@
           "color": {
             "colorSpace": "srgb",
             "components": [
-              0.7451,
+              0.6588,
               0.0,
-              0.3765
+              0.3529
             ],
-            "hex": "#BE0060"
+            "hex": "#A8005A"
           },
           "position": 1
         }
       ],
-      "$description": "accent.fill: primary button, active toggles (135 degrees, brand pink #E6006F to #BE0060).",
+      "$description": "accent.fill: primary button, active toggles (135 degrees, #D6006A to #A8005A, spec item 9).",
       "$extensions": {
         "fw": {
           "angle": 135,

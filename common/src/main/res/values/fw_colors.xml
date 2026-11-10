@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- fw_colors.xml: GENERATED from design/fw.tokens.json; do not edit. -->
-<!-- sha256 91faf4db2cdb4676ce45a81ac71935b9487af981083898a8a29717bd9f07240d -->
+<!-- sha256 662b34c0386fe8fc28a46c93556c2044f12fbdb641338339c0ac8e82651c55a5 -->
 <!-- Regenerate with the Android target of scripts/design/gen-fw-tokens.mjs. -->
 <resources>
     <color name="fw_bg_base">#FF120A2E</color>
@@ -25,8 +25,8 @@
     <color name="fw_text_brand">#FFFF4FA3</color>
     <color name="fw_text_promo">#FFA99BFF</color>
     <color name="fw_brand">#FFE6006F</color>
-    <color name="fw_fill_top">#FFE6006F</color>
-    <color name="fw_fill_bottom">#FFBE0060</color>
+    <color name="fw_fill_top">#FFD6006A</color>
+    <color name="fw_fill_bottom">#FFA8005A</color>
     <color name="fw_accent_edge">#8CFF4FA3</color>
     <color name="fw_focus">#FF2EE6FF</color>
     <color name="fw_violet">#FF8B5CFF</color>
@@ -38,8 +38,8 @@
     <color name="fw_info">#FF2EE6FF</color>
     <color name="fw_danger_fill">#FFB3302A</color>
     <color name="fw_select_fill">#29E6006F</color>
-    <color name="fw_select_edge">#FFFFC24A</color>
-    <color name="fw_row_selected">#1AFFC24A</color>
+    <color name="fw_select_edge">#FFFF4FA3</color>
+    <color name="fw_row_selected">#1AE6006F</color>
     <color name="fw_divider">#0FFFFFFF</color>
     <color name="fw_stroke_strong">#47FFFFFF</color>
     <color name="fw_stroke_control">#66FFFFFF</color>
@@ -62,7 +62,7 @@
     <color name="fw_inset_highlight">#0BFFFFFF</color>
     <color name="fw_emissive_glow">#73E6006F</color>
     <color name="fw_occlusion">#1A000000</color>
-    <color name="fw_brand_pressed">#FFD6006A</color>
+    <color name="fw_brand_pressed">#FFA8005A</color>
     <color name="fw_brand_ink">#FF120A2E</color>
     <color name="fw_brand_night">#FF1A0E3E</color>
     <color name="fw_brand_plum">#FF3A1060</color>

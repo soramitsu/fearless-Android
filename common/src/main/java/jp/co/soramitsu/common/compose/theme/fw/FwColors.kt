@@ -1,5 +1,5 @@
 // FwColors.kt: GENERATED from design/fw.tokens.json; do not edit.
-// sha256 91faf4db2cdb4676ce45a81ac71935b9487af981083898a8a29717bd9f07240d
+// sha256 662b34c0386fe8fc28a46c93556c2044f12fbdb641338339c0ac8e82651c55a5
 // Regenerate: node scripts/design/gen-fw-tokens.mjs --android <checkout>
 package jp.co.soramitsu.common.compose.theme.fw
 
@@ -98,8 +98,8 @@ val FwStandard = FwColors(
     textBrand = Color(0xFFFF4FA3),
     textPromo = Color(0xFFA99BFF),
     brand = Color(0xFFE6006F),
-    fillTop = Color(0xFFE6006F),
-    fillBottom = Color(0xFFBE0060),
+    fillTop = Color(0xFFD6006A),
+    fillBottom = Color(0xFFA8005A),
     accentEdge = Color(0x8CFF4FA3),
     focus = Color(0xFF2EE6FF),
     violet = Color(0xFF8B5CFF),
@@ -111,8 +111,8 @@ val FwStandard = FwColors(
     info = Color(0xFF2EE6FF),
     dangerFill = Color(0xFFB3302A),
     selectFill = Color(0x29E6006F),
-    selectEdge = Color(0xFFFFC24A),
-    rowSelected = Color(0x1AFFC24A),
+    selectEdge = Color(0xFFFF4FA3),
+    rowSelected = Color(0x1AE6006F),
     divider = Color(0x0FFFFFFF),
     strokeStrong = Color(0x47FFFFFF),
     strokeControl = Color(0x66FFFFFF),
@@ -135,7 +135,7 @@ val FwStandard = FwColors(
     insetHighlight = Color(0x0BFFFFFF),
     emissiveGlow = Color(0x73E6006F),
     occlusion = Color(0x1A000000),
-    brandPressed = Color(0xFFD6006A),
+    brandPressed = Color(0xFFA8005A),
     brandInk = Color(0xFF120A2E),
     brandNight = Color(0xFF1A0E3E),
     brandPlum = Color(0xFF3A1060),
@@ -156,5 +156,5 @@ const val FW_INFO_CONTAINER_ALPHA = 0.12f
 object FwBrush {
     val Rim = Brush.verticalGradient(0f to Color(0x1AFFFFFF), 0.7f to Color(0x00FFFFFF))
     val Brand = Brush.linearGradient(0.45f to Color(0xFFE0126E), 1f to Color(0xFF4A1160))
-    val PrimaryFill = Brush.linearGradient(0f to Color(0xFFE6006F), 1f to Color(0xFFBE0060))
+    val PrimaryFill = Brush.linearGradient(0f to Color(0xFFD6006A), 1f to Color(0xFFA8005A))
 }

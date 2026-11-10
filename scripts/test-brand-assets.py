@@ -18,8 +18,8 @@ SPEC.loader.exec_module(GENERATOR)
 ANDROID = "{http://schemas.android.com/apk/res/android}"
 SVG = "{http://www.w3.org/2000/svg}"
 KIT = ROOT / "brand/yatagarasu"
-# The approved kit (design package r3, 2026-11-10): its manifest.json, as recorded by the brand session.
-APPROVED_KIT_MANIFEST = "4575466317061cc9147056fcbdf02725d2fa3aa9f7173de987d6b899fc8d5028"
+# The approved kit (design package r3, 2026-11-10, regenerated 12:16): its manifest.json, as the brand session records it.
+APPROVED_KIT_MANIFEST = "70771ec29c8607b1964a966066affb15bb02a2032973227d7f7d2ae3c80c048b"
 RETIRED = [
     "brand/sun-disc",
     "common/src/main/res/drawable/fw_brand_wings.xml",
@@ -187,11 +187,22 @@ class BrandAssetsTests(unittest.TestCase):
         kit = json.loads((KIT / "tokens/colors.json").read_text())["colors"]
         semantic = json.loads((ROOT / "design/fw.tokens.json").read_text())["color"]["semantic"]
         hexes = {name: token["$value"]["hex"].upper() for name, token in semantic.items() if not name.startswith("$")}
-        for token, key in [("brand", "pink"), ("fillTop", "pink"), ("brandPressed", "pinkActive"), ("brandInk", "ink"),
+        for token, key in [("brand", "pink"), ("fillTop", "pinkActive"), ("brandInk", "ink"),
                            ("bgBase", "ink"), ("brandNight", "night"), ("surfaceRaised2", "night"), ("brandPlum", "plum"),
-                           ("brandGold", "gold"), ("selectEdge", "gold"), ("sunCore", "gold"),
+                           ("brandGold", "gold"), ("sunCore", "gold"),
                            ("textPrimary", "text"), ("textSecondary", "textMuted")]:
             self.assertEqual(kit[key].upper(), hexes[token], token)
+        # Spec item 9 (the kit's tools/apply-tokens.mjs remap): the primary fill runs #D6006A to #A8005A, which is also
+        # the pressed primary; brand text, selection and accent edges are #FF4FA3; #E6006F stays off buttons with text.
+        for token, value in [("fillBottom", "#A8005A"), ("brandPressed", "#A8005A"), ("textBrand", "#FF4FA3"),
+                             ("textLink", "#FF4FA3"), ("accentEdge", "#FF4FA3"), ("selectEdge", "#FF4FA3")]:
+            self.assertEqual(value, hexes[token], token)
+        stops = [s["color"]["hex"].upper() for s in json.loads((ROOT / "design/fw.tokens.json").read_text())["gradient"]["primaryFill"]["$value"]]
+        self.assertEqual(["#D6006A", "#A8005A"], stops)
+        # The retired magentas are gone from every colour in the token file.
+        text = (ROOT / "design/fw.tokens.json").read_text().upper()
+        for retired in ("#FF4DB8", "#FF009A", "#D6007F", "#A3006A", "#EE0077"):
+            self.assertNotIn(retired, text, retired)
         # Gains use the brand mint nudged toward aqua: the kit's #4FF0B8 sits only deltaE 32 from priceDown for protan
         # viewers, below the contrast contract's 40 (FwContrastContractTest checks the pair itself).
         self.assertEqual("#4FF0B8", kit["mint"].upper())

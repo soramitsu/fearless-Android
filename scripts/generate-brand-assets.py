@@ -28,8 +28,9 @@ SVG = "http://www.w3.org/2000/svg"
 ET.register_namespace("android", ANDROID)
 ET.register_namespace("aapt", AAPT)
 
-# SHA-256 of the kit's manifest.json (fearless-yatagarasu-brand-kit, design package r3, 2026-11-10).
-KIT_MANIFEST_SHA256 = "4575466317061cc9147056fcbdf02725d2fa3aa9f7173de987d6b899fc8d5028"
+# SHA-256 of the kit's manifest.json (fearless-yatagarasu-brand-kit, design package r3, regenerated 2026-11-10 12:16;
+# against the first r3 kit 4575466317…5028 only audio/caw.m4a changed, as container bytes: identical decoded audio).
+KIT_MANIFEST_SHA256 = "70771ec29c8607b1964a966066affb15bb02a2032973227d7f7d2ae3c80c048b"
 # Every kit file the app consumes, at its kit path; the in-repo copy keeps the same path under COPY.
 PINS = {
     "masters/fearless-crest.svg": "0dddb03fc97971d0c9226e6ed052565dfe52e75681b1df99f5b3c356f75bede5",
@@ -54,7 +55,7 @@ PINS = {
     "hero/welcome-idle.mp4": "5a58764e1f06f5825bb5acba26832286ba8c3718b307cb37260b3c4e392cf114",
     "hero/welcome-caw.mp4": "48ae947b681e9e801f09211779bbb9973234d3a79101b53a61b4939d77dbca1f",
     "hero/welcome-poster.webp": "d15dc23aabf7972e807816d80fe9419eb3e3a8e46db4541656d3bc201f7a3eed",
-    "audio/caw.m4a": "e7ea28763f25c445b89f38304f34073df16d6038e787c9f5cce9001ca019b452",
+    "audio/caw.m4a": "5094385060c15d02a391fc082b255d78a966434b7a22e1aa6151e21d79371fc6",
     "tokens/colors.json": "defdad74f63dec6421a9a5d8d3ef4042d6292eb51ebb044bf725cb18528cf4e9",
 }
 COPY = "brand/yatagarasu"
