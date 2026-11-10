@@ -29,7 +29,7 @@ ET.register_namespace("android", ANDROID)
 ET.register_namespace("aapt", AAPT)
 
 # SHA-256 of the kit's manifest.json (fearless-yatagarasu-brand-kit, design package r3, regenerated 2026-11-10 12:16;
-# against the first r3 kit 4575466317…5028 only audio/caw.m4a changed, as container bytes: identical decoded audio).
+# against the first r3 kit 4575466317…5028 only audio/caw.m4a changed: afconvert timestamps, identical decoded audio).
 KIT_MANIFEST_SHA256 = "70771ec29c8607b1964a966066affb15bb02a2032973227d7f7d2ae3c80c048b"
 # Every kit file the app consumes, at its kit path; the in-repo copy keeps the same path under COPY.
 PINS = {

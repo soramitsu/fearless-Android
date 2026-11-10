@@ -203,10 +203,11 @@ class BrandAssetsTests(unittest.TestCase):
         text = (ROOT / "design/fw.tokens.json").read_text().upper()
         for retired in ("#FF4DB8", "#FF009A", "#D6007F", "#A3006A", "#EE0077"):
             self.assertNotIn(retired, text, retired)
-        # Gains use the brand mint nudged toward aqua: the kit's #4FF0B8 sits only deltaE 32 from priceDown for protan
-        # viewers, below the contrast contract's 40 (FwContrastContractTest checks the pair itself).
+        # Prices and status keep the shared semantic tokens (spec item 9): a gain is #38E8E0 in every app. Kit mint
+        # #4FF0B8 is for brand art only; it would also fail the protan gate against priceDown (FwContrastContractTest).
         self.assertEqual("#4FF0B8", kit["mint"].upper())
-        self.assertEqual("#4BFCD5", hexes["priceUp"])
+        for token, value in [("priceUp", "#38E8E0"), ("priceDown", "#FF9F57")]:
+            self.assertEqual(value, hexes[token], token)
         # Semantic colours stay.
         for token, value in [("success", "#3DF2B0"), ("warning", "#FFC452"), ("danger", "#FF6B5E"), ("info", "#2EE6FF")]:
             self.assertEqual(value, hexes[token], token)

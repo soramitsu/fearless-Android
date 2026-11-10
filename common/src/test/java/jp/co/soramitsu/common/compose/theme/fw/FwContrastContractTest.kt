@@ -60,7 +60,7 @@ class FwContrastContractTest {
         assertEquals(40.0, pair.get("minimumDeltaE76").asDouble, 0.0)
         val up = recipes.resolve("priceUp").single().rgb
         val down = recipes.resolve("priceDown").single().rgb
-        for ((simulation, expected) in listOf("protan" to 42, "deutan" to 53)) {
+        for ((simulation, expected) in listOf("protan" to 53, "deutan" to 67)) {
             val result = deltaE(up, down, simulation)
             assertTrue(result >= pair.get("minimumDeltaE76").asDouble)
             assertEquals(expected, result.roundToInt())

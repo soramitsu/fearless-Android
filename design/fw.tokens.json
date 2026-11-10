@@ -673,18 +673,6 @@
             "hex": "#4FF0B8"
           }
         },
-        "mintGain": {
-          "$type": "color",
-          "$value": {
-            "colorSpace": "srgb",
-            "components": [
-              0.2941,
-              0.9882,
-              0.8353
-            ],
-            "hex": "#4BFCD5"
-          }
-        },
         "text": {
           "$type": "color",
           "$value": {
@@ -1341,17 +1329,17 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.2941,
-            0.9882,
-            0.8353
+            0.2196,
+            0.9098,
+            0.8784
           ],
-          "hex": "#4BFCD5"
+          "hex": "#38E8E0"
         },
-        "$description": "Price change up: brand mint #4FF0B8 nudged toward aqua so gains stay at least deltaE 40 from priceDown for protan and deutan viewers (contract cvd); always with the up glyph and sign.",
+        "$description": "Price change up, always with the up glyph and sign.",
         "$extensions": {
           "fw": {
             "semantic": "price.up",
-            "raw": "crest.mintGain",
+            "raw": "aqua.300",
             "ios": "fwPriceUp",
             "css": "--fw-up"
           }

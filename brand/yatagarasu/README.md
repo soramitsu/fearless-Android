@@ -5,7 +5,8 @@ animated crow with its eagle-and-crow call. It replaces the winged-sun badge. Th
 (`fearless-yatagarasu-brand-kit`, generated from the design package `design/yatagarasu-20261110`, package r3) is not
 committed anywhere; its `manifest.json` has SHA-256
 `70771ec29c8607b1964a966066affb15bb02a2032973227d7f7d2ae3c80c048b` (regenerated 2026-11-10 12:16; against the first r3 kit
-`4575466317…5028` only `audio/caw.m4a` changed, as container bytes with identical decoded audio).
+`4575466317…5028` only `audio/caw.m4a` changed, as container bytes from afconvert timestamps with identical decoded audio; the kit
+generator now pins those timestamps).
 
 The files below are byte-for-byte copies at their kit paths. `scripts/generate-brand-assets.py` pins each one and the
 kit manifest, and derives every Android brand resource from them; `android-assets.json` records the hashes of what it

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- fw_colors.xml: GENERATED from design/fw.tokens.json; do not edit. -->
-<!-- sha256 662b34c0386fe8fc28a46c93556c2044f12fbdb641338339c0ac8e82651c55a5 -->
+<!-- sha256 2f9041e907a87b4192d8b1854f5845509d43d16006a16b6afb165da727c7cb18 -->
 <!-- Regenerate with the Android target of scripts/design/gen-fw-tokens.mjs. -->
 <resources>
     <color name="fw_bg_base">#FF120A2E</color>
@@ -30,7 +30,7 @@
     <color name="fw_accent_edge">#8CFF4FA3</color>
     <color name="fw_focus">#FF2EE6FF</color>
     <color name="fw_violet">#FF8B5CFF</color>
-    <color name="fw_price_up">#FF4BFCD5</color>
+    <color name="fw_price_up">#FF38E8E0</color>
     <color name="fw_price_down">#FFFF9F57</color>
     <color name="fw_success">#FF3DF2B0</color>
     <color name="fw_warning">#FFFFC452</color>

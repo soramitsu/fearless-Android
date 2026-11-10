@@ -1,5 +1,5 @@
 // FwColors.kt: GENERATED from design/fw.tokens.json; do not edit.
-// sha256 662b34c0386fe8fc28a46c93556c2044f12fbdb641338339c0ac8e82651c55a5
+// sha256 2f9041e907a87b4192d8b1854f5845509d43d16006a16b6afb165da727c7cb18
 // Regenerate: node scripts/design/gen-fw-tokens.mjs --android <checkout>
 package jp.co.soramitsu.common.compose.theme.fw
 
@@ -103,7 +103,7 @@ val FwStandard = FwColors(
     accentEdge = Color(0x8CFF4FA3),
     focus = Color(0xFF2EE6FF),
     violet = Color(0xFF8B5CFF),
-    priceUp = Color(0xFF4BFCD5),
+    priceUp = Color(0xFF38E8E0),
     priceDown = Color(0xFFFF9F57),
     success = Color(0xFF3DF2B0),
     warning = Color(0xFFFFC452),

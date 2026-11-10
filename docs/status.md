@@ -40,9 +40,9 @@ UI only: keys, signing, storage, networking and chain logic are unchanged, and n
   the extension share the same pinks: brand mark, glow and active tab `#E6006F`; primary buttons fill `#D6006A` → `#A8005A`
   and press to `#A8005A` (white labels 5.2:1; `#E6006F` stays off buttons with text); brand text, links, selection and accent
   edges `#FF4FA3`. Ink `#120A2E`, night `#1A0E3E` and darker ink wells for surfaces; text `#FAF6FF` / `#CFC4E6` / `#978ABA`;
-  gold `#FFC24A` for the sun core. Gains use `#4BFCD5`, the brand mint `#4FF0B8` nudged toward aqua: the kit's mint sits only
-  ΔE 32 from the loss orange for protan viewers, below the contrast contract's 40, and the nudged one keeps 42 (protan) and
-  53 (deutan). Semantic colours (success, warning, danger, info) and the fonts are unchanged. New tokens: `brandPressed`,
+  gold `#FFC24A` for the sun core. Prices and status keep the shared semantic tokens, so a gain stays `priceUp` `#38E8E0` as
+  in iOS and the extension (spec item 9: the kit's mint is for brand art only, and it would fail the colour-blind gate
+  against the loss orange). Semantic colours (price, success, warning, danger, info) and the fonts are unchanged. New tokens: `brandPressed`,
   `brandInk`, `brandNight`, `brandPlum`, `brandGold`; the winged sun's raw palette is retired. The legacy palette
   (`design/fw.legacy.android.json`, still painting the screens not yet restyled) moves its accents the same way, as do the
   icon drawables that hard-coded the old magenta; Polkaswap's own logos keep theirs, and `Colors.Pink40` stays as a raw
