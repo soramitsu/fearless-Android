@@ -193,6 +193,7 @@ class SunlitPinLayoutInstrumentedTest {
             compose.runOnIdle { mode = next; entered = null; recoveryClicks = 0 }
             compose.waitForIdle()
             compose.runOnIdle {
+                settleInsetsAndLayout(root)
                 val pin = root.findViewById<PinCodeView>(R.id.pinCodeView)
                 val scroll = pin.parent.parent as NestedScrollView
                 scroll.scrollTo(0, scroll.getChildAt(0).height)
@@ -230,5 +231,22 @@ class SunlitPinLayoutInstrumentedTest {
                 image.compress(Bitmap.CompressFormat.PNG, 100, it)
             }
         }
+    }
+
+    /**
+     * From API 35 the test window is edge to edge, so its system bar insets pad the page (its root fits system
+     * windows), and they can reach a page hosted in an AndroidView after its first layout. The page then keeps its
+     * unpadded layout while the padding clips it, which no real window shows: a padding change is laid out on the
+     * next frame. Apply the insets and lay the page out now, so the targets are measured where the page draws them.
+     */
+    private fun settleInsetsAndLayout(root: View) {
+        root.rootWindowInsets?.let(root::dispatchApplyWindowInsets)
+        // A plain measure with unchanged specs is served from the measure cache and keeps the stale positions.
+        root.forceLayout()
+        root.measure(
+            View.MeasureSpec.makeMeasureSpec(root.width, View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(root.height, View.MeasureSpec.EXACTLY)
+        )
+        root.layout(root.left, root.top, root.right, root.bottom)
     }
 }
