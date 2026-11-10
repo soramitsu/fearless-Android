@@ -2,6 +2,18 @@
 
 # Status Summary
 
+## Android release takeover — 10 November 2026
+
+The local 4.3.3 integration includes the verified new-wallet balance-read change (`5e34fc06e`), fiat-symbol
+coverage (`6b1b3987a`) and dApp sheet/result fix (`fff99c2c9`). This candidate is not presentation-only;
+`docs/releases/4.3.3.md` describes the behavior and remaining validation. The final artifact and gates are
+being rebuilt after the remaining sheet navigation work is integrated.
+
+The Play read at approximately 09:10 KST found 234 still at 20%, one user-perceived crash affecting one user,
+no 234 crash/ANR rates or active-device count, and no low-star reviews or pending publication changes.
+Android Vitals' app-version selector cannot yet find 234. The existing rollout gate is not satisfied;
+no rollout change was made. Evidence: workspace `build/android-433/evidence/takeover-20261110/play/`.
+
 ## Production candidate 4.3.3 (235): the sun-lit redesign — 9 November 2026
 
 The 4.3.2 (234) code that is live on Play plus the redesign described in the next section. Branch

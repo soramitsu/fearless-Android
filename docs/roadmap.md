@@ -6,7 +6,8 @@
 
 The candidate is described in `docs/status.md` and `docs/releases/4.3.3.md`.
 
-- **Owner:** decide what happens with 4.3.2's 20% rollout before 4.3.3 is uploaded. 233's running staged rollout went
+- **Rollout:** the owner approved raising 234 after its Vitals gate passes. The 10 November read has one crash but
+  lacks rates and a 234 active-device count, so the gate is not established and 234 remains at 20%. 233's running staged rollout went
   to halted when 234 was saved on 9 November 2026, most likely because of the save (Play states no cause), and no device
   receives either version until the new one is published. PR #1276 merges after PR #1275, which needs a code-owner
   approval.
