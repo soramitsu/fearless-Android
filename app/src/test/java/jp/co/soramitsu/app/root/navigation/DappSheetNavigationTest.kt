@@ -42,13 +42,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import org.json.JSONObject
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.mockito.Mockito
 import org.mockito.kotlin.any
 import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
@@ -464,21 +467,28 @@ class DappSheetNavigationTest {
 
     @Test
     fun `TON pairing from portfolio keeps that tab and returns the connection from its root dialog`() = runTest {
-        val portfolio = FakeStack(tabGraph(), R.id.walletFragment)
-        navigator.attachMainTabs(portfolio.controller)
-        val received = async { navigator.openTonConnectionAndWaitForResult(mock(), "proof-payload") }
-        runCurrent()
-        assertEquals(listOf(R.id.mainFragment, R.id.tonConnectionDetails), root.ids)
-        assertEquals(listOf(R.id.walletFragment), portfolio.ids)
+        val connectionPayload = "{\"event\":\"connect\"}"
+        // Android JSONObject methods are stubs in host tests. Verify the exact constructor payload
+        // and returned object; JSON parsing itself belongs to Android, not this navigation boundary.
+        Mockito.mockConstruction(JSONObject::class.java) { _, context ->
+            assertEquals(listOf(connectionPayload), context.arguments())
+        }.use { json ->
+            val portfolio = FakeStack(tabGraph(), R.id.walletFragment)
+            navigator.attachMainTabs(portfolio.controller)
+            val received = async { navigator.openTonConnectionAndWaitForResult(mock(), "proof-payload") }
+            runCurrent()
+            assertEquals(listOf(R.id.mainFragment, R.id.tonConnectionDetails), root.ids)
+            assertEquals(listOf(R.id.walletFragment), portfolio.ids)
 
-        navigator.backWithResult(TonConnectionDetailsFragment.TON_CONNECT_RESULT_KEY to "{\"event\":\"connect\"}")
-        runCurrent()
+            navigator.backWithResult(TonConnectionDetailsFragment.TON_CONNECT_RESULT_KEY to connectionPayload)
+            runCurrent()
 
-        assertEquals("connect", received.await().getString("event"))
-        assertEquals(listOf(R.id.mainFragment), root.ids)
-        assertEquals(listOf(R.id.walletFragment), portfolio.ids)
-        assertNull(root.entry(R.id.mainFragment).savedStateHandle[TonConnectionDetailsFragment.TON_CONNECT_RESULT_KEY])
-        assertNull(portfolio.entry(R.id.walletFragment).savedStateHandle[TonConnectionDetailsFragment.TON_CONNECT_RESULT_KEY])
+            assertSame(json.constructed().single(), received.await())
+            assertEquals(listOf(R.id.mainFragment), root.ids)
+            assertEquals(listOf(R.id.walletFragment), portfolio.ids)
+            assertNull(root.entry(R.id.mainFragment).savedStateHandle[TonConnectionDetailsFragment.TON_CONNECT_RESULT_KEY])
+            assertNull(portfolio.entry(R.id.walletFragment).savedStateHandle[TonConnectionDetailsFragment.TON_CONNECT_RESULT_KEY])
+        }
     }
 
     @Test
