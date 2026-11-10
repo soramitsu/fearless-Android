@@ -137,7 +137,7 @@ class RequestPreviewViewModel @Inject constructor(
         summaryFlow
     ) { requestWallet, requestChain, isLoading, summary ->
         val currentSession = recentSession ?: return@combine RequestPreviewViewState.default
-        val icon = GradientIconState.Remote(requestChain.icon, "EE0077")
+        val icon = GradientIconState.Remote(requestChain.icon, "E6006F")
 
         val requestItems = listOf(
             TitleValueViewState(

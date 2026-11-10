@@ -6,7 +6,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.ColorFilter
 import android.graphics.LinearGradient
-import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PixelFormat
@@ -158,7 +157,7 @@ class FwNeuDrawable(
     private val caster = Paint(Paint.ANTI_ALIAS_FLAG)
     private val rim = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private val boundary = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
-    private val overlay = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val pressedFill = Paint(Paint.ANTI_ALIAS_FLAG)
     private val frame = Path().apply { fillType = Path.FillType.EVEN_ODD }
 
     override fun isStateful(): Boolean = true
@@ -190,7 +189,7 @@ class FwNeuDrawable(
         ring.strokeWidth = 3f * density
         boundary.strokeWidth = 2f * density
         boundary.color = c.strokeControl.toArgb()
-        overlay.color = c.insetShadow.copy(alpha = 0.22f).toArgb()
+        pressedFill.color = c.brandPressed.toArgb()
         rim.shader = if (level == FwElevation.Emissive) {
             LinearGradient(0f, shape.top, 0f, shape.top + shape.height() * 0.25f,
                 c.textOnAccent.copy(alpha = 0.35f).toArgb(), 0, Shader.TileMode.CLAMP)
@@ -232,8 +231,8 @@ class FwNeuDrawable(
             caster.clearShadowLayer()
         }
         if (!emissive) fill.color = (if (sunk) c.surfaceSunken else c.surfaceRaised).toArgb()
-        canvas.drawPath(path, fill)
-        if (emissive && pressed) canvas.drawPath(path, overlay)
+        // A held primary action shows the brand's pressed pink (#D6006A) instead of its gradient.
+        canvas.drawPath(path, if (emissive && pressed) pressedFill else fill)
         if (sunk && !emissive && shadows) {
             canvas.save()
             canvas.clipPath(path)
@@ -261,35 +260,6 @@ class FwNeuDrawable(
 
     private val disabledFallback: FwNeuDrawable by lazy {
         FwNeuDrawable(c, fx, density, FwElevation.Raised1, cornerRadius, shadowRoom)
-    }
-
-    override fun setAlpha(alpha: Int) = Unit
-    override fun setColorFilter(colorFilter: ColorFilter?) = Unit
-
-    @Deprecated("Deprecated in Java")
-    override fun getOpacity(): Int = PixelFormat.TRANSLUCENT
-}
-
-/**
- * Soft emissive glow behind the brand sun (PIN): the disc red into brand pink into the page. It fills
- * the ellipse inscribed in its bounds, so behind the wide mark the light runs along the wings.
- */
-class FwSunGlowDrawable(private val c: FwColors, private val lit: Boolean) : Drawable() {
-    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { isDither = true }
-    private val oval = RectF()
-
-    override fun onBoundsChange(bounds: Rect) {
-        oval.set(bounds)
-        val radius = bounds.width() / 2f
-        paint.shader = if (radius > 0f && bounds.height() > 0) RadialGradient(bounds.exactCenterX(), bounds.exactCenterY(), radius,
-            intArrayOf(c.sunCore.copy(alpha = 0.50f).toArgb(), c.brand.copy(alpha = 0.18f).toArgb(), 0),
-            floatArrayOf(0f, 0.5f, 1f), Shader.TileMode.CLAMP).apply {
-            setLocalMatrix(Matrix().apply { setScale(1f, bounds.height() / bounds.width().toFloat(), bounds.exactCenterX(), bounds.exactCenterY()) })
-        } else null
-    }
-
-    override fun draw(canvas: Canvas) {
-        if (lit) canvas.drawOval(oval, paint)
     }
 
     override fun setAlpha(alpha: Int) = Unit

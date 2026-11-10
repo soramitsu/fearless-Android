@@ -6,7 +6,7 @@
 
     <item
         android:gravity="center"
-        android:drawable="@drawable/drawable_fearless_logo" />
+        android:drawable="@drawable/fw_brand_lockup" />
 
     <item
         android:bottom="60dp"

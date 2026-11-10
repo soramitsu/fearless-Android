@@ -1,5 +1,5 @@
 // FwColors.kt: GENERATED from design/fw.tokens.json; do not edit.
-// sha256 9c6ba5a06caa85fffa11e09ede0d18b755f8f6440fd48f34969bdfbc42ce1751
+// sha256 2f9041e907a87b4192d8b1854f5845509d43d16006a16b6afb165da727c7cb18
 // Regenerate: node scripts/design/gen-fw-tokens.mjs --android <checkout>
 package jp.co.soramitsu.common.compose.theme.fw
 
@@ -68,34 +68,39 @@ data class FwColors(
     val insetHighlight: Color,
     val emissiveGlow: Color,
     val occlusion: Color,
+    val brandPressed: Color,
+    val brandInk: Color,
+    val brandNight: Color,
+    val brandPlum: Color,
+    val brandGold: Color,
 )
 
 val FwStandard = FwColors(
-    bgBase = Color(0xFF151831),
-    surfaceRaised = Color(0xFF151831),
-    surfaceRaised2 = Color(0xFF1A1D3B),
-    surfacePressed = Color(0xFF0E1024),
-    surfaceSunken = Color(0xFF0E1024),
-    glass = Color(0xFF151831),
+    bgBase = Color(0xFF120A2E),
+    surfaceRaised = Color(0xFF120A2E),
+    surfaceRaised2 = Color(0xFF1A0E3E),
+    surfacePressed = Color(0xFF0C0722),
+    surfaceSunken = Color(0xFF0C0722),
+    glass = Color(0xFF120A2E),
     glassSheen = Color(0x00FFFFFF),
-    glassElevated = Color(0xFF1A1D3B),
+    glassElevated = Color(0xFF1A0E3E),
     glassElevatedSheen = Color(0x00FFFFFF),
-    chrome = Color(0xF5151831),
+    chrome = Color(0xF5120A2E),
     chromeSheen = Color(0x00FFFFFF),
-    chromeSolid = Color(0xFF151831),
-    scrim = Color(0xB805060F),
-    textPrimary = Color(0xFFEEF0FA),
-    textSecondary = Color(0xFFA9AECB),
-    textTertiary = Color(0xFF7F86AA),
-    textDisabled = Color(0xFF5E6487),
+    chromeSolid = Color(0xFF120A2E),
+    scrim = Color(0xB805030F),
+    textPrimary = Color(0xFFFAF6FF),
+    textSecondary = Color(0xFFCFC4E6),
+    textTertiary = Color(0xFF978ABA),
+    textDisabled = Color(0xFF6A5D8C),
     textOnAccent = Color(0xFFFFFFFF),
-    textLink = Color(0xFFFF6FC4),
-    textBrand = Color(0xFFFF4DB8),
+    textLink = Color(0xFFFF4FA3),
+    textBrand = Color(0xFFFF4FA3),
     textPromo = Color(0xFFA99BFF),
-    brand = Color(0xFFEE0077),
-    fillTop = Color(0xFFE3035E),
-    fillBottom = Color(0xFF78003F),
-    accentEdge = Color(0x8CFF4DB8),
+    brand = Color(0xFFE6006F),
+    fillTop = Color(0xFFD6006A),
+    fillBottom = Color(0xFFA8005A),
+    accentEdge = Color(0x8CFF4FA3),
     focus = Color(0xFF2EE6FF),
     violet = Color(0xFF8B5CFF),
     priceUp = Color(0xFF38E8E0),
@@ -105,36 +110,41 @@ val FwStandard = FwColors(
     danger = Color(0xFFFF6B5E),
     info = Color(0xFF2EE6FF),
     dangerFill = Color(0xFFB3302A),
-    selectFill = Color(0x29EE0077),
-    selectEdge = Color(0xFFFF4DB8),
-    rowSelected = Color(0x1AEE0077),
+    selectFill = Color(0x29E6006F),
+    selectEdge = Color(0xFFFF4FA3),
+    rowSelected = Color(0x1AE6006F),
     divider = Color(0x0FFFFFFF),
     strokeStrong = Color(0x47FFFFFF),
     strokeControl = Color(0x66FFFFFF),
     hudTick = Color(0x992EE6FF),
     hudTrace = Color(0x662EE6FF),
-    thumbOff = Color(0xFFC9CEE8),
+    thumbOff = Color(0xFFCFC4E6),
     qrModule = Color(0xFF0A0C1B),
     qrField = Color(0xFFFFFFFF),
     keyHighlight = Color(0x12FFFFFF),
-    keyShadow = Color(0xB305060F),
+    keyShadow = Color(0xB305030F),
     rimLight = Color(0x1AFFFFFF),
-    sunRim = Color(0xFFFF3D8E),
-    sunBounce = Color(0x2EEE0077),
-    sunBounceMid = Color(0x13EE0077),
+    sunRim = Color(0xFFFF4FA3),
+    sunBounce = Color(0x2EE6006F),
+    sunBounceMid = Color(0x13E6006F),
     skyAmbient = Color(0x1A8B5CFF),
-    sunCore = Color(0xFFEE2233),
-    brandStart = Color(0xFFF5046B),
-    brandEnd = Color(0xFF78003F),
+    sunCore = Color(0xFFFFC24A),
+    brandStart = Color(0xFFE0126E),
+    brandEnd = Color(0xFF4A1160),
     insetShadow = Color(0x99000000),
     insetHighlight = Color(0x0BFFFFFF),
-    emissiveGlow = Color(0x73EE0077),
+    emissiveGlow = Color(0x73E6006F),
     occlusion = Color(0x1A000000),
+    brandPressed = Color(0xFFA8005A),
+    brandInk = Color(0xFF120A2E),
+    brandNight = Color(0xFF1A0E3E),
+    brandPlum = Color(0xFF3A1060),
+    brandGold = Color(0xFFFFC24A),
 )
 
 val FwHighContrast = FwStandard.copy(
-    textSecondary = Color(0xFFD5DAEA),
-    textTertiary = Color(0xFFBAC0D4),
+    textSecondary = Color(0xFFE9E2F5),
+    textTertiary = Color(0xFFCFC4E6),
     strokeControl = Color(0x8CFFFFFF),
 )
 
@@ -145,6 +155,6 @@ const val FW_INFO_CONTAINER_ALPHA = 0.12f
 
 object FwBrush {
     val Rim = Brush.verticalGradient(0f to Color(0x1AFFFFFF), 0.7f to Color(0x00FFFFFF))
-    val Brand = Brush.linearGradient(0.45f to Color(0xFFF5046B), 1f to Color(0xFF78003F))
-    val PrimaryFill = Brush.linearGradient(0f to Color(0xFFE3035E), 1f to Color(0xFF78003F))
+    val Brand = Brush.linearGradient(0.45f to Color(0xFFE0126E), 1f to Color(0xFF4A1160))
+    val PrimaryFill = Brush.linearGradient(0f to Color(0xFFD6006A), 1f to Color(0xFFA8005A))
 }

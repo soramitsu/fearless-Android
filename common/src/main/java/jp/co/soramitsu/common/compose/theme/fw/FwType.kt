@@ -32,7 +32,7 @@ object FwFont {
 
 private fun languageCode(language: String): String = Locale.forLanguageTag(language.replace('_', '-')).language
 
-private fun isLatinDisplay(language: String): Boolean = languageCode(language) in setOf("en", "id", "in", "pt", "tr")
+internal fun isLatinDisplay(language: String): Boolean = languageCode(language) in setOf("en", "id", "in", "pt", "tr")
 
 /** HUD casing follows the actual locale, including Turkish dotted I; non-Latin labels keep their case. */
 fun fwHudLabel(text: String, language: String): String = if (isLatinDisplay(language)) {

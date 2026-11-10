@@ -25,10 +25,10 @@ class SplashFragment : BaseFragment<SplashViewModel>() {
     }
 
     override fun initViews() {
-        // Sun-lit palette: the launch art (page light and the emissive badge) stays while the
-        // initial destination is resolved, instead of an empty page.
+        // The launch art (the stacked lockup on brand ink, its crest where the system splash left it)
+        // stays while the initial destination is resolved, instead of an empty page.
         if (FwRestyle.paletteEnabled) {
-            view?.background = ContextCompat.getDrawable(requireContext(), jp.co.soramitsu.common.R.drawable.fw_splash_sunlit)
+            view?.background = ContextCompat.getDrawable(requireContext(), jp.co.soramitsu.common.R.drawable.fw_splash_launch)
         }
     }
 

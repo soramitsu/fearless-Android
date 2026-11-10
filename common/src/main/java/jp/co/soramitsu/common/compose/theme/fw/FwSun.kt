@@ -14,9 +14,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,10 +38,11 @@ import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
@@ -78,7 +78,8 @@ private const val MIN_SWEEP = 12f
 private const val UNKNOWN_SWEEP = 90f
 
 /**
- * The hero sun: the approved badge as an emissive light. While a sync runs a thin arc of light
+ * The hero sun: the crest badge (the Yatagarasu crest in the app-icon gradient) as an emissive light
+ * whose core is brand gold. While a sync runs a thin arc of light
  * sweeps around it (its length is the progress when known); a finished sync blooms the glow once;
  * a failure dims the sun to 60 % and shows a small warning dot. Nothing loops while idle.
  */
@@ -180,53 +181,41 @@ fun FwSunBadge(
     }
 }
 
-/** The wide winged-sun mark's proportions, shared by Compose and View pages. */
-object FwWings {
-    /** The `fw_brand_wings` artwork's width over its height. */
-    const val ASPECT = 482f / 132.4f
+/**
+ * The stacked lockup (the Yatagarasu crest over the FEARLESS wordmark) for full-page brand screens,
+ * shared by Compose and View pages. Its proportions are the kit master's own viewBox.
+ */
+object FwLockup {
+    /** The `fw_brand_lockup` artwork's width over its height (viewBox 640 x 505.30). */
+    const val ASPECT = 640f / 505.30324f
 
-    /** Keeps the mark from taking over a tablet's height. */
-    const val MAX_WIDTH_DP = 480
+    /** About 56 % of the page width (brand rollout spec, item 4). */
+    const val WIDTH_FRACTION = 0.56f
+
+    /** Keeps the lockup from taking over a tablet. */
+    const val MAX_WIDTH_DP = 280
+
+    /** The lockup's width for a page [widthDp] wide that may give it at most [maxHeightDp] of height. */
+    fun widthDp(widthDp: Float, maxHeightDp: Float = Float.MAX_VALUE): Float =
+        minOf(widthDp * WIDTH_FRACTION, MAX_WIDTH_DP.toFloat(), maxHeightDp * ASPECT).coerceAtLeast(0f)
 }
 
 /**
- * The winged sun at full span, for pages with room for it (welcome, About): the approved badge's
- * wings, joint and disc without the circle, filling the width it is given. It lights the page as
- * the badge does. Sync states stay on the wallet's round hero sun, whose arc needs the circle.
+ * The stacked lockup on a full page (PIN, welcome, onboarding start, About): white crest over the
+ * wordmark on the dark page, about 56 % of the screen width and at most 280 dp. The marks carry the
+ * label "Fearless".
  */
 @Composable
-fun FwWingsHero(modifier: Modifier = Modifier, contentDescription: String? = null) {
-    val c = LocalFwColors.current
-    val glow = LocalFwEffects.current.glow
+fun FwLockupHero(modifier: Modifier = Modifier, contentDescription: String? = stringResource(R.string.fw_brand_name)) {
+    // Sized from the screen, not the parent, so pages that measure by intrinsic width keep the proportion.
+    val width = FwLockup.widthDp(LocalConfiguration.current.screenWidthDp.toFloat()).dp
     Image(
-        painter = painterResource(R.drawable.fw_brand_wings),
+        painter = painterResource(R.drawable.fw_brand_lockup),
         contentDescription = contentDescription,
         contentScale = ContentScale.Fit,
-        modifier = modifier
-            .widthIn(max = FwWings.MAX_WIDTH_DP.dp)
-            .fillMaxWidth()
-            .aspectRatio(FwWings.ASPECT)
-            .drawBehind {
-                if (!glow) return@drawBehind
-                // The light runs along the wings and fades before it reaches the text around the mark.
-                val reach = this.size.width * WINGS_GLOW_REACH
-                scale(scaleX = 1f, scaleY = this.size.height * WINGS_GLOW_DEPTH / this.size.width) {
-                    drawCircle(
-                        Brush.radialGradient(
-                            0f to c.sunCore.copy(alpha = 0.50f),
-                            0.5f to c.brand.copy(alpha = 0.18f),
-                            1f to Color.Transparent,
-                            center = center, radius = reach
-                        ),
-                        reach, center
-                    )
-                }
-            }
+        modifier = modifier.width(width).aspectRatio(FwLockup.ASPECT)
     )
 }
-
-private const val WINGS_GLOW_REACH = 0.6f
-private const val WINGS_GLOW_DEPTH = 1.5f
 
 enum class FwTxStatus { Pending, Success, Failed }
 

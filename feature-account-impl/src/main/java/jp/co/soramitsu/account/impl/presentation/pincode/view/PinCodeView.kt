@@ -20,8 +20,7 @@ import jp.co.soramitsu.common.compose.theme.fw.FwLight
 import jp.co.soramitsu.common.compose.theme.fw.FwMotionDurations
 import jp.co.soramitsu.common.compose.theme.fw.FwMotionKind
 import jp.co.soramitsu.common.compose.theme.fw.FwNeuDrawable
-import jp.co.soramitsu.common.compose.theme.fw.FwSunGlowDrawable
-import jp.co.soramitsu.common.compose.theme.fw.FwWings
+import jp.co.soramitsu.common.compose.theme.fw.FwLockup
 import jp.co.soramitsu.common.compose.theme.fw.motionPolicy
 import android.util.AttributeSet
 import android.view.View
@@ -97,7 +96,7 @@ class PinCodeView @JvmOverloads constructor(
     private var sunlit: FwEffects? = null
 
     /**
-     * Sun-lit PIN pad (FW Pin surface): the winged sun at full span above the title, neumorphic keys
+     * Sun-lit PIN pad (FW Pin surface): the stacked brand lockup above the title, neumorphic keys
      * that sink while pressed, dots that fill from the key-light side, and a two-shake wrong-PIN
      * signal. Ids, listeners and content descriptions are unchanged.
      */
@@ -107,16 +106,17 @@ class PinCodeView @JvmOverloads constructor(
         clipChildren = false
         clipToPadding = false
         if (resources.configuration.screenHeightDp >= MIN_HEIGHT_FOR_LOGO_DP) {
-            val glowPadding = (SUN_GLOW_PADDING_DP * density).toInt()
-            val width = minOf(resources.configuration.screenWidthDp - 2 * WINGS_MARGIN_DP, FwWings.MAX_WIDTH_DP) * density
+            val margin = (LOCKUP_MARGIN_DP * density).toInt()
+            // About 56 % of the width, at most 280 dp, and never taller than the room the keypad leaves.
+            val room = resources.configuration.screenHeightDp - PAD_HEIGHT_DP - 2 * LOCKUP_MARGIN_DP
+            val widthDp = FwLockup.widthDp(resources.configuration.screenWidthDp.toFloat(), room.toFloat())
             val logo = ImageView(context).apply {
-                setImageResource(jp.co.soramitsu.common.R.drawable.fw_brand_wings)
+                setImageResource(jp.co.soramitsu.common.R.drawable.fw_brand_lockup)
                 scaleType = ImageView.ScaleType.FIT_CENTER
-                background = FwSunGlowDrawable(colors, fx.glow)
-                setPadding(0, glowPadding, 0, glowPadding)
-                importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
+                setPadding(0, margin, 0, margin)
+                contentDescription = context.getString(jp.co.soramitsu.common.R.string.fw_brand_name)
             }
-            addView(logo, 0, LayoutParams(width.toInt(), (width / FwWings.ASPECT).toInt() + 2 * glowPadding).apply {
+            addView(logo, 0, LayoutParams((widthDp * density).toInt(), (widthDp / FwLockup.ASPECT * density).toInt() + 2 * margin).apply {
                 gravity = Gravity.CENTER_HORIZONTAL
             })
         }
@@ -225,9 +225,11 @@ class PinCodeView @JvmOverloads constructor(
 
     private companion object {
         const val MIN_HEIGHT_FOR_LOGO_DP = 680
+
+        /** Screen height the PIN page needs without its lockup: toolbar, title, dots and four rows of keys. */
+        const val PAD_HEIGHT_DP = 556
+        const val LOCKUP_MARGIN_DP = 12
         const val MIN_WIDTH_FOR_ROOMY_KEYS_DP = 360
-        const val WINGS_MARGIN_DP = 20
-        const val SUN_GLOW_PADDING_DP = 18
         const val KEY_SHADOW_ROOM_DP = 5f
         const val ROOMY_KEY_DP = 74
     }

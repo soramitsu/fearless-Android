@@ -28,7 +28,7 @@ android.defaultConfig {
     flags.each { name, value -> buildConfigField 'boolean', name, value }
     // Page and window art follow the palette too, so FW_PALETTE=legacy also restores XML screens.
     resValue 'drawable', 'fw_page_background', palette == 'v1' ? '@drawable/fw_page_sunlit' : '@drawable/drawable_background_image'
-    resValue 'drawable', 'fw_window_background', palette == 'v1' ? '@drawable/fw_splash_sunlit' : '@drawable/bg_splash'
+    resValue 'drawable', 'fw_window_background', palette == 'v1' ? '@drawable/fw_splash_launch' : '@drawable/bg_splash'
     resValue 'drawable', 'fw_root_background', palette == 'v1' ? '@drawable/fw_page_sunlit' : '@color/black'
     // Transparent lets the window's page light run behind the navigation bar instead of ending in a black strip.
     resValue 'color', 'fw_navigation_bar', palette == 'v1' ? '@android:color/transparent' : '@color/black'

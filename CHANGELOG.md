@@ -4,9 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## 4.3.3 (235)
 
-- Design: the sun-lit redesign. The approved winged-sun badge is the launcher icon, the
-  in-app mark, the default wallet avatar and the QR centre mark; full-page screens (PIN,
-  welcome, onboarding, About, launch art) show the wings at about 90% of the page width.
+- Design: the sun-lit redesign with the Yatagarasu brand. The three-legged crow crest is the
+  launcher icon, the in-app mark, the default wallet avatar and the QR centre mark; full-page
+  screens (PIN, welcome, onboarding, About, launch art) show the crest over the FEARLESS
+  wordmark. The welcome page shows the animated crow, and a tap plays its call.
+- The remaining surfaces follow the design: recovery, Manage assets, pickers, unavailable
+  notices, signing, the recovery phrase, staking, and a new Appearance page in Settings.
   Cards, buttons, input wells, sheets and the bottom bar are lit from one key light.
 - Wallet home: the badge is the sun of a new hero, its ring follows the real asset loading,
   the total rolls when it changes, and Send, Receive, Buy and Swap are round actions; Receive

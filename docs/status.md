@@ -2,6 +2,73 @@
 
 # Status Summary
 
+## One branch for every open Android PR — 10 November 2026
+
+The owner asked on 10 November 2026 to "merge all code into master branches", folding each repository's open work into
+one PR that a teammate approves. `release/consolidated-20261110` starts at `master` (`86b658605`) and merges three heads:
+
+- PR #1277, `release/android-4.3.3` (`a3171c36b`): 4.3.3 (235). It already contains PR #1275 (4.3.2, 234), which contains
+  PRs #1265 to #1270.
+- PR #1276, `release/sunlit-redesign` (`817bf5103`): the eight remaining surfaces, the recovery label semantics fix and
+  the appearance fixes, which 4.3.3 did not have.
+- PR #1278, `release/yatagarasu-brand` (`83717364f`): the Yatagarasu brand.
+
+The version stays 4.3.3 (235). Where the lines overlap: the Manage assets and pool Start staking crash fixes are identical
+on both; the sheet navigation-bar strip is kept once, with the redesign's XML surface helpers; the alert sheet takes the
+redesign's per-surface flag with 4.3.3's radius token and button-glow fix; 4.3.3's system Back handling of error sheets is
+kept; wallet avatars take both the crest mask and 4.3.3's picture scaling, which also fixes the cropped home avatar. The
+Play notes and the changelog name the crow logo instead of the winged sun. The open items of all three lines are in
+`docs/roadmap.md`.
+
+## Yatagarasu brand — 10 November 2026
+
+The owner approved the Yatagarasu brand on 10 November 2026 ("implement all this as the new brand across all our ios,
+android, and browser apps"): the three-legged crow crest, the FEARLESS wordmark, and the animated crow with its
+eagle-and-crow call. It replaces the winged-sun badge everywhere. Branch `release/yatagarasu-brand` (PR #1278), now
+folded into `release/consolidated-20261110` with 4.3.3 and the rest of the redesign.
+UI only: keys, signing, storage, networking and chain logic are unchanged, and no library was added.
+
+- **Source:** the shared brand kit (design package `design/yatagarasu-20261110`, r3; kit manifest SHA-256
+  `70771ec29c8607b1964a966066affb15bb02a2032973227d7f7d2ae3c80c048b`). The 24 files the app uses are copied byte for byte
+  into `brand/yatagarasu/` and pinned in `scripts/generate-brand-assets.py`, which converts the SVG path data verbatim
+  into VectorDrawables and copies rasters, video and sound as they are. `scripts/test-brand-assets.py` checks the pins,
+  that the committed outputs are what the generator writes, the splash circle, the lockup proportions and the retirement
+  of the winged sun. `brand/sun-disc/`, `fw_brand_wings`, `fw_brand_hero`, `drawable_fearless_logo`,
+  `fearless_bird_glossy`, `FwWingsHero`, `FwSunGlowDrawable` and the avatar's `WingedSunClip.kt` are gone.
+- **Launcher:** the adaptive icon is the crest on the ember–pink–plum radial gradient, with a themed (monochrome) layer;
+  debug builds wear the gold crest. Legacy and new round mipmaps come from the kit; the manifest names the round icon.
+- **Launch:** the Android 12+ system splash is the white crest on ink `#120A2E`, the whole crest inside the centre 192 dp
+  circle. The launch art and window background (`fw_splash_launch`) is the stacked lockup on ink at 280 dp, dropped so its
+  crest sits where the system splash left it (radius 86.6 dp against 88 dp): the wordmark appears under a crest that
+  does not move. The startup gate now removes the system splash at once on Android 12+ (the platform's
+  `SplashScreen.setOnExitAnimationListener`, no library); the default exit faded the crest out to ink and the art back in.
+  A recorded cold launch on API 36 shows no black frame and no relaunch.
+- **Marks:** full pages (PIN, welcome, onboarding start, About) show the stacked lockup, about 56 % of the screen width
+  and at most 280 dp; on PIN it is also capped by the height the keypad leaves. Round slots use the crest badge (the small
+  crest below 64 dp): the wallet hero's sync ring, the default wallet avatar and the receive QR centre. Address-derived
+  wallet avatars now mask with the crest badge instead of the winged sun (runtime-utils `CrestClip.kt`, re-pinned in
+  `config/android-runtime-source-pins.json`). Marks carry the label "Fearless".
+- **Welcome:** the animated crow full-bleed behind the top of the page (platform MediaPlayer on a TextureView, muted,
+  looping, aspect-fill anchored to the top), the lockup, the tagline between gold rules and the actions over its dark lower
+  part. The dark scrim scrolls with the content, so the crest never sits on the feathers. The page is ink behind the
+  status bar and the crow's sky fades into it. The loop pauses in the background and once scrolled away. Tapping the crow (a button labelled "Play the crow's call") crossfades into the call
+  with sound in 250 ms and back; silent or vibrate ringer modes play it muted, and taps during the call are ignored. Remove
+  animations and the Reduced appearance show the poster only and play the call's sound alone on a tap.
+- **Colour:** applied through the tokens with the brand kit's `tools/apply-tokens.mjs` (spec item 9), so Android, iOS and
+  the extension share the same pinks: brand mark, glow and active tab `#E6006F`; primary buttons fill `#D6006A` → `#A8005A`
+  and press to `#A8005A` (white labels 5.2:1; `#E6006F` stays off buttons with text); brand text, links, selection and accent
+  edges `#FF4FA3`. Ink `#120A2E`, night `#1A0E3E` and darker ink wells for surfaces; text `#FAF6FF` / `#CFC4E6` / `#978ABA`;
+  gold `#FFC24A` for the sun core. Prices and status keep the shared semantic tokens, so a gain stays `priceUp` `#38E8E0` as
+  in iOS and the extension (spec item 9: the kit's mint is for brand art only, and it would fail the colour-blind gate
+  against the loss orange). Semantic colours (price, success, warning, danger, info) and the fonts are unchanged. New tokens: `brandPressed`,
+  `brandInk`, `brandNight`, `brandPlum`, `brandGold`; the winged sun's raw palette is retired. The legacy palette
+  (`design/fw.legacy.android.json`, still painting the screens not yet restyled) moves its accents the same way, as do the
+  icon drawables that hard-coded the old magenta; Polkaswap's own logos keep theirs, and `Colors.Pink40` stays as a raw
+  literal the colour ratchet forbids changing (it feeds only the unused legacy night accent).
+- **Screens:** `docs/brand/android-yatagarasu-screens.webp` (welcome, PIN, wallet, About; also the README image) and
+  `docs/brand/android-yatagarasu-launch.webp` (system splash, launch art, debug and themed launcher icons), from the API 36
+  emulator walk. The old 2020 promo image is retired.
+
 ## Android release takeover — 10 November 2026
 
 The local 4.3.3 integration includes the verified new-wallet balance-read change (`5e34fc06e`), fiat-symbol

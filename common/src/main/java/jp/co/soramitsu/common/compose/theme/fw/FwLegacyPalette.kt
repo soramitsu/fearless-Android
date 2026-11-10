@@ -1,5 +1,5 @@
 // GENERATED from design/fw.legacy.android.json; do not edit.
-// sha256 cd51c6671d63003f32caee3e772fbdca26e273925d19bd2967b2fe6bdc2c075c
+// sha256 242308549d89456ea11014f6b30b8472db2462737171e7d986f1d05d17c1f3c8
 // Regenerate: python3 scripts/generate-legacy-palette.py
 package jp.co.soramitsu.common.compose.theme.fw
 
@@ -9,9 +9,9 @@ import jp.co.soramitsu.common.compose.theme.tokens.Colors
 /** Frozen original palette; presentation can migrate without changing ambiguous legacy colors. */
 object FwLegacyPalette {
     val colorPrimary = Color(0xFF004CB7)
-    val colorSelected = Color(0x66FF009A)
+    val colorSelected = Color(0x66E6006F)
     val colorPrimaryDark = Color(0x80004CB7)
-    val colorAccent = Color(0xFFFF009A)
+    val colorAccent = Color(0xFFE6006F)
     val colorHint = Color(0xFFCCCCCC)
     val gray1 = Color(0xFFCCCCCC)
     val gray2 = Color(0xFF888888)
@@ -62,13 +62,13 @@ object FwLegacyPalette {
     val warningYellow = Color(0xFFFFD600)
     val demeterYellow = Color(0xFFEC7430)
     val transparent = Color(0x00FFFFFF)
-    val colorAccentDark = Color(0xFFEE0077)
+    val colorAccentDark = Color(0xFFE6006F)
     val colorAccentSecondary = Color(0xFFD5D5D5)
     val soraRed = Color(0xFFEE2233)
     val soraBlueDialog = Color(0xFF007AFF)
 
     val borderGradientColors = listOf(
-        Color(0xFFEE0077),
+        Color(0xFFE6006F),
         Color(0xFFEE7700),
         Color(0xFF7700EE),
         Color(0xFFC800EE)

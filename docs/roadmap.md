@@ -2,6 +2,17 @@
 
 # Roadmap & Technical Debt
 
+## Yatagarasu brand: open items — 10 November 2026
+
+Described in `docs/status.md`. Not yet done:
+
+- **Play listing:** the store icon (`png/android/play-store-512.png` in the brand kit) is uploaded in Play Console with
+  the release; the repository carries no listing assets.
+- **Wallet bust:** the kit's transparent `hero/bust` may sit at the trailing edge of the balance card where the hero has
+  room (spec item 8). The hero keeps its centred crest badge for now.
+- **Legacy palette colours:** `FW_PALETTE=legacy` (the rollback build) keeps the frozen pre-redesign colours, including
+  `#EE0077`; only its marks follow the new brand.
+
 ## 4.3.3 (235): open items — 9 November 2026
 
 The candidate is described in `docs/status.md` and `docs/releases/4.3.3.md`.

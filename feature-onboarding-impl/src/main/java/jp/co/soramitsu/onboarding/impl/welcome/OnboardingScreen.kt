@@ -241,7 +241,7 @@ private fun OnboardingScreenPreview() {
             onboardingFlow = OnboardingFlow(
                 listOf(
                     OnboardingConfig.OnboardingConfigItem.Variants.ScreenInfo(
-                        title = OnboardingConfig.OnboardingConfigItem.Variants.ScreenInfo.TitleInfo("Brand new network management", "#ee0077"),
+                        title = OnboardingConfig.OnboardingConfigItem.Variants.ScreenInfo.TitleInfo("Brand new network management", "#e6006f"),
                         description = "Navigate between All, Popular and your Favourite networks modes",
                         image = "${R.drawable.drawable_background_image}"
                     ),

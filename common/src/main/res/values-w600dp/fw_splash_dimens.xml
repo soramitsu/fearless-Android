@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- The launch art's wide mark: near 90 % of the page at this width class, at the artwork's aspect. -->
-    <dimen name="fw_splash_wings_width">480dp</dimen>
-    <dimen name="fw_splash_wings_height">131.85dp</dimen>
-</resources>

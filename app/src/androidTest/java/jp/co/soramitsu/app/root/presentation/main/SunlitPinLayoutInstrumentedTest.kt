@@ -24,6 +24,7 @@ import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
@@ -38,8 +39,8 @@ import jp.co.soramitsu.account.impl.presentation.pincode.view.PinCodeView
 import jp.co.soramitsu.common.compose.theme.fw.FwEffects
 import jp.co.soramitsu.common.compose.theme.fw.FwStandard
 import jp.co.soramitsu.common.compose.theme.fw.FwTier
-import jp.co.soramitsu.common.compose.theme.fw.FwWings
-import jp.co.soramitsu.common.compose.theme.fw.FwWingsHero
+import jp.co.soramitsu.common.compose.theme.fw.FwLockup
+import jp.co.soramitsu.common.compose.theme.fw.FwLockupHero
 import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
 import jp.co.soramitsu.common.compose.theme.fw.LocalFwEffects
 import jp.co.soramitsu.feature_account_impl.R
@@ -54,7 +55,7 @@ import org.junit.runner.RunWith
 class SunlitPinLayoutInstrumentedTest {
     @get:Rule val compose = createAndroidComposeRule<PolkaswapNavigationLayoutTestActivity>()
 
-    @Test fun wingsSpanMostOfThePinPageWhereThereIsRoomForThem() {
+    @Test fun lockupTakesAboutHalfThePinPageAndLeavesTheKeypadItsRoom() {
         val modes = listOf(Triple(320, 800, 1f), Triple(320, 800, 2f), Triple(360, 780, 1f), Triple(400, 800, 1f), Triple(800, 800, 1f), Triple(320, 600, 1f))
         var mode by mutableStateOf(modes.first())
         lateinit var root: View
@@ -87,14 +88,17 @@ class SunlitPinLayoutInstrumentedTest {
                     return@runOnIdle
                 }
                 checkNotNull(logo) { "$next has room for the mark" }
-                val width = minOf(next.first - 40, FwWings.MAX_WIDTH_DP) * density
+                // About 56 % of the width, at most 280 dp, within what the keypad leaves (556 dp + 12 dp margins).
+                val room = next.second - 556 - 2 * 12
+                val width = FwLockup.widthDp(next.first.toFloat(), room.toFloat()) * density
                 assertEquals("$next mark width", width, logo.width.toFloat(), 1f)
-                if (next.first < FwWings.MAX_WIDTH_DP) {
-                    assertTrue("$next spans most of the page", logo.width >= next.first * density * 0.8f)
-                }
+                assertTrue("$next stays near half the page", logo.width <= next.first * density * FwLockup.WIDTH_FRACTION + 1f)
+                assertTrue("$next stays at most 280 dp", logo.width <= FwLockup.MAX_WIDTH_DP * density + 1f)
                 assertEquals("$next mark is centred", pin.width / 2f, (logo.left + logo.right) / 2f, 1f)
                 val artHeight = logo.height - logo.paddingTop - logo.paddingBottom
-                assertEquals("$next artwork keeps its aspect", FwWings.ASPECT, logo.width.toFloat() / artHeight, 0.05f)
+                assertTrue("$next leaves the keypad its room", artHeight <= room * density + 1f)
+                assertEquals("$next artwork keeps its aspect", FwLockup.ASPECT, logo.width.toFloat() / artHeight, 0.05f)
+                assertEquals("$next mark carries the brand name", "Fearless", logo.contentDescription)
                 assertTrue("$next mark stays above the title", logo.bottom <= pin.findViewById<View>(R.id.pinCodeTitleTv).top)
                 assertEquals(0, logo.paddingLeft + logo.paddingRight)
                 val title = pin.findViewById<TextView>(R.id.pinCodeTitleTv)
@@ -114,46 +118,45 @@ class SunlitPinLayoutInstrumentedTest {
         }
     }
 
-    @Test fun launchArtKeepsTheMarksAspectAndSpansMostOfThePageInEveryWidthClass() {
-        val context = compose.activity
-        for (widthDp in listOf(320, 360, 411, 480, 600)) {
-            val config = Configuration(context.resources.configuration).apply {
-                screenWidthDp = widthDp
-                smallestScreenWidthDp = minOf(widthDp, smallestScreenWidthDp)
-            }
-            val resources = context.createConfigurationContext(config).resources
-            val density = resources.displayMetrics.density
-            val width = resources.getDimension(jp.co.soramitsu.common.R.dimen.fw_splash_wings_width)
-            val height = resources.getDimension(jp.co.soramitsu.common.R.dimen.fw_splash_wings_height)
-            assertEquals("$widthDp aspect", FwWings.ASPECT, width / height, 0.01f)
-            assertTrue("$widthDp fits the page", width <= widthDp * density)
-            if (widthDp < 600) assertTrue("$widthDp spans most of the page", width >= widthDp * density * 0.85f)
-        }
+    @Test fun launchArtLockupKeepsItsAspectAndTheSystemSplashCrestPosition() {
+        val resources = compose.activity.resources
+        val density = resources.displayMetrics.density
+        val width = resources.getDimension(jp.co.soramitsu.common.R.dimen.fw_launch_lockup_width)
+        val height = resources.getDimension(jp.co.soramitsu.common.R.dimen.fw_launch_lockup_height)
+        val drop = resources.getDimension(jp.co.soramitsu.common.R.dimen.fw_launch_lockup_drop)
+        assertEquals(FwLockup.ASPECT, width / height, 0.01f)
+        assertTrue("At most 280 dp", width <= FwLockup.MAX_WIDTH_DP * density + 0.5f)
+        assertTrue("Fits the narrowest page", width <= 320 * density)
+        // The crest's centre is 199.68 of the lockup's 505.30 units from its top; the drop moves it to the
+        // window's centre, where the Android 12+ system splash drew the same crest.
+        val crestCentre = height * 199.68f / 505.30324f
+        assertEquals(height / 2f - crestCentre, drop / 2f, 0.75f)
+        // The crest's reach (0.78 x 253.62 units) is within 2 % of the system splash crest's 88 dp.
+        assertEquals(88f * density, width / 640f * 0.78f * 253.62f, 88f * density * 0.02f)
     }
 
-    @Test fun wideHeroFillsItsWidthKeepsItsAspectAndDropsItsGlowWithReducedEffects() {
-        var fx by mutableStateOf(FwEffects(FwTier.Full, false, true))
+    @Test fun lockupHeroTakesAboutHalfTheScreenAndKeepsItsAspectAndLabel() {
         compose.setContent {
-            CompositionLocalProvider(LocalFwEffects provides fx, LocalFwColors provides FwStandard) {
-                Box(Modifier.requiredSize(360.dp, 200.dp).testTag("wings-page")) {
-                    FwWingsHero(Modifier.padding(horizontal = 20.dp).testTag("wings"))
+            CompositionLocalProvider(LocalFwEffects provides FwEffects(FwTier.Full, false, true), LocalFwColors provides FwStandard) {
+                Box(Modifier.requiredSize(360.dp, 400.dp).testTag("lockup-page")) {
+                    FwLockupHero(Modifier.padding(horizontal = 20.dp).testTag("lockup"))
                 }
             }
         }
-        val bounds = compose.onNodeWithTag("wings").getUnclippedBoundsInRoot()
-        assertEquals(320f, bounds.width.value, 1f)
-        assertEquals(FwWings.ASPECT, bounds.width.value / bounds.height.value, 0.05f)
-        val lit = compose.onNodeWithTag("wings-page").captureToImage().asAndroidBitmap()
-        compose.runOnIdle { fx = FwEffects(FwTier.Reduced, false, true) }
-        val plain = compose.onNodeWithTag("wings-page").captureToImage().asAndroidBitmap()
-        assertFalse("Reduced effects must remove the glow", lit.sameAs(plain))
+        val screenWidth = compose.activity.resources.configuration.screenWidthDp.toFloat()
+        // The tag follows the caller's padding in the modifier chain, so these are the mark's own bounds.
+        val bounds = compose.onNodeWithTag("lockup").getUnclippedBoundsInRoot()
+        assertEquals(FwLockup.widthDp(screenWidth), bounds.width.value, 1f)
+        assertEquals(FwLockup.ASPECT, bounds.width.value / bounds.height.value, 0.05f)
+        compose.onNodeWithContentDescription("Fearless").assertExists()
+        val image = compose.onNodeWithTag("lockup-page").captureToImage().asAndroidBitmap()
         fun white(bitmap: Bitmap) = (0 until bitmap.height).sumOf { y ->
             (0 until bitmap.width).count { x ->
                 val pixel = bitmap.getPixel(x, y)
                 android.graphics.Color.red(pixel) > 240 && android.graphics.Color.green(pixel) > 240 && android.graphics.Color.blue(pixel) > 240
             }
         }
-        assertTrue("The white mark stays with reduced effects", white(plain) > plain.width)
+        assertTrue("The white crest and wordmark are drawn", white(image) > image.width)
     }
 
     @Test fun keypadAndRecoveryHaveSeparateFullTouchTargetsAtSmallAndLargeTextSizes() {
