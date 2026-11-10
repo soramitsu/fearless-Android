@@ -164,9 +164,16 @@ private fun PreviewCard() {
                     }
                     FwSwitchIndicator(true)
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    FwSecondaryButton(stringResource(jp.co.soramitsu.common.R.string.common_cancel), {}, Modifier.weight(1f))
-                    FwPrimaryButton(stringResource(jp.co.soramitsu.common.R.string.common_continue), {}, Modifier.weight(1f))
+                if (LocalDensity.current.fontScale > 1.3f) {
+                    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        FwSecondaryButton(stringResource(jp.co.soramitsu.common.R.string.common_cancel), {}, Modifier.fillMaxWidth())
+                        FwPrimaryButton(stringResource(jp.co.soramitsu.common.R.string.common_continue), {}, Modifier.fillMaxWidth())
+                    }
+                } else {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        FwSecondaryButton(stringResource(jp.co.soramitsu.common.R.string.common_cancel), {}, Modifier.weight(1f))
+                        FwPrimaryButton(stringResource(jp.co.soramitsu.common.R.string.common_continue), {}, Modifier.weight(1f))
+                    }
                 }
             }
         }
