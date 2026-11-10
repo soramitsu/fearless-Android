@@ -20,6 +20,17 @@ kept; wallet avatars take both the crest mask and 4.3.3's picture scaling, which
 Play notes and the changelog name the crow logo instead of the winged sun. The open items of all three lines are in
 `docs/roadmap.md`.
 
+Two test-only fixes came with the consolidation:
+
+- The migration compatibility contract (`scripts/verify-android-migration-instrumentation-results.sh`) counts the
+  launch-art test that `218de436d` added to `WalletGateActivityLifecycleTest`: 24 for that class, 30 for the app and
+  45 in all. With 23, 29 and 44 every compatibility run refused its own green results ("app ran 30 tests; exact
+  compatibility count is 29"), which is why `build-and-test` failed on PRs #1276, #1277 and #1278.
+- `SunlitPinLayoutInstrumentedTest` applies the window's insets to the hosted PIN page and lays it out again before it
+  measures. From API 35 the test window is edge to edge, and the page kept its unpadded layout while the late padding
+  clipped the "Forgot PIN?" label at 320 x 600 dp (it failed on API 36 only, on every branch). The app's PIN page takes
+  its insets before its first layout and was not affected.
+
 ## Yatagarasu brand — 10 November 2026
 
 The owner approved the Yatagarasu brand on 10 November 2026 ("implement all this as the new brand across all our ios,
