@@ -107,8 +107,18 @@ class SelectRewardDestinationViewModel @Inject constructor(
             }
         }
 
-        stashStateFlow.onEach(rewardDestinationMixin::loadActiveRewardDestination)
-            .launchIn(viewModelScope)
+        stashStateFlow.onEach { stashState ->
+            try {
+                rewardDestinationMixin.loadActiveRewardDestination(stashState)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                // A destination the app cannot read ("None", or one this runtime no longer decodes) used to
+                // close the app here. The page stays usable: choosing a destination sets a readable one.
+                currentCoroutineContext().ensureActive()
+                showError(failure)
+            }
+        }.launchIn(viewModelScope)
     }
 
     fun nextClicked() {

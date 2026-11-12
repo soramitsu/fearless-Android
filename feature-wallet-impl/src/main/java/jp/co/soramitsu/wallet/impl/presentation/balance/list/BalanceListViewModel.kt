@@ -1035,8 +1035,14 @@ class BalanceListViewModel @Inject constructor(
     }
 
     private suspend fun checkControllerDeprecations() {
-        val warnings =
+        // Advice over the home page: reading it must never close the app (229: Staking left the relay chains).
+        val warnings = try {
             withContext(coroutineManager.default) { interactor.checkControllerDeprecations() }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (failure: Exception) {
+            emptyList()
+        }
         warnings.firstOrNull()?.let { warning ->
             val model = warning.toModel(resourceManager)
             showError(
