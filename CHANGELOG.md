@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## 4.3.4 (236)
+
+Fixes for the crashes Google Play reported on 12 November 2026 (28 crash clusters over 28 days). Most came from
+4.2.0 (229), which most devices still run. 4.3.3 already fixed the largest: the Send network list query,
+Java-WebSocket's ping timer, missing Staking constants, the NFT grid and Manage assets row keys, Google Drive
+sign-in and parachain staking. 4.3.4 fixes what 4.3.3 still had:
+
+- Fixed: the transaction history closed the app when a later page repeated a transaction already shown (a pending
+  transfer that completed, two token transfers in one transaction). One row per transaction now, the newest copy.
+  Viction history used the transaction's index within its block as its id, so transfers in different blocks
+  collided; it uses the hash.
+- Fixed: the asset page closed the app when its history panel could not find the network (`getChain` gives up
+  after 60 seconds); the panel shows the history error instead.
+- Fixed: Japanese "Manage assets" group rows and Indonesian staking pages (hours) asked for two numbers where the
+  app passes one, and Turkish "+ n others" used `%i`, which Java does not know. A test now formats every
+  translation with the English text's arguments.
+- Fixed: Select reward destination and Confirm payout closed the app when the network stored a destination this
+  runtime cannot read (`None`); the destination row stays empty and an error is shown.
+- Fixed: an NFT gallery listing the same token or contract twice closed the app.
+- Fixed: a second wallet screen opening before the first one closed left the app without navigation, so the next
+  tap closed it (229: Welcome > Import). The navigator is now cleared only by the screen that owns it.
+- Fixed: choosing a JSON file to import closed the app when the picker returned no file or answered another request.
+- Fixed: the home and staking pages' controller-account warning closed the app when one network failed to answer.
+- The TON wallet code is parsed before any wallet scan can start, closing the last window of the 229 start-up ANR.
+
 ## 4.3.3 (235)
 
 - Design: the sun-lit redesign. The approved winged-sun badge is the launcher icon, the
