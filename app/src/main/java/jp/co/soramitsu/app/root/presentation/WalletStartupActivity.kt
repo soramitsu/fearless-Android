@@ -394,6 +394,10 @@ abstract class WalletGateActivity : AppCompatActivity() {
             target = WalletRootActivity::class.java
         )
         startActivity(forwardedIntent)
+        // The wallet host opens on the same launch art at the same place: a cut, not an open animation
+        // (which slid two copies of the lockup past each other). Presentation only.
+        @Suppress("DEPRECATION")
+        overridePendingTransition(0, 0)
         finish()
     }
 

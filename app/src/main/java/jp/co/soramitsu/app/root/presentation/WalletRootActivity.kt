@@ -8,6 +8,7 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
@@ -42,8 +43,8 @@ import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.observe
 import jp.co.soramitsu.common.utils.showToast
 import jp.co.soramitsu.common.utils.updatePadding
-import jp.co.soramitsu.runtime.BuildConfig
 import jp.co.soramitsu.common.view.hideOtherAppsOverlays
+import jp.co.soramitsu.runtime.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -126,6 +127,10 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
         )
         super.onCreate(savedInstanceState)
         window.hideOtherAppsOverlays()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            // Opening over the startup gate's identical launch art is a cut (the gate also asks for none below 34).
+            overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, 0, 0)
+        }
         if (!contentInitializationAllowed) return
 
         secureStorageRestartRedirector.register()
