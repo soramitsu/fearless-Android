@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.navigation.NavController
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.app.root.presentation.main.MainFragment
 import jp.co.soramitsu.common.feedback.FeedbackCue
 import jp.co.soramitsu.common.feedback.TransferFeedback
 import jp.co.soramitsu.common.launch.LaunchHandOff
@@ -63,23 +64,32 @@ internal object LaunchIgniteHost {
     }
 
     /**
-     * The landing after an unlock: when the PIN page gives way to the wallet (the main screen), it scales from
-     * 1.06 to 1 and fades in over 0.35 s. Nothing under reduced motion.
+     * The landing after an unlock: when the PIN page gives way to the wallet (the main screen), the
+     * wallet scales from 1.06 to 1 and fades in from ink over 0.35 s. It starts once the main
+     * screen has started, so a slow fragment transaction never shows the PIN page again behind the
+     * fade. Nothing under reduced motion, and nothing while the launch clip still covers the host.
      */
-    fun landAfterUnlock(navController: NavController, content: View) {
+    fun landAfterUnlock(navController: NavController, fragmentManager: FragmentManager?, content: View) {
         var previous: Int? = null
+        var pending = false
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val from = previous
             previous = destination.id
-            if (from != R.id.pincodeFragment || destination.id != R.id.mainFragment) return@addOnDestinationChangedListener
-            if (!ValueAnimator.areAnimatorsEnabled() || content.alpha < 1f) return@addOnDestinationChangedListener
-            content.pivotX = content.width / 2f
-            content.pivotY = content.height / 2f
-            content.scaleX = LaunchHandOff.LANDING_FROM_SCALE
-            content.scaleY = LaunchHandOff.LANDING_FROM_SCALE
-            content.alpha = 0f
-            content.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(LaunchHandOff.LANDING_MS)
-                .setInterpolator(DecelerateInterpolator()).start()
+            pending = from == R.id.pincodeFragment && destination.id == R.id.mainFragment
         }
+        fragmentManager?.registerFragmentLifecycleCallbacks(object : FragmentManager.FragmentLifecycleCallbacks() {
+            override fun onFragmentStarted(fm: FragmentManager, f: Fragment) {
+                if (!pending || f !is MainFragment) return
+                pending = false
+                if (!ValueAnimator.areAnimatorsEnabled() || content.alpha < 1f) return
+                content.pivotX = content.width / 2f
+                content.pivotY = content.height / 2f
+                content.scaleX = LaunchHandOff.LANDING_FROM_SCALE
+                content.scaleY = LaunchHandOff.LANDING_FROM_SCALE
+                content.alpha = 0f
+                content.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(LaunchHandOff.LANDING_MS)
+                    .setInterpolator(DecelerateInterpolator()).start()
+            }
+        }, false)
     }
 }

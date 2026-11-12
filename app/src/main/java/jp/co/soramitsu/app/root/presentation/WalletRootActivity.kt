@@ -137,9 +137,9 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
 
         // The cold-start Ignite clip and the unlock landing only cover and reveal what the host shows.
         val mainView = findViewById<View>(R.id.mainView)
-        (supportFragmentManager.findFragmentById(R.id.navHost) as? NavHostFragment)?.childFragmentManager
-            ?.let(LaunchIgniteHost::reportScreens)
-        LaunchIgniteHost.landAfterUnlock(navController, mainView)
+        val hostFragments = (supportFragmentManager.findFragmentById(R.id.navHost) as? NavHostFragment)?.childFragmentManager
+        hostFragments?.let(LaunchIgniteHost::reportScreens)
+        LaunchIgniteHost.landAfterUnlock(navController, hostFragments, mainView)
         LaunchIgniteHost.attachIfColdStart(this, mainView)
         window.setBackgroundDrawableResource(jp.co.soramitsu.common.R.color.fw_bg_base)
 
