@@ -2,6 +2,36 @@
 
 # Status Summary
 
+## Ignite launch, feel and sound — 13 November 2026
+
+The owner asked on 13 November 2026: "make the yatagarasu ignite animation the launching splash animation and zoom into
+the wallet. make the design much much cooler overall and give some tactile feedback and sound effects when
+sending/receiving tokens". The shared contract is the brand kit's SPEC section "Launch, feel and sound" (kit v3, manifest
+`e49da29b…db84`); branch `claude/ignite-launch-feel` on `release/consolidated-20261110`. UI only: keys, signing, storage,
+networking and chain logic are unchanged, and no library was added.
+
+- **Launch.** After the unchanged system splash and launch art, the wallet host plays the kit's Ignite clip (no audio track)
+  over its first screen on a cold start only (`app/.../root/presentation/launch/`). The clip waits on its hold frame until
+  the first screen a person can act on is shown (PIN, welcome, or any other screen of the host) and no system prompt has
+  the window, then dives, and the screen underneath zooms in from the dive's focus with the `launchArrive` haptic. A tap
+  skips to the zoom; a clip that cannot load or stalls for 1 s is dropped with a plain fade; animator scale 0 and touch
+  exploration get no clip. The rules are in `common/.../launch/LaunchIgniteDirector.kt` and tested without a device. When
+  the PIN page gives way to the wallet, the wallet lands (scale 1.06 to 1, 0.35 s).
+- **Sound and touch** (`common/.../feedback/`): the send and receive sounds (SoundPool, sonification usage, nothing in
+  silent or vibrate ringer mode) and the kit's haptic patterns (VibrationEffect primitives where supported, else the
+  waveform; touch usage on Android 13+). Final Send press: `commit`; network accepted the transfer: `send` and the solar
+  ignite on the success screen; failure: the platform's reject feedback; tokens arriving: `receive`, a gold pulse on the
+  balance card and a toast; receive address copied: `commit`. "Arriving" means a token amount growing against a value
+  already known for the same wallet and asset while the wallet is on screen (`ArrivalDetector`): never a first value,
+  a price change or a hidden asset, at most once in 3 s. Settings has "Sound effects" and "Haptic feedback", both on by
+  default, in their own ordinary preferences (`fw_feedback`).
+- **Design.** The wallet hero sits on the kit's sunset sky with the sun behind the crest badge and the solar rings turning
+  round it; an ink scrim keeps every hero text at 4.5:1 or more over the brightest pixel of the sky
+  (`FwIgniteDesignTest`). Cards and the tab bar have the gold-to-pink lit rim; the total counts up from zero on its first
+  reveal after launch and rolls to later values as before; round actions press to 0.94 and the primary one carries a slow
+  sheen; a faint pink and gold aurora drifts behind the wallet home; the active tab glows pink with a gold dot. Reduced
+  effects, high contrast and reduced motion keep the earlier paint or show final states.
+
 ## One branch for every open Android PR — 10 November 2026
 
 The owner asked on 10 November 2026 to "merge all code into master branches", folding each repository's open work into

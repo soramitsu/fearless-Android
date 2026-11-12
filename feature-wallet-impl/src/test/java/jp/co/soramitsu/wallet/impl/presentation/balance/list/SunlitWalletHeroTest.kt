@@ -1,8 +1,10 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import jp.co.soramitsu.common.compose.theme.fw.FwLight
 import jp.co.soramitsu.common.compose.theme.fw.FwSyncPhase
 import jp.co.soramitsu.common.domain.model.NetworkIssueType
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SunlitWalletHeroTest {
@@ -18,6 +20,12 @@ class SunlitWalletHeroTest {
         assertEquals(FwSyncPhase.Failed, walletSyncState(issue).phase)
         // Progress is unknown while assets load: the arc shows a quarter turn, never an invented value.
         assertEquals(null, walletSyncState(WalletState.default).progress)
+    }
+
+    @Test fun roundActionsPressDeeperThanOtherControls() {
+        // Brand kit SPEC "Launch, feel and sound", part 3: Send, Receive, Buy and Swap press to 0.94.
+        assertEquals(0.94f, ROUND_ACTION_PRESS_SCALE, 0f)
+        assertTrue(ROUND_ACTION_PRESS_SCALE < FwLight.PRESS_SCALE)
     }
 
     @Test fun addressChipShowsBothEndsAndShortAddressesWhole() {

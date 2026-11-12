@@ -78,10 +78,10 @@ import jp.co.soramitsu.common.utils.onSingleClick
 import jp.co.soramitsu.common.utils.rememberLastClickTime
 import kotlinx.coroutines.delay
 
-/** Press feedback: the control sinks (scale 0.97) in 90 ms and springs back in 160 ms. */
-fun Modifier.fwPressScale(pressed: Boolean): Modifier = composed {
+/** Press feedback: the control sinks ([scale], 0.97 by default) in 90 ms and springs back in 160 ms. */
+fun Modifier.fwPressScale(pressed: Boolean, scale: Float = FwLight.PRESS_SCALE): Modifier = composed {
     val motion = fwMotion
-    val target = if (pressed && motion.moves(FwMotionKind.Press)) FwLight.PRESS_SCALE else 1f
+    val target = if (pressed && motion.moves(FwMotionKind.Press)) scale else 1f
     val scale by animateFloatAsState(
         targetValue = target,
         animationSpec = when {
@@ -158,6 +158,8 @@ private fun FwButton(
             .heightIn(min = 48.dp)
             .fwPressScale(pressed && active)
             .fwSurface(fx, c, FwShape.Button, level, pressed = pressed && active, sunRim = 0f, interactive = true)
+            // The primary action's slow sheen (brand kit SPEC part 3); never on secure surfaces.
+            .fwSheen(fx, FwShape.Button, enabled = primary && active && !LocalFwSecureSurface.current)
             .clip(FwShape.Button)
             .clickable(interactionSource = interactions, indication = null, enabled = active, role = Role.Button) {
                 onSingleClick(lastClick, onClick)
@@ -198,13 +200,18 @@ fun FwRoundAction(
     modifier: Modifier = Modifier,
     primary: Boolean = false,
     enabled: Boolean = true,
-    size: Dp = 60.dp
+    size: Dp = 60.dp,
+    pressScale: Float = FwLight.PRESS_SCALE,
+    sheen: Boolean = false,
+    onPress: (() -> Unit)? = null
 ) {
     val fx = LocalFwEffects.current
     val c = LocalFwColors.current
     val interactions = remember { MutableInteractionSource() }
     val pressed by interactions.collectIsPressedAsState()
     val lastClick = rememberLastClickTime()
+    // Touch feedback the moment the finger lands, before the click is decided.
+    LaunchedEffect(pressed) { if (pressed && enabled) onPress?.invoke() }
     Column(
         modifier = modifier
             .widthIn(min = size + 8.dp)
@@ -217,9 +224,10 @@ fun FwRoundAction(
         Box(
             modifier = Modifier
                 .size(size)
-                .fwPressScale(pressed && enabled)
+                .fwPressScale(pressed && enabled, pressScale)
                 .fwSurface(fx, c, CircleShape, if (primary) FwElevation.Emissive else FwElevation.Raised2,
-                    pressed = pressed && enabled, interactive = true),
+                    pressed = pressed && enabled, interactive = true)
+                .fwSheen(fx, CircleShape, enabled = sheen && primary && enabled),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -320,9 +328,13 @@ fun FwCard(
     level: FwElevation = FwElevation.Raised2,
     shape: Shape = FwShape.Card,
     sunRim: Float? = null,
+    litRimStrength: () -> Float = { 1f },
     content: @Composable () -> Unit
 ) {
-    Box(modifier.fwSurface(LocalFwEffects.current, LocalFwColors.current, shape, level, sunRim = sunRim).clip(shape)) {
+    val fx = LocalFwEffects.current
+    val c = LocalFwColors.current
+    // The lit rim (brand kit SPEC part 3) is drawn over the surface, inside its outline.
+    Box(modifier.fwLitRim(fx, c, shape, strength = litRimStrength).fwSurface(fx, c, shape, level, sunRim = sunRim).clip(shape)) {
         content()
     }
 }

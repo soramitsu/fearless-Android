@@ -360,6 +360,13 @@ class FwNavBarDrawable(
     private val bar = FwNeuDrawable(c, fx, density, FwElevation.Raised2, cornerRadius = corner)
     private val well = FwNeuDrawable(c, fx, density, FwElevation.Inset, cornerRadius = 16f * density)
     private val dot = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val cornerRadius = corner
+    // Lit rim (brand kit SPEC part 3): gold at the upper left, through pink, to nothing at the lower right.
+    private val rim = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = density
+    }
+    private val activeGlow = Paint(Paint.ANTI_ALIAS_FLAG)
     private var wellCenter = Float.NaN
     private var wellWidth = 0f
     private var animator: ValueAnimator? = null
@@ -393,24 +400,45 @@ class FwNavBarDrawable(
     override fun onBoundsChange(bounds: Rect) {
         bar.bounds = Rect((bounds.left + sideMargin).toInt(), (bounds.top + verticalMargin).toInt(),
             (bounds.right - sideMargin).toInt(), (bounds.bottom - bottomInset - verticalMargin).toInt())
+        val b = bar.bounds
+        rim.shader = android.graphics.LinearGradient(b.left.toFloat(), b.top.toFloat(), b.right.toFloat(), b.bottom.toFloat(),
+            intArrayOf(c.brandGold.copy(alpha = FwLitRimTokens.GOLD_ALPHA).toArgb(), c.sunRim.copy(alpha = FwLitRimTokens.PINK_ALPHA).toArgb(),
+                c.sunRim.copy(alpha = 0f).toArgb()),
+            floatArrayOf(0f, 0.5f, 1f), android.graphics.Shader.TileMode.CLAMP)
     }
 
     override fun draw(canvas: Canvas) {
         bar.draw(canvas)
+        if (!fx.highContrast && !bar.bounds.isEmpty) {
+            val b = bar.bounds
+            val inset = density / 2f
+            canvas.drawRoundRect(b.left + inset, b.top + inset, b.right - inset, b.bottom - inset, cornerRadius, cornerRadius, rim)
+        }
         if (wellCenter.isNaN() || wellWidth <= 0f) return
         val top = bar.bounds.top + 6f * density
         val bottom = bar.bounds.bottom - 6f * density
         if (bottom <= top) return
         well.bounds = Rect((wellCenter - wellWidth / 2f).toInt(), top.toInt(), (wellCenter + wellWidth / 2f).toInt(), bottom.toInt())
         well.draw(canvas)
+        // The active tab glows pink in its well, marked by a small gold dot.
         if (fx.glow) {
-            dot.color = c.brand.toArgb()
-            dot.setShadowLayer(4f * density, 0f, 0f, c.brand.toArgb())
+            val cy = (top + bottom) / 2f
+            val reach = wellWidth * 0.6f
+            activeGlow.shader = android.graphics.RadialGradient(wellCenter, cy, reach,
+                intArrayOf(c.brand.copy(alpha = ACTIVE_GLOW_ALPHA).toArgb(), c.brand.copy(alpha = 0f).toArgb()), null,
+                android.graphics.Shader.TileMode.CLAMP)
+            canvas.drawCircle(wellCenter, cy, reach, activeGlow)
+            dot.color = c.brandGold.toArgb()
+            dot.setShadowLayer(4f * density, 0f, 0f, c.brandGold.toArgb())
         } else {
-            dot.color = c.brand.toArgb()
+            dot.color = c.brandGold.toArgb()
             dot.clearShadowLayer()
         }
         canvas.drawCircle(wellCenter, bottom - 3.5f * density, 2.5f * density, dot)
+    }
+
+    private companion object {
+        const val ACTIVE_GLOW_ALPHA = 0.28f
     }
 
     override fun setAlpha(alpha: Int) = Unit
