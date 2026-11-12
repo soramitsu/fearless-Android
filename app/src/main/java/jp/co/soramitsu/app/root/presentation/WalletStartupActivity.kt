@@ -3,7 +3,6 @@ package jp.co.soramitsu.app.root.presentation
 import android.content.Context
 import android.content.Intent
 import android.os.Process
-import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -124,11 +123,10 @@ abstract class WalletGateActivity : AppCompatActivity() {
                 or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
             )
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // The launch art draws the crest where the system splash drew it, so the splash goes at once
-            // instead of fading out to ink and fading the art back in.
-            splashScreen.setOnExitAnimationListener { it.remove() }
-        }
+        // No splash exit listener: the system keeps its own splash window until it removes it. When the
+        // wallet host opens before that, the system hands this splash window to the host, which then stays
+        // covered by the crest on ink until its first frame. With a listener the splash content has already
+        // moved into this window, the handed-over window is empty and the screen goes black meanwhile.
         setContentView(R.layout.activity_wallet_startup)
 
         val restoredSequence = savedInstanceState

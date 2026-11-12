@@ -17,6 +17,12 @@ networking and chain logic are unchanged, and no library was added.
   skips to the zoom; a clip that cannot load or stalls for 1 s is dropped with a plain fade; animator scale 0 and touch
   exploration get no clip. The rules are in `common/.../launch/LaunchIgniteDirector.kt` and tested without a device. When
   the PIN page gives way to the wallet, the wallet lands (scale 1.06 to 1, 0.35 s).
+- **No black gap before the clip.** The startup gate no longer sets a splash exit listener. With it, the splash content
+  moved into the gate's window, and when the wallet host opened within ~150 ms of the gate's first frame (the usual case
+  with a wallet and a PIN) the system handed the gate's now empty splash window to the host, skipped the open
+  transition (`STARTING_WINDOW_TRANSFER`, "Non-visible anim so abort") and showed black for 0.2–0.8 s until the host's
+  first frame. Measured on API 36: base 5 of 6 cold launches black, now 0 of 10; the system's own splash exit (a short
+  fade of the crest into the launch art) is what remains.
 - **Sound and touch** (`common/.../feedback/`): the send and receive sounds (SoundPool, sonification usage, nothing in
   silent or vibrate ringer mode) and the kit's haptic patterns (VibrationEffect primitives where supported, else the
   waveform; touch usage on Android 13+). Final Send press: `commit`; network accepted the transfer: `send` and the solar
@@ -82,7 +88,7 @@ UI only: keys, signing, storage, networking and chain logic are unchanged, and n
   circle. The launch art and window background (`fw_splash_launch`) is the stacked lockup on ink at 280 dp, dropped so its
   crest sits where the system splash left it (radius 86.6 dp against 88 dp): the wordmark appears under a crest that
   does not move. The startup gate now removes the system splash at once on Android 12+ (the platform's
-  `SplashScreen.setOnExitAnimationListener`, no library); the default exit faded the crest out to ink and the art back in.
+  `SplashScreen.setOnExitAnimationListener`, no library); the default exit faded the crest out to ink and the art back in. (Removed again on 13 November 2026: the listener caused a black gap before the wallet host; see the Ignite entry.)
   A recorded cold launch on API 36 shows no black frame and no relaunch.
 - **Marks:** full pages (PIN, welcome, onboarding start, About) show the stacked lockup, about 56 % of the screen width
   and at most 280 dp; on PIN it is also capped by the height the keypad leaves. Round slots use the crest badge (the small
