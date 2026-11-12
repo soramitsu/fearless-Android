@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -37,9 +38,12 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.backgroundBlurColor
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
+import jp.co.soramitsu.common.compose.theme.fw.FwSolarIgnite
 import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+
+private val SOLAR_IGNITE_SIZE = 200.dp
 
 data class SuccessViewState(
     val title: String,
@@ -63,7 +67,8 @@ interface SuccessScreenInterface {
 @Composable
 fun SuccessContent(
     state: SuccessViewState,
-    callback: SuccessScreenInterface
+    callback: SuccessScreenInterface,
+    ignite: Boolean = false
 ) {
     BottomSheetScreen {
         Box(Modifier.fillMaxWidth()) {
@@ -88,12 +93,14 @@ fun SuccessContent(
                     )
                 }
                 MarginVertical(margin = 20.dp)
-                GradientIcon(
-                    iconRes = R.drawable.ic_fearless_logo,
-                    color = colorAccentDark,
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                )
+                Box(Modifier.align(Alignment.CenterHorizontally), contentAlignment = Alignment.Center) {
+                    // A sent transfer: the solar geometry draws itself round the mark (brand kit SPEC part 2).
+                    if (ignite) FwSolarIgnite(Modifier.size(SOLAR_IGNITE_SIZE).testTag("success_solar_ignite"))
+                    GradientIcon(
+                        iconRes = R.drawable.ic_fearless_logo,
+                        color = colorAccentDark
+                    )
+                }
                 MarginVertical(margin = 16.dp)
                 H2(
                     text = state.title,

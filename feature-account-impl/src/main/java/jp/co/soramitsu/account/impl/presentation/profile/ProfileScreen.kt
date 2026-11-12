@@ -1,8 +1,5 @@
 package jp.co.soramitsu.account.impl.presentation.profile
 
-import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
-import jp.co.soramitsu.common.compose.theme.fw.FwSurface
-import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -16,6 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.account.impl.presentation.backup_wallet.SettingsDivider
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
+import jp.co.soramitsu.common.compose.component.FeedbackSettingsItems
 import jp.co.soramitsu.common.compose.component.H1
 import jp.co.soramitsu.common.compose.component.H4
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -24,9 +22,12 @@ import jp.co.soramitsu.common.compose.component.SettingsItemAction
 import jp.co.soramitsu.common.compose.component.WalletItem
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
 import jp.co.soramitsu.common.compose.theme.white50
-import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.common.model.WalletEcosystem
+import jp.co.soramitsu.feature_account_impl.R
 
 data class ProfileScreenState(
     val walletState: WalletItemViewState,
@@ -175,6 +176,7 @@ fun ProfileScreen(
                 )
                 SettingsDivider()
             }
+            FeedbackSettingsItems(divider = { SettingsDivider() })
             if (state.walletState.onlyTonSupported.not()) {
                 SettingsItem(
                     icon = painterResource(R.drawable.ic_score_star_full_24_pink),

@@ -1,8 +1,5 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
-import kotlinx.coroutines.flow.firstOrNull
-import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
-import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin
 import android.net.Uri
 import android.util.Log
 import android.widget.LinearLayout
@@ -15,22 +12,25 @@ import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import co.jp.soramitsu.walletconnect.model.WalletConnectPairingExpiredException
 import co.jp.soramitsu.walletconnect.model.WalletConnectUriException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.UniversalWalletPasswordNotice
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
-import jp.co.soramitsu.account.api.domain.model.accountId
-import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
+import jp.co.soramitsu.account.api.domain.model.accountId
+import jp.co.soramitsu.account.api.domain.model.address
+import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
+import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
 import jp.co.soramitsu.account.api.presentation.account.CapturedPortfolioHeader
 import jp.co.soramitsu.account.api.presentation.account.capturedPortfolioHeaderFlow
 import jp.co.soramitsu.account.api.presentation.account.portfolioBalanceCaption
 import jp.co.soramitsu.account.api.presentation.account.presentTotalBalance
-import jp.co.soramitsu.account.api.domain.model.address
-import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
-import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
 import jp.co.soramitsu.androidfoundation.coroutine.CoroutineManager
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -51,30 +51,35 @@ import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 import jp.co.soramitsu.common.data.network.coingecko.FiatChooserEvent
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
+import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.data.storage.UpdateSecurityNoticeTracker
 import jp.co.soramitsu.common.domain.FiatCurrencies
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.domain.model.NetworkIssueType
-import jp.co.soramitsu.common.model.WalletEcosystem
-import jp.co.soramitsu.common.model.PriceTrust
+import jp.co.soramitsu.common.feedback.ArrivalDetector
+import jp.co.soramitsu.common.feedback.FeedbackCue
+import jp.co.soramitsu.common.feedback.TransferFeedback
+import jp.co.soramitsu.common.feedback.TransferMoments
+import jp.co.soramitsu.common.model.AssetMetadataDescriptorStore
 import jp.co.soramitsu.common.model.AssetMetadataTrust
 import jp.co.soramitsu.common.model.NetworkScanKey
-import jp.co.soramitsu.common.model.AssetMetadataDescriptorStore
-import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
+import jp.co.soramitsu.common.model.PriceTrust
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.combine
 import jp.co.soramitsu.common.utils.formatFiat
+import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.common.utils.greaterThanOrEquals
 import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.lessThan
 import jp.co.soramitsu.common.utils.orZero
-import jp.co.soramitsu.common.utils.formatting.shortenAddress
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.Ecosystem
+import jp.co.soramitsu.coredb.dao.emptyAccountIdValue
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.nft.data.pagination.PaginationRequest
 import jp.co.soramitsu.nft.domain.NFTInteractor
@@ -90,8 +95,9 @@ import jp.co.soramitsu.runtime.multiNetwork.tokengroups.PortfolioVisibility
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
 import jp.co.soramitsu.tonconnect.api.model.TonConnectException
-import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
+import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.balance.NetworkScanStateStore
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.QR_PREFIX_TON_CONNECT
@@ -102,6 +108,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.AssetWithStatus
 import jp.co.soramitsu.wallet.impl.presentation.AssetListHelper
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin
 import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.toChainItemState
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.AssetType
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.model.BalanceListItemModel
@@ -121,6 +128,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
@@ -130,6 +138,7 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -144,10 +153,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.inject.Inject
 
 private const val CURRENT_ICON_SIZE = 40
 
@@ -210,6 +215,52 @@ class BalanceListViewModel @Inject constructor(
 
     // Declared before init, which starts the notice observer.
     private val universalPasswordNoticeCheck = MutableStateFlow(0)
+
+    // Tokens arriving (brand kit SPEC part 2): token amounts compared with values already known for
+    // the same wallet and asset, only while the wallet is on screen. It reads the list the wallet
+    // already loads; it adds no request.
+    private val arrivalDetector = ArrivalDetector()
+    private val _arrivalPulse = MutableStateFlow(0)
+    val arrivalPulse: StateFlow<Int> = _arrivalPulse
+    private val _tokensArrived = MutableLiveData<Event<List<String>>>()
+    val tokensArrived: LiveData<Event<List<String>>> = _tokensArrived
+
+    @Volatile
+    private var screenVisible = false
+
+    fun onScreenVisibilityChanged(visible: Boolean) {
+        screenVisible = visible
+    }
+
+    private fun observeArrivals(walletId: Long, assets: List<AssetWithStatus>) {
+        val holdings = assets.map { (asset, _, _) ->
+            ArrivalDetector.Holding(
+                assetKey = PortfolioPresentationPreferences.assetKey(asset.token.configuration.chainId, asset.token.configuration.id),
+                amount = asset.total,
+                hidden = asset.enabled == false,
+                symbol = asset.token.configuration.symbol.uppercase()
+            )
+        }
+        val arrival = arrivalDetector.observe(walletId, holdings, System.nanoTime() / NANOS_PER_MILLI, screenVisible) ?: return
+        _arrivalPulse.update { it + 1 }
+        _tokensArrived.postValue(Event(arrival.symbols))
+    }
+
+    /**
+     * Debug builds only (a device walk without real funds): shows the arrival effect as a real
+     * arrival would, or opens the success screen as a submitted transfer would. Nothing is sent
+     * or received; no balance changes.
+     */
+    fun debugSimulateFeedback(sent: Boolean) {
+        if (sent) {
+            TransferMoments.markSent(System.nanoTime() / NANOS_PER_MILLI)
+            TransferFeedback.cue(FeedbackCue.Sent)
+            router.openOperationSuccess(null, null)
+        } else {
+            _arrivalPulse.update { it + 1 }
+            _tokensArrived.postValue(Event(listOf("TEST")))
+        }
+    }
 
     private val _openPlayMarket = MutableLiveData<Event<Unit>>()
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
@@ -289,6 +340,8 @@ class BalanceListViewModel @Inject constructor(
         if (currentMetaAccount.id != walletId) {
             return@combine AssetsLoadingState.Loading()
         }
+
+        observeArrivals(walletId, assets)
 
         // The first list of a wallet in this version holds exactly what earlier versions left hidden.
         portfolioPreferences.rememberLegacyHiddenAssets(walletId) {
@@ -1453,3 +1506,5 @@ private object NoBuyProviders : BuyMixin.Presentation {
     override suspend fun buyClicked(chainId: jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId, chainAssetId: String, accountAddress: String) = Unit
     override suspend fun isBuyEnabled(chainId: jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId, chainAssetId: String) = false
 }
+
+private const val NANOS_PER_MILLI = 1_000_000L

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sound and touch for transfers (brand kit SPEC "Launch, feel and sound", part 2). -->
+<resources>
+    <string name="fw_feedback_sound_effects">Звуковые эффекты</string>
+    <string name="fw_feedback_haptic_feedback">Тактильный отклик</string>
+    <string name="fw_feedback_tokens_received">Получены токены: %1$s</string>
+</resources>

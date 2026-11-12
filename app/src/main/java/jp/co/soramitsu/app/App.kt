@@ -5,16 +5,17 @@ import android.content.Context
 import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatDelegate
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 import jp.co.soramitsu.app.root.domain.SharedExportCleanup
 import jp.co.soramitsu.app.root.domain.SoraCardLeftoverCleanup
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.OptionsProvider
 import jp.co.soramitsu.common.data.network.config.MutationAuthorizationRefresher
+import jp.co.soramitsu.common.feedback.TransferFeedback
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.utils.initializeTonAddressCode
 import jp.co.soramitsu.walletconnect.impl.data.WalletConnectStarter
-import javax.inject.Inject
 
 /**
  * Application entry point.
@@ -54,6 +55,8 @@ open class App : Application() {
         // Set before any Activity exists. Set later, AppCompat restarts the first Activity to apply it, which
         // blanks the screen between the launch splash and the wallet on every start.
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        // Sound and touch for transfers; nothing is loaded until a screen asks for it.
+        TransferFeedback.install(this)
 
         initializeTonAddressCode()
 
