@@ -70,6 +70,12 @@ object LaunchHandOff {
      */
     const val HOLD_LIMIT_MS = 6000L
 
+    /**
+     * A dropped clip leaves the launch art over the host until its first screen is ready; after this
+     * long it goes anyway, so a host that never reaches a screen cannot stay covered.
+     */
+    const val COVER_LIMIT_MS = 10_000L
+
     /** The wallet appearing after a later unlock: from this scale, fading in. */
     const val LANDING_FROM_SCALE = 1.06f
     const val LANDING_MS = 350L

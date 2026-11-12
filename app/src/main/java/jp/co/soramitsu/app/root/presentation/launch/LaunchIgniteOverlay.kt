@@ -2,11 +2,13 @@ package jp.co.soramitsu.app.root.presentation.launch
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.os.SystemClock
+import android.util.Log
 import android.view.Choreographer
 import android.view.Surface
 import android.view.TextureView
@@ -15,6 +17,7 @@ import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import androidx.core.content.ContextCompat
+import java.io.File
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.common.launch.LaunchHandOff
 import jp.co.soramitsu.common.launch.LaunchIgniteDirector
@@ -41,7 +44,9 @@ internal class LaunchIgniteOverlay(
     private val onFinished: () -> Unit
 ) : FrameLayout(context), TextureView.SurfaceTextureListener, Choreographer.FrameCallback {
 
-    private val director = LaunchIgniteDirector(timeline, SystemClock.uptimeMillis())
+    private val createdAtMs = SystemClock.uptimeMillis()
+    private val director = LaunchIgniteDirector(timeline, createdAtMs)
+    private val debuggable = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
     private val focusX = timeline.focusX
     private val focusY = timeline.focusY
     private val video = TextureView(context)
@@ -63,13 +68,14 @@ internal class LaunchIgniteOverlay(
         addView(art, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
         video.surfaceTextureListener = this
         // A tap anywhere skips to the zoom. While the overlay leaves, touches pass to the screen beneath.
-        setOnClickListener { run(director.onTap()) }
+        setOnClickListener { run(director.onTap(SystemClock.uptimeMillis(), isReady())) }
         // The screen underneath waits, invisible, to be revealed by the zoom.
         content.alpha = 0f
     }
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+        log("attached")
         postFrame()
     }
 
@@ -81,7 +87,7 @@ internal class LaunchIgniteOverlay(
     override fun onWindowVisibilityChanged(visibility: Int) {
         super.onWindowVisibilityChanged(visibility)
         // Sent to the background mid-clip: drop it, so a return finds the screen, not a frozen crow.
-        if (visibility == GONE && !finished) run(director.onFailure())
+        if (visibility == GONE && !finished) run(director.onFailure(LaunchIgniteDirector.DropReason.Background, SystemClock.uptimeMillis()))
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
@@ -105,6 +111,12 @@ internal class LaunchIgniteOverlay(
 
     override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
         if (finished || player != null) return
+        // Debug builds only: a walk can make the clip "not start" to see the fallback
+        // (`run-as <package> touch cache/fw_launch_skip_clip`).
+        if (debuggable && File(context.cacheDir, DEBUG_SKIP_CLIP).exists()) {
+            log("debug: clip load skipped")
+            return
+        }
         val created = Surface(texture)
         surface = created
         player = runCatching {
@@ -122,31 +134,30 @@ internal class LaunchIgniteOverlay(
                     prepared = true
                     run(director.onPrepared(SystemClock.uptimeMillis()))
                 }
-                setOnErrorListener { _, _, _ ->
-                    run(director.onFailure())
+                setOnErrorListener { _, what, extra ->
+                    log("player error $what/$extra")
+                    run(director.onFailure(LaunchIgniteDirector.DropReason.PlayerError, SystemClock.uptimeMillis()))
                     true
-                }
-                // The launch art gives way only once the clip's first frame is on screen, so a slow
-                // decoder never shows a dimmed mark over plain ink.
-                setOnInfoListener { _, what, _ ->
-                    if (what == MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START) revealClip()
-                    false
                 }
                 director.onLoadStarted(SystemClock.uptimeMillis())
                 prepareAsync()
             }
         }.getOrNull()
-        if (player == null) run(director.onFailure())
+        if (player == null) run(director.onFailure(LaunchIgniteDirector.DropReason.PlayerError, SystemClock.uptimeMillis()))
     }
 
     override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) = applyCrop()
 
     override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
-        if (!finished) run(director.onFailure())
+        if (!finished) run(director.onFailure(LaunchIgniteDirector.DropReason.SurfaceLost, SystemClock.uptimeMillis()))
         return true
     }
 
-    override fun onSurfaceTextureUpdated(texture: SurfaceTexture) = Unit
+    // A frame of the clip has reached the view: only now may the launch art give way (the player's
+    // own "rendering started" comes before the frame shows when the device is busy).
+    override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {
+        if (!finished) run(director.onClipFrame(SystemClock.uptimeMillis()))
+    }
 
     private fun applyCrop() {
         if (clipWidth <= 0f || clipHeight <= 0f || width == 0 || height == 0) return
@@ -167,6 +178,8 @@ internal class LaunchIgniteOverlay(
                 LaunchIgniteDirector.Command.Play -> play()
                 LaunchIgniteDirector.Command.Pause -> runCatching { player?.pause() }
                 LaunchIgniteDirector.Command.Arrive -> postDelayed({ onArrive() }, ARRIVE_AFTER_HAND_OFF_MS)
+                LaunchIgniteDirector.Command.RevealClip -> revealClip()
+                is LaunchIgniteDirector.Command.Cover -> cover(command.reason)
                 is LaunchIgniteDirector.Command.HandOff -> handOff(command)
             }
         }
@@ -174,9 +187,22 @@ internal class LaunchIgniteOverlay(
 
     private fun play() {
         if (runCatching { player?.start() }.isFailure) {
-            run(director.onFailure())
-            return
+            run(director.onFailure(LaunchIgniteDirector.DropReason.PlayerError, SystemClock.uptimeMillis()))
         }
+    }
+
+    /** The clip is dropped: the launch art covers again, and stays until the screen underneath is ready. */
+    private fun cover(reason: LaunchIgniteDirector.DropReason) {
+        log("clip dropped ($reason) after ${sinceAttach()} ms; launch art stays until the screen is ready")
+        runCatching { player?.pause() }
+        art.animate().cancel()
+        art.animate().alpha(1f).setDuration(ART_COVER_MS).start()
+    }
+
+    private fun sinceAttach(): Long = SystemClock.uptimeMillis() - createdAtMs
+
+    private fun log(message: String) {
+        if (debuggable) Log.i(TAG, message)
     }
 
     private var clipRevealed = false
@@ -185,10 +211,12 @@ internal class LaunchIgniteOverlay(
     private fun revealClip() {
         if (clipRevealed || finished) return
         clipRevealed = true
+        log("clip first frame after ${director.firstFrameAfterMs ?: sinceAttach()} ms")
         art.animate().alpha(0f).setDuration(ART_CROSSFADE_MS).start()
     }
 
     private fun handOff(command: LaunchIgniteDirector.Command.HandOff) {
+        log(if (command.contentMs > 0L) "dive into the screen after ${sinceAttach()} ms" else "launch art fades to the ready screen after ${sinceAttach()} ms")
         isClickable = false
         setOnClickListener(null)
         isClickable = false
@@ -250,6 +278,9 @@ internal class LaunchIgniteOverlay(
         /** The `launchArrive` haptic lands at 2.6 s, 50 ms after the hand-off starts at 2.55 s. */
         const val ARRIVE_AFTER_HAND_OFF_MS = (LaunchHandOff.HAPTIC_AT_MS - LaunchHandOff.STARTS_AT_MS).toLong()
         const val ART_CROSSFADE_MS = 300L
+        const val ART_COVER_MS = 150L
+        const val TAG = "FwLaunch"
+        const val DEBUG_SKIP_CLIP = "fw_launch_skip_clip"
         const val DECELERATION = 1.6f
     }
 }
