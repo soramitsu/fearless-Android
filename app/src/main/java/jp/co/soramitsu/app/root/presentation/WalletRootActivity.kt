@@ -33,6 +33,7 @@ import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.InitializationStep
 import jp.co.soramitsu.app.root.domain.WalletStartupSession
 import jp.co.soramitsu.app.root.navigation.Navigator
+import jp.co.soramitsu.app.root.presentation.launch.LaunchIgniteHost
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseActivity
@@ -133,6 +134,13 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
 
         navigator.attach(navController, this)
         navigatorAttached = true
+
+        // The cold-start Ignite clip and the unlock landing only cover and reveal what the host shows.
+        val mainView = findViewById<View>(R.id.mainView)
+        (supportFragmentManager.findFragmentById(R.id.navHost) as? NavHostFragment)?.childFragmentManager
+            ?.let(LaunchIgniteHost::reportScreens)
+        LaunchIgniteHost.landAfterUnlock(navController, mainView)
+        LaunchIgniteHost.attachIfColdStart(this, mainView)
 
         rootNetworkBar.setOnApplyWindowInsetsListener { view, insets ->
             view.updatePadding(

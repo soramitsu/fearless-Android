@@ -16,6 +16,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.os.bundleOf
@@ -23,8 +24,10 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.common.launch.LaunchLanding
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.backup.GoogleSignInResult
 import jp.co.soramitsu.common.base.BaseComposeFragment
@@ -103,6 +106,12 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
     ) {
         val isGoogleAvailable = context?.canOpenHttpsLinks() == true
         val navController = rememberNavController()
+        // The launch clip waits on its hold frame until a first page a person can act on is shown here.
+        val currentEntry by navController.currentBackStackEntryAsState()
+        LaunchedEffect(currentEntry?.destination?.route) {
+            val route = currentEntry?.destination?.route ?: return@LaunchedEffect
+            if (route != WelcomeEvent.Onboarding.SplashScreen.route) LaunchLanding.screenReady()
+        }
 
         LaunchedEffect(Unit) {
             viewModel.events
