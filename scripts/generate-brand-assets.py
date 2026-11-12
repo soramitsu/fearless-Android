@@ -28,9 +28,10 @@ SVG = "http://www.w3.org/2000/svg"
 ET.register_namespace("android", ANDROID)
 ET.register_namespace("aapt", AAPT)
 
-# SHA-256 of the kit's manifest.json (fearless-yatagarasu-brand-kit, design package r3, regenerated 2026-11-10 12:16;
-# against the first r3 kit 4575466317…5028 only audio/caw.m4a changed: afconvert timestamps, identical decoded audio).
-KIT_MANIFEST_SHA256 = "70771ec29c8607b1964a966066affb15bb02a2032973227d7f7d2ae3c80c048b"
+# SHA-256 of the kit's manifest.json (fearless-yatagarasu-brand-kit, design package r3, kit v3 of 2026-11-13: the launch
+# clip, the transfer sounds, the haptic patterns, the solar geometry and the sky card were added; every file of kit v2
+# 70771ec2…048b is byte-identical in it).
+KIT_MANIFEST_SHA256 = "e49da29bbf91dc96d2afe3772b5ec50acc23bc28ff4af500aff0ff7f631ddb84"
 # Every kit file the app consumes, at its kit path; the in-repo copy keeps the same path under COPY.
 PINS = {
     "masters/fearless-crest.svg": "0dddb03fc97971d0c9226e6ed052565dfe52e75681b1df99f5b3c356f75bede5",
@@ -57,6 +58,14 @@ PINS = {
     "hero/welcome-poster.webp": "d15dc23aabf7972e807816d80fe9419eb3e3a8e46db4541656d3bc201f7a3eed",
     "audio/caw.m4a": "5094385060c15d02a391fc082b255d78a966434b7a22e1aa6151e21d79371fc6",
     "tokens/colors.json": "defdad74f63dec6421a9a5d8d3ef4042d6292eb51ebb044bf725cb18528cf4e9",
+    # Kit v3 (2026-11-13): launch, feel and sound.
+    "hero/launch-ignite.mp4": "feae6a992e9385c89f6ca84e96e0cd3381e9ec16075974147b2f23424ad53fea",
+    "hero/launch-timeline.json": "310a7a84148ede4bfcaeca479f5e46522d9e591299687cae3c2055ba101b2f4d",
+    "audio/send.m4a": "f1fb4969c2e4bdd8eeb93352ae10d6e39c884b297e44ffb7122c7f5ed4b8e8be",
+    "audio/receive.m4a": "ac85389cbf68db5a1c4e75ae685c6b26e7dfefc132e38eb17215189924678811",
+    "tokens/haptics.json": "4e0a0189294975f09b749115a6132d31408bf0f01f2a3cd80d21a2b55b05b426",
+    "tokens/solar-geometry.json": "0e544952f4cd25efc4483a3ef0e8b43c3e570aa7fb98b69ecee725c9aaa29648",
+    "png/sky/sky-card.webp": "4e8418b6c898579cdd2e105ec12caf6c20f7e71b6c4c328937a7139992323474",
 }
 COPY = "brand/yatagarasu"
 # Brand colours this app takes from the kit's tokens/colors.json (design/fw.tokens.json carries them).
@@ -259,13 +268,23 @@ COPIES += [
     ("hero/welcome-caw.mp4", ONBOARDING + "raw/fw_welcome_caw.mp4"),
     ("audio/caw.m4a", ONBOARDING + "raw/fw_welcome_caw_sound.m4a"),
     ("hero/welcome-poster.webp", ONBOARDING + "drawable-nodpi/fw_welcome_poster.webp"),
+    # Launch: the Ignite clip (no audio track) and its times, played over the wallet host's first screen.
+    ("hero/launch-ignite.mp4", "app/src/main/res/raw/fw_launch_ignite.mp4"),
+    ("hero/launch-timeline.json", "app/src/main/res/raw/fw_launch_timeline.json"),
+    # Transfers: the two sounds, the haptic patterns timed to them, the solar geometry drawn on success.
+    ("audio/send.m4a", "common/src/main/res/raw/fw_send.m4a"),
+    ("audio/receive.m4a", "common/src/main/res/raw/fw_receive.m4a"),
+    ("tokens/haptics.json", "common/src/main/res/raw/fw_haptics.json"),
+    ("tokens/solar-geometry.json", "common/src/main/res/raw/fw_solar_geometry.json"),
+    # Wallet home: the sunset sky behind the balance.
+    ("png/sky/sky-card.webp", "common/src/main/res/drawable-nodpi/fw_sky_card.webp"),
 ]
 
 
 def refresh_from_kit(root, kit):
     manifest_bytes = (kit / "manifest.json").read_bytes()
     if sha256(manifest_bytes) != KIT_MANIFEST_SHA256:
-        raise ValueError("The kit's manifest.json is not the pinned r3 kit")
+        raise ValueError("The kit's manifest.json is not the pinned kit (v3)")
     listed = {entry["path"]: entry["sha256"] for entry in json.loads(manifest_bytes)["files"]}
     for name, digest in PINS.items():
         if listed.get(name) != digest:
@@ -317,7 +336,7 @@ def main():
         write(destination, sources[name])
     manifest = {
         "format": "fearless.android.brand-assets",
-        "version": 2,
+        "version": 3,
         "kit": "fearless-yatagarasu-brand-kit",
         "kitManifestSha256": KIT_MANIFEST_SHA256,
         "inputs": PINS,

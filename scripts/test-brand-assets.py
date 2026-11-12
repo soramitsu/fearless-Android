@@ -18,8 +18,9 @@ SPEC.loader.exec_module(GENERATOR)
 ANDROID = "{http://schemas.android.com/apk/res/android}"
 SVG = "{http://www.w3.org/2000/svg}"
 KIT = ROOT / "brand/yatagarasu"
-# The approved kit (design package r3, 2026-11-10, regenerated 12:16): its manifest.json, as the brand session records it.
-APPROVED_KIT_MANIFEST = "70771ec29c8607b1964a966066affb15bb02a2032973227d7f7d2ae3c80c048b"
+# The approved kit (design package r3), kit v3 of 2026-11-13: its manifest.json. Kit v3 adds the launch clip, the transfer
+# sounds, the haptic patterns, the solar geometry and the sky card; every file of kit v2 (70771ec2…048b) is unchanged.
+APPROVED_KIT_MANIFEST = "e49da29bbf91dc96d2afe3772b5ec50acc23bc28ff4af500aff0ff7f631ddb84"
 RETIRED = [
     "brand/sun-disc",
     "common/src/main/res/drawable/fw_brand_wings.xml",
@@ -95,7 +96,7 @@ class BrandAssetsTests(unittest.TestCase):
 
     def test_committed_outputs_are_what_the_generator_writes(self):
         outputs = json.loads((KIT / "android-assets.json").read_text())["outputs"]
-        self.assertEqual(54, len(outputs))
+        self.assertEqual(61, len(outputs))
         for relative, digest in outputs.items():
             self.assertEqual(digest, sha256(ROOT / relative), relative)
         for name, destination, (width, height), recolour, viewport_width in GENERATOR.VECTORS:
