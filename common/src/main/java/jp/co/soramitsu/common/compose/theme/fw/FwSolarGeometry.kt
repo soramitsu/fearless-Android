@@ -27,6 +27,7 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sin
+import kotlinx.coroutines.delay
 
 /**
  * The solar geometry behind the crow (brand kit `tokens/solar-geometry.json`): rings, hexagram and
@@ -236,7 +237,7 @@ object FwSolarIgniteTiming {
  * accessibility. Under reduced motion it shows the finished figure at once. [key] restarts it.
  */
 @Composable
-fun FwSolarIgnite(modifier: Modifier = Modifier, key: Any? = Unit, radiusFraction: Float = 0.46f) {
+fun FwSolarIgnite(modifier: Modifier = Modifier, key: Any? = Unit, radiusFraction: Float = 0.46f, startDelayMillis: Long = 0L) {
     val context = LocalContext.current
     val geometry = remember(context) { FwSolarGeometry.load(context) } ?: return
     val still = !fwMotion.moves(FwMotionKind.TxSuccess)
@@ -244,6 +245,7 @@ fun FwSolarIgnite(modifier: Modifier = Modifier, key: Any? = Unit, radiusFractio
     val strength = remember(key) { Animatable(if (still) FwSolarIgniteTiming.SETTLED_ALPHA else 1f) }
     LaunchedEffect(key, still) {
         if (still) return@LaunchedEffect
+        delay(startDelayMillis)
         progress.animateTo(1f, tween(FwSolarIgniteTiming.DRAW_MS, easing = LinearEasing))
         strength.animateTo(FwSolarIgniteTiming.SETTLED_ALPHA, tween(FwSolarIgniteTiming.SETTLE_MS))
     }

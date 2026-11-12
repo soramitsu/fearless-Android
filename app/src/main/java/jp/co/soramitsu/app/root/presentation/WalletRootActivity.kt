@@ -141,6 +141,7 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
             ?.let(LaunchIgniteHost::reportScreens)
         LaunchIgniteHost.landAfterUnlock(navController, mainView)
         LaunchIgniteHost.attachIfColdStart(this, mainView)
+        window.setBackgroundDrawableResource(jp.co.soramitsu.common.R.color.fw_bg_base)
 
         rootNetworkBar.setOnApplyWindowInsetsListener { view, insets ->
             view.updatePadding(

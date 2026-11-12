@@ -45,6 +45,9 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
 private val SOLAR_IGNITE_SIZE = 200.dp
 
+/** The ignite waits for the sheet to rise, so it is seen drawing. */
+private const val SHEET_RISE_MS = 300L
+
 data class SuccessViewState(
     val title: String,
     val message: String,
@@ -95,7 +98,7 @@ fun SuccessContent(
                 MarginVertical(margin = 20.dp)
                 Box(Modifier.align(Alignment.CenterHorizontally), contentAlignment = Alignment.Center) {
                     // A sent transfer: the solar geometry draws itself round the mark (brand kit SPEC part 2).
-                    if (ignite) FwSolarIgnite(Modifier.size(SOLAR_IGNITE_SIZE).testTag("success_solar_ignite"))
+                    if (ignite) FwSolarIgnite(Modifier.size(SOLAR_IGNITE_SIZE).testTag("success_solar_ignite"), startDelayMillis = SHEET_RISE_MS)
                     GradientIcon(
                         iconRes = R.drawable.ic_fearless_logo,
                         color = colorAccentDark

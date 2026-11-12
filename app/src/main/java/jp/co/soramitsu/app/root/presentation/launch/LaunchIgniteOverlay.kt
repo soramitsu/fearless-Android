@@ -49,7 +49,6 @@ internal class LaunchIgniteOverlay(
     private var player: MediaPlayer? = null
     private var surface: Surface? = null
     private var prepared = false
-    private var startedOnce = false
     private var clipWidth = 0f
     private var clipHeight = 0f
     private var focusPx = floatArrayOf(0f, 0f)
@@ -127,6 +126,12 @@ internal class LaunchIgniteOverlay(
                     run(director.onFailure())
                     true
                 }
+                // The launch art gives way only once the clip's first frame is on screen, so a slow
+                // decoder never shows a dimmed mark over plain ink.
+                setOnInfoListener { _, what, _ ->
+                    if (what == MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START) revealClip()
+                    false
+                }
                 director.onLoadStarted(SystemClock.uptimeMillis())
                 prepareAsync()
             }
@@ -172,11 +177,15 @@ internal class LaunchIgniteOverlay(
             run(director.onFailure())
             return
         }
-        if (!startedOnce) {
-            startedOnce = true
-            // The launch art gives way to the clip, whose first frames rise out of the same ink.
-            art.animate().alpha(0f).setDuration(ART_CROSSFADE_MS).start()
-        }
+    }
+
+    private var clipRevealed = false
+
+    /** The launch art gives way to the clip, whose first frames rise out of the same ink. */
+    private fun revealClip() {
+        if (clipRevealed || finished) return
+        clipRevealed = true
+        art.animate().alpha(0f).setDuration(ART_CROSSFADE_MS).start()
     }
 
     private fun handOff(command: LaunchIgniteDirector.Command.HandOff) {

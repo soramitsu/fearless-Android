@@ -137,7 +137,7 @@ fun SunlitWalletHero(
                 .testTag("wallet_hero"),
             shape = FwShape.Hero,
             sunRim = 0.45f,
-            litRimStrength = { 1f + pulse.value * 0.8f }
+            litRimStrength = { 1f + pulse.value * 1.5f }
         ) {
             Box(
                 Modifier

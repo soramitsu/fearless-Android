@@ -127,24 +127,29 @@ fun Modifier.fwSkyHero(
             dstOffset = IntOffset(place[0].toInt(), place[1].toInt()),
             dstSize = IntSize(place[2].toInt(), place[3].toInt())
         )
-        val stops = fwSkyScrimStops(size.height, center.y, textStart)
-        drawRect(Brush.verticalGradient(*stops.map { (at, alpha) -> at to c.brandInk.copy(alpha = alpha) }.toTypedArray()))
     }
+    // Under the scrim: the figure glows round the badge and fades out before the text starts.
     if (geometry != null) {
         val radius = badgeRadius * GEOMETRY_TO_BADGE
-        drawFwSolarGeometry(geometry, center, radius, progress = 1f, alpha = 0.9f, tickTurn = tickTurn.value) { group ->
+        drawFwSolarGeometry(geometry, center, radius, progress = 1f, alpha = 1f, tickTurn = tickTurn.value) { group ->
             when (group) {
-                "ring" -> 0.85f
-                "hexagram" -> 0.32f
-                else -> 0.18f
+                "ring" -> 0.95f
+                "hexagram" -> 0.45f
+                else -> 0.22f
             }
         }
     }
     val p = pulse.value
     if (p > 0f) {
-        val reach = badgeRadius * (1.2f + 1.6f * p)
-        drawCircle(Brush.radialGradient(listOf(c.brandGold.copy(alpha = 0.55f * (1f - p * 0.6f)), c.brandGold.copy(alpha = 0f)), center, reach), reach, center)
+        // Tokens arrived: a gold glow swells from the badge and a ring of light runs outwards. Under the
+        // scrim too, so it lights the sky round the badge and never washes over the text.
+        val fade = 1f - p
+        val reach = badgeRadius * (1.1f + 2.2f * p)
+        drawCircle(Brush.radialGradient(listOf(c.brandGold.copy(alpha = 0.85f * fade), c.brandGold.copy(alpha = 0f)), center, reach), reach, center)
+        drawCircle(c.brandGold.copy(alpha = fade), badgeRadius * (1.05f + 1.6f * p), center, style = Stroke(width = badgeRadius * 0.1f * fade + 1f))
     }
+    val stops = fwSkyScrimStops(size.height, center.y, textStart)
+    drawRect(Brush.verticalGradient(*stops.map { (at, alpha) -> at to c.brandInk.copy(alpha = alpha) }.toTypedArray()))
 }
 
 /** The solar figure's outer ring around the badge, as a multiple of the badge's radius. */
@@ -175,7 +180,8 @@ fun rememberFwTickTurn(geometry: FwSolarGeometry?): State<Float> {
     return turn
 }
 
-private const val TICK_STEP_MS = 100L
+/** The slow movements (tick ring, aurora) step five times a second: a fraction of a degree, never a visible jump. */
+private const val TICK_STEP_MS = 200L
 
 /** The gold arrival pulse: rises and fades once each time [trigger] changes (not for its first value). */
 @Composable
