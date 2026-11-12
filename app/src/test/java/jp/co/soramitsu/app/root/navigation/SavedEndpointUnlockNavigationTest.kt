@@ -202,7 +202,7 @@ class SavedEndpointUnlockNavigationTest {
     @Test fun detachedOrRestoredNavigatorCannotApproveTheOldRequest() {
         assertTrue(navigator.requestSavedEndpointUnlock(owner, "request-a"))
         val delayed = checkNotNull(action().delayedNavigation)
-        navigator.detach(); navigator.attach(root, host)
+        navigator.detach(host); navigator.attach(root, host)
         navigator.openAfterPinCode(delayed)
         Navigator(access).apply { attach(root, host) }.openAfterPinCode(delayed)
         verify(access).revokeAll()
