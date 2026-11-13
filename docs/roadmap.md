@@ -2,6 +2,18 @@
 
 # Roadmap & Technical Debt
 
+## Automatic balances: open items — 13 November 2026
+
+Described in `docs/status.md`. Not done:
+
+- **A first deposit on a network outside background sync appears at the next sweep, not live.** A network joins
+  background sync once it holds funds, but the first deposit there is found by the daily sweep or a pull-to-refresh,
+  which read one network at a time (24 per batch, up to 45 s each). Reading the catalog in parallel or more often costs
+  data and battery; not changed.
+- **Two on-demand reads still connect a network without the lease** and leave it connected until the process ends:
+  the cross-chain balance reader (`ReviewedBridgeBalanceReader`; cross-chain transfers are compiled off in releases)
+  and "retry" on a network issue (`WalletInteractorImpl.retryChainSync`), which the user starts for a network they see.
+
 ## Yatagarasu brand: open items — 10 November 2026
 
 Described in `docs/status.md`. Not yet done:

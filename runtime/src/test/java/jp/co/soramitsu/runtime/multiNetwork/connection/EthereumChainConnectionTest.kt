@@ -6,14 +6,21 @@ import java.io.Closeable
 import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
+import java.util.concurrent.atomic.AtomicInteger
+import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import kotlin.concurrent.thread
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class EthereumChainConnectionTest {
@@ -46,6 +53,66 @@ class EthereumChainConnectionTest {
         val connection = connectionTo("http://127.0.0.1:1/")
 
         assertNull(withTimeoutOrNull(NO_NODE_LIMIT_MILLIS) { connection.awaitWeb3j() })
+    }
+
+    @Test
+    fun `a closed connection makes no further node attempts`() = runBlocking {
+        RefusingNode().use { node ->
+            val connection = connectionTo(node.url)
+            // The first attempt has failed; without close() the next starts about a second later.
+            withTimeout(TEST_LIMIT_MILLIS) { connection.statusFlow.first { it is EvmConnectionStatus.Error } }
+
+            connection.close()
+            val attemptsAtClose = node.accepted.get()
+            delay(AFTER_CLOSE_MILLIS)
+
+            assertTrue(connection.isClosed)
+            assertEquals(attemptsAtClose, node.accepted.get())
+            assertSame(EvmConnectionStatus.ClosedByApp, connection.statusFlow.value)
+        }
+    }
+
+    @Test
+    fun `stopping a chain closes its connection and the next setup builds a new one`() = runBlocking {
+        RefusingNode().use { node ->
+            val pool = EthereumConnectionPool(mockk<NetworkStateService>(relaxed = true))
+            val chain = evmChain(node.url)
+
+            val first = pool.setupConnection(chain) { _, _ -> }
+            assertSame(first, pool.setupConnection(chain) { _, _ -> })
+            pool.stop(chain.id)
+
+            assertNull(pool.getOrNull(chain.id))
+            assertTrue(first.isClosed)
+            val second = pool.setupConnection(chain) { _, _ -> }
+            assertNotSame(first, second)
+            pool.stop(chain.id)
+            assertTrue(second.isClosed)
+        }
+    }
+
+    private fun evmChain(url: String) = mockk<Chain> {
+        every { id } returns "evm-network"
+        every { name } returns "EVM network"
+        every { isEthereumChain } returns true
+        every { nodes } returns listOf(ChainNode(url = url, name = "node", isActive = true, isDefault = true))
+    }
+
+    /** Accepts and drops every connection, so each node attempt fails and is counted. */
+    private class RefusingNode : Closeable {
+        private val socket = ServerSocket(0, 8, InetAddress.getLoopbackAddress())
+        val url = "http://127.0.0.1:${socket.localPort}/"
+        val accepted = AtomicInteger()
+
+        init {
+            thread(isDaemon = true) {
+                while (!socket.isClosed) {
+                    runCatching { socket.accept().use { accepted.incrementAndGet() } }
+                }
+            }
+        }
+
+        override fun close() = socket.close()
     }
 
     /** Answers every HTTP request with one JSON-RPC result, as a node answers eth_blockNumber. */
@@ -84,5 +151,6 @@ class EthereumChainConnectionTest {
     private companion object {
         const val TEST_LIMIT_MILLIS = 30_000L
         const val NO_NODE_LIMIT_MILLIS = 2_500L
+        const val AFTER_CLOSE_MILLIS = 3_000L
     }
 }

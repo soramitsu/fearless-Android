@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withTimeoutOrNull
-import java.math.BigInteger
 
 class EquilibriumBalanceLoader(
     chain: Chain,
@@ -126,38 +125,23 @@ class EquilibriumBalanceLoader(
         chain: Chain,
         runtime: RuntimeSnapshot?
     ): List<AssetBalanceUpdateItem> {
-        val emptyAssets: MutableList<AssetBalanceUpdateItem> = mutableListOf()
+        // Without a runtime no storage key can be built and nothing was read. Emit no update then,
+        // like the Substrate loader: the cache keeps the last known balances instead of "-1".
+        runtime ?: return emptyList()
 
         val allAccountsStorageKeys = accountInfo.mapNotNull { (metaId, accountId) ->
             accountId ?: return@mapNotNull null
             buildEquilibriumStorageKeys(chain, runtime, metaId, accountId)
         }.associateBy { it.key }
 
-        val keysToQuery =
-            allAccountsStorageKeys.mapNotNull { (storageKey, metadata) ->
-                // if storage key build is failed - we put the empty assets
-                if (storageKey == null) {
-                    // filling all the equilibrium assets
-                    val empty = chain.assets.map {
-                        AssetBalanceUpdateItem(
-                            accountId = metadata.accountId,
-                            id = it.id,
-                            chainId = it.chainId,
-                            metaId = metadata.metaAccountId,
-                            freeInPlanks = BigInteger.valueOf(-1)
-                        )
-                    }
-                    emptyAssets.addAll(empty)
-                }
-                storageKey
-            }.toList()
+        val keysToQuery = allAccountsStorageKeys.keys.filterNotNull()
 
         val storageKeyToResult = remoteStorageSource.queryKeys(keysToQuery, chain.id, null)
 
         return storageKeyToResult.mapNotNull { (storageKey, hexRaw) ->
             val metadata = allAccountsStorageKeys[storageKey] ?: return@mapNotNull null
 
-            val balanceData = runtime?.let { bindEquilibriumAccountData(hexRaw, it) }
+            val balanceData = bindEquilibriumAccountData(hexRaw, runtime)
             val equilibriumAssetsBalanceMap = balanceData?.data?.balances.orEmpty()
 
             chain.assets.map { asset ->
@@ -175,7 +159,7 @@ class EquilibriumBalanceLoader(
                     freeInPlanks = balance
                 )
             }
-        }.flatten() + emptyAssets
+        }.flatten()
     }
 
 

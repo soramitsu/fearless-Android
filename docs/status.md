@@ -2,6 +2,63 @@
 
 # Status Summary
 
+## Holdings on every network, bounded connections — 13 November 2026
+
+The owner asked on 13 November 2026 for token balances that load faster and stay clear and accurate, with no assets to
+manage or add by hand. Checked first on this line (a debug build of `2699b0300` on an emulator, with the public dev
+phrase): a new wallet already reads every network once, and a funded row keeps its network in background sync whatever
+its preference. The wallet's DOT on Hydration, an unranked network, was listed 83 s after import with nothing enabled
+(row preference Auto). What did not hold, now fixed:
+
+- **Discovery could disconnect a network background sync had just taken over.** The sweep decided ownership from
+  `syncedChains`, which the registry publishes only after a whole setup batch. When the sweep stored a funded balance on
+  a network outside background sync, the registry selected that network while the sweep still held its read connection,
+  and the sweep's clean-up could then remove it: the network stayed "synced" without a connection, its balance stopped
+  updating until the app restarted, and the next sweep waited 45 s on it and timed out. The registry now makes every
+  disconnect decision (`ChainRegistry.withDiscoveryConnection`): the background-sync selection and the stops it implies
+  are made under one lock, a read keeps its network connected until it ends, a network the selection drops during a read
+  is disconnected when the read ends, and a read that stores a funded balance waits up to 5 s for background sync to
+  take the network over instead of closing it and opening it again.
+- **The first scan of a new wallet left every network it read connected.** Balance loaders connect a network they read
+  and never disconnect it, so after a wallet was added the app kept a connection and a runtime for every catalog network
+  until the process ended. `WalletSyncService` now reads through the same lease, so afterwards only the background-sync
+  selection stays connected: ranked networks, networks a live feature needs, and every network holding funds or a shown
+  asset. One network that cannot be connected or read no longer aborts the whole first scan; its rows stay unknown and
+  the sweep reads it again. Heap of the emulator app after a new wallet's first scan and sweep: 36 Substrate
+  connections, 36 runtime providers and 35 decoded runtimes before, 15, 14 and 13 after.
+- **A stopped EVM connection reconnected on its own.** `EthereumConnectionPool.stop` shut the client down, which closed
+  its socket, and the Closed status started the next node attempt outside the pool, while the pool's status watcher kept
+  the object alive; setup also built connections inside a retried state update, so contention could leave duplicates
+  connecting. Stopping now closes a connection for good (`EthereumChainConnection.close`: no further node attempts, the
+  watcher cancelled) and setup builds one connection per network under a lock. Discovery stops networks routinely now,
+  so this had to hold: without it the same heap held 52 EVM connection objects, with it 7, the seven ranked EVM
+  networks (18 before these changes).
+- **Solana was marked "Asset discovery timed out" after every sweep.** The catalog stores the app-owned networks as
+  Substrate, Solana with an HTTP node, so the sweep waited 45 s for a Substrate runtime that never comes and flagged
+  Solana stale although its balance read fine. `Chain.needsRegistryConnection()` (runtime) is now the one rule for both
+  readers: Substrate and EVM networks with a node; Bitcoin, Solana, Iroha and TON are read over their own clients.
+- **Two setups of one network could fail each other.** `ChainRegistry.setupChain` now runs one call per network at a
+  time. A concurrent second call superseded the first one's connection command, which then failed as "Runtime
+  configuration was superseded" and reported a healthy network as a sync problem.
+- **Equilibrium stored "-1" over the last known balance** when its runtime was not ready within 15 s, which replaced the
+  amount with "Balance unavailable". It now stores nothing then, like the Substrate loader. Equilibrium is not in the
+  production catalog this line ships.
+
+Already true on this line and unchanged: a row whose read fails stays listed, with its last stored amount or "Balance
+unavailable" when none was ever read, under the network's stale marker; an explicitly shown asset is listed at zero
+(`PortfolioVisibility.isVisible`); explicit Hidden choices are kept.
+
+Verified locally on `fc63951a9` (this project has no hosted CI gate): the unit suites of runtime (455, 10 skipped), app
+(252), feature-account-impl (1,098) and feature-wallet-impl (828) pass with no failures, and `detektAll` passes. The
+background-sync rule is covered by `ChainActivationPolicyTest` and by `ChainIdsNeedingSyncDaoTest`, run on an API 34
+emulator; the lease by `ChainRegistryDiscoveryLeaseTest`, the hand-over by `DiscoveryHandoverTest`, and the first scan,
+the EVM pool and Equilibrium by their own tests. `DiscoveryHandoverTest` and the Equilibrium test fail on the previous
+code, and each lease test fails with its rule undone. Emulator, debug builds with the public dev phrase and nothing
+enabled: the Hydration DOT was listed after import on both builds; after the first scan and sweep, Solana carried no
+error; with Hydration zeroed and out of background sync, the sweep found it again and background sync kept the
+connection (the next sweep read Hydration over it in 0.3 s). The base build did not hit the hand-over race in its one
+device run; the window depends on timing, which the test fixes.
+
 ## Ignite launch, feel and sound — 13 November 2026
 
 The owner asked on 13 November 2026: "make the yatagarasu ignite animation the launching splash animation and zoom into

@@ -18,6 +18,8 @@ import jp.co.soramitsu.coredb.model.NomisWalletScoreLocal
 import jp.co.soramitsu.coredb.model.RelationJoinedMetaAccountInfo
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.needsRegistryConnection
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ethereumChainId
@@ -28,6 +30,7 @@ import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
 import jp.co.soramitsu.runtime.storage.source.RemoteStorageSource
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.wallet.api.data.BalanceLoader
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -49,6 +52,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 
 private const val TAG = "WalletSyncService"
+private const val FIRST_SCAN_TIMEOUT_MILLIS = 15_000L
 
 class WalletSyncService(
     private val metaAccountDao: MetaAccountDao,
@@ -79,6 +83,32 @@ class WalletSyncService(
         })
 
     private var syncJob: Job? = null
+
+    /**
+     * One network's read for wallets added since the last scan; null when it fails or does not
+     * finish in time, so its rows stay unknown and the other networks are still stored. A network
+     * background sync does not keep is connected for this read only
+     * (ChainRegistry.withDiscoveryConnection), so the first scan leaves no connection behind, and a
+     * network the read finds funded is kept by background sync once its rows are stored.
+     */
+    internal suspend fun readNewWalletBalances(
+        chain: Chain,
+        metaAccounts: Set<MetaAccount>
+    ): List<AssetBalanceUpdateItem>? = try {
+        withTimeoutOrNull(FIRST_SCAN_TIMEOUT_MILLIS) {
+            val loader = balanceLoaderProvider.invoke(chain)
+            if (chain.needsRegistryConnection()) {
+                chainRegistry.withDiscoveryConnection(chain) { loader.loadBalance(metaAccounts) }
+            } else {
+                loader.loadBalance(metaAccounts)
+            }
+        }
+    } catch (error: CancellationException) {
+        throw error
+    } catch (error: Exception) {
+        Log.d(TAG, "first scan of ${chain.id} failed: ${error.javaClass.simpleName}")
+        null
+    }
 
     fun start() {
         observeNotInitializedMetaAccounts()
@@ -114,10 +144,7 @@ class WalletSyncService(
                                 }.toSet()
                             }
                             val chainSyncDeferred = async {
-                                val provider = balanceLoaderProvider.invoke(chain)
-                                val balances = withTimeoutOrNull(15_000) {
-                                    provider.loadBalance(filteredMetaAccounts)
-                                } ?: let {
+                                val balances = readNewWalletBalances(chain, filteredMetaAccounts) ?: let {
                                     filteredMetaAccounts.map { meta ->
                                         chainsRepository.getChain(chain.id).assets.mapNotNull { asset ->
                                             val accountId =
