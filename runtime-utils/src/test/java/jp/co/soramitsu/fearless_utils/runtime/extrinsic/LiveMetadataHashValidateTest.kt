@@ -47,9 +47,9 @@ class LiveMetadataHashValidateTest {
         LiveChain("polkadot collectives", "https://polkadot-collectives-rpc.polkadot.io"),
         LiveChain("hydration", "https://rpc.hydradx.cloud"),
         LiveChain("astar", "https://rpc.astar.network"),
-        // Listed in MetadataHashExemptions, so the app signs with Mode::Disabled. Spec 26 was built without a hash and
-        // refused Mode::Enabled; spec 27 (seen 13 November 2026) accepts this app's hash, see the assertion below.
-        LiveChain("pendulum", "https://rpc-pendulum.prd.pendulumchain.tech", exempt = true)
+        // Signs with Mode::Enabled since spec 27 (13 November 2026); spec 26 was built without a hash and was listed in
+        // MetadataHashExemptions. A network listed there is checked with `exempt = true`.
+        LiveChain("pendulum", "https://rpc-pendulum.prd.pendulumchain.tech")
     )
 
     @Before

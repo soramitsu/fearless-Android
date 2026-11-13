@@ -12,9 +12,9 @@ class MetadataHashExemptionsTest {
 
     @Test
     fun `only the reviewed networks without an embedded hash are exempt`() {
-        assertNotNull(MetadataHashExemptions.Default.reasonFor(pendulum))
         assertNotNull(MetadataHashExemptions.Default.reasonFor(avn))
         listOf(
+            pendulum, // Spec 27 accepts Mode::Enabled with this app's hash (live check, 13 November 2026).
             "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3", // Polkadot
             "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe", // Kusama
             "e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e", // Westend
@@ -25,8 +25,9 @@ class MetadataHashExemptionsTest {
 
     @Test
     fun `chain ids match with or without a prefix and in any case`() {
-        val exemptions = MetadataHashExemptions(mapOf(pendulum to "reason"))
-        assertEquals("reason", exemptions.reasonFor("0x" + pendulum.uppercase()))
-        assertNull(exemptions.reasonFor(avn))
+        val exemptions = MetadataHashExemptions(mapOf(avn to "reason"))
+        assertEquals("reason", exemptions.reasonFor("0x" + avn.uppercase()))
+        assertNull(exemptions.reasonFor(pendulum))
+        assertNull(MetadataHashExemptions.Default.reasonFor("0x" + pendulum.uppercase()))
     }
 }

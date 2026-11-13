@@ -2,6 +2,21 @@
 
 # Status Summary
 
+## Unreleased: Pendulum signs with the metadata hash — 13 November 2026
+
+A signing change for one network. It is not part of 4.3.4 and needs the owner's review before it ships. Pendulum's
+runtime spec 27 was built with a metadata hash: the read-only
+live check of `c1c21999b` signed a transfer with Mode::Enabled and this app's RFC 78 hash, and another with
+Mode::Disabled, and Pendulum answered both with `Invalid(Payment)`, the accepted outcome (`pendulum: enabled=0x010001
+disabled=0x010001`, spec 27, hash `0x59fc574d…1ce5`). Spec 26 answered Mode::Enabled with `Unknown(CannotLookup)`.
+
+Pendulum is no longer in `MetadataHashExemptions`, so it signs its own transactions with Mode::Enabled, built from the
+V15 metadata it hashes, like every other network that checks the hash; when that hash cannot be computed nothing is
+signed. A WalletConnect payload for Pendulum with Mode::Enabled is now signed when its hash is the wallet's own (it was
+refused before); Mode::Disabled payloads are read as before. AvN stays exempt. The live check now holds Pendulum to
+`Invalid(Payment)` for Mode::Enabled, and `PendulumMetadataHashSigningTest` builds Pendulum's signing runtime the way
+the app does, from V15 metadata and Pendulum's production type overrides.
+
 ## Production candidate 4.3.4 (236): fixes for the crashes Play reported — 13 November 2026
 
 Google Play's crash list for the last 28 days held 28 clusters, nearly all from 4.2.0 (229), which most devices still
@@ -315,7 +330,8 @@ different Substrate call signed than the one shown.
   (`MetadataHashUnavailableException`, shown as "Couldn't verify the network"). Fees are still estimated
   with the V14 runtime. Networks without the extension sign as before. Pendulum and AvN list the extension
   but were built without a hash (they answer Mode::Enabled with `CannotLookup`), so they are compiled-in
-  exemptions (`MetadataHashExemptions`) and sign Mode::Disabled.
+  exemptions (`MetadataHashExemptions`) and sign Mode::Disabled. Pendulum's spec 27 has a hash; see the
+  unreleased Pendulum entry above.
 - The hash matches the Rust crate byte for byte on the V15 metadata of all 27 catalog chains with the
   extension (`runtime-utils/src/test/resources/metadata-hash`); signed transfers match py-scale-codec;
   `LiveMetadataHashValidateTest` (opt-in) checks live runtimes answer `Invalid(Payment)`.
