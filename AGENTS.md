@@ -80,7 +80,7 @@
   IAS builds carry no Firebase configuration; do not claim IAS qualifies
   passkey backup, Play upgrade, production migration or production signing.
   When versioning changes, update the workflow/verifier hardcodes for
-  `4.3.4-ias` / `236` in the same reviewed commit.
+  `4.3.5-ias` / `237` in the same reviewed commit.
 - Polkadot runtime sources: to align debug builds with a specific Polkadot SDK release (e.g., `polkadot-stable2503`), you can override chain/type registries without code changes:
   - `TYPES_URL_OVERRIDE`, `DEFAULT_V13_TYPES_URL_OVERRIDE`, `CHAINS_URL_DEBUG_OVERRIDE`
   - Release chain discovery is intentionally pinned to the canonical production URL and does not accept a chain-registry override.

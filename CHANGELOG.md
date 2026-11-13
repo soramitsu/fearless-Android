@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 4.3.5 (237)
+
+- The Yatagarasu crow now appears on the app icon, welcome screen, PIN screen and wallet home.
+- The animated launch leads into the wallet. The home screen adds sunset artwork behind the balance.
+- Settings now lets you change the sound and haptic feedback for transfers.
+- Includes all of 4.3.4’s crash fixes.
+
 ## 4.3.4 (236)
 
 Fixes for the crashes Google Play reported on 12 November 2026 (28 crash clusters over 28 days). Most came from
@@ -29,7 +36,7 @@ sign-in and parachain staking. 4.3.4 fixes what 4.3.3 still had:
 
 ## 4.3.3 (235)
 
-- Design: the sun-lit redesign with the Yatagarasu brand. The three-legged crow crest is the
+- The sun-lit wallet introduced in 4.3.3 shipped with the winged-sun mark. The subsequent Yatagarasu design first ships in 4.3.5. In that design, the three-legged crow crest is the
   launcher icon, the in-app mark, the default wallet avatar and the QR centre mark; full-page
   screens (PIN, welcome, onboarding, About, launch art) show the crest over the FEARLESS
   wordmark. The welcome page shows the animated crow, and a tap plays its call.

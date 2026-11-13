@@ -2,6 +2,10 @@
 
 # Status Summary
 
+## Branded production candidate 4.3.5 (237)
+
+4.3.5 (237) combines the Yatagarasu design and Ignite launch with the complete 4.3.4 (236) crash-fix release. The Room schema remains 84.
+
 ## Production candidate 4.3.4 (236): fixes for the crashes Play reported — 13 November 2026
 
 Google Play's crash list for the last 28 days held 28 clusters, nearly all from 4.2.0 (229), which most devices still

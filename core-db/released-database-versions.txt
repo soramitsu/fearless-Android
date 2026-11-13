@@ -59,3 +59,6 @@
 
 # Crash fixes from Google Play's 12 November 2026 reports; the database schema is unchanged.
 4.3.4+236=84
+
+# Yatagarasu branding, launch and transfer feedback use the existing schema.
+4.3.5+237=84

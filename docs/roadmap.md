@@ -2,6 +2,10 @@
 
 # Roadmap & Technical Debt
 
+## Branded production candidate 4.3.5 (237)
+
+Qualify the 4.3.5 (237) combined release and follow its Google Play Production rollout.
+
 ## 4.3.4 (236): open items — 13 November 2026
 
 - **Rollout (owner's call):** 236 is live at 20% since 13 November 2026 10:27 KST; 235's rollout was replaced. Raising
