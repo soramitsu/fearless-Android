@@ -7,8 +7,9 @@
 - **Rollout (owner's call):** 236 is built and verified but not uploaded; uploading it would most likely stop 235's 20%
   rollout. Most devices still run 4.2.0 (229), the source of nearly every crash Play reports.
 - **Pendulum metadata hash:** Pendulum spec 27 accepts transactions signed with Mode::Enabled and this app's hash
-  (live check, 13 November 2026), so its `MetadataHashExemptions` entry is no longer needed. Removing it changes signing
-  for Pendulum and needs its own review and live check.
+  (live check, 13 November 2026), so its `MetadataHashExemptions` entry is no longer needed. 4.3.4 keeps it. The
+  removal, a signing change for Pendulum only, is on `claude/pendulum-metadata-hash-enabled` into `master` (see
+  `docs/status.md`) and waits for the owner's review before it ships.
 - **`getChain` after a network leaves the catalogue:** 4.2.0 crashed in `ChainsRepository.getChain` from a screen Play's
   trace does not name. 4.3.4 catches it in the history panel; other screens that ask for a missing network still wait
   60 seconds and fail in their own way.
@@ -113,7 +114,8 @@ different Substrate call signed than the one shown.
   (`MetadataHashUnavailableException`, shown as "Couldn't verify the network"). Fees are still estimated
   with the V14 runtime. Networks without the extension sign as before. Pendulum and AvN list the extension
   but were built without a hash (they answer Mode::Enabled with `CannotLookup`), so they are compiled-in
-  exemptions (`MetadataHashExemptions`) and sign Mode::Disabled.
+  exemptions (`MetadataHashExemptions`) and sign Mode::Disabled. Pendulum's spec 27 has a hash, and its
+  exemption is removed on `claude/pendulum-metadata-hash-enabled` (13 November 2026, unreleased).
 - The hash matches the Rust crate byte for byte on the V15 metadata of all 27 catalog chains with the
   extension (`runtime-utils/src/test/resources/metadata-hash`); signed transfers match py-scale-codec;
   `LiveMetadataHashValidateTest` (opt-in) checks live runtimes answer `Invalid(Payment)`.
