@@ -294,7 +294,9 @@ import sys
 path = Path(sys.argv[1])
 reviewed_policy_digests = {
     # App-owned runtime modules; existing repository and IAS bootstrap policies retained.
-    path: "7f4475d50fc5b26a8f036fee0568ba599ade6cdc0b1cde82de69ee899d79dc6b",
+    # The Beacon SDK removal dropped the airgap-it JitPack groups; the Reown
+    # WalletConnect SDK removal dropped komputing, multiformats and Scarlet.
+    path: "e2d2f1c199f18f68eab2936a0f64016cc8c88bcc3966566168af72904d381d09",
     Path(sys.argv[2]): "f9cc5ef8c17933f0ea29483a4346bb312d87e9fd669120ac9bc7419e58a0e78d",
     Path(sys.argv[3]): "46cac72bd782b6467d7bdaf34b3cede2a6da17a333d7f7902cfecc142e837b0b",
 }
@@ -498,12 +500,7 @@ if (dependencyProvenanceRequired) {
                     }
                 }
                 filter {
-                    includeGroup 'com.github.airgap-it'
-                    includeGroupByRegex 'com[.]github[.]airgap-it([.].*)?'
                     includeGroup 'com.github.ildixhaferri'
-                    includeGroupByRegex 'com[.]github[.]komputing([.].*)?'
-                    includeGroup 'com.github.multiformats'
-                    includeGroup 'com.walletconnect.Scarlet'
                 }
             }
         }
@@ -822,8 +819,6 @@ if len(entries) != len(set(entries)):
 
 required_entries = {
     "com.android.tools.build:gradle:8.10.1=classpath",
-    "com.google.firebase:firebase-appdistribution-gradle:4.2.0=classpath",
-    "com.google.gms:google-services:4.4.1=classpath",
     "org.jetbrains.kotlin:compose-compiler-gradle-plugin:2.1.10=classpath",
     "org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.10=classpath",
     "org.jetbrains.kotlin:kotlin-serialization:2.1.10=classpath",
@@ -835,6 +830,16 @@ if missing:
     raise SystemExit(
         "root buildscript lock omits reviewed classpath roots: "
         + ", ".join(missing)
+    )
+# Firebase App Distribution and Google Services were removed with Firebase (4.3.2).
+removed_entries = sorted(
+    entry for entry in entries
+    if entry.startswith(("com.google.gms:google-services:", "com.google.firebase:"))
+)
+if removed_entries:
+    raise SystemExit(
+        "root buildscript lock contains removed Firebase build plugins: "
+        + ", ".join(removed_entries)
     )
 PY
 then

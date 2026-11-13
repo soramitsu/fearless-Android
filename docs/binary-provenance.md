@@ -25,59 +25,75 @@ strict release audit:
 
 ## Current Findings
 
-### Reproducible From Vendored Source
+### Built From Source During Every Build
 
-`libsodium.so` is shipped for Android ABIs under `app/src/main/jniLibs`.
-The ISC-licensed libsodium 1.0.19 source from
-`https://github.com/jedisct1/libsodium` is vendored under
-`third_party/libsodium`, and
-`scripts/build-libsodium.sh` rebuilds the checked-in binaries with the Android
-16 KB page-size linker flags.
+`libsr25519java.so` holds every sr25519 key operation of the app (Polkadot,
+Kusama and SORA accounts). No prebuilt copy is committed. The Gradle task
+`:runtime-utils:buildSr25519AndroidLibraries` builds it for all four ABIs from
+the app-owned Rust crate `runtime-utils/native/sr25519` (imported from
+`soramitsu/fearless-utils-Android`, path `sr25519-java`) by running
+`scripts/build-sr25519.py`, and every variant packages that output.
 
-Current checksums:
+- crate: schnorrkel 0.11.5 (curve25519-dalek 4.1.3), jni 0.22.4, zeroize 1.9.1,
+  with every transitive crate locked in `Cargo.lock` and built with `--locked`
+- toolchain: `rustc 1.99.1 (58cf8f9c3 2026-10-13)`, pinned by
+  `runtime-utils/native/sr25519/rust-toolchain.toml`
+- `cargo-ndk 4.1.2`, Android NDK `30.0.16248370` (r30, pinned as `ndkVersion` in
+  `runtime-utils/build.gradle`), Android API 26
+- linker flags `-Wl,-z,common-page-size=4096` and `-Wl,-z,max-page-size=16384`
+  for 16 KB LOAD alignment on every ABI
+- reproducibility: one codegen unit, fat LTO, stripped symbols, a cleaned build
+  environment, `--remap-path-prefix` for the cargo home, the Rust toolchain, the
+  crate and the cargo target directory, and a fixed `SOURCE_DATE_EPOCH`
+- the same bytes on every build machine: cargo's `-C metadata` hashes the
+  `host:` line of `rustc -vV`, so macOS and Linux builds differed. The rustc
+  wrapper `runtime-utils/native/sr25519/stable-crate-metadata.py` (set by
+  `scripts/build-sr25519.py`) replaces each value with a hash of the package,
+  version, crate name and types, edition, cfgs, target and package-relative
+  source path; arm64 and x86_64 macOS hosts build byte-identical libraries
+- no build id and no `.comment` section: the NDK's LLD writes the directory it
+  was built in into `.comment` (`/Volumes/Android/...` in the macOS NDK,
+  `/mnt/disks/...` in the Linux NDK), and its build id hashes the whole file.
+  The build links with `-Wl,--build-id=none` and removes `.comment` with the
+  NDK's `llvm-objcopy` before any check or hash; the loader reads neither
 
-| File | SHA-256 |
-| --- | --- |
-| `app/src/main/jniLibs/arm64-v8a/libsodium.so` | `939ba2865a93abe39c4d6a29802419b36b1bfd0b320396eeaccd4d660468a664` |
-| `app/src/main/jniLibs/armeabi-v7a/libsodium.so` | `8bcd304a813f3d814793c8553cd6a8814b64b2c188d66e8462f82053d7855343` |
-| `app/src/main/jniLibs/x86/libsodium.so` | `a6cd7f654ff400d080b16b3e794971b2c2b2cbc12bf0cee444f7e2ea950839ae` |
-| `app/src/main/jniLibs/x86_64/libsodium.so` | `a8b52ce229d18338b9f0b0f4d2396078582c9742d771367394b8e9b3cbabb81c` |
-
-### Reproducible From Open Source
-
-The Android-owned `runtime-utils` module was imported from `fearless-utils-Android` at
-`3d22dad159ca5304d199acd08c5a622dea3c1577`. The existing native
-`libsr25519java.so` artifact was built from the older commit below. Its
-`sr25519-java` source tree is identical at both commits
-(`f9e9aeba0594f909705e5b54b538dbd1b5cadc78`); this does not replace
-the artifact's recorded build provenance.
-
-`libsr25519java.so` is built from the open-source
-`soramitsu/fearless-utils-Android` repository:
-
-- source repository: `https://github.com/soramitsu/fearless-utils-Android`
-- source commit: `7500809f33243ee47ecb2ec8563fc284ac4de0d6`
-- original source path: `sr25519-java`; app-owned source: `runtime-utils/native/sr25519`
-- app-owned rebuild entry point: `scripts/build-sr25519.sh`
-- Android NDK: `28.0.12674087`
-- linker flags: `-Wl,-z,common-page-size=4096` and
-  `-Wl,-z,max-page-size=16384` from the source repo `.cargo/config.toml`
-
-The checked-in binaries expose both legacy `fearless_utils` JNI names and the
-`shared_utils` JNI names used by the wallet app. Rebuild and copy them with:
+`runtime-utils/native/sr25519/reproducible-build.json` records the reviewed
+SHA-256 of each ABI and the exact JNI export list. Every build checks each
+library's 16 KB LOAD alignment and exports with the NDK's `llvm-readelf` and
+fails on any SHA-256 mismatch (`-Psr25519.allowHashMismatch=true` downgrades
+that to a warning for local debug builds only; release graphs refuse it).
+`scripts/verify-android-aab-identity.sh` requires the same values inside the
+AAB.
 
 ```
-./scripts/build-sr25519.sh
+./gradlew :runtime-utils:buildSr25519AndroidLibraries
+./gradlew :runtime-utils:verifySr25519ReproducibleBuild   # two clean builds, byte-identical
+python3 scripts/build-sr25519.py --reproducibility-check   # the same without Gradle
+./gradlew :runtime-utils:recordSr25519NativeHashes         # after an intended source change
 ```
 
-Current checksums:
+Reviewed checksums:
 
-| File | SHA-256 |
+| ABI | SHA-256 |
 | --- | --- |
-| `app/src/main/jniLibs/arm64-v8a/libsr25519java.so` | `a37f031de78b841dab6a8c69900a64fe427d53d2a4f77d8f3c059caab5849c12` |
-| `app/src/main/jniLibs/armeabi-v7a/libsr25519java.so` | `d217b2511bf2c7f90ea29879d5ecad86c62d95a3ee2dd412fbb0f6d804e5f3de` |
-| `app/src/main/jniLibs/x86/libsr25519java.so` | `56f26fe8e7e55026cf36be6c22a62037389d4f59cc8ee35d6bb295b5dc5441aa` |
-| `app/src/main/jniLibs/x86_64/libsr25519java.so` | `b024dcc2ebf236f21d329e3d637a6fdd39746ad1dc0e0ccc99143279617946dc` |
+| arm64-v8a | `778dcc6bb577039ece9ba7971212d4bf917c60ab7f8a3688f0998025b7c61d11` |
+| armeabi-v7a | `0d4ea2944c78b3e9c3257b8bed4bb88062ed8cb59e0081c9acc5ec4c235fd6e6` |
+| x86 | `2541d94922a7db836b3351288f5b6108e9e3b36add122230ae4cc310bda31d4f` |
+| x86_64 | `458533705ed8194f95f7028632b69c73618f7a1918898af070ce66b8307e4e16` |
+
+Host builds of the same crate back the JVM unit tests
+(`Sr25519NativeTest`, `HostSr25519KeypairDerivationTest`). The library shipped
+up to Android 4.3.1 was a prebuilt schnorrkel 0.9.1 binary (source commit
+`7500809f33243ee47ecb2ec8563fc284ac4de0d6`, curve25519-dalek 2.1.3 with
+RUSTSEC-2024-0344); `scripts/verify-sr25519-legacy-compatibility.sh` rebuilds
+it from Git history and checks that both produce identical keys and derivations
+and accept each other's signatures.
+
+### Removed
+
+`libsodium.so` (four ABIs), its vendored libsodium 1.0.19 source under
+`third_party/libsodium` and `scripts/build-libsodium.sh` were removed in 4.3.2:
+no code, manifest or dependency loaded the library.
 
 ### Standard Build Wrapper
 
@@ -104,25 +120,21 @@ CBDC QR parsing now lives in
 with unit coverage under
 `feature-wallet-impl/src/test/java/jp/co/soramitsu/wallet/impl/domain/qr/CbdcQrParserTest.kt`.
 
+`runtime-utils/libs/polkaj-scale-0.2.3.jar` (SHA-256
+`bea0f3904fef83497b9e5802f36408663a4aba462bf63ded38b89a5f22befa4d`) has been
+removed in 4.3.2. The SCALE codec it held is built from source in
+`runtime-utils/src/main/java/io/emeraldpay/polkaj/scale`: upstream polkaj v0.2.3
+(Apache-2.0, commit `3227a8ef605cd65b29b1cb2648a02e3a2a9c2419`) plus the Java 8
+changes and the Short, Long and String codecs the jar carried (see `NOTICE`).
+Before the jar was deleted, `PolkajScaleJarDifferentialTest` ran every reader and
+writer of both over the same random input; `PolkajScaleGoldenTest` now replays
+the jar's recorded transcript.
+
 `debug-keystore.jks` has been removed from source control. Use the Android
 default generated debug keystore for local builds and CI-provided keystores for
 release signing.
 
-Checked-in `google-services.json` files must stay on the `fearless-public`
-placeholder project with empty API keys and no OAuth certificate hashes. Release
-CI restores the real `app/src/release/google-services.json` from
-`GOOGLE_SERVICES_RELEASE_JSON_B64`.
-
-### Imported SCALE utility JAR
-
-The third-party `polkaj-scale-0.2.3.jar` is imported byte-for-byte from the reviewed
-`fearless-utils-Android` commit `3d22dad159ca5304d199acd08c5a622dea3c1577`, path
-`fearless-utils/libs/polkaj-scale-0.2.3.jar`. It remains a third-party SCALE utility,
-not an independently published internal Android library. Its bytes are bound by
-both the runtime source manifest and the strict binary audit; the application
-owns the consuming Gradle module. This consolidation did not rebuild the JAR or
-any native `.so` file.
-
-| File | SHA-256 |
-| --- | --- |
-| `runtime-utils/libs/polkaj-scale-0.2.3.jar` | `bea0f3904fef83497b9e5802f36408663a4aba462bf63ded38b89a5f22befa4d` |
+No `google-services.json` may be tracked or present under `app/`: Firebase and
+Google Play services are not part of the app's own code since 4.3.2, and
+`scripts/audit-public-artifacts.sh` refuses such a file (in release mode even an
+untracked one).

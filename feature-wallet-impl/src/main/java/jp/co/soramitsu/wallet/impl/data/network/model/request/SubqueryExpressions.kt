@@ -1,5 +1,14 @@
 package jp.co.soramitsu.wallet.impl.data.network.model.request
 
+import com.google.gson.Gson
+
+private const val MAX_GRAPHQL_CURSOR_LENGTH = 4096
+
+internal fun graphqlStringLiteral(value: String?): String {
+    require(value == null || value.length <= MAX_GRAPHQL_CURSOR_LENGTH) { "GraphQL cursor exceeds the supported length" }
+    return Gson().toJson(value)
+}
+
 object SubqueryExpressions {
 
     fun or(vararg innerExpressions: String): String {

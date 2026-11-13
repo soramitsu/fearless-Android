@@ -23,7 +23,8 @@ object NativeSendExplorer {
                 UniversalWalletRegistry.solanaDevnet.id -> "?cluster=devnet"
                 else -> ""
             }
-            "https://explorer.solana.com/${if (transaction) "tx" else "address"}/$value$cluster"
+            // Solscan, as the browser extension links it, so every app opens the same full history.
+            "https://solscan.io/${if (transaction) "tx" else "account"}/$value$cluster"
         }
         else -> null
     }

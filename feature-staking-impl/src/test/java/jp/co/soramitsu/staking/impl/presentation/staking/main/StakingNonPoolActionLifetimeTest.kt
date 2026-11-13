@@ -64,6 +64,7 @@ class StakingNonPoolActionLifetimeTest {
         on { selectionRevision } doReturn revision
         on { assetWithChain } doReturn chainMetadata
         on { selectionItem } doReturn emptyFlow()
+        on { settledSelection } doReturn emptyFlow()
         on { currentAssetFlow() } doReturn actionAsset
         onBlocking { chainId() } doReturn "public-local-relay"
     }

@@ -30,6 +30,7 @@ import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
+import jp.co.soramitsu.core.crypto.SubstratePasswordRule
 import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -345,7 +346,16 @@ class ImportRemoteWalletViewModel @Inject constructor(
                 }
 
                 val restoringSecretTypes = backupService.restoringSecretTypes(decryptedBackupAccount)
-                importLegacyGoogleBackupAccount(interactor, decryptedBackupAccount, passwordText.value, restoringSecretTypes)
+                // A wallet imported with an earlier browser extension's account restores that account.
+                val passwordRule = backupService.restoringSubstratePasswordRule(decryptedBackupAccount)
+                    ?: SubstratePasswordRule.NFKD
+                importLegacyGoogleBackupAccount(
+                    interactor,
+                    decryptedBackupAccount,
+                    passwordText.value,
+                    restoringSecretTypes,
+                    passwordRule
+                )
                 nextStep()
             } catch (e: AuthConsentException) {
                 requestGoogleAuth.emit(Event(e.intent))

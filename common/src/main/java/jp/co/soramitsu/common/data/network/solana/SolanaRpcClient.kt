@@ -30,6 +30,14 @@ interface SolanaRpcClient {
     suspend fun signatureStatus(signature: String, rpcUrl: String? = null): SolanaRpcSignatureStatus? =
         error("RPC signature status is unavailable")
 
+    /**
+     * The signature's status, or proof that the transaction can never land: an endpoint finalized past
+     * [lastValidBlockHeight] finds, from a lookup at least as recent, no trace of it, and no other endpoint
+     * disagrees. Adapters without that proof never report [SolanaSignatureOutcome.Expired].
+     */
+    suspend fun signatureOutcome(signature: String, lastValidBlockHeight: Long, rpcUrl: String? = null): SolanaSignatureOutcome =
+        signatureStatus(signature, rpcUrl)?.let { SolanaSignatureOutcome.Seen(it) } ?: SolanaSignatureOutcome.Unknown
+
     /** Returns bounded recent micro-lamport per compute-unit samples for fee policy. */
     suspend fun recentPrioritizationFees(rpcUrl: String? = null): List<Long> = error("RPC priority fee samples are unavailable")
 
@@ -175,6 +183,35 @@ data class SolanaSimulationResponse(
     val value: SolanaSimulationValue
 )
 
+sealed interface SolanaSignatureOutcome {
+    data class Seen(val status: SolanaRpcSignatureStatus) : SolanaSignatureOutcome
+    /**
+     * Final past the blockhash expiry with no trace, on every endpoint that answered: it can never land.
+     * [provingHosts] distinct hosts proved it on their own; spellings of one host count once. One node's empty
+     * lookup can come from a backend that lacks that slot's history, so only [corroborated] expiry shows that the
+     * payment never left the wallet.
+     */
+    data class Expired(val provingHosts: Int) : SolanaSignatureOutcome {
+        init { require(provingHosts >= 1) }
+        val corroborated: Boolean get() = provingHosts >= MIN_CORROBORATING_HOSTS
+
+        companion object {
+            const val MIN_CORROBORATING_HOSTS = 2
+        }
+    }
+    object Unknown : SolanaSignatureOutcome
+}
+
+/**
+ * No endpoint accepted a broadcast. [outcome] says what that proves: [Outcome.NOT_SENT], no node received the
+ * transaction; [Outcome.REFUSED], a node judged it and refused it before relaying it (preflight, signature or
+ * decoding verdict); [Outcome.AMBIGUOUS], an attempt may have reached a node (a timeout, a dropped connection,
+ * throttling, a server error, an unreadable reply or any other JSON-RPC error), so the transaction may still land.
+ */
+class SolanaBroadcastException(val outcome: Outcome, cause: Throwable? = null) : IllegalStateException(outcome.name, cause) {
+    enum class Outcome { NOT_SENT, REFUSED, AMBIGUOUS }
+}
+
 data class SolanaJsonRpcErrorPayload(
     val code: Int,
     val message: String,
@@ -205,6 +242,7 @@ class SolanaRpcException(
         INVALID_BALANCE_RESPONSE,
         INVALID_TOKEN_ACCOUNTS_RESPONSE,
         INVALID_BLOCK_HEIGHT_RESPONSE,
+        INVALID_EPOCH_INFO_RESPONSE,
         INVALID_SIGNATURE_STATUS_RESPONSE,
         INVALID_PRIORITY_FEE_RESPONSE
     }

@@ -5,5 +5,6 @@ import java.math.BigInteger
 data class Payout(
     val validatorAddress: String,
     val era: BigInteger,
-    val amount: BigInteger
+    val amount: BigInteger,
+    val page: BigInteger? = null
 )

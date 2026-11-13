@@ -154,14 +154,14 @@ class WalletPaintInstrumentedTest {
             val fx = modes.getValue(mode)
             val c = if (fx.highContrast) FwHighContrast else FwStandard
             val expected = when (surface) {
-                "glass" -> if (fx.glass) c.glassSheen.compositeOver(c.glass.compositeOver(Color.White)) else c.surfaceRaised
+                "glass" -> c.surfaceRaised
                 "chrome" -> if (fx.paintReduced) c.surfaceRaised else c.chromeSolid.compositeOver(Color.White)
                 else -> c.surfaceSunken
             }
             assertPixel("$mode/$surface center", expected.toArgb(), image.getPixel(image.width / 2, image.height / 2))
             if (surface in listOf("inset", "error")) {
                 val rimX = compose.activity.resources.displayMetrics.density.toInt()
-                assertPixel("$mode/$surface rim", (if (surface == "error") c.danger else c.focus).toArgb(),
+                assertPixel("$mode/$surface rim", (if (surface == "error") c.danger else c.brand).toArgb(),
                     image.getPixel(rimX, image.height / 2))
             }
         }

@@ -25,9 +25,14 @@ private const val DECAY_RATE = 0.05
 
 const val DAYS_IN_YEAR = 365
 
+/**
+ * [annualStakerRewards] replaces the relay inflation model with the observed era budget, annualized: an Asset Hub
+ * pays stakers from what the relay chain sends it, not from inflation of its own issuance.
+ */
 open class ManualRewardCalculator(
     val validators: List<RewardCalculationTarget>,
-    val totalIssuance: BigInteger
+    val totalIssuance: BigInteger,
+    private val annualStakerRewards: BigDecimal? = null
 ) : RewardCalculator {
 
     private val totalStaked =
@@ -35,11 +40,16 @@ open class ManualRewardCalculator(
 
     private val stakedPortion = totalStaked / totalIssuance.toDouble()
 
-    private val yearlyInflation = calculateYearlyInflation()
+    private val yearlyInflation = if (annualStakerRewards == null) calculateYearlyInflation() else 0.0
 
     private val averageValidatorStake = totalStaked / validators.size
 
-    private val averageValidatorRewardPercentage = yearlyInflation / stakedPortion
+    private val averageValidatorRewardPercentage = (
+        annualStakerRewards?.let {
+            require(it.signum() >= 0) { "Negative staking reward budget" }
+            it.toDouble() / totalStaked
+        } ?: (yearlyInflation / stakedPortion)
+    ).validRewardRateOrZero()
 
     private val apyByValidator = validators.associateBy(
         keySelector = RewardCalculationTarget::accountIdHex,
@@ -56,14 +66,25 @@ open class ManualRewardCalculator(
             else -> prices.median()
         }
 
-        return averageValidatorRewardPercentage * (1 - medianCommission)
+        return annualStakerRewards?.let {
+            observedRewardRate(validators.sumByBigInteger(RewardCalculationTarget::totalStake), medianCommission.toBigDecimal())
+        } ?: (averageValidatorRewardPercentage * (1 - medianCommission)).validRewardRateOrZero()
     }
 
     private fun calculateValidatorAPY(validator: RewardCalculationTarget): Double {
+        if (annualStakerRewards != null) {
+            return observedRewardRate(validator.totalStake * validators.size.toBigInteger(), validator.commission)
+        }
         val yearlyRewardPercentage =
             averageValidatorRewardPercentage * averageValidatorStake / validator.totalStake.toDouble()
 
-        return yearlyRewardPercentage * (1 - validator.commission.toDouble())
+        return (yearlyRewardPercentage * (1 - validator.commission.toDouble())).validRewardRateOrZero()
+    }
+
+    private fun observedRewardRate(stake: BigInteger, commission: BigDecimal): Double {
+        if (stake.signum() <= 0) return 0.0
+        return requireNotNull(annualStakerRewards).divide(stake.toBigDecimal(), java.math.MathContext.DECIMAL128)
+            .multiply(BigDecimal.ONE - commission).toDouble().validRewardRateOrZero()
     }
 
     private fun calculateYearlyInflation(): Double {

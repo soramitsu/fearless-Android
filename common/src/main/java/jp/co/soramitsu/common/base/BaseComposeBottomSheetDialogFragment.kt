@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -24,7 +23,10 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.emptyClick
+import androidx.compose.runtime.CompositionLocalProvider
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwSecureSurface
+import jp.co.soramitsu.common.compose.theme.fw.fwSheetNavigationBar
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
@@ -32,6 +34,9 @@ import jp.co.soramitsu.common.utils.EventObserver
 abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomSheetDialogFragment() {
 
     abstract val viewModel: T
+
+    /** Shared sheets include signing and recovery routes: only press feedback is allowed by default. */
+    protected open val secureSurface: Boolean = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,13 +54,15 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomS
         return ComposeView(requireContext()).apply {
             setContent {
                 FearlessTheme {
-                    Box(
-                        modifier = Modifier
-                            .semantics {
-                                testTagsAsResourceId = true
-                            }
-                    ) {
-                        Content(PaddingValues())
+                    CompositionLocalProvider(LocalFwSecureSurface provides secureSurface) {
+                        Box(
+                            modifier = Modifier
+                                .semantics {
+                                    testTagsAsResourceId = true
+                                }
+                        ) {
+                            Content(PaddingValues())
+                        }
                     }
                 }
             }
@@ -146,23 +153,20 @@ abstract class BaseComposeBottomSheetDialogFragment<T : BaseViewModel> : BottomS
     private fun setupBottomSheet() {
         dialog?.setOnShowListener {
             val bottomSheetDialog = it as BottomSheetDialog
+            bottomSheetDialog.fwSheetNavigationBar()
             setupBehavior(bottomSheetDialog.behavior)
         }
     }
 
+    /**
+     * From Android 13 Material answers system Back on a sheet: it hides a hideable one, which cancels the dialog, and
+     * can only collapse any other. Before Android 13 Back cancels the dialog. A sheet whose Back does something else
+     * puts a `BackHandler` in [Content]: composition runs after the dialog attaches, so it runs ahead of Material's.
+     * The activity's dispatcher and `Dialog.onBackPressed` never see Back here.
+     */
     protected open fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.isDraggable = false
-        behavior.isHideable = false
-    }
-
-    protected inline fun onBackPressed(crossinline action: () -> Unit) {
-        val callback = object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                action()
-            }
-        }
-
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
+        behavior.isHideable = true
     }
 }

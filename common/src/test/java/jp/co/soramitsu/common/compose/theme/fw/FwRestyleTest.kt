@@ -23,9 +23,15 @@ class FwRestyleTest {
         }
     }
 
+    @Test fun sharedComponentsFollowThePaletteAlone() {
+        assertTrue(FwRestyle.resolvePalette("v1"))
+        for (palette in listOf("legacy", "", "V1", " v1", "future")) assertFalse(FwRestyle.resolvePalette(palette))
+        assertEquals(BuildConfig.FW_PALETTE == "v1", FwRestyle.paletteEnabled)
+    }
+
     @Test fun compiledFlagsResolveEverySurface() {
         // The build qualification runs this against independently inspected generated flag matrices.
-        assertEquals(14, FwSurface.entries.size)
+        assertEquals(18, FwSurface.entries.size)
         for (surface in FwSurface.entries) {
             assertEquals(BuildConfig.FW_PALETTE == "v1" && surface.requested, FwRestyle.isEnabled(surface))
         }

@@ -5,6 +5,7 @@ import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.EthereumOnlyGoogleBackupException
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.backup.domain.models.DecryptedBackupAccount
+import jp.co.soramitsu.core.crypto.SubstratePasswordRule
 
 /**
  * Import the original EVM key together with a Substrate mnemonic when both were backed up.
@@ -23,7 +24,8 @@ internal suspend fun importLegacyGoogleBackupAccount(
     interactor: AccountInteractor,
     backup: DecryptedBackupAccount,
     password: String,
-    restoringSecretTypes: Set<BackupAccountType>? = null
+    restoringSecretTypes: Set<BackupAccountType>? = null,
+    substratePasswordRule: SubstratePasswordRule = SubstratePasswordRule.NFKD
 ) {
     val restoring = restoringSecretTypes ?: setOf(BackupAccountType.PASSPHRASE, BackupAccountType.SEED)
     val substrateSeed = backup.seed?.substrateSeed
@@ -40,7 +42,8 @@ internal suspend fun importLegacyGoogleBackupAccount(
             substrateDerivationPath = backup.substrateDerivationPath.orEmpty(),
             ethereumDerivationPath = backup.ethDerivationPath.orEmpty(),
             googleBackupAddress = backup.address.takeIf { BackupAccountType.PASSPHRASE in restoring },
-            isBackedUp = true
+            isBackedUp = true,
+            substratePasswordRule = substratePasswordRule
         )
         val backedUpEthereumPrivateKey = backup.seed?.ethSeed
         if (backedUpEthereumPrivateKey == null) {

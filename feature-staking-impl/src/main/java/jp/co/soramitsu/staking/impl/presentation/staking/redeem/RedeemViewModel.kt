@@ -33,12 +33,14 @@ import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -64,13 +66,13 @@ class RedeemViewModel @Inject constructor(
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
 
-    val stakingUnlockAmount = MutableSharedFlow<String>().apply {
-        launch {
-            stakingScenarioInteractor.getStakingBalanceFlow(payload.collatorAddress?.fromHex()).onEach {
-                emit(it.redeemable.amount?.formatCryptoFull() ?: resourceManager.getString(jp.co.soramitsu.common.R.string.portfolio_balance_unavailable))
-            }.share()
-        }
-    }
+    val stakingUnlockAmount = MutableSharedFlow<String>()
+
+    private val unavailableAmount = resourceManager.getString(R.string.portfolio_balance_unavailable)
+    private var balanceRefresh: Job? = null
+
+    // False until a ledger refresh succeeds; meanwhile Confirm refreshes instead of redeeming.
+    private var balanceRefreshed = false
 
     private val accountStakingFlow = stakingScenarioInteractor.stakingStateFlow()
         .share()
@@ -118,11 +120,41 @@ class RedeemViewModel @Inject constructor(
     }.asLiveData()
 
     init {
+        refreshBalance()
         loadFee()
     }
 
     fun confirmClicked() {
-        maybeGoToNext()
+        when {
+            balanceRefreshed -> maybeGoToNext()
+            balanceRefresh?.isActive != true -> refreshBalance()
+        }
+    }
+
+    /**
+     * Reads the account's ledger again. A refresh that cannot be read (a Hub's active era, for one) shows the amount as
+     * unavailable with Retry and keeps the redeem blocked until a refresh succeeds; it never closes the app.
+     */
+    private fun refreshBalance() {
+        balanceRefresh?.cancel()
+        balanceRefresh = launch {
+            stakingScenarioInteractor.getStakingBalanceFlow(payload.collatorAddress?.fromHex())
+                .catch { failure ->
+                    if (failure is CancellationException) throw failure
+                    balanceRefreshed = false
+                    stakingUnlockAmount.emit(unavailableAmount)
+                    showError(
+                        title = resourceManager.getString(R.string.common_error_general_title),
+                        message = failure.message ?: resourceManager.getString(R.string.common_error_general_message),
+                        positiveButtonText = resourceManager.getString(R.string.common_retry),
+                        positiveClick = ::refreshBalance
+                    )
+                }
+                .collect {
+                    balanceRefreshed = true
+                    stakingUnlockAmount.emit(it.redeemable.amount?.formatCryptoFull() ?: unavailableAmount)
+                }
+        }
     }
 
     fun backClicked() {

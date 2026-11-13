@@ -21,6 +21,9 @@ interface IrohaToriiApi {
     suspend fun accountAssets(@Url url: String): IrohaAccountAssetListResponse
 
     @GET
+    suspend fun accountHistory(@Url url: String): IrohaAccountHistoryPage
+
+    @GET
     suspend fun assetDefinitions(@Url url: String): IrohaAssetDefinitionListResponse
 
     @GET
@@ -32,13 +35,4 @@ interface IrohaToriiApi {
         @Url url: String,
         @Body body: RequestBody
     ): IrohaTransactionSubmissionReceipt
-
-    @GET
-    suspend fun mcpCapabilities(@Url url: String): Map<String, Any?>
-
-    @POST
-    suspend fun mcpJsonRpc(
-        @Url url: String,
-        @Body body: IrohaMcpJsonRpcRequest
-    ): IrohaMcpJsonRpcResponse
 }

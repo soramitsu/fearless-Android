@@ -99,20 +99,21 @@ fun SwipeBox(
             )
             .testTag("SwipeBox")
     ) {
+        // The row in front sets the height: the actions behind it must never make the row taller.
         Box(
             modifier = Modifier
-                .align(Alignment.CenterStart)
-                .wrapContentHeight()
-                .offset(leftOffsetsCalculator)
+                .matchParentSize()
+                .offset(leftOffsetsCalculator),
+            contentAlignment = Alignment.CenterStart
         ) {
             leftContent()
         }
 
         Box(
             modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .wrapContentHeight()
-                .offset(rightOffsetsCalculator)
+                .matchParentSize()
+                .offset(rightOffsetsCalculator),
+            contentAlignment = Alignment.CenterEnd
         ) {
             rightContent()
         }

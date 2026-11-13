@@ -194,15 +194,18 @@ compatibility_contracts = {
         },
     },
     "app": {
-        "exact": 26,
+        "exact": 29,
         "class_counts": {
-            gate_class: 20,
+            gate_class: 23,
             restart_class: 3,
             security_warning_class: 3,
         },
         "required": {
             (gate_class, "legacyGateRelaunchDiscardsNonRestorableFragmentState"),
             (gate_class, "permanentRecoveryFailureShowsDiagnosticInsteadOfRetryOnlyRoute"),
+            (gate_class, "internalHandoffDropsNavigationDeepLinkExtras"),
+            (gate_class, "internalHandoffDropsNonAllowlistedUris"),
+            (gate_class, "internalHandoffKeepsOnlyAllowlistedEntryData"),
             (restart_class, "latchWhileStoppedDefersRedirectUntilForeground"),
             (
                 security_warning_class,
@@ -301,7 +304,7 @@ try:
         exact_total = False
     elif profile == "compatibility":
         contracts = compatibility_contracts
-        required_total = 41
+        required_total = 44
         exact_total = True
     else:
         fail(f"unsupported result profile: {profile}")

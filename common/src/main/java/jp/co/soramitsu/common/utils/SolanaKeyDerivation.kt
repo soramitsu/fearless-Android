@@ -110,10 +110,11 @@ object SolanaKeyDerivation {
         return words.joinToString(" ")
     }
 
+    // BIP39: both the words and the passphrase are NFKD-normalised before PBKDF2.
     private fun bip39Seed(mnemonic: String, passphrase: String): ByteArray {
         val spec = PBEKeySpec(
-            mnemonic.toCharArray(),
-            "mnemonic$passphrase".toByteArray(Charsets.UTF_8),
+            UniversalWalletPassphrase.normalize(mnemonic).toCharArray(),
+            UniversalWalletPassphrase.normalize("mnemonic$passphrase").toByteArray(Charsets.UTF_8),
             BIP39_ROUNDS,
             BIP39_SEED_LENGTH_BITS
         )

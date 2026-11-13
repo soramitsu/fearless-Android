@@ -2,12 +2,10 @@ package jp.co.soramitsu.common.wallet
 
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountAssetListResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountAssetListItem
+import jp.co.soramitsu.common.data.network.iroha.IrohaAccountHistoryPage
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountListItem
 import jp.co.soramitsu.common.data.network.iroha.IrohaAccountListResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaAssetDefinitionListResponse
-import jp.co.soramitsu.common.data.network.iroha.IrohaMcpJsonRpcError
-import jp.co.soramitsu.common.data.network.iroha.IrohaMcpJsonRpcRequest
-import jp.co.soramitsu.common.data.network.iroha.IrohaMcpJsonRpcResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaPipelineTransactionStatus
 import jp.co.soramitsu.common.data.network.iroha.IrohaPipelineTransactionStatusResponse
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiApi
@@ -31,31 +29,28 @@ class IrohaToriiClientTest {
         val api = FakeIrohaToriiApi()
         val client = RetrofitIrohaToriiClient(api)
 
-        client.accounts(limit = 50, offset = 10, countMode = IrohaToriiRoutes.CountMode.Exact)
+        client.accounts(limit = 50, cursor = "page_2")
         assertEquals(
-            "https://taira.sora.org/v1/accounts?limit=50&offset=10&count_mode=exact",
+            "https://taira.sora.org/v1/accounts?limit=50&cursor=page_2",
             api.lastUrl
         )
 
         client.accountAssets(
             accountId = ACCOUNT,
             limit = 25,
-            countMode = IrohaToriiRoutes.CountMode.Bounded,
-            asset = "xor#sora",
-            scope = "global"
+            cursor = "assets_page-2"
         )
         assertEquals(
-            "https://taira.sora.org/v1/accounts/$ENCODED_ACCOUNT/assets?limit=25&count_mode=bounded&asset=xor%23sora&scope=global",
+            "https://taira.sora.org/v1/accounts/$ENCODED_ACCOUNT/assets?limit=25&cursor=assets_page-2",
             api.lastUrl
         )
 
         client.assetDefinitionsPage(
             limit = 500,
-            offset = 500,
-            countMode = IrohaToriiRoutes.CountMode.Bounded
+            cursor = "definitions_page-2"
         )
         assertEquals(
-            "https://taira.sora.org/v1/assets/definitions?limit=500&offset=500&count_mode=bounded",
+            "https://taira.sora.org/v1/assets/definitions?limit=500&cursor=definitions_page-2",
             api.lastUrl
         )
 
@@ -64,41 +59,50 @@ class IrohaToriiClientTest {
             "https://taira.sora.org/v1/pipeline/transactions/status?hash=$HASH&scope=global",
             api.lastUrl
         )
+
+        client.accountHistory(
+            accountId = ACCOUNT,
+            limit = 100,
+            cursor = "AQ-0aPCF_x",
+            filter = IrohaToriiRoutes.transferHistoryFilter(listOf("xor#sora"))
+        )
+        assertEquals(
+            "https://taira.sora.org/v1/accounts/$ENCODED_ACCOUNT/history?limit=100&cursor=AQ-0aPCF_x" +
+                "&filter=asset_definition_id%20in%20%5B%22xor%23sora%22%5D%20and%20type%20%3D%20%22TRANSFER%22",
+            api.lastUrl
+        )
     }
 
     @Test
-    fun `delegates mcp and transaction writes with explicit transport contracts`() = runBlocking {
+    fun `delegates transaction writes with explicit transport contracts`() = runBlocking {
         val api = FakeIrohaToriiApi()
         val client = RetrofitIrohaToriiClient(api)
 
         client.submitTransaction(byteArrayOf(1, 2, 3))
         assertEquals("https://taira.sora.org/v1/pipeline/transactions", api.lastUrl)
         assertEquals("application/x-norito", api.lastRequestBody?.contentType().toString())
-
-        client.mcpJsonRpc(IrohaToriiRoutes.mcpJsonRpcRequest("tools/list", "1"))
-        assertEquals("https://taira.sora.org/v1/mcp", api.lastUrl)
-        assertEquals("tools/list", api.lastJsonRpcRequest?.method)
     }
 
     @Test
-    fun `routes nexus through registry torii url while allowing runtime override`() {
+    fun `routes nexus history through registry torii url while allowing runtime override`() {
         val api = FakeIrohaToriiApi()
         val client = RetrofitIrohaToriiClient(api)
 
         assertFalse(UniversalWalletRegistry.nexus.enabledByDefault)
 
         runBlocking {
-            client.mcpCapabilities(network = UniversalWalletRegistry.nexus)
+            client.accountHistory(NEXUS_ACCOUNT, limit = 1, network = UniversalWalletRegistry.nexus)
         }
-        assertEquals("https://minamoto.sora.org/v1/mcp", api.lastUrl)
+        assertEquals("https://minamoto.sora.org/v1/accounts/$ENCODED_NEXUS_ACCOUNT/history?limit=1", api.lastUrl)
 
         runBlocking {
-            client.mcpCapabilities(
-                network = UniversalWalletRegistry.nexus,
-                baseUrl = "https://nexus.example"
+            client.accountHistory(
+                accountId = NEXUS_ACCOUNT,
+                baseUrl = "https://nexus.example",
+                network = UniversalWalletRegistry.nexus
             )
         }
-        assertEquals("https://nexus.example/v1/mcp", api.lastUrl)
+        assertEquals("https://nexus.example/v1/accounts/$ENCODED_NEXUS_ACCOUNT/history", api.lastUrl)
     }
 
     @Test
@@ -109,6 +113,16 @@ class IrohaToriiClientTest {
         assertThrows(IrohaAddressException::class.java) {
             runBlocking {
                 client.account(NEXUS_ACCOUNT)
+            }
+        }
+        assertThrows(IrohaAddressException::class.java) {
+            runBlocking {
+                client.accountHistory(NEXUS_ACCOUNT)
+            }
+        }
+        assertThrows(IrohaAddressException::class.java) {
+            runBlocking {
+                client.accountHistory(ACCOUNT, network = UniversalWalletRegistry.nexus)
             }
         }
         assertEquals(null, api.lastUrl)
@@ -123,44 +137,10 @@ class IrohaToriiClientTest {
         assertEquals("https://nexus.example/v1/accounts/$ENCODED_NEXUS_ACCOUNT", api.lastUrl)
     }
 
-    @Test
-    fun `rejects unbound or ambiguous mcp responses`() {
-        val request = IrohaToriiRoutes.mcpJsonRpcRequest("tools/list", "expected")
-        val result = mapOf("tools" to emptyList<String>())
-        val error = IrohaMcpJsonRpcError(-32000, "unavailable")
-        val invalid = listOf(
-            IrohaMcpJsonRpcResponse(jsonrpc = "1.0", id = request.id, result = result),
-            IrohaMcpJsonRpcResponse(id = "stale", result = result),
-            IrohaMcpJsonRpcResponse(result = result),
-            IrohaMcpJsonRpcResponse(id = request.id),
-            IrohaMcpJsonRpcResponse(id = request.id, result = result, error = error)
-        )
-        invalid.forEach { response ->
-            val client = RetrofitIrohaToriiClient(FakeIrohaToriiApi().apply { mcpResponse = response })
-            assertThrows(IllegalStateException::class.java) { runBlocking { client.mcpJsonRpc(request) } }
-        }
-    }
-
-    @Test
-    fun `preserves bound mcp result and server error responses`() = runBlocking {
-        val request = IrohaToriiRoutes.mcpJsonRpcRequest("tools/list", "expected")
-        val valid = listOf(
-            IrohaMcpJsonRpcResponse(id = request.id, result = mapOf("tools" to emptyList<String>())),
-            IrohaMcpJsonRpcResponse(id = request.id, error = IrohaMcpJsonRpcError(-32000, "unavailable"))
-        )
-        valid.forEach { response ->
-            val client = RetrofitIrohaToriiClient(FakeIrohaToriiApi().apply { mcpResponse = response })
-            assertEquals(response, client.mcpJsonRpc(request))
-        }
-    }
-
     private class FakeIrohaToriiApi : IrohaToriiApi {
-        var mcpResponse: IrohaMcpJsonRpcResponse? = null
         var lastUrl: String? = null
             private set
         var lastRequestBody: RequestBody? = null
-            private set
-        var lastJsonRpcRequest: IrohaMcpJsonRpcRequest? = null
             private set
 
         override suspend fun health(url: String): String {
@@ -171,9 +151,7 @@ class IrohaToriiClientTest {
         override suspend fun accounts(url: String): IrohaAccountListResponse {
             lastUrl = url
             return IrohaAccountListResponse(
-                items = listOf(IrohaAccountListItem(id = ACCOUNT)),
-                hasMore = false,
-                countMode = "bounded"
+                items = listOf(IrohaAccountListItem(id = ACCOUNT))
             )
         }
 
@@ -192,18 +170,19 @@ class IrohaToriiClientTest {
                         quantity = "1",
                         scope = "global"
                     )
-                ),
-                hasMore = false,
-                countMode = "bounded"
+                )
             )
+        }
+
+        override suspend fun accountHistory(url: String): IrohaAccountHistoryPage {
+            lastUrl = url
+            return IrohaAccountHistoryPage()
         }
 
         override suspend fun assetDefinitions(url: String): IrohaAssetDefinitionListResponse {
             lastUrl = url
             return IrohaAssetDefinitionListResponse(
-                items = emptyList(),
-                hasMore = false,
-                countMode = "bounded"
+                items = emptyList()
             )
         }
 
@@ -231,20 +210,6 @@ class IrohaToriiClientTest {
                     submittedAtHeight = 1L
                 )
             )
-        }
-
-        override suspend fun mcpCapabilities(url: String): Map<String, Any?> {
-            lastUrl = url
-            return mapOf("ok" to true)
-        }
-
-        override suspend fun mcpJsonRpc(
-            url: String,
-            body: IrohaMcpJsonRpcRequest
-        ): IrohaMcpJsonRpcResponse {
-            lastUrl = url
-            lastJsonRpcRequest = body
-            return mcpResponse ?: IrohaMcpJsonRpcResponse(id = body.id, result = mapOf("ok" to true))
         }
     }
 

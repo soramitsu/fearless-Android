@@ -24,8 +24,8 @@ procedure.
   absent from Android artifacts.
 - Confirm `versioning/version.properties` contains an unused Play version code
   greater than every active, draft, and historical testing-track artifact.
-  Build 231 is reserved because production is already 229 and internal
-  builds used 230.
+  Production is 229, internal builds used 230 and Open testing holds 231, so
+  4.3.0 uses 232.
 - Run `bash scripts/test-android-release-signed-tag-policy.sh`,
   `bash scripts/test-android-release-governance.sh`,
   `bash scripts/test-android-play-release-guards.sh`,
@@ -81,23 +81,25 @@ procedure.
   source-to-policy fixture synthesizer must also report exactly 1 positive and
   15 bounded negative/adversarial cases, including the exact source, output,
   entry-count, per-entry, and aggregate-expansion limits. Confirm
-  the release build-log suite reports 3 positive and 30 adversarial cases and rejects
-  cached, skipped, or warning-bearing R8 evidence and a missing or blank
-  `WEB_CLIENT_ID_RELEASE`. Confirm the Google Drive web-client suite reports
-  3 positive and 27 adversarial cases (see Google Drive Backup below).
+  the release build-log suite reports 3 positive and 26 adversarial cases and rejects
+  cached, skipped, or warning-bearing R8 evidence (4.3.2 dropped its
+  `WEB_CLIENT_ID_RELEASE` warning check: the build no longer reads that secret).
+  Confirm the Google Drive OAuth client suite reports 3 positive and 27
+  adversarial cases (see Google Drive Backup below).
   Confirm Gradle dependency provenance is strict: the wrapper distribution
   checksum, verification metadata plus its digest, the root buildscript lock,
   and the production release lockfile must all match, while CI `mavenLocal()`
   and verification/lock rewrite bypasses fail closed. Its fixture suite must
-  report exactly 2 positive and 65 adversarial cases. Confirm the signed-tag
+  report exactly 2 positive and 66 adversarial cases. Confirm the signed-tag
   suite reports exactly 1 positive and 13 negative cases, including combined
   repository-variable, tagger, public-key, and signer replacement.
   Confirm the AAB contract derives package/version and the embedded
   `jp.co.soramitsu.fearless.RELEASE_COMMIT` value from the bundle itself,
-  rejects a source-SHA mismatch, and verifies the exact current 16-file native
-  inventory and checksums. Unexpected libraries, duplicate entries, and
-  substitutions of sodium, sr25519, SQLCipher, or AndroidX path binaries must
-  fail.
+  rejects a source-SHA mismatch, and verifies the exact current 8-file native
+  inventory and checksums (the sr25519 ones equal
+  `runtime-utils/native/sr25519/reproducible-build.json`). Unexpected libraries,
+  duplicate entries, and substitutions of sr25519 or AndroidX path binaries must
+  fail. libsodium and SQLCipher left in 4.3.2.
   Do not accept Play’s broad-media “continue anyway” override: the version-code
   231 release and merged manifests must contain neither `READ_MEDIA_IMAGES` nor
   `READ_MEDIA_VIDEO` and must supersede legacy open-test builds 221/109.
@@ -119,6 +121,10 @@ procedure.
 - Run `python3 scripts/test-owned-remote-config.py` and
   `python3 scripts/verify-owned-remote-config.py`; publish the reviewed config and
   asset closure to public master before shipping the new consumer URLs.
+- After any `remote-config/` change, sign the manifest with
+  `python3 scripts/sign-remote-config.py sign` and run
+  `python3 scripts/test-remote-config-signing.py` (docs/security/remote-config-signing.md).
+  Publish the signed manifest on master before releasing a build that verifies it.
 - Run `bash scripts/test-public-dependency-upstream-delta-export.sh` and export the
   ownership/provenance receipt with `scripts/export-public-dependency-upstream-delta.sh --output build/reports/public-dependency-upstream-delta`.
 - For release artifact hardening, run
@@ -244,6 +250,14 @@ procedure.
   farming and Bitcoin/Solana sends stay on for every upgrader. Never publish a
   veto preemptively. On the release build, smoke-test a small funded SORA swap,
   adding and removing liquidity, and a Demeter deposit and withdrawal.
+- Solana uses public JSON-RPC nodes unless the optional repository secret
+  `FL_ANDROID_SOLANA_RPC_URL` names an `https` mainnet provider for the build
+  (asked first; the key goes in the URL path or query, and a malformed value
+  fails the build). Without one, token balances come from
+  api.mainnet-beta.solana.com or, when it is busy, public.rpc.solanavibestation.com
+  (publicnode refuses token-account reads).
+  Run a small funded SOL and SPL canary on the release build; see
+  `docs/solana-send.md`.
 - From the workspace root, run
   `bash scripts/audit-passkey-backup-prerequisites.sh` and confirm
   `config/passkey-backup-production.json` still matches Android passkey code,
@@ -331,61 +345,34 @@ OAuth clients, project `621183184145` (`manticora-37173`). A release that signs
 users in through another project, or cannot sign in at all, makes those
 backups look gone.
 
-- **Secret.** `WEB_CLIENT_ID_RELEASE`, an `android-release-build` environment
-  secret consumed only by "Build exact unsigned release AAB" (put it in
-  `local.properties` for a local release build). Gradle compiles it into
-  `BuildConfig.WEB_CLIENT_ID`, which `AccountFeatureModule` passes to
-  `BackupService.create`. Drive does not read `google-services.json`, so the
-  Firebase overlay does not configure it.
-- **Value.** The web client compiled into every official release from 2.4.1
-  through 4.2.0: `621183184145-<32 characters>.apps.googleusercontent.com`,
-  whose SHA-256 is pinned in
-  `.github/release/android-google-drive-web-client-sha256.txt`. It is **not**
-  the `client_type: 3` client in 4.2.0's `google-services.json`, which is a
-  different client. (2.3.1 compiled the Android client of the same project, so
-  it used the same Drive folder.) To check a value without printing it, run
-  `python3 scripts/verify-android-google-drive-web-client.py <artifact>`
-  against the official `v4.2.0` GitHub APK (SHA-256
-  `3d4a9058f31ca6697275435bbaf788528d8ac37c4043f8ec18c12e77503f6bf7`, client
-  in `classes2.dex`) and against the candidate AAB or APK. The script prints
-  only the project number and the digest.
-- **Automatic gates.** `scripts/verify-android-release-build-log.sh` fails
-  when Gradle warns that `WEB_CLIENT_ID_RELEASE` is not defined or is blank.
-  `scripts/secrets.gradle` warns on blank values because GitHub passes an
-  unset secret as an empty variable. `scripts/verify-android-google-drive-web-client.py`
-  then checks the unsigned and the signed AAB. Their dex files must contain
-  exactly one Google OAuth client id, and it must match the pin. A changed pin
-  needs a reviewed pull request that moves Drive backup to another client in
-  the same Cloud project.
-- A build without the client does not crash. `BackupService.isAvailable` is
-  false, Welcome explains this and opens phrase or JSON import, and the backup
-  screens hide the Google option. This fallback is not an acceptable Play
-  release state.
-- **Signing certificates.** Google grants Drive access only to an Android
-  OAuth client registered in project `621183184145` for the package and the
-  SHA-1 of the signing certificate. 4.2.0's `google-services.json` registers
-  `jp.co.soramitsu.fearless` with SHA-1
-  `B6:EE:8D:19:CB:CE:5F:03:0A:14:67:29:3D:A6:43:58:A7:7F:88:55`. That is not the
-  upload certificate (SHA-1
-  `EA:92:30:9B:DE:37:1A:AB:43:0D:1B:E5:E8:F5:3C:8E:AE:FF:36:EC`), which signs
-  the workflow AAB and the 4.2.0 GitHub release APK, so it should be the Play
-  app-signing certificate. Confirm this under Play Console, Test and release,
-  App integrity, App signing. A build signed with any unregistered certificate
-  gets `DEVELOPER_ERROR` (status 10) from Google sign-in and shows "Google
-  Drive backup isn't available".
-  - Qualify Drive on a build installed from a Play testing track (internal
-    testing is enough), which Play signs with the app-signing key.
-  - Sideloaded upload-key builds, GitHub release APKs and IAS builds cannot
-    qualify Drive. IAS builds also ship the public placeholder and no web
-    client. To test such a build, register its certificate SHA-1 as an
-    additional Android OAuth client in project `621183184145`; that is a
-    Google Cloud console action for the team.
-  - A debug build (`jp.co.soramitsu.fearless.debug`) works when the SHA-1 of
-    its debug keystore is one of the five registered for that package
-    (`keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android`).
-    It needs no `WEB_CLIENT_ID_DEBUG`, because debuggable builds stay available
-    and request no ID token when the id is blank. It reads and writes the real
-    Drive folder of the signed-in account, so use a test Google account.
+- **Sign-in (4.3.2).** The app signs in with its own OAuth 2.0 authorization-code
+  flow with PKCE in the user's browser and calls the Drive v3 REST API itself;
+  Google Play services, `google-services.json` and signing-certificate
+  registration play no part. The refresh token is kept in the encrypted
+  preferences; sign-out forgets it on the device without revoking the grant
+  that iOS and the extension share.
+- **Client.** `GOOGLE_DRIVE_OAUTH_CLIENT_ID` (`scripts/secrets.gradle`,
+  optional). Unset means the project's public iOS client
+  `621183184145-jla1mrbl3soobt85btt2nebon8s3d30b.apps.googleusercontent.com`;
+  Google accepts its `com.googleusercontent.apps.621183184145-jla1mrbl3soobt85btt2nebon8s3d30b:/oauth2redirect`
+  redirect from Android when the request carries PKCE. The build refuses a
+  client of any other project. Gradle compiles it into
+  `BuildConfig.GOOGLE_DRIVE_OAUTH_CLIENT_ID` and derives the redirect scheme
+  of the exported `GoogleDriveSignInRedirectActivity` from it. Installed-app
+  client ids are public and have no secret. `WEB_CLIENT_ID_RELEASE` and
+  `WEB_CLIENT_ID_DEBUG` are no longer read.
+- **Automatic gates.** `scripts/verify-android-google-drive-web-client.py`
+  checks the unsigned and the signed AAB: their dex files must contain exactly
+  one Google OAuth client id, and its SHA-256 must match
+  `.github/release/android-google-drive-web-client-sha256.txt` (the default
+  client). `scripts/verify-android-aab-identity.sh` requires the redirect
+  receiver with exactly that scheme. Moving to an Android client with custom
+  URI schemes in the same project changes the secret, the pin and the AAB
+  identity scheme in one reviewed pull request.
+- **Qualification.** Any build can sign in, including sideloaded, IAS and debug
+  builds, because no certificate is registered. A build reads and writes the
+  real Drive folder of the signed-in account, so test with a test Google
+  account.
 
 ### Manual Drive Acceptance Protocol
 
@@ -395,8 +382,9 @@ disposable device with no funds. Write down every recovery phrase. Never
 delete a local wallet or a Drive backup whose recovery phrase is not written
 down.
 
-1. Install Play 4.2.0 (version code 229). Create or import these wallets and
-   back each up to Google Drive with its own backup password:
+1. Install the Play production build users have (4.3.1, version code 233; repeat
+   once from 4.2.0, 229). Create or import these wallets and back each up to
+   Google Drive with its own backup password:
    - sr25519 mnemonic, no derivation path
    - sr25519 mnemonic with `//polkadot/0`
    - ed25519 mnemonic
@@ -408,7 +396,9 @@ down.
    Substrate+Ethereum wallet and one Substrate-only wallet to Google Drive, and
    record their addresses.
 3. Upgrade the device in place to the candidate through the testing track; do
-   not uninstall. The account stays signed in. "Import from Google" lists
+   not uninstall. The Play services sign-in is not carried over: the first
+   Drive action opens Google's page in the browser once. After signing in with
+   the same account, "Import from Google" lists
    every app and extension backup exactly once, and the two extension backups
    say "Backed up from the browser extension" in the list and on the password
    screen. On a second device, import each backup and confirm the addresses
@@ -423,16 +413,21 @@ down.
    - Removing Fearless's access under myaccount.google.com, Security,
      third-party connections, then opening the backup list, shows Google's
      consent screen, and the list loads after you allow access.
-   - Cancelling the Google account picker leaves "Backup to Google" available
-     to try again.
+   - Leaving Google's sign-in page with Back leaves "Backup to Google"
+     available to try again.
+   - With "Don't keep activities" on (developer options), start a sign-in,
+     finish it in the browser, and confirm the app still completes it and
+     shows the backup list.
+   - Backing up an existing wallet asks for the PIN first, and a new backup
+     password that breaks the rule shown under the field is refused.
    - "Import from Google" with a Google account that holds no Fearless
      backups shows "No backups in this Google account". "Use another Google
      account" opens the account picker and lists the test account's backups,
      and "Import another way" opens recovery phrase import.
 
-GoogleSignIn is deprecated but still works in play-services-auth 21.6.0.
-Moving to `Identity.getAuthorizationClient` is planned for a later release
-(`docs/roadmap.md`).
+Drive sign-in needs a browser that can open https links; on a device without
+one the app treats Google backup as unavailable, as it did without Play
+services.
 
 ## Internal App Sharing Smoke Evidence
 
@@ -446,8 +441,8 @@ manual workflow run.
 > The IAS file is debug-signed and Google re-signs it. It cannot upgrade a
 > Play-installed Fearless Wallet. Never uninstall a funded wallet to install
 > IAS. Never claim IAS validates production database migration or production
-> release signing. The public placeholder also cannot qualify live Firebase,
-> Google OAuth/sign-in, or Google Drive/passkey backup and restore.
+> release signing, or passkey backup (compiled off). Drive sign-in works in
+> IAS builds; use a test Google account.
 
 - Treat every pull-request workflow run as non-distributable validation only.
   It must create no handoff and upload no artifact. The only eligible handoff
@@ -477,13 +472,13 @@ manual workflow run.
   deletes every unqualified one; the scheduled janitor removes stale pending
   artifacts.
 - Run `bash scripts/test-android-internal-app-sharing.sh` and require exactly 8
-  positive, 39 behavioral negative, and 645 static adversarial assertions.
+  positive, 37 behavioral negative, and 645 static adversarial assertions.
   Its bounded Gradle coverage-cleanup prerequisite must independently report
   exactly 4 positive and 12 negative/adversarial cases.
-  Require the dependency-provenance suite to report exactly 2 positive and 65
+  Require the dependency-provenance suite to report exactly 2 positive and 66
   adversarial cases. The workflow's Linux public-certificate AAB suite must
   report 7 positive and 78 adversarial artifacts. Local AAB expectations are
-  7/76 for macOS certificate mode, 7/84 for macOS keystore mode, and 7/86 for
+  7/76 for macOS certificate mode, 7/82 for macOS keystore mode, and 7/84 for
   Linux keystore mode. A changed total requires review.
 - Confirm the artifact build requested exactly
   `:app:bundleInternalAppSharing`, with `CI=true`, and no additional Gradle
@@ -506,15 +501,14 @@ manual workflow run.
   production upload certificate, and 30-day validity; it must be erased before
   public-certificate-only verification. Confirm the production `release`
   signing configuration was unchanged.
-- Confirm `processInternalAppSharingGoogleServices` had exactly one finalized
-  typed JSON input: the checksum-pinned reviewed `fearless-public` file at
-  `app/src/release/google-services.json`. No bytes may be copied into a variant
-  source set, and `app/src/internalAppSharing` must remain absent before, during,
-  and after success or forced failure. Supported IAS smoke scope is limited to
+- Confirm IAS verification found no `google-services.json` under `app/` and no
+  Google Services task, and that the IAS AAB carries no Firebase resources.
+  `app/src/internalAppSharing` must remain absent before, during, and after
+  success or forced failure. Supported IAS smoke scope is limited to
   install/fresh launch, cold start, onboarding/navigation, local-only flows with
-  disposable test material, and screens independent of the disabled services.
-  Unsupported scope includes live Firebase, Google OAuth/sign-in, Drive/passkey
-  backup or restore, Play upgrade, production migration, and production signing.
+  disposable test material, and screens that need no production service.
+  Unsupported scope includes passkey backup (compiled off), Play upgrade,
+  production migration, and production signing.
 - Treat `scripts/verify-android-internal-app-sharing-aab.sh` as workflow-only,
   under `CI=true` and the source-bound `RELEASE_COMMIT`. It requires the
   checksum-pinned `BUNDLETOOL_JAR` and exact `FEARLESS_UTILS_COMMIT`,
@@ -559,9 +553,8 @@ manual workflow run.
 - Confirm the `Branch Flow` workflow is green for the release PR.
 - Confirm credential-free `release-controls` validated the signed tag, exact
   commit/tree, prior CI, governance, and adversarial suites before either
-  protected stage. Confirm release CI restored only
-  `GOOGLE_SERVICES_RELEASE_JSON_B64` and
-  partner build inputs before the exact CI-only unsigned
+  protected stage. Confirm release CI restored only partner build inputs (no
+  Firebase file since 4.3.2) before the exact CI-only unsigned
   `:app:bundleRelease`. `ANDROID_RELEASE_KEYSTORE_B64` and signing passwords
   must remain absent from that job. A fresh `release-signing` runner must
   download and revalidate the exact unsigned artifact, provenance, source
@@ -583,7 +576,7 @@ manual workflow run.
   one-line OpenSSH Ed25519 public key is base64 encoded in the
   `ANDROID_RELEASE_TAG_SIGNER_PUBLIC_KEY_B64` repository variable, the exact
   master push CI is green, and the workflow-reported AAB signer SHA-256 matches
-  `40:39:10:92:F5:B9:7E:78:2C:65:28:CC:57:1A:DF:5D:BE:DF:E2:D0:50:23:BA:BC:7C:4E:33:9E:58:4A:4A:9A`.
+  `AD:6C:1D:07:BE:5D:FA:8C:53:9E:8C:9B:8B:D4:3D:C1:C6:CF:79:A8:39:82:8B:10:B6:F9:53:AD:57:C1:BD:E8`.
 - Confirm `android-release-build` and `android-release-signing` both deny admin
   bypass, prevent self-review, require protected branches, and use the exact
   sorted User IDs in `ANDROID_RELEASE_BUILD_REVIEWER_IDS` and

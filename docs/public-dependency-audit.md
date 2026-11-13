@@ -12,12 +12,15 @@ needed. Existing Kotlin package names and serialized wallet formats are retained
 | core-foundation, core-ui, core-networking | Existing application-owned APIs, now direct project dependencies |
 | core-chain, core-xcm, core-backup | Existing Android chain, XCM and backup implementation, now direct project dependencies |
 
-The runtime production source is unchanged from the reviewed imports. Gradle
+The runtime production source started from the reviewed imports; since 4.3.2 its
+key-path cryptography runs on BouncyCastle instead of SpongyCastle and EdDSA-Java,
+and every changed file is pinned in the source manifest. Gradle
 configuration is app-native; upstream sample/publishing/Rust Gradle machinery is
 not imported. The owned Rust source, Cargo.lock and 16 KB linker configuration are
 available for intentional rebuilds. The eight existing native binaries and their
-hashes are unchanged. The existing upstream Polkaj SCALE JAR is imported byte for
-byte; binary provenance covers ten artifacts including it and the Gradle wrapper.
+hashes are unchanged. The upstream Polkaj SCALE JAR was replaced in 4.3.2 by the
+polkaj-scale 0.2.3 source it was built from (see `NOTICE`); binary provenance
+covers nine artifacts including the Gradle wrapper.
 Third-party Maven dependencies retain dependency locks and verification metadata.
 The optional local staged Iroha developer path remains separately guarded; CI and
 release builds reject local repository resolution. Private Nexus is removed.

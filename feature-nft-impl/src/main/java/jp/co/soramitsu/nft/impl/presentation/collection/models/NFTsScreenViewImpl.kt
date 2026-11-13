@@ -68,7 +68,9 @@ internal sealed interface ScreenModel {
                         add(SectionHeader(firstToken))
                     }
 
-                    tokens.map { token ->
+                    // The grid keys a tile by its token id, and a repeated key closes the app. A provider page can
+                    // list one token twice, so each id gets one tile.
+                    tokens.distinctBy { it.tokenId }.map { token ->
                         ItemModel(
                             token = token,
                             screenLayout = ScreenLayout.Grid,
@@ -85,12 +87,12 @@ private class ScreenHeader(
     collection: NFTCollection.Loaded.Result.Collection
 ) : NFTsScreenView.ScreenHeader {
 
-    override val key: Any = R.drawable.animated_bird
+    override val key: Any = R.drawable.drawable_fearless_bird
 
     override val thumbnail: Loadable<ImageModel> = Loadable.ReadyToRender(
         ImageModel.UrlWithFallbackOption(
             collection.imageUrl,
-            ImageModel.Gif(R.drawable.animated_bird)
+            ImageModel.ResId(R.drawable.drawable_fearless_bird)
         )
     )
 

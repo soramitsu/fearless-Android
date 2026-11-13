@@ -1,9 +1,9 @@
 package jp.co.soramitsu.backup
 
-import android.content.Context
 import android.content.Intent
-import android.content.pm.ApplicationInfo
 import androidx.activity.result.ActivityResultLauncher
+import jp.co.soramitsu.backup.data.GoogleDriveApi
+import jp.co.soramitsu.backup.data.GoogleDriveFiles
 import jp.co.soramitsu.backup.data.GoogleDriveStorage
 import jp.co.soramitsu.backup.data.InMemoryBackupFileIndex
 import jp.co.soramitsu.backup.data.WebBackupEntry
@@ -26,6 +26,10 @@ import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.backup.domain.models.DecryptedBackupAccount
 import jp.co.soramitsu.backup.domain.models.FileMeta
 import jp.co.soramitsu.backup.domain.models.Json
+import jp.co.soramitsu.backup.oauth.GoogleDriveAuthorization
+import jp.co.soramitsu.backup.oauth.GoogleOAuthPrompt
+import jp.co.soramitsu.backup.passkey.GoogleDriveHttpTransport
+import jp.co.soramitsu.core.crypto.SubstratePasswordRule
 import jp.co.soramitsu.core.models.CryptoType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -43,7 +47,7 @@ class BackupService internal constructor(
     private val backupAccountCrypto: BackupAccountCrypto,
     private val secretVerifier: BackupSecretVerifier,
     private val fileIndex: InMemoryBackupFileIndex,
-    /** False when the build has no Google OAuth web client, so Drive sign-in cannot succeed. */
+    /** False when this build cannot sign in to Google, so Drive backup cannot be used. */
     val isAvailable: Boolean
 ) {
 
@@ -52,6 +56,9 @@ class BackupService internal constructor(
 
         return storage.signIn(launcher)
     }
+
+    /** Whether Google is signed in on this device. Unlike [authorize], it never opens the sign-in screen. */
+    suspend fun hasSession(): Boolean = isAvailable && storage.hasSession()
 
     /**
      * Uploads a new backup file. Refuses, without uploading anything, a phrase or seed that does not
@@ -239,6 +246,17 @@ class BackupService internal constructor(
     }
 
     /**
+     * How a backup's phrase must read its path's password to restore the account the backup is filed
+     * under: a wallet imported with an earlier browser extension's account keeps that rule. Null when
+     * the phrase restores no account or the address cannot be checked.
+     */
+    suspend fun restoringSubstratePasswordRule(account: DecryptedBackupAccount): SubstratePasswordRule? {
+        return withContext(Dispatchers.Default) {
+            secretVerifier.restoringSubstratePasswordRule(account)
+        }
+    }
+
+    /**
      * Deletes the app backups [fileIds] filed under [address]: the copies the user confirmed. Drive
      * deletes skip the trash, so files under another address, copies uploaded since and extension
      * backups are never touched.
@@ -291,16 +309,27 @@ class BackupService internal constructor(
     }
 
     companion object {
-        fun create(context: Context, token: String): BackupService {
-            val isDebuggable = context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
-
+        /**
+         * Drive backup over the app's own OAuth 2.0 client and Drive v3 REST calls. [signInIntent] opens
+         * the screen that runs Google's sign-in page in the browser and stores the session in
+         * [authorization]; it is also used to ask again for Drive access the user turned off.
+         */
+        fun create(
+            authorization: GoogleDriveAuthorization,
+            transport: GoogleDriveHttpTransport,
+            signInIntent: (GoogleOAuthPrompt) -> Intent?
+        ): BackupService {
+            val files = GoogleDriveFiles(GoogleDriveApi(transport, authorization)) {
+                signInIntent(GoogleOAuthPrompt.CONSENT)
+            }
             return BackupService(
-                storage = GoogleDriveStorage(context, token),
+                storage = GoogleDriveStorage(authorization, files, signInIntent),
                 accountJsonMapper = AccountJsonMapper(),
                 backupAccountCrypto = BackupAccountCrypto(),
                 secretVerifier = BackupSecretVerifier(),
                 fileIndex = InMemoryBackupFileIndex(),
-                isAvailable = token.isNotBlank() || isDebuggable
+                // GoogleOAuthConfig only exists for a well-formed client of the backup project.
+                isAvailable = true
             )
         }
     }

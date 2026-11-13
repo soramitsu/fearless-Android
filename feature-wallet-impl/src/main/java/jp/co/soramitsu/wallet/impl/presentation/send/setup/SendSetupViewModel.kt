@@ -49,6 +49,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.validation.ExistentialDepositCrossedWarning
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.utils.isValidAddress
+import jp.co.soramitsu.runtime.ext.isValidRecipientAddress
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -244,7 +245,7 @@ class SendSetupViewModel @Inject constructor(
 
     private val isInputAddressValidFlow =
         combine(addressInputTrimmedFlow, selectedChain.filterNotNull()) { addressInput, chain ->
-            chain.isValidAddress(addressInput)
+            chain.isValidRecipientAddress(addressInput)
         }.stateIn(this, SharingStarted.Eagerly, false)
 
     private val chainSelectorStateFlow =
@@ -1010,21 +1011,15 @@ class SendSetupViewModel @Inject constructor(
                 return@launch
             }
 
-            val cbdcQrContent = walletInteractor.tryReadCBDCAddressFormat(content)
-            if (cbdcQrContent != null) {
-                router.back()
-                router.openCBDCSend(cbdcQrInfo = cbdcQrContent)
+            val soraQrContent = walletInteractor.tryReadSoraFormat(content)
+            if (soraQrContent != null) {
+                handleSoraQr(soraQrContent)
             } else {
-                val soraQrContent = walletInteractor.tryReadSoraFormat(content)
-                if (soraQrContent != null) {
-                    handleSoraQr(soraQrContent)
+                val addressChains = getAccountSupportedChains(content)
+                if (addressChains.isNotEmpty()) {
+                    fillQrContentToAddressField(content)
                 } else {
-                    val addressChains = getAccountSupportedChains(content)
-                    if (addressChains.isNotEmpty()) {
-                        fillQrContentToAddressField(content)
-                    } else {
-                        showInvalidAddressError()
-                    }
+                    showInvalidAddressError()
                 }
             }
         }
@@ -1042,7 +1037,7 @@ class SendSetupViewModel @Inject constructor(
             }
         }
         val addressChains = accountSupportedChains.filter {
-            runCatching { it.isValidAddress(address) }.getOrNull() == true
+            runCatching { it.isValidRecipientAddress(address) }.getOrNull() == true
         }
         return addressChains
     }

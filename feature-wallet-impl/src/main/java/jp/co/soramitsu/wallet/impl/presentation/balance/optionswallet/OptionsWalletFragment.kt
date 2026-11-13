@@ -14,6 +14,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.wallet.impl.presentation.balance.list.UniversalPasswordNoticeSheet
+import jp.co.soramitsu.wallet.impl.presentation.balance.list.UniversalPasswordNoticeState
 
 @AndroidEntryPoint
 class OptionsWalletFragment : BaseComposeBottomSheetDialogFragment<OptionsWalletViewModel>() {
@@ -42,6 +44,23 @@ class OptionsWalletFragment : BaseComposeBottomSheetDialogFragment<OptionsWallet
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.deleteWalletConfirmation.observeEvent(::showDeleteWalletConfirmation)
+        viewModel.showUniversalPasswordNotice.observeEvent(::showUniversalPasswordNotice)
+        viewModel.universalPasswordSwitchResult.observeEvent { universalPasswordNotice?.showResult(it.rows) }
+    }
+
+    private var universalPasswordNotice: UniversalPasswordNoticeSheet? = null
+
+    private fun showUniversalPasswordNotice(state: UniversalPasswordNoticeState) {
+        if (universalPasswordNotice?.isShowing == true) return
+        universalPasswordNotice = UniversalPasswordNoticeSheet(
+            requireContext(),
+            state.rows,
+            onSwitch = viewModel::onUniversalPasswordSwitch,
+            onClosed = {
+                viewModel.onUniversalPasswordNoticeClosed()
+                universalPasswordNotice = null
+            }
+        ).also { it.show() }
     }
 
     private fun showDeleteWalletConfirmation(metaId: Long) {

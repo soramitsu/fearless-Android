@@ -21,12 +21,18 @@ import jp.co.soramitsu.feature_wallet_impl.R
 @Composable
 fun NativeSendRecoveryDialog(state: NativeSendRecoveryUiState, close: () -> Unit, check: () -> Unit, retry: () -> Unit, explorer: () -> Unit) {
     val pending = state.snapshot.state == PendingWalletSend.State.Pending
+    // A released payment has no record left to check or retry. An unverified release asks the user to check the
+    // explorer, so that action stays.
+    val actionable = state.snapshot.networkAvailable && !state.snapshot.notSent && !state.snapshot.unverified
+    val explorerAvailable = actionable || state.snapshot.networkAvailable && state.snapshot.unverified
     androidx.compose.ui.window.Dialog(onDismissRequest = { if (!state.busy) close() }) {
         androidx.compose.material.Surface(color = backgroundBlack, shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)) {
             Column(Modifier.fillMaxWidth().heightIn(max = (androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp * 0.85f).dp)
                 .verticalScroll(rememberScrollState()).padding(20.dp)) {
                 H3(text = stringResource(R.string.send_recent_payment))
-                B2(text = stringResource(if (!state.snapshot.networkAvailable) R.string.send_pending_network_unavailable else when (state.snapshot.state) {
+                B2(text = stringResource(if (!state.snapshot.networkAvailable) R.string.send_pending_network_unavailable
+                    else if (state.snapshot.unverified) R.string.send_solana_payment_unverified
+                    else if (state.snapshot.notSent) R.string.send_solana_expired_not_sent else when (state.snapshot.state) {
                     PendingWalletSend.State.Pending -> if (state.snapshot.expired) R.string.send_pending_expired else R.string.send_pending_message
                     PendingWalletSend.State.Confirmed -> R.string.send_confirmed_message
                     PendingWalletSend.State.Failed -> R.string.send_failed_message
@@ -47,11 +53,11 @@ fun NativeSendRecoveryDialog(state: NativeSendRecoveryUiState, close: () -> Unit
                 }
                 B2(text = state.snapshot.transactionId, modifier = Modifier.padding(top = 12.dp))
                 state.error?.let { B2(text = it, modifier = Modifier.padding(top = 12.dp)) }
-                if (state.snapshot.networkAvailable) TextButton(onClick = check, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { B2(text = stringResource(R.string.send_check_status)) }
-                if (state.snapshot.networkAvailable && pending && !state.snapshot.expired) TextButton(onClick = retry, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) {
+                if (actionable) TextButton(onClick = check, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { B2(text = stringResource(R.string.send_check_status)) }
+                if (actionable && pending && !state.snapshot.expired) TextButton(onClick = retry, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) {
                     B2(text = stringResource(R.string.send_retry_same_payment))
                 }
-                if (state.snapshot.networkAvailable) TextButton(onClick = explorer, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { B2(text = stringResource(R.string.send_view_explorer)) }
+                if (explorerAvailable) TextButton(onClick = explorer, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { B2(text = stringResource(R.string.send_view_explorer)) }
                 TextButton(onClick = close, enabled = !state.busy, modifier = Modifier.fillMaxWidth()) { B2(text = stringResource(R.string.common_close)) }
             }
         }

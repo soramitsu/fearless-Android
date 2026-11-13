@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.detail.legacy
 
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
@@ -59,6 +60,8 @@ class LegacyCrowdloanFragment : BaseComposeFragment<LegacyCrowdloanViewModel>() 
 
     @Composable
     override fun Background() {
+        // Sun-lit palette: the page light behind this screen (main tabs or the activity root) shows through.
+        if (FwRestyle.paletteEnabled) return
         Box(modifier = Modifier.fillMaxSize()) {
             Image(
                 modifier = Modifier.fillMaxSize(),

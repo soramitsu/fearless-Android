@@ -39,6 +39,7 @@ import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.setupBuyIntegration
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -110,7 +111,11 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         viewModel.showFiatChooser.observeEvent(::showFiatChooser)
         viewModel.showUnsupportedChainAlert.observeEvent { showUnsupportedChainAlert() }
         viewModel.showUpdateSecurityNotice.observeEvent { showUpdateSecurityNotice() }
+        viewModel.showUniversalPasswordNotice.observeEvent(::showUniversalPasswordNotice)
+        viewModel.universalPasswordSwitchResult.observeEvent { universalPasswordNotice?.showResult(it.rows) }
         viewModel.openPlayMarket.observeEvent { openPlayMarket() }
+        // The hero's Buy uses the same provider chooser as asset details.
+        setupBuyIntegration(viewModel)
     }
 
     private fun showFiatChooser(payload: DynamicListBottomSheet.Payload<FiatCurrency>) {
@@ -142,6 +147,21 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
             .callback { viewModel.onUpdateSecurityNoticeClosed() }
             .build()
             .show()
+    }
+
+    private var universalPasswordNotice: UniversalPasswordNoticeSheet? = null
+
+    private fun showUniversalPasswordNotice(state: UniversalPasswordNoticeState) {
+        if (universalPasswordNotice?.isShowing == true) return
+        universalPasswordNotice = UniversalPasswordNoticeSheet(
+            requireContext(),
+            state.rows,
+            onSwitch = { viewModel.onUniversalPasswordSwitch(state.metaId) },
+            onClosed = {
+                viewModel.onUniversalPasswordNoticeClosed(state.metaId)
+                universalPasswordNotice = null
+            }
+        ).also { it.show() }
     }
 
     private fun openPlayMarket() {

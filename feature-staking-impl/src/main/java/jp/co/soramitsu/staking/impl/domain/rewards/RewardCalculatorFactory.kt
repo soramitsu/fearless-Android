@@ -4,6 +4,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.core.models.Asset
+import jp.co.soramitsu.runtime.assethub.AssetHubStaking
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ternoaChainId
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
@@ -16,7 +17,10 @@ import jp.co.soramitsu.staking.impl.domain.error.accountIdNotFound
 import jp.co.soramitsu.staking.impl.scenarios.parachain.StakingParachainScenarioInteractor
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 
 class RewardCalculatorFactory(
@@ -34,12 +38,32 @@ class RewardCalculatorFactory(
         chainId: String,
         calculationTargets: List<RewardCalculationTarget>
     ): ManualRewardCalculator = withContext(Dispatchers.Default) {
-        val totalIssuance = stakingRepository.getTotalIssuance(chainId)
+        val annualRewards = if (AssetHubStaking.isHub(chainId)) {
+            // Estimates are display only: reward history that cannot be read gives no estimate, not a failed screen.
+            runCatching { assetHubAnnualRewards(chainId) }.getOrElse {
+                if (it is CancellationException) throw it
+                BigDecimal.ZERO
+            }
+        } else {
+            null
+        }
+        val totalIssuance = if (annualRewards == null) stakingRepository.getTotalIssuance(chainId) else BigInteger.ONE
 
         ManualRewardCalculator(
             validators = calculationTargets,
-            totalIssuance = totalIssuance
+            totalIssuance = totalIssuance,
+            annualStakerRewards = annualRewards
         )
+    }
+
+    private suspend fun assetHubAnnualRewards(chainId: String): BigDecimal {
+        val era = relayChainRepository.getActiveEraIndex(chainId)
+        val rewards = relayChainRepository.getErasValidatorRewards(chainId)
+            .filterKeys { it < era }.toSortedMap().values.filterNotNull().takeLast(REWARD_HISTORY_ERAS)
+        require(rewards.isNotEmpty()) { "Completed Asset Hub era rewards are unavailable" }
+        val eraMillis = relayChainRepository.sessionLength(chainId) *
+            relayChainRepository.blockCreationTime(chainId) * relayChainRepository.eraLength(chainId)
+        return annualStakingRewards(rewards, eraMillis)
     }
 
     fun createSubquery(): SubqueryRewardCalculator {
@@ -133,8 +157,7 @@ class RewardCalculatorFactory(
         val stakingType = asset.staking
         val chainId = asset.chainId
         val syntheticType = asset.syntheticStakingType()
-        val calculationTargets =
-            getRewardCalculationTargets(asset)
+        val calculationTargets = rewardCalculationTargets(asset)
         return when {
             syntheticType == SyntheticStakingType.SORA -> createSora(asset, calculationTargets)
             syntheticType == SyntheticStakingType.TERNOA -> createTernoa(asset, calculationTargets)
@@ -152,7 +175,7 @@ class RewardCalculatorFactory(
         val chainId = asset.chainId
         val syntheticType = asset.syntheticStakingType()
 
-        val allElectedValidators = getRewardCalculationTargets(asset)
+        val allElectedValidators = rewardCalculationTargets(asset)
 
         return when {
             syntheticType == SyntheticStakingType.SORA -> createSora(
@@ -182,6 +205,17 @@ class RewardCalculatorFactory(
         }
     }
 
+    /**
+     * On an Asset Hub the targets need the Hub's active era, a remote read. Estimates are display only, so a read that
+     * fails gives no targets and a zero estimate, as reward history that cannot be read does; cancellation propagates.
+     */
+    private suspend fun rewardCalculationTargets(asset: Asset): List<RewardCalculationTarget> {
+        if (!AssetHubStaking.isHub(asset.chainId)) return getRewardCalculationTargets(asset)
+        val read = runCatching { getRewardCalculationTargets(asset) }
+        currentCoroutineContext().ensureActive()
+        return read.getOrElse { emptyList() }
+    }
+
     private suspend fun getRewardCalculationTargets(
         asset: Asset,
         validators: List<String>? = null
@@ -209,4 +243,15 @@ class RewardCalculatorFactory(
             )
         }
     }
+}
+
+private const val REWARD_HISTORY_ERAS = 14
+
+/** Observed completed-era budget, annualized using the relay clock; not an inflation forecast. */
+internal fun annualStakingRewards(rewards: List<BigInteger>, eraMillis: BigInteger): BigDecimal {
+    require(rewards.isNotEmpty() && rewards.all { it.signum() >= 0 } && eraMillis.signum() > 0)
+    val annualMillis = 31_536_000_000L.toBigDecimal()
+    return rewards.fold(BigInteger.ZERO, BigInteger::add).toBigDecimal()
+        .multiply(annualMillis)
+        .divide(rewards.size.toBigDecimal().multiply(eraMillis.toBigDecimal()), java.math.MathContext.DECIMAL128)
 }

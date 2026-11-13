@@ -21,6 +21,8 @@ class QrCodeGenerator(
     companion object {
         private const val RECEIVE_QR_SCALE_SIZE = 1024
         private const val PADDING_SIZE = 2
+        private const val LOGO_SIZE = 208
+        private const val LOGO_BACKDROP_SIZE = 232
     }
 
     suspend fun generateQrBitmap(input: String): Bitmap {
@@ -32,13 +34,15 @@ class QrCodeGenerator(
             val width = byteMatrix.width + PADDING_SIZE
             val height = byteMatrix.height + PADDING_SIZE
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            // The round brand badge sits in a 2:1 slot; its round quiet zone covers less of the code
+            // than the former 430x220 plate, well inside what error correction level H restores.
             val overlayBitmap = resourceManager.getDrawable(R.drawable.ic_qr_code_logo).toBitmap(
-                height = 200,
-                width = 400
+                height = LOGO_SIZE,
+                width = LOGO_SIZE * 2
             )
-            val overlayBitmapBackground = resourceManager.getDrawable(R.drawable.bg_corner_white_overlay).toBitmap(
-                height = 220,
-                width = 430
+            val overlayBitmapBackground = resourceManager.getDrawable(R.drawable.fw_qr_logo_backdrop).toBitmap(
+                height = LOGO_BACKDROP_SIZE,
+                width = LOGO_BACKDROP_SIZE
             )
             for (y in 0 until height) {
                 for (x in 0 until width) {

@@ -2,7 +2,9 @@ package jp.co.soramitsu.common.data.secrets.v3
 
 import jp.co.soramitsu.common.data.secrets.WalletSecretScalePreflight
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
+import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore
 import jp.co.soramitsu.common.data.storage.encrypt.WalletPublicIdentityIntegrityException
+import jp.co.soramitsu.common.data.storage.encrypt.WalletTonRootReplacementMutex
 import jp.co.soramitsu.common.data.storage.encrypt.readValidatedWalletSecretOrQuarantine
 import jp.co.soramitsu.common.data.storage.encrypt.readWalletSecretOrQuarantine
 import jp.co.soramitsu.common.utils.invoke
@@ -11,6 +13,7 @@ import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.Schema
 import jp.co.soramitsu.fearless_utils.scale.byteArray
 import jp.co.soramitsu.fearless_utils.scale.toHexString
+import kotlinx.coroutines.sync.withLock
 
 private const val TON_SECRETS = "TON_SECRETS"
 
@@ -48,11 +51,12 @@ class TonSecretStore internal constructor(
      */
     fun get(
         metaId: Long,
-        expectedPublicKey: ByteArray?
+        expectedPublicKey: ByteArray?,
+        quarantine: Boolean = true
     ): EncodableStruct<TonSecrets>? {
         return encryptedPreferences.readValidatedWalletSecretOrQuarantine(
             activeSecretKey = activeKey(metaId),
-            isLocalCorruption = { it is WalletRootSecretCorruptionException }
+            isLocalCorruption = { quarantine && isLocalCorruption(it) }
         ) { encoded ->
             val publicKey = expectedPublicKey ?: throw WalletPublicIdentityIntegrityException(
                 "An active TON secret has no durable public key"
@@ -68,23 +72,27 @@ class TonSecretStore internal constructor(
 
     /**
      * Like [get], plus whether the stored phrase re-derives the keypair. Only
-     * a signing-integrity failure quarantines the secret.
+     * a signing-integrity failure quarantines the secret. A password wallet's
+     * universal TON key re-derives only with its [universalPassphrases].
      */
     fun getWithAssessment(
         metaId: Long,
-        expectedPublicKey: ByteArray?
+        expectedPublicKey: ByteArray?,
+        universalPassphrases: List<String> = emptyList(),
+        quarantine: Boolean = true
     ): Pair<EncodableStruct<TonSecrets>, RecoveryAssessment>? {
         return encryptedPreferences.readValidatedWalletSecretOrQuarantine(
             activeSecretKey = activeKey(metaId),
-            isLocalCorruption = { it is WalletRootSecretCorruptionException }
+            isLocalCorruption = { quarantine && isLocalCorruption(it) }
         ) { encoded ->
             val publicKey = expectedPublicKey ?: throw WalletPublicIdentityIntegrityException(
                 "An active TON secret has no durable public key"
             )
-            val validated = walletRootSecretValidation.validateTon(
-                encoded = encoded,
-                expectedPublicKey = publicKey
-            )
+            val validated = if (universalPassphrases.isEmpty()) {
+                walletRootSecretValidation.validateTon(encoded = encoded, expectedPublicKey = publicKey)
+            } else {
+                walletRootSecretValidation.validateTon(encoded, publicKey, universalPassphrases)
+            }
             WalletSecretScalePreflight.requireTonV3(validated.canonical)
             TonSecrets.read(validated.canonical) to validated.assessment
         }
@@ -102,14 +110,40 @@ class TonSecretStore internal constructor(
      */
     fun getWithVerifiedRecovery(
         metaId: Long,
-        expectedPublicKey: ByteArray?
+        expectedPublicKey: ByteArray?,
+        universalPassphrases: List<String> = emptyList(),
+        quarantine: Boolean = true
     ): EncodableStruct<TonSecrets>? {
         val (secrets, assessment) = getWithAssessment(
             metaId = metaId,
-            expectedPublicKey = expectedPublicKey
+            expectedPublicKey = expectedPublicKey,
+            universalPassphrases = universalPassphrases,
+            quarantine = quarantine
         ) ?: return null
         return secrets.takeUnless { assessment is RecoveryAssessment.Unverified }
     }
+
+    /**
+     * [read] against a durable identity the caller read before the secret. A REPLACE_TON can
+     * commit in between, so a mismatch quarantines nothing at first: it is read again under
+     * [WalletTonRootReplacementMutex] with [currentPublicKey], where no replacement is half
+     * done, and only a mismatch there is corruption.
+     */
+    suspend fun <T> readForIdentity(
+        expectedPublicKey: ByteArray?,
+        currentPublicKey: suspend () -> ByteArray?,
+        read: TonSecretStore.(publicKey: ByteArray?, quarantine: Boolean) -> T
+    ): T = try {
+        read(expectedPublicKey, false)
+    } catch (_: WalletRootSecretCorruptionException) {
+        WalletTonRootReplacementMutex.instance.withLock { read(currentPublicKey(), true) }
+    }
+
+    // A staged REPLACE_TON writes the new key before Room names it; until the journal clears,
+    // a mismatch is that swap in flight, never corruption to quarantine.
+    private fun isLocalCorruption(failure: Exception): Boolean =
+        failure is WalletRootSecretCorruptionException &&
+            !encryptedPreferences.hasKey(WalletSecretMutationJournalStore.JOURNAL_KEY)
 
     private fun activeKey(metaId: Long) = "$metaId:$TON_SECRETS"
 }

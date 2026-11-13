@@ -1,0 +1,23 @@
+[
+  {
+    "chain": "Polkadot AssetHub",
+    "genesis": "68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f",
+    "runtime": 2005001,
+    "sha256": "3579fd45d4846b8a88e9cf60d383312cccb4b853412241694ebffdd6cdccc18b",
+    "endpoint": "wss://polkadot-asset-hub-rpc.polkadot.io"
+  },
+  {
+    "chain": "Kusama AssetHub",
+    "genesis": "48239ef607d7928874027a43a67689209727dfb3d3dc5e5b03a39bdc2eda771a",
+    "runtime": 2005001,
+    "sha256": "695fdc502f59a46ab9be1885ee201fd1592200b6f13d764e5a63ee853b92d41d",
+    "endpoint": "wss://kusama-asset-hub-rpc.polkadot.io"
+  },
+  {
+    "chain": "Westend AssetHub",
+    "genesis": "67f9723393ef76214df0118c34bbbd3dbebc8ed46a10973a8c969d48fe7598c9",
+    "runtime": 1025002,
+    "sha256": "f23cb2ae3414b7250c5a030d18c29268efd907f030d6591505648c754a64848c",
+    "endpoint": "wss://westend-asset-hub-rpc.polkadot.io"
+  }
+]

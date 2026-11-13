@@ -41,11 +41,6 @@ buildscript {
         // Closure to exclude JNA from 3rd party dependencies to prevent class duplication
         // JNA is added as direct dependency where needed to avoid "missing class" errors
         withoutJna = { exclude group: 'net.java.dev.jna' }
-        withoutPay = { exclude group: 'com.walletconnect', module: 'pay' }
-        withoutJnaAndPay = {
-            exclude group: 'net.java.dev.jna'
-            exclude group: 'com.walletconnect', module: 'pay'
-        }
         withoutJavaWS = { exclude module: 'java-websocket-lib' }
     }
 
@@ -59,8 +54,6 @@ buildscript {
         classpath libs.gradleplugins.android
         classpath libs.gradleplugins.kotlin
         classpath libs.kotlin.serialization
-        classpath libs.google.services
-        classpath libs.firebase.appdistribution.gradle
         classpath libs.gradleplugins.compose
         classpath libs.org.jacoco.core
         classpath libs.sonarqube.gradle.plugin
@@ -99,12 +92,7 @@ allprojects {
                     }
                 }
                 filter {
-                    includeGroup "com.github.airgap-it"
-                    includeGroupByRegex "com[.]github[.]airgap-it([.].*)?"
                     includeGroup "com.github.ildixhaferri"
-                    includeGroupByRegex "com[.]github[.]komputing([.].*)?"
-                    includeGroup "com.github.multiformats"
-                    includeGroup "com.walletconnect.Scarlet"
                 }
             }
         }
@@ -119,7 +107,99 @@ allprojects {
         }
     }
 
-    configurations.configureEach {
+    // Reown's WalletConnect SDK (removed in 4.3.2) had raised these libraries in 4.3.1 (233). Without it
+    // they would resolve to the older versions the remaining modules request, so each is constrained to
+    // at least the version 233 shipped; a newer version requested elsewhere still wins.
+    def walletConnectSdkRemovalProjects = [':app', ':feature-wallet-impl', ':feature-walletconnect-api', ':feature-walletconnect-impl']
+    def walletConnectSdkRemovalFloors = [
+            "androidx.activity:1.10.1": [
+                "activity", "activity-compose", "activity-ktx"
+            ],
+            "androidx.appcompat:1.7.1": [
+                "appcompat", "appcompat-resources"
+            ],
+            "androidx.compose.animation:1.7.8": [
+                "animation", "animation-android", "animation-core", "animation-core-android", "animation-graphics",
+                "animation-graphics-android"
+            ],
+            "androidx.compose.foundation:1.7.8": [
+                "foundation", "foundation-android", "foundation-layout", "foundation-layout-android"
+            ],
+            "androidx.compose.runtime:1.7.8": [
+                "runtime", "runtime-android", "runtime-livedata", "runtime-saveable", "runtime-saveable-android"
+            ],
+            "androidx.compose.ui:1.7.8": [
+                "ui", "ui-android", "ui-geometry", "ui-geometry-android", "ui-graphics", "ui-graphics-android", "ui-text",
+                "ui-text-android", "ui-tooling-preview", "ui-tooling-preview-android", "ui-unit", "ui-unit-android", "ui-util",
+                "ui-util-android"
+            ],
+            "androidx.fragment:1.8.8": [
+                "fragment", "fragment-ktx"
+            ],
+            "androidx.lifecycle:2.9.0": [
+                "lifecycle-common", "lifecycle-common-java8", "lifecycle-common-jvm", "lifecycle-livedata",
+                "lifecycle-livedata-core", "lifecycle-livedata-core-ktx", "lifecycle-livedata-ktx", "lifecycle-process",
+                "lifecycle-runtime", "lifecycle-runtime-android", "lifecycle-runtime-compose",
+                "lifecycle-runtime-compose-android", "lifecycle-runtime-ktx", "lifecycle-runtime-ktx-android",
+                "lifecycle-viewmodel", "lifecycle-viewmodel-android", "lifecycle-viewmodel-compose",
+                "lifecycle-viewmodel-compose-android", "lifecycle-viewmodel-ktx", "lifecycle-viewmodel-savedstate"
+            ],
+            "androidx.savedstate:1.3.0": [
+                "savedstate", "savedstate-ktx"
+            ],
+            "androidx.security:1.1.0-alpha06": [
+                "security-crypto"
+            ],
+            "androidx.startup:1.2.0": [
+                "startup-runtime"
+            ],
+            "com.google.crypto.tink:1.8.0": [
+                "tink-android"
+            ],
+            "com.squareup.okhttp3:5.1.0": [
+                "logging-interceptor", "okhttp", "okhttp-sse"
+            ],
+            "com.squareup.okio:3.15.0": [
+                "okio", "okio-jvm"
+            ],
+            "org.jetbrains.kotlin:2.2.10": [
+                "kotlin-stdlib", "kotlin-stdlib-common"
+            ],
+            "org.jetbrains.kotlinx:1.10.2": [
+                "kotlinx-coroutines-android", "kotlinx-coroutines-bom", "kotlinx-coroutines-core",
+                "kotlinx-coroutines-core-jvm", "kotlinx-coroutines-jdk8", "kotlinx-coroutines-play-services",
+                "kotlinx-coroutines-reactive", "kotlinx-coroutines-rx2", "kotlinx-coroutines-test",
+                "kotlinx-coroutines-test-jvm"
+            ],
+            "org.jetbrains.kotlinx:1.7.3": [
+                "kotlinx-serialization-bom", "kotlinx-serialization-core", "kotlinx-serialization-core-jvm",
+                "kotlinx-serialization-json", "kotlinx-serialization-json-jvm"
+            ],
+            "org.web3j:4.9.8-hotfix": [
+                "abi", "crypto", "rlp", "utils"
+            ]
+    ]
+
+    if (project.path in walletConnectSdkRemovalProjects) {
+        configurations.matching { it.name == 'implementation' }.configureEach { implementation ->
+            walletConnectSdkRemovalFloors.each { groupAndVersion, modules ->
+                def (floorGroup, floorVersion) = groupAndVersion.split(':', 2)
+                modules.each { module ->
+                    implementation.dependencyConstraints.add(
+                            project.dependencies.constraints.create("${floorGroup}:${module}:${floorVersion}") {
+                                because 'Reown SDK removal (4.3.2): at least the version 4.3.1 (233) shipped'
+                            }
+                    )
+                }
+            }
+        }
+    }
+
+    // The staged Iroha bridge and its smoke test resolve their own checksum-pinned
+    // graph (see iroha-sdk-bridge/build.gradle); they are not part of the app.
+    def resolvesStagedIrohaBridge = project.path in [':iroha-sdk-bridge', ':iroha-sdk-bridge-kotlin-smoke']
+
+    configurations.configureEach { configuration ->
         resolutionStrategy {
             // add dependency substitution rules
             eachDependency { DependencyResolveDetails details ->
@@ -130,8 +210,67 @@ allprojects {
                     // never be packaged in the wallet.
                     details.useTarget('com.madgag.spongycastle:prov:1.58.0.0')
                 }
-                if (details.requested.group == 'org.bouncycastle' && details.requested.name == 'bcprov-jdk15on') {
-                    details.useTarget("org.bouncycastle:bcprov-jdk18on:1.78")
+                if (details.requested.group == 'org.bouncycastle' &&
+                        details.requested.name in ['bcprov-jdk15on', 'bcprov-jdk18on'] &&
+                        !resolvesStagedIrohaBridge) {
+                    // bcprov-jdk18on 1.78.1 has CVE-2025-14813 (GOST CTR keystream
+                    // reuse), CVE-2026-0636 (LDAP injection), CVE-2026-8763 (name
+                    // constraints bypass) and CVE-2026-13506 (ASN.1 nesting-depth guard
+                    // reset); 1.85 is the first release without any of them. The wallet
+                    // uses digests, encoders and EC/Ed25519 primitives only.
+                    details.useTarget('org.bouncycastle:bcprov-jdk18on:1.85')
+                    details.because('CVE-2025-14813, CVE-2026-0636, CVE-2026-8763, CVE-2026-13506: bcprov-jdk18on before 1.85')
+                }
+                if (details.requested.group == 'org.java-websocket' && details.requested.name == 'Java-WebSocket') {
+                    // CVE-2020-11050 / GHSA-gw55-jm4h-x339: Java-WebSocket before 1.5.0
+                    // never checks that the TLS certificate names the dialed host, so
+                    // any publicly trusted certificate could impersonate a wss:// EVM
+                    // RPC node. web3j core 4.8.8-android still requests 1.3.8. From
+                    // 1.5.0 the client enables HTTPS endpoint identification, which
+                    // Android supports from API 24 (minSdk is 26).
+                    details.useVersion('1.6.0')
+                    details.because('CVE-2020-11050: Java-WebSocket before 1.5.0 skips TLS hostname verification')
+                }
+                if (details.requested.group == 'org.lz4' && details.requested.name == 'lz4-java') {
+                    // org.lz4:lz4-java stopped at 1.8.0 (1.8.1 only relocates);
+                    // at.yawk.lz4:lz4-java is its maintained drop-in with the same
+                    // net.jpountz API. 1.11.4 is the first release without CVE-2025-12183,
+                    // CVE-2025-66566, CVE-2026-59949 and CVE-2026-106449 to CVE-2026-106453.
+                    details.useTarget('at.yawk.lz4:lz4-java:1.11.4')
+                    details.because('CVE-2025-12183, CVE-2025-66566: org.lz4:lz4-java is unmaintained; at.yawk.lz4 1.11.4 fixes every listed lz4-java advisory')
+                }
+                if (details.requested.group == 'commons-beanutils' && details.requested.name == 'commons-beanutils') {
+                    // CVE-2025-48734: before 1.11.0, PropertyUtilsBean exposes the
+                    // declaredClass property, so a crafted property path reaches the class
+                    // loader. opencsv depends on it; the app only uses opencsv to read the
+                    // phishing list CSV by header.
+                    details.useVersion('1.11.0')
+                    details.because('CVE-2025-48734: commons-beanutils before 1.11.0 exposes declaredClass')
+                }
+                if (details.requested.group.startsWith('com.fasterxml.jackson') && !resolvesStagedIrohaBridge) {
+                    // web3j parses untrusted RPC replies. Keep the Jackson 2.x family aligned;
+                    // 2.18.11 includes bounded nesting and the subsequent 2026 parser fixes.
+                    details.useVersion('2.18.11')
+                    details.because('CVE-2025-52999 and 2026 Jackson advisories: bound untrusted RPC JSON parsing')
+                }
+                if (details.requested.group == 'com.google.guava' && details.requested.name == 'guava') {
+                    // The Java API client requests Guava JRE. Select the Android variant
+                    // for Android compile/runtime graphs; compiler/plugin graphs stay separate.
+                    def androidClasspath = (
+                            project.plugins.hasPlugin('com.android.application') ||
+                                    project.plugins.hasPlugin('com.android.library')
+                    ) && (
+                            configuration.name.endsWith('CompileClasspath') ||
+                                    configuration.name.endsWith('RuntimeClasspath')
+                    )
+                    details.useVersion(androidClasspath ? '33.7.2-android' :
+                            (details.requested.version?.endsWith('-jre') ? '33.7.2-jre' : '33.7.2-android'))
+                    details.because('CVE-2020-8908, CVE-2023-2976: private temporary files in Guava; ' +
+                            'CVE-2026-102554: unbounded allocation when deserializing Guava collections')
+                }
+                if (details.requested.group == 'org.apache.commons' && details.requested.name == 'commons-lang3') {
+                    details.useVersion('3.18.0')
+                    details.because('CVE-2025-48924: reject excessively nested class names without unbounded recursion')
                 }
             }
 
@@ -182,6 +321,30 @@ allprojects {
     }
 }
 
+// 4.3.2 removed Play services, Firebase and the Google API client libraries. They had raised these
+// libraries, so every Android module keeps at least the version 4.3.1 (233) shipped: the locked
+// release graph never goes older, and debug builds and unit tests resolve what the release ships.
+// com.google.guava:listenablefuture is the exception: 233's 9999.0-empty placeholder only works next
+// to Guava, which left with the API client, so the runtime now needs the real 1.0 jar for
+// ListenableFuture (androidx.concurrent, WorkManager, CameraX).
+def versionFloorFrom233 = [
+        "androidx.loader:loader:1.1.0",
+        "com.google.code.gson:gson:2.11.0",
+        "com.google.errorprone:error_prone_annotations:2.50.0",
+        "org.jspecify:jspecify:1.0.1"
+]
+subprojects { subproject ->
+    ["com.android.application", "com.android.library"].each { pluginId ->
+        subproject.plugins.withId(pluginId) {
+            versionFloorFrom233.each { notation ->
+                subproject.dependencies.constraints.add("implementation", notation) {
+                    because("4.3.1 (233) shipped this version; removing Google SDKs must not downgrade it")
+                }
+            }
+        }
+    }
+}
+
 tasks.register('clean', Delete) {
     delete rootProject.layout.buildDirectory
 }
@@ -196,6 +359,7 @@ def unitTestTaskPaths = [
         ':feature-crowdloan-impl:testDebugUnitTest',
         ':feature-onboarding-impl:testDebugUnitTest',
         ':feature-liquiditypools-impl:testDebugUnitTest',
+        ':feature-nft-impl:testDebugUnitTest',
         ':feature-polkamarkt-impl:testDebugUnitTest',
         ':feature-polkaswap-impl:testDebugUnitTest',
         ':feature-staking-impl:testDebugUnitTest',
@@ -260,6 +424,9 @@ tasks.register('printPolkadotSdkAlignment') {
         println(" - DEFAULT_V13_TYPES_URL: ${defaultV13TypesUrl}")
         println(" - CHAINS_URL (debug): ${chainsUrlDebug}")
         println(" - CHAINS_URL (release): ${chainsUrlRelease}")
+        // Type registry overrides apply to debug builds only; release builds read the reviewed registries.
+        println(" - TYPES_URL (release): ${typesUrlDefault}")
+        println(" - DEFAULT_V13_TYPES_URL (release): ${defaultV13TypesUrlDefault}")
     }
 }
 

@@ -17,6 +17,7 @@ object VersionedRuntimeBuilder : RuntimeBuilder {
     ): RuntimeMetadata {
         return when (reader.metadataVersion) {
             14 -> V14RuntimeBuilder.buildMetadata(reader, typeRegistry)
+            15 -> V15RuntimeBuilder.buildMetadata(reader, typeRegistry)
             else -> V13RuntimeBuilder.buildMetadata(reader, typeRegistry)
         }
     }

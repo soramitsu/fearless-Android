@@ -49,6 +49,7 @@ import jp.co.soramitsu.common.compose.theme.colorFromHex
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white20
 import jp.co.soramitsu.common.compose.theme.white60
+import jp.co.soramitsu.common.compose.theme.fw.fwPageBackground
 import jp.co.soramitsu.feature_onboarding_impl.R
 import jp.co.soramitsu.onboarding.api.data.OnboardingConfig
 import kotlinx.coroutines.flow.StateFlow
@@ -119,19 +120,16 @@ private fun OnboardingScreenContent(
 
         val coroutineScope = rememberCoroutineScope()
 
-        val backgroundPainter = if (background.isNullOrBlank()) {
-            painterResource(R.drawable.drawable_background_image)
+        val backgroundModifier = if (background.isNullOrBlank()) {
+            Modifier.fwPageBackground()
         } else {
-            rememberAsyncImagePainter(model = background)
+            Modifier.paint(painter = rememberAsyncImagePainter(model = background), contentScale = ContentScale.FillWidth)
         }
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .paint(
-                    painter = backgroundPainter,
-                    contentScale = ContentScale.FillWidth
-                ),
+                .then(backgroundModifier),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

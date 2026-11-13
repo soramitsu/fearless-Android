@@ -18,6 +18,8 @@ android {
 
         buildConfigField "long", "VERSION_CODE", "${rootProject.versionCode}"
         buildConfigField "String", "VERSION_NAME", "\"${rootProject.versionName}\""
+        // Kill switch for NEW wallet-secret sealing (4.3.2 PIN envelope). Off never unseals or blocks reads.
+        buildConfigField "boolean", "WALLET_SECRET_SEALING_ENABLED", "true"
 
         buildConfigField "String", "POLKASWAP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/polkaswapSettings.json\""
         buildConfigField "String", "FEATURE_TOGGLE_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/appConfigs/feature_toggle\""
@@ -57,12 +59,39 @@ android {
         buildConfigField "String", "WALLET_CONNECT_PROJECT_ID", readSecretInQuotes("FL_WALLET_CONNECT_PROJECT_ID")
         buildConfigField "String", "FL_DWELLIR_API_KEY", readSecretInQuotes("FL_DWELLIR_API_KEY")
         buildConfigField "String", "FL_ANDROID_TON_API_KEY", readSecretInQuotes("FL_ANDROID_TON_API_KEY")
+        buildConfigField "String", "NOMIS_API_KEY", readSecretInQuotes("FL_NOMIS_API_KEY")
+        buildConfigField "String", "NOMIS_CLIENT_ID", readSecretInQuotes("FL_NOMIS_CLIENT_ID")
         def tonIndexerUrl = readOptionalSecret("FL_ANDROID_TON_INDEXER_URL") ?: "https://ti.soramitsu.io"
         buildConfigField "String", "TON_INDEXER_URL", "\"${tonIndexerUrl}\""
         // TON uses TI only after TI's service-info proves the network. Until then the registry's TON node answers
         // (verified the same way) so TON holders keep balances and sends. Set to false once TI serves TON mainnet.
         def tonRegistryNodeFallback = readOptionalSecret("FL_ANDROID_TON_REGISTRY_NODE_FALLBACK")?.trim()?.toLowerCase() != "false"
         buildConfigField "boolean", "TON_REGISTRY_NODE_FALLBACK", "${tonRegistryNodeFallback}"
+        // Optional Solana mainnet JSON-RPC provider, asked before the selected node and the public mainnet nodes.
+        // Empty means none. Otherwise it must be an https URL with a host, and the provider key is part of the URL
+        // path or query, because the app sends no auth header. Surrounding quotes are dropped like other secrets;
+        // any other malformed value fails the build instead of being ignored at runtime.
+        def solanaRpcProviderUrl = (readOptionalSecret("FL_ANDROID_SOLANA_RPC_URL") ?: "").trim()
+        if (solanaRpcProviderUrl ==~ /(["']).*\1/) {
+            solanaRpcProviderUrl = solanaRpcProviderUrl.substring(1, solanaRpcProviderUrl.length() - 1).trim()
+        }
+        if (!solanaRpcProviderUrl.isEmpty()) {
+            def provider = null
+            try {
+                provider = new URI(solanaRpcProviderUrl)
+            } catch (URISyntaxException ignored) {
+            }
+            if (provider == null || !(solanaRpcProviderUrl ==~ /[!-~]{1,8192}/) || provider.scheme != "https" ||
+                    !provider.host || provider.rawUserInfo != null || provider.rawFragment != null) {
+                // The value itself is never printed: it carries the provider key.
+                throw new GradleException("FL_ANDROID_SOLANA_RPC_URL must be empty or an https URL with a host and no " +
+                        "user info or fragment; put the provider key in the URL path or query.")
+            }
+        }
+        buildConfigField "String", "SOLANA_RPC_PROVIDER_URL", "\"${solanaRpcProviderUrl}\""
+
+        // Public OAuth client for Google Drive backup; see googleDriveOAuthClientId in scripts/secrets.gradle.
+        buildConfigField "String", "GOOGLE_DRIVE_OAUTH_CLIENT_ID", "\"${googleDriveOAuthClientId()}\""
 
         buildConfigField("String", "DAPPS_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/development/appConfigs/dapps.json\"")
     }
@@ -71,13 +100,11 @@ android {
         debug {
             buildConfigField "String", "FIAT_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/development/fiat/fiats.json\""
 
-            buildConfigField "String", "WEB_CLIENT_ID", readSecretInQuotes("WEB_CLIENT_ID_DEBUG")
             buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/development/appVersionSupport/android_app_support_dev.json\""
         }
         release {
             buildConfigField "String", "FIAT_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/fiat/fiats.json\""
 
-            buildConfigField "String", "WEB_CLIENT_ID", readSecretInQuotes("WEB_CLIENT_ID_RELEASE")
             buildConfigField "String", "APP_CONFIG_URL", "\"https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/development/appVersionSupport/android_app_support.json\""
         }
     }
@@ -108,8 +135,8 @@ android {
     sourceSets {
         // Released-secret golden vectors, shared by the JVM and device suites.
         androidTest.assets.srcDirs += files("src/test/resources/wallet-secret-vectors")
-        // Validate SR25519 secrets with the library shipped by the production app.
-        androidTest.jniLibs.srcDirs += files("$rootDir/app/src/main/jniLibs")
+        // libsr25519java.so (the production SR25519 library) reaches this module's
+        // androidTest APK through :runtime-utils, which builds it from source.
     }
 
     namespace = 'jp.co.soramitsu.common'
@@ -163,8 +190,6 @@ dependencies {
     implementation libs.navigation.fragment.ktx
     ksp libs.hilt.compiler
 
-    implementation libs.play.services.base
-
     implementation libs.converter.gson
     implementation libs.converter.scalars
     implementation libs.logging.interceptor
@@ -199,4 +224,86 @@ dependencies {
     androidTestImplementation libs.ext.junit
 
     api project(':core-chain')
+}
+
+// The remote configuration the app falls back to when a fetched file does not match the signed manifest
+// (RemoteConfigVerifier): the files it fetches, bundled from this repository's remote-config, each pinned to its
+// reviewed ownedSha256 in config/remote-config-imports.json, with the signed manifest of the same commit.
+// scripts/test-owned-remote-config.py checks that every configuration URL the app fetches is bundled here.
+def remoteConfigSnapshotFiles = [
+        'production/chains/v13/chains.json',
+        'development/chains/v13/chains_dev_prod.json',
+        'production/chains/all_chains_types_android.json',
+        'production/chains/default_v13_types.json',
+        'production/polkaswapSettings.json',
+        'production/appConfigs/feature_toggle',
+        'development/appConfigs/dapps.json',
+        'production/fiat/fiats.json',
+        'development/fiat/fiats.json',
+        'development/appVersionSupport/android_app_support.json',
+        'development/appVersionSupport/android_app_support_dev.json',
+        'production/appConfigs/onboarding/mobile v2.json',
+        'development/appConfigs/onboarding/mobile v2.json',
+        'production/scamDetection/Polkadot_Hot_Wallet_Attributions.csv',
+        'production/chains/xn.json',
+        'production/crowdloan/polkadot.json',
+        'production/crowdloan/westend.json',
+        'production/type_registry/bifrost.json'
+]
+
+abstract class BundleRemoteConfigSnapshotTask extends DefaultTask {
+    @Input
+    abstract ListProperty<String> getPaths()
+
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    abstract ConfigurableFileCollection getSources()
+
+    @Internal
+    abstract DirectoryProperty getConfigDirectory()
+
+    @InputFile
+    @PathSensitive(PathSensitivity.NONE)
+    abstract RegularFileProperty getImportsFile()
+
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDirectory()
+
+    @TaskAction
+    void bundle() {
+        def output = outputDirectory.get().asFile
+        output.deleteDir()
+        def root = new File(output, 'remote-config-snapshot')
+        def configDir = configDirectory.get().asFile
+        def pins = new groovy.json.JsonSlurper().parse(importsFile.get().asFile).sources.collectEntries { [(it.path): it.ownedSha256] }
+        def index = new TreeMap<String, String>()
+        paths.get().each { path ->
+            def bytes = new File(configDir, path).bytes
+            def digest = java.security.MessageDigest.getInstance('SHA-256').digest(bytes).encodeHex().toString()
+            if (pins[path] != digest) {
+                throw new GradleException("remote-config/${path} differs from its ownedSha256 in config/remote-config-imports.json")
+            }
+            def target = new File(root, "files/${path}")
+            target.parentFile.mkdirs()
+            target.bytes = bytes
+            index[path] = digest
+        }
+        new File(root, 'remote-config-manifest.json').bytes = new File(configDir, 'remote-config-manifest.json').bytes
+        new File(root, 'index.json').text = groovy.json.JsonOutput.toJson([files: index])
+    }
+}
+
+def bundleRemoteConfigSnapshot = tasks.register('bundleRemoteConfigSnapshot', BundleRemoteConfigSnapshotTask) {
+    def configDir = rootProject.layout.projectDirectory.dir('remote-config')
+    paths.set(remoteConfigSnapshotFiles)
+    sources.from(remoteConfigSnapshotFiles.collect { configDir.file(it) } + configDir.file('remote-config-manifest.json'))
+    configDirectory.set(configDir)
+    importsFile.set(rootProject.layout.projectDirectory.file('config/remote-config-imports.json'))
+    outputDirectory.set(layout.buildDirectory.dir('generated/remote-config-snapshot'))
+}
+
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        variant.sources.assets?.addGeneratedSourceDirectory(bundleRemoteConfigSnapshot) { it.outputDirectory }
+    }
 }

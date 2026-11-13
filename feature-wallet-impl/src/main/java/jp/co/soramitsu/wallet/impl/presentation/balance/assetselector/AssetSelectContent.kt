@@ -52,10 +52,12 @@ data class AssetSelectScreenViewState(
     val isHiddenExpanded: Boolean = false,
     val searchQuery: String? = null,
     val showAllChains: Boolean = true,
-    val emptyMessage: AssetSelectEmptyMessage = AssetSelectEmptyMessage.NothingFound
+    val emptyMessage: AssetSelectEmptyMessage = AssetSelectEmptyMessage.NothingFound,
+    /** The first list has not arrived yet, so it is too early to say that nothing was found. */
+    val isLoading: Boolean = false
 ) {
     companion object {
-        val default = AssetSelectScreenViewState(emptyList())
+        val default = AssetSelectScreenViewState(emptyList(), isLoading = true)
     }
 }
 
@@ -96,7 +98,7 @@ fun AssetSelectContent(
                     .weight(1f)
                     .align(CenterHorizontally)
             ) {
-                EmptyResultContent(state.emptyMessage)
+                if (!state.isLoading) EmptyResultContent(state.emptyMessage)
             }
         } else {
             LazyColumn(modifier = Modifier.weight(1f)) {

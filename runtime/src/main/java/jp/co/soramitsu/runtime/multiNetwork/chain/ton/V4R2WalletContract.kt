@@ -2,7 +2,6 @@ package jp.co.soramitsu.runtime.multiNetwork.chain.ton
 
 import jp.co.soramitsu.common.utils.toWalletAddress
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import org.ton.api.pub.PublicKeyEd25519
 import org.ton.block.AddrStd
 import org.ton.block.StateInit
 import org.ton.boc.BagOfCells
@@ -12,10 +11,15 @@ import org.ton.tlb.CellRef
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
-class V4R2WalletContract(val publicKey: PublicKeyEd25519) : TonWalletContract() {
+class V4R2WalletContract(publicKey: ByteArray) : TonWalletContract() {
 
-    constructor(publicKey: String): this(PublicKeyEd25519.decode(publicKey.fromHex()))
-    constructor(publicKey: ByteArray): this(PublicKeyEd25519.decode(publicKey))
+    constructor(publicKey: String) : this(publicKey.fromHex())
+
+    /** The wallet's 32-byte Ed25519 public key: the first 32 bytes given, as the TL decoding this replaced read it. */
+    val publicKey: ByteArray = run {
+        require(publicKey.size >= PUBLIC_KEY_SIZE) { "TON public key must be $PUBLIC_KEY_SIZE bytes" }
+        publicKey.copyOf(PUBLIC_KEY_SIZE)
+    }
 
     override val maxMessages: Int = 4
 
@@ -23,7 +27,7 @@ class V4R2WalletContract(val publicKey: PublicKeyEd25519) : TonWalletContract() 
         return CellBuilder.createCell {
             storeUInt(0, 32)
             storeUInt(walletId, 32)
-            storeBytes(publicKey.key.toByteArray())
+            storeBytes(publicKey)
             storeBit(false)
         }
     }
@@ -51,6 +55,8 @@ class V4R2WalletContract(val publicKey: PublicKeyEd25519) : TonWalletContract() 
     }
 
     companion object {
+        private const val PUBLIC_KEY_SIZE = 32
+
         @OptIn(ExperimentalEncodingApi::class)
         @JvmField
         val code =

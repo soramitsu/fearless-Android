@@ -19,7 +19,6 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.multiAd
 import jp.co.soramitsu.fearless_utils.runtime.definitions.v14.TypesParserV14
 import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadataReader
 import jp.co.soramitsu.fearless_utils.runtime.metadata.builder.VersionedRuntimeBuilder
-import jp.co.soramitsu.fearless_utils.runtime.metadata.v14.RuntimeMetadataSchemaV14
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersion
 import java.math.BigInteger
 import java.util.zip.GZIPInputStream
@@ -85,15 +84,22 @@ object ParityFixtures {
 
     fun runtime(chain: Chain): RuntimeSnapshot = buildRuntime(metadataHex(chain), chain.types)
 
-    /** Mirrors the app's V14 path: lookup types from metadata plus per-network overrides. */
-    fun buildRuntime(metadataHex: String, typesResource: String): RuntimeSnapshot {
+    /** Mirrors the app's V14/V15 path: lookup types from metadata plus per-network overrides. */
+    fun buildRuntime(metadataHex: String, typesResource: String): RuntimeSnapshot =
+        buildRuntime(metadataHex, getResourceReader(typesResource))
+
+    /** As [buildRuntime], with the network overrides given as JSON instead of a resource. */
+    fun buildRuntimeWithTypes(metadataHex: String, typesJson: String): RuntimeSnapshot =
+        buildRuntime(metadataHex, typesJson.reader())
+
+    private fun buildRuntime(metadataHex: String, types: java.io.Reader): RuntimeSnapshot {
         val raw = RuntimeMetadataReader.read(metadataHex)
         val parseResult = TypesParserV14.parse(
-            lookup = raw.metadata[RuntimeMetadataSchemaV14.lookup],
+            lookup = requireNotNull(raw.lookup),
             typePreset = v14Preset()
         )
         val tree = Gson().fromJson<TypeDefinitionsTree>(
-            JsonReader(getResourceReader(typesResource)),
+            JsonReader(types),
             TypeDefinitionsTree::class.java
         )
         val networkParsed = TypeDefinitionParser.parseNetworkVersioning(

@@ -108,6 +108,10 @@ class BackupMnemonicViewModel @Inject constructor(
     private val _showInfoEvent = MutableLiveData<Event<Unit>>()
     val showInfoEvent: LiveData<Event<Unit>> = _showInfoEvent
 
+    // The wallet the user reviewed when starting a Google backup. Only the sign-in this screen
+    // started opens the password screen, once, for exactly this wallet.
+    private var pendingGoogleBackup: AddAccountPayload? = null
+
     fun homeButtonClicked() {
         router.backToCreateAccountScreen()
     }
@@ -123,7 +127,7 @@ class BackupMnemonicViewModel @Inject constructor(
                 ethereumDerivationPath.value.ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
 
             if (payload.isFromGoogleBackup) {
-                backupPhraseInGoogle(substrateDerivationPath, launcher)
+                backupPhraseInGoogle(substrateDerivationPath, ethereumDerivationPath, launcher)
                 return@launch
             }
 
@@ -135,8 +139,7 @@ class BackupMnemonicViewModel @Inject constructor(
         launcher: ActivityResultLauncher<Intent>
     ) {
         viewModelScope.launch {
-            val substrateDerivationPath = substrateDerivationPath.value
-            backupPhraseInGoogle(substrateDerivationPath, launcher)
+            backupPhraseInGoogle(substrateDerivationPath.value, ethereumDerivationPath.value, launcher)
         }
     }
 
@@ -155,7 +158,7 @@ class BackupMnemonicViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             if (payload.isFromGoogleBackup) {
-                backupPhraseInGoogle(substrateDerivationPath, launcher)
+                backupPhraseInGoogle(substrateDerivationPath, ethereumDerivationPath, launcher)
                 return@launch
             }
 
@@ -199,15 +202,17 @@ class BackupMnemonicViewModel @Inject constructor(
 
     fun onGoogleBackupClick(
         substrateDerivationPath: String,
+        ethereumDerivationPath: String,
         launcher: ActivityResultLauncher<Intent>
     ) {
         viewModelScope.launch {
-            backupPhraseInGoogle(substrateDerivationPath, launcher)
+            backupPhraseInGoogle(substrateDerivationPath, ethereumDerivationPath, launcher)
         }
     }
 
     private suspend fun backupPhraseInGoogle(
         substrateDerivationPath: String,
+        ethereumDerivationPath: String,
         launcher: ActivityResultLauncher<Intent>
     ) {
         val isSubstrateDerivationPathValid =
@@ -222,6 +227,10 @@ class BackupMnemonicViewModel @Inject constructor(
             return
         }
 
+        // Captured before signing in: the sign-in result arrives later, and the wallet it creates
+        // must be the one on screen now, with the derivation paths the user entered.
+        pendingGoogleBackup = getAddAccountPayload(substrateDerivationPath, ethereumDerivationPath) ?: return
+
         if (payload.isFromGoogleBackup.not()) {
             backupService.logout()
         }
@@ -235,9 +244,12 @@ class BackupMnemonicViewModel @Inject constructor(
     }
 
     private fun openCreateBackupPasswordDialog() {
+        // A repeated or unrequested sign-in result finds nothing pending and opens nothing.
+        val wallet = pendingGoogleBackup ?: return
+        pendingGoogleBackup = null
         val createAndSavePayload = SaveBackupPayload(
             walletId = null,
-            addAccountPayload = getAddAccountPayload()
+            addAccountPayload = wallet
         )
         router.openCreateBackupPasswordDialogWithResult(createAndSavePayload)
             .onEach { resultCode ->
@@ -250,6 +262,7 @@ class BackupMnemonicViewModel @Inject constructor(
     }
 
     override fun onGoogleSignInFailed(result: GoogleSignInResult) {
+        pendingGoogleBackup = null
         val issue = result.toGoogleBackupIssue() ?: return
         showGoogleBackupIssue(resourceManager, issue)
     }
@@ -290,24 +303,27 @@ class BackupMnemonicViewModel @Inject constructor(
         }
     }
 
-    private fun getAddAccountPayload(): AddAccountPayload {
+    /** Null until the phrase and its key type are ready, so nothing is backed up with missing parts. */
+    private fun getAddAccountPayload(
+        substrateDerivationPath: String,
+        ethereumDerivationPath: String
+    ): AddAccountPayload? {
         val mnemonicWords = this@BackupMnemonicViewModel.mnemonic.value.map(MnemonicWordModel::word)
+        if (mnemonicWords.isEmpty()) return null
         val mnemonicString = mnemonicWords.joinToString(" ")
 
         return when {
             isSubstrateOrEthereumAccount -> {
-                val cryptoTypeModel = selectedEncryptionTypeLiveData.value ?: error("There must be encryption type selected for substrate ecosystem")
-                val substrateDerivationPath = substrateDerivationPath.value
-                val ethereumDerivationPath =
-                    ethereumDerivationPath.value.ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH }
+                val cryptoTypeModel = selectedEncryptionTypeLiveData.value ?: return null
                 AddAccountPayload.SubstrateOrEvm(
                     payload.accountName,
                     mnemonicString,
                     cryptoTypeModel.cryptoType,
                     substrateDerivationPath,
-                    ethereumDerivationPath,
+                    ethereumDerivationPath.ifEmpty { BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH },
                     null,
-                    false
+                    false,
+                    freshlyGenerated = true
                 )
             }
 
@@ -340,7 +356,8 @@ class BackupMnemonicViewModel @Inject constructor(
                     substrateDerivationPath,
                     ethereumDerivationPath,
                     null,
-                    false
+                    false,
+                    freshlyGenerated = true
                 )
             }
 

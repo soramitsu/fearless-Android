@@ -135,7 +135,7 @@ fun ManageAssetsContent(
                 }
                 else -> state.assets.forEach { (section, assets) ->
                     if (!section.startsWith("group:") && !section.startsWith("network:")) {
-                        items(assets, key = { it.canonicalAssetKey }) {
+                        items(assets, key = ManageAssetItemState::listKey) {
                             ManageAssetItem(it, callback::onEditClicked, callback::onItemClicked, callback::onChecked)
                         }
                     } else {
@@ -144,7 +144,7 @@ fun ManageAssetsContent(
                             GroupItem(state.allSectionAssets[section] ?: assets, collapsed, section.startsWith("network:"),
                                 { callback.onSectionToggle(section) }, { callback.onGroupChecked(section, it) })
                         }
-                        if (!collapsed) items(assets, key = { it.canonicalAssetKey }) {
+                        if (!collapsed) items(assets, key = ManageAssetItemState::listKey) {
                             ManageAssetItem(it.copy(isGrouped = true), callback::onEditClicked, callback::onItemClicked, callback::onChecked)
                         }
                     }
@@ -232,7 +232,13 @@ data class ManageAssetItemState(
     val isTestnet: Boolean = false,
     val isFavorite: Boolean = false,
     val isRankedMainnet: Boolean = false
-)
+) {
+    /**
+     * The list key. The canonical key is not unique: Acala's tDOT and GLMR, Karura's RMRK and taiKSM and
+     * Bifrost's vKSM and vsKSM each share a currencyId across namespaces, and a repeated key crashes the list.
+     */
+    val listKey: String get() = "$chainId:$id"
+}
 
 @Composable
 fun ManageAssetItem(

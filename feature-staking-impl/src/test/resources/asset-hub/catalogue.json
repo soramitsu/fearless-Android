@@ -1,0 +1,620 @@
+[
+  {
+    "disabled": false,
+    "chainId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
+    "rank": 8,
+    "name": "Polkadot",
+    "ecosystem": "substrate",
+    "identityChain": "67fa177a097bfa18f77ea95ab56e9bcdfeb0e5b8a40e46298bb93e16b6fc5008",
+    "externalApi": {
+      "staking": {
+        "type": "subsquid",
+        "url": "https://squid.subsquid.io/fearless-polkadot/v/v3/graphql"
+      },
+      "history": {
+        "type": "subsquid",
+        "url": "https://squid.subsquid.io/fearless-polkadot/v/v3/graphql"
+      },
+      "crowdloans": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/crowdloan/polkadot.json"
+      },
+      "explorers": [
+        {
+          "type": "subscan",
+          "types": [
+            "extrinsic",
+            "account"
+          ],
+          "url": "https://polkadot.subscan.io/{type}/{value}"
+        }
+      ]
+    },
+    "assets": [
+      {
+        "isUtility": true,
+        "id": "887a17c7-1370-4de0-97dd-5422e294fa75",
+        "name": "polkadot",
+        "symbol": "dot",
+        "precision": 10,
+        "priceId": "polkadot",
+        "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/DOT.svg",
+        "color": "FF0066",
+        "staking": "relaychain",
+        "purchaseProviders": [
+          "moonpay",
+          "ramp",
+          "coinbase"
+        ],
+        "coinbaseUrl": "addresses={\"{address}\":[\"polkadot\"]}&assets=[\"DOT\"]",
+        "type": "normal",
+        "priceProvider": {
+          "type": "chainlink",
+          "id": "0xa6bc5baf2000424e90434ba7104ee399dee80dec",
+          "precision": 8
+        }
+      }
+    ],
+    "xcm": {
+      "xcmVersion": "v3",
+      "availableAssets": [
+        {
+          "id": "99e66d4f-00cd-4d73-bd1b-3adadcacffb2",
+          "symbol": "DOT"
+        }
+      ],
+      "availableDestinations": [
+        {
+          "chainId": "68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f",
+          "assets": [
+            {
+              "id": "99e66d4f-00cd-4d73-bd1b-3adadcacffb2",
+              "symbol": "DOT"
+            }
+          ]
+        },
+        {
+          "chainId": "fe58ea77779b7abda7da4ec526d14db9b1e9cd40a217c34892af80a9b332b76d",
+          "assets": [
+            {
+              "id": "99e66d4f-00cd-4d73-bd1b-3adadcacffb2",
+              "symbol": "DOT"
+            }
+          ]
+        },
+        {
+          "chainId": "fc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
+          "assets": [
+            {
+              "id": "99e66d4f-00cd-4d73-bd1b-3adadcacffb2",
+              "symbol": "DOT"
+            }
+          ]
+        },
+        {
+          "chainId": "e61a41c53f5dcd0beb09df93b34402aada44cb05117b71059cce40a2723a4e97",
+          "assets": [
+            {
+              "id": "99e66d4f-00cd-4d73-bd1b-3adadcacffb2",
+              "symbol": "DOT"
+            }
+          ]
+        },
+        {
+          "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+          "assets": [
+            {
+              "id": "99e66d4f-00cd-4d73-bd1b-3adadcacffb2",
+              "symbol": "DOT",
+              "minAmount": "11000000000"
+            }
+          ],
+          "bridgeParachainId": "e92d165ad41e41e215d09713788173aecfdbe34d3bed29409d33a2ef03980738"
+        }
+      ]
+    },
+    "nodes": [
+      {
+        "url": "wss://api-polkadot.dwellir.com",
+        "name": "Dwellir node"
+      },
+      {
+        "url": "wss://rpc.polkadot.io",
+        "name": "Parity node"
+      },
+      {
+        "url": "wss://rpc-polkadot.luckyfriday.io",
+        "name": "LuckyFriday node"
+      },
+      {
+        "url": "wss://polkadot.public.curie.radiumblock.co/ws",
+        "name": "RadiumBlock node"
+      }
+    ],
+    "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/chains/white/Polkadot.svg",
+    "addressPrefix": 0,
+    "options": [
+      "crowdloans",
+      "poolStaking"
+    ]
+  },
+  {
+    "disabled": false,
+    "chainId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
+    "rank": 9,
+    "name": "Kusama",
+    "ecosystem": "substrate",
+    "identityChain": "c1af4cb4eb3918e5db15086c0cc5ec17fb334f728b7c65dd44bfe1e174ff8b3f",
+    "externalApi": {
+      "staking": {
+        "type": "subsquid",
+        "url": "https://fearless-wallet.squids.live/fearless-kusama-2/v/v4/graphql"
+      },
+      "history": {
+        "type": "subsquid",
+        "url": "https://fearless-wallet.squids.live/fearless-kusama-2/v/v4/graphql"
+      },
+      "explorers": [
+        {
+          "type": "subscan",
+          "types": [
+            "extrinsic",
+            "account"
+          ],
+          "url": "https://kusama.subscan.io/{type}/{value}"
+        }
+      ]
+    },
+    "assets": [
+      {
+        "id": "1e0c2ec6-935f-49bd-a854-5e12ee6c9f1b",
+        "name": "kusama",
+        "symbol": "ksm",
+        "precision": 12,
+        "priceId": "kusama",
+        "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/KSM.svg",
+        "color": "FFFFFF",
+        "staking": "relaychain",
+        "purchaseProviders": [
+          "ramp",
+          "coinbase"
+        ],
+        "coinbaseUrl": "addresses={\"{address}\":[\"kusama\"]}&assets=[\"KSM\"]",
+        "isUtility": true,
+        "type": "normal"
+      }
+    ],
+    "xcm": {
+      "xcmVersion": "v3",
+      "availableAssets": [
+        {
+          "id": "0ceffe96-8090-404e-815c-91118ee5dd65",
+          "symbol": "KSM"
+        }
+      ],
+      "availableDestinations": [
+        {
+          "chainId": "48239ef607d7928874027a43a67689209727dfb3d3dc5e5b03a39bdc2eda771a",
+          "assets": [
+            {
+              "id": "0ceffe96-8090-404e-815c-91118ee5dd65",
+              "symbol": "KSM"
+            }
+          ]
+        },
+        {
+          "chainId": "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b",
+          "assets": [
+            {
+              "id": "0ceffe96-8090-404e-815c-91118ee5dd65",
+              "symbol": "KSM"
+            }
+          ]
+        },
+        {
+          "chainId": "baf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b",
+          "assets": [
+            {
+              "id": "0ceffe96-8090-404e-815c-91118ee5dd65",
+              "symbol": "KSM"
+            }
+          ]
+        },
+        {
+          "chainId": "7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5",
+          "assets": [
+            {
+              "id": "0ceffe96-8090-404e-815c-91118ee5dd65",
+              "symbol": "KSM",
+              "minAmount": "50000000000"
+            }
+          ],
+          "bridgeParachainId": "6d8d9f145c2177fa83512492cdd80a71e29f22473f4a8943a6292149ac319fb9"
+        }
+      ]
+    },
+    "nodes": [
+      {
+        "url": "wss://api-kusama.dwellir.com",
+        "name": "Dwellir node"
+      },
+      {
+        "url": "wss://kusama-rpc.polkadot.io",
+        "name": "Parity node"
+      },
+      {
+        "url": "wss://rpc-kusama.luckyfriday.io",
+        "name": "LuckyFriday node"
+      },
+      {
+        "url": "wss://kusama.public.curie.radiumblock.co/ws",
+        "name": "RadiumBlock node"
+      }
+    ],
+    "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/chains/white/Kusama.svg",
+    "addressPrefix": 2,
+    "options": [
+      "poolStaking"
+    ]
+  },
+  {
+    "disabled": false,
+    "chainId": "e143f23803ac50e8f6f8e62695d1ce9e4e1d68aa36c1cd2cfd15340213f3423e",
+    "rank": 108,
+    "name": "Westend",
+    "ecosystem": "substrate",
+    "externalApi": {
+      "crowdloans": {
+        "type": "github",
+        "url": "https://raw.githubusercontent.com/soramitsu/fearless-utils/master/crowdloan/westend.json"
+      },
+      "explorers": [
+        {
+          "type": "subscan",
+          "types": [
+            "extrinsic",
+            "account"
+          ],
+          "url": "https://westend.subscan.io/{type}/{value}"
+        }
+      ]
+    },
+    "assets": [
+      {
+        "staking": "relaychain",
+        "isUtility": true,
+        "id": "a3868e1b-922e-42d4-b73e-b41712f0843c",
+        "name": "westend",
+        "symbol": "wnd",
+        "precision": 12,
+        "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/WND.svg",
+        "color": "FFFFFF",
+        "type": "normal"
+      }
+    ],
+    "nodes": [
+      {
+        "url": "wss://westend-rpc.polkadot.io",
+        "name": "Parity node"
+      },
+      {
+        "url": "wss://westend-rpc.dwellir.com",
+        "name": "Dwellir node"
+      }
+    ],
+    "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/chains/white/Westend.svg",
+    "addressPrefix": 42,
+    "options": [
+      "testnet",
+      "crowdloans",
+      "poolStaking"
+    ]
+  },
+  {
+    "disabled": false,
+    "chainId": "48239ef607d7928874027a43a67689209727dfb3d3dc5e5b03a39bdc2eda771a",
+    "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
+    "paraId": "1000",
+    "name": "Kusama AssetHub",
+    "ecosystem": "substrate",
+    "externalApi": {
+      "history": {
+        "type": "giantsquid",
+        "url": "https://squid-statemine-api.squid.tachi.soramitsu.co.jp/graphql"
+      },
+      "explorers": [
+        {
+          "type": "subscan",
+          "types": [
+            "extrinsic",
+            "account"
+          ],
+          "url": "https://assethub-kusama.subscan.io/{type}/{value}"
+        }
+      ]
+    },
+    "assets": [
+      {
+        "id": "1e0c2ec6-935f-49bd-a854-5e12ee6c9f1b",
+        "name": "kusama",
+        "symbol": "ksm",
+        "precision": 12,
+        "priceId": "kusama",
+        "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/KSM.svg",
+        "color": "FFFFFF",
+        "purchaseProviders": [
+          "ramp"
+        ],
+        "isUtility": true,
+        "type": "normal"
+      },
+      {
+        "id": "27768227-8a9a-4443-a57d-6013c24f85e9",
+        "type": "assets",
+        "name": "tether usd",
+        "symbol": "usdt",
+        "precision": 4,
+        "currencyId": "11",
+        "priceId": "tether",
+        "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/USDT.svg",
+        "color": "26A17B"
+      },
+      {
+        "id": "3dd9d403-49d2-46c2-a84a-334b31a6a6b7",
+        "type": "assets",
+        "name": "rmrk",
+        "symbol": "rmrk",
+        "precision": 10,
+        "currencyId": "8",
+        "priceId": "rmrk",
+        "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/RMRK.svg",
+        "color": "392B73",
+        "inferred": true,
+        "confidence": 0
+      }
+    ],
+    "xcm": {
+      "chainId": "48239ef607d7928874027a43a67689209727dfb3d3dc5e5b03a39bdc2eda771a",
+      "xcmVersion": "v3",
+      "availableAssets": [
+        {
+          "id": "0ceffe96-8090-404e-815c-91118ee5dd65",
+          "symbol": "KSM"
+        },
+        {
+          "id": "c62c16f5-ac6b-410f-8804-4100dfb1bf33",
+          "symbol": "RMRK"
+        },
+        {
+          "id": "043a5aba-075a-4b14-91ae-f5bffe640477",
+          "symbol": "USDt"
+        }
+      ],
+      "availableDestinations": [
+        {
+          "chainId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
+          "assets": [
+            {
+              "id": "0ceffe96-8090-404e-815c-91118ee5dd65",
+              "symbol": "KSM"
+            }
+          ]
+        },
+        {
+          "chainId": "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b",
+          "assets": [
+            {
+              "id": "c62c16f5-ac6b-410f-8804-4100dfb1bf33",
+              "symbol": "RMRK"
+            }
+          ]
+        },
+        {
+          "chainId": "baf5aabe40646d11f0ee8abbdc64f4a4b7674925cba08e4a05ff9ebed6e2126b",
+          "assets": [
+            {
+              "id": "c62c16f5-ac6b-410f-8804-4100dfb1bf33",
+              "symbol": "RMRK"
+            },
+            {
+              "id": "043a5aba-075a-4b14-91ae-f5bffe640477",
+              "symbol": "USDt"
+            }
+          ]
+        },
+        {
+          "chainId": "9f28c6a68e0fc9646eff64935684f6eeeece527e37bbe1f213d22caa1d9d6bed",
+          "assets": [
+            {
+              "id": "c62c16f5-ac6b-410f-8804-4100dfb1bf33",
+              "symbol": "RMRK"
+            },
+            {
+              "id": "043a5aba-075a-4b14-91ae-f5bffe640477",
+              "symbol": "USDt"
+            }
+          ]
+        }
+      ]
+    },
+    "nodes": [
+      {
+        "url": "wss://api-assethub-kusama.dwellir.com",
+        "name": "Dwellir node"
+      },
+      {
+        "url": "wss://kusama-asset-hub-rpc.polkadot.io",
+        "name": "Parity node"
+      },
+      {
+        "url": "wss://statemine.public.curie.radiumblock.co/ws",
+        "name": "RadiumBlock node"
+      },
+      {
+        "url": "wss://rpc-asset-hub-kusama.luckyfriday.io",
+        "name": "LuckyFriday node"
+      },
+      {
+        "url": "wss://ksm-rpc.stakeworld.io/assethub",
+        "name": "Stakeworld node"
+      }
+    ],
+    "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/chains/white/Assethub.svg",
+    "addressPrefix": 2,
+    "options": [
+      "utilityFeePayment"
+    ]
+  },
+  {
+    "disabled": false,
+    "chainId": "68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f",
+    "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
+    "paraId": "1000",
+    "name": "Polkadot AssetHub",
+    "ecosystem": "substrate",
+    "externalApi": {
+      "history": {
+        "type": "giantsquid",
+        "url": "https://squid.subsquid.io/gs-main-statemint/graphql"
+      },
+      "explorers": [
+        {
+          "type": "subscan",
+          "types": [
+            "extrinsic",
+            "account"
+          ],
+          "url": "https://assethub-polkadot.subscan.io/{type}/{value}"
+        }
+      ]
+    },
+    "assets": [
+      {
+        "isUtility": true,
+        "id": "887a17c7-1370-4de0-97dd-5422e294fa75",
+        "name": "polkadot",
+        "symbol": "dot",
+        "precision": 10,
+        "priceId": "polkadot",
+        "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/DOT.svg",
+        "color": "FF0066",
+        "purchaseProviders": [
+          "moonpay",
+          "ramp"
+        ],
+        "type": "normal"
+      },
+      {
+        "id": "ea33432f-9bd9-4d42-93bc-cd45a0e8a44c",
+        "type": "assets",
+        "name": "tether usd",
+        "symbol": "usdt",
+        "precision": 6,
+        "currencyId": "1984",
+        "priceId": "tether",
+        "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/USDT.svg",
+        "color": "26A17B"
+      },
+      {
+        "id": "951ca8aa-c390-4512-a35c-d3851440b580",
+        "type": "assets",
+        "name": "usd coin",
+        "symbol": "usdc",
+        "precision": 6,
+        "currencyId": "1337",
+        "priceId": "usd-coin",
+        "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/USDC.svg",
+        "color": "3E73C4"
+      },
+      {
+        "id": "8f79aa5a-9f31-442c-ac96-01ff80b105e0",
+        "type": "assets",
+        "name": "dot is $ded",
+        "symbol": "ded",
+        "precision": 10,
+        "currencyId": "30",
+        "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/DED.svg",
+        "color": "FE0186"
+      },
+      {
+        "id": "44587704-7da8-45c3-9541-be7b81de76ee",
+        "type": "assets",
+        "name": "pink",
+        "symbol": "pink",
+        "precision": 10,
+        "currencyId": "23",
+        "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/tokens/coloured/PINK.svg",
+        "color": "FF0066"
+      }
+    ],
+    "xcm": {
+      "xcmVersion": "v3",
+      "availableAssets": [
+        {
+          "id": "99e66d4f-00cd-4d73-bd1b-3adadcacffb2",
+          "symbol": "DOT"
+        },
+        {
+          "id": "1c9cea4c-f369-4bfa-a8c4-3d3264d3d7c2",
+          "symbol": "USDt"
+        }
+      ],
+      "availableDestinations": [
+        {
+          "chainId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
+          "assets": [
+            {
+              "id": "99e66d4f-00cd-4d73-bd1b-3adadcacffb2",
+              "symbol": "DOT"
+            }
+          ]
+        },
+        {
+          "chainId": "fe58ea77779b7abda7da4ec526d14db9b1e9cd40a217c34892af80a9b332b76d",
+          "assets": [
+            {
+              "id": "1c9cea4c-f369-4bfa-a8c4-3d3264d3d7c2",
+              "symbol": "USDt"
+            }
+          ]
+        },
+        {
+          "chainId": "e61a41c53f5dcd0beb09df93b34402aada44cb05117b71059cce40a2723a4e97",
+          "assets": [
+            {
+              "id": "1c9cea4c-f369-4bfa-a8c4-3d3264d3d7c2",
+              "symbol": "USDt"
+            }
+          ]
+        }
+      ]
+    },
+    "nodes": [
+      {
+        "url": "wss://api-assethub-polkadot.dwellir.com",
+        "name": "Dwellir node"
+      },
+      {
+        "url": "wss://polkadot-asset-hub-rpc.polkadot.io",
+        "name": "Parity node"
+      },
+      {
+        "url": "wss://statemint.public.curie.radiumblock.co/ws",
+        "name": "RadiumBlock node"
+      },
+      {
+        "url": "wss://rpc-asset-hub-polkadot.luckyfriday.io",
+        "name": "LuckyFriday node"
+      },
+      {
+        "url": "wss://dot-rpc.stakeworld.io/assethub",
+        "name": "Stakeworld node"
+      }
+    ],
+    "icon": "https://raw.githubusercontent.com/soramitsu/shared-features-utils/master/icons/chains/white/Assethub.svg",
+    "addressPrefix": 0,
+    "options": [
+      "utilityFeePayment"
+    ]
+  }
+]

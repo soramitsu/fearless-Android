@@ -46,6 +46,9 @@ import jp.co.soramitsu.common.compose.theme.colorAccent
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customButtonColors
 import jp.co.soramitsu.common.compose.theme.customTypography
+import jp.co.soramitsu.common.compose.theme.fw.FwPrimaryButton
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSecondaryButton
 import jp.co.soramitsu.common.compose.theme.purple
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.common.compose.theme.white08
@@ -61,6 +64,11 @@ data class ButtonViewState(
 
 @Composable
 fun AccentButton(state: ButtonViewState, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    if (FwRestyle.paletteEnabled) {
+        FwPrimaryButton(text = state.text, onClick = onClick, modifier = modifier, enabled = state.enabled,
+            loading = state.loading, textStyle = MaterialTheme.customTypography.header3)
+        return
+    }
     TextButton(
         text = state.text,
         enabled = state.enabled,
@@ -78,6 +86,10 @@ fun AccentButton(
     @DrawableRes iconRes: Int? = null,
     onClick: () -> Unit
 ) {
+    if (FwRestyle.paletteEnabled) {
+        FwPrimaryButton(text = text, onClick = onClick, modifier = modifier, enabled = enabled, iconRes = iconRes)
+        return
+    }
     TextButton(
         text = text,
         enabled = enabled,
@@ -98,6 +110,10 @@ fun AccentButton(
     @DrawableRes iconRes: Int? = null,
     onClick: () -> Unit
 ) {
+    if (FwRestyle.paletteEnabled) {
+        FwPrimaryButton(text = text, onClick = onClick, modifier = modifier, enabled = enabled, loading = loading, iconRes = iconRes)
+        return
+    }
     if (loading) {
         ShapeButton(
             modifier = modifier,
@@ -135,6 +151,11 @@ fun AccentDarkDisabledButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    if (FwRestyle.paletteEnabled) {
+        FwPrimaryButton(text = state.text, onClick = onClick, modifier = modifier, enabled = state.enabled,
+            loading = state.loading, textStyle = MaterialTheme.customTypography.header3)
+        return
+    }
     if (state.loading) {
         ShapeButton(
             modifier = modifier,
@@ -171,6 +192,10 @@ fun GrayButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    if (FwRestyle.paletteEnabled) {
+        FwSecondaryButton(text = text, onClick = onClick, modifier = modifier, enabled = enabled)
+        return
+    }
     TextButton(
         text = text,
         enabled = enabled,
@@ -189,6 +214,10 @@ fun GrayButton(
     loading: Boolean = false,
     onClick: () -> Unit
 ) {
+    if (FwRestyle.paletteEnabled) {
+        FwSecondaryButton(text = text, onClick = onClick, modifier = modifier, enabled = enabled, loading = loading)
+        return
+    }
     if (loading) {
         ShapeButton(
             modifier = modifier,
@@ -246,6 +275,11 @@ fun TransparentBorderedButton(
     borderColor: Color = white64,
     onClick: () -> Unit
 ) {
+    if (FwRestyle.paletteEnabled) {
+        FwSecondaryButton(text = text, onClick = onClick, modifier = modifier.fillMaxWidth().height(48.dp), iconRes = iconRes,
+            tintIcon = false)
+        return
+    }
     BackgroundCorneredWithBorder(
         modifier = modifier
             .fillMaxWidth()

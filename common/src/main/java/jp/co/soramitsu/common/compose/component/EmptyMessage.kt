@@ -13,6 +13,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.fw.FwEmptyState
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
 import jp.co.soramitsu.common.compose.theme.gray2
 
 @Composable
@@ -22,6 +24,15 @@ fun EmptyMessage(
     @StringRes title: Int = R.string.common_search_assets_alert_title,
     @StringRes message: Int
 ) {
+    if (FwRestyle.paletteEnabled) {
+        FwEmptyState(
+            title = stringResource(id = title),
+            description = stringResource(id = message),
+            modifier = modifier,
+            iconRes = icon
+        )
+        return
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),

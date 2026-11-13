@@ -11,7 +11,8 @@ class PendingPayoutParcelable(
     val amountInPlanks: BigInteger,
     val createdAt: Long,
     val timeLeft: Long,
-    val closeToExpire: Boolean
+    val closeToExpire: Boolean,
+    val page: BigInteger? = null
 ) : Parcelable {
     @Parcelize
     class ValidatorInfoParcelable(

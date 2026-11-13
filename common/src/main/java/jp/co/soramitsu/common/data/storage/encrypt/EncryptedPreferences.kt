@@ -113,6 +113,28 @@ interface EncryptedPreferences {
         savePinCodeDurably(pin)
     }
 
+    /**
+     * Replaces a readable PIN the user forgot, after a backup proof, bound to
+     * the exact state the proof was made against.
+     */
+    fun saveForgottenPinCodeDurably(pin: String, expected: PinResetSnapshot) = synchronized(this) {
+        if (!expected.matches(capturePinResetSnapshot()) || getPinHealth() != PinHealth.HEALTHY) {
+            throw WalletSecretConcurrentMutationException("PIN changed after recovery authorization")
+        }
+        savePinCodeDurably(pin)
+    }
+
+    /**
+     * Removes the legacy `pin_code` and every archived copy of it, once the
+     * wallet keyring's PIN wrap has replaced it as the verifier.
+     */
+    fun removeLegacyPinDurably() = synchronized(this) {
+        val keys = (listOf("pin_code") + (0 until WalletSecretArchive.MAX_SLOTS).map {
+            WalletSecretArchive.keyFor("pin_code", it)
+        }).filter(::hasKey).toSet()
+        if (keys.isNotEmpty()) replaceEncryptedStringsDurably(emptyMap(), keys)
+    }
+
     /** Called only after a successful unlock or recovery proof. */
     fun savePinCodeDurably(pin: String) {
         require(PinHealth.assess(true, pin) == PinHealth.HEALTHY)
@@ -288,6 +310,21 @@ interface EncryptedPreferences {
         )
         true
     }
+
+    /**
+     * Writes [plaintext] exactly as given, never sealed, while [key] still holds
+     * [expected]. Only the sealing migration uses it, to put back an original it
+     * could not verify after sealing.
+     */
+    fun replaceEncryptedStringUnsealedIfStateMatches(
+        key: String,
+        expected: EncryptedPreferenceSnapshot?,
+        plaintext: String
+    ): Boolean = replaceEncryptedStringsDurablyIfStatesMatch(
+        expectedStates = mapOf(key to expected),
+        valuesToPut = mapOf(key to plaintext),
+        keysToRemove = emptySet()
+    )
 
     /**
      * Atomically moves the exact stored ciphertext out of active use only when

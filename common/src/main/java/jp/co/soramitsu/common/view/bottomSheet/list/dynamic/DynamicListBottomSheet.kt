@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.theme.fw.fwSheetNavigationBar
 
 typealias ClickHandler<T> = (T) -> Unit
 
@@ -43,6 +44,7 @@ abstract class DynamicListBottomSheet<T : Any>(
         }
 
         val listContent = findViewById<RecyclerView>(R.id.dynamicListSheetContent)
+        fwSheetNavigationBar()
 
         val adapter = DynamicListSheetAdapter(payload.selected, this, diffCallback, holderCreator())
         listContent?.adapter = adapter

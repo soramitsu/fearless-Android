@@ -62,7 +62,8 @@ class AppInitializer @OptIn(ExperimentalCoroutinesApi::class) constructor(
     private val productionAssetDiscoverySweep: AssetDiscoveryService,
     private val chainsRepository: ChainsRepository,
     private val coroutineContext: CoroutineContext = Dispatchers.Default + SupervisorJob(),
-    private val legacyNetworkAccountUpgrade: LegacyNetworkAccountUpgrade? = null
+    private val legacyNetworkAccountUpgrade: LegacyNetworkAccountUpgrade? = null,
+    private val unlockMaintenance: WalletUnlockMaintenance? = null
 ) {
 
     data class Step(val type: InitializationStep, val action: suspend () -> Unit)
@@ -71,6 +72,7 @@ class AppInitializer @OptIn(ExperimentalCoroutinesApi::class) constructor(
     private var dailyAssetSweepJob: Job? = null
     private var assetSweepTriggersJob: Job? = null
     private var nativeAccountUpgradeJob: Job? = null
+    private var unlockMaintenanceJob: Job? = null
     private var balanceUpdatesJob: Job? = null
     private val initializationMutex = Mutex()
     private var localServicesStarted = false
@@ -138,6 +140,10 @@ class AppInitializer @OptIn(ExperimentalCoroutinesApi::class) constructor(
             chainRegistry.syncUp()
             walletSyncService.start()
             localServicesStarted = true
+        }
+        if (unlockMaintenanceJob?.isActive != true) {
+            // Sealing, deferred journal replay and the passes that skipped sealed values run after each unlock.
+            unlockMaintenanceJob = unlockMaintenance?.observe(scope)
         }
         if (nativeAccountUpgradeJob?.isActive != true) {
             nativeAccountUpgradeJob = legacyNetworkAccountUpgrade?.observeWallets(

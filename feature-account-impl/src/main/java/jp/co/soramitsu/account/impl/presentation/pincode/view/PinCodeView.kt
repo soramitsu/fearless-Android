@@ -1,6 +1,28 @@
 package jp.co.soramitsu.account.impl.presentation.pincode.view
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.animation.StateListAnimator
 import android.content.Context
+import android.content.res.ColorStateList
+import android.util.TypedValue
+import android.view.Gravity
+import android.view.ViewGroup
+import android.view.animation.OvershootInterpolator
+import android.widget.ImageView
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.animation.doOnEnd
+import androidx.core.content.res.ResourcesCompat
+import jp.co.soramitsu.common.compose.theme.fw.FwColors
+import jp.co.soramitsu.common.compose.theme.fw.FwEffects
+import jp.co.soramitsu.common.compose.theme.fw.FwElevation
+import jp.co.soramitsu.common.compose.theme.fw.FwLight
+import jp.co.soramitsu.common.compose.theme.fw.FwMotionDurations
+import jp.co.soramitsu.common.compose.theme.fw.FwMotionKind
+import jp.co.soramitsu.common.compose.theme.fw.FwNeuDrawable
+import jp.co.soramitsu.common.compose.theme.fw.FwSunGlowDrawable
+import jp.co.soramitsu.common.compose.theme.fw.FwWings
+import jp.co.soramitsu.common.compose.theme.fw.motionPolicy
 import android.util.AttributeSet
 import android.view.View
 import android.view.View.OnClickListener
@@ -72,9 +94,103 @@ class PinCodeView @JvmOverloads constructor(
         updateProgress()
     }
 
+    private var sunlit: FwEffects? = null
+
+    /**
+     * Sun-lit PIN pad (FW Pin surface): the winged sun at full span above the title, neumorphic keys
+     * that sink while pressed, dots that fill from the key-light side, and a two-shake wrong-PIN
+     * signal. Ids, listeners and content descriptions are unchanged.
+     */
+    fun applySunlitStyle(fx: FwEffects, colors: FwColors) {
+        sunlit = fx
+        val density = resources.displayMetrics.density
+        clipChildren = false
+        clipToPadding = false
+        if (resources.configuration.screenHeightDp >= MIN_HEIGHT_FOR_LOGO_DP) {
+            val glowPadding = (SUN_GLOW_PADDING_DP * density).toInt()
+            val width = minOf(resources.configuration.screenWidthDp - 2 * WINGS_MARGIN_DP, FwWings.MAX_WIDTH_DP) * density
+            val logo = ImageView(context).apply {
+                setImageResource(jp.co.soramitsu.common.R.drawable.fw_brand_wings)
+                scaleType = ImageView.ScaleType.FIT_CENTER
+                background = FwSunGlowDrawable(colors, fx.glow)
+                setPadding(0, glowPadding, 0, glowPadding)
+                importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
+            }
+            addView(logo, 0, LayoutParams(width.toInt(), (width / FwWings.ASPECT).toInt() + 2 * glowPadding).apply {
+                gravity = Gravity.CENTER_HORIZONTAL
+            })
+        }
+        binding.pinCodeTitleTv.setTextColor(colors.textPrimary.toArgb())
+        binding.pinCodeTitleTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
+        // The title has no text appearance of its own, so it would otherwise fall back to the system font.
+        binding.pinCodeTitleTv.typeface = ResourcesCompat.getFont(context, jp.co.soramitsu.common.R.font.sora_bold)
+        binding.dotsProgressView.applySunlitStyle(fx, colors)
+        val keys = listOf(binding.btn1, binding.btn2, binding.btn3, binding.btn4, binding.btn5, binding.btn6,
+            binding.btn7, binding.btn8, binding.btn9, binding.btn0)
+        val roomy = resources.configuration.screenHeightDp >= MIN_HEIGHT_FOR_LOGO_DP &&
+            resources.configuration.screenWidthDp >= MIN_WIDTH_FOR_ROOMY_KEYS_DP
+        for (key in keys + listOf(binding.fingerprintBtn, binding.btnDelete)) {
+            if (roomy) key.layoutParams = key.layoutParams.apply {
+                width = (ROOMY_KEY_DP * density).toInt()
+                height = (ROOMY_KEY_DP * density).toInt()
+            }
+        }
+        for (key in keys) {
+            key.background = FwNeuDrawable(colors, fx, density, FwElevation.Raised2, shadowRoom = KEY_SHADOW_ROOM_DP * density)
+            key.setTextColor(colors.textPrimary.toArgb())
+            key.stateListAnimator = pressAnimator(fx)
+            (key.parent as? ViewGroup)?.apply {
+                clipChildren = false
+                clipToPadding = false
+                (parent as? ViewGroup)?.apply {
+                    clipChildren = false
+                    clipToPadding = false
+                }
+            }
+        }
+        for (control in listOf(binding.fingerprintBtn, binding.btnDelete)) {
+            control.background = null
+            control.imageTintList = ColorStateList.valueOf(colors.textSecondary.toArgb())
+            control.stateListAnimator = pressAnimator(fx)
+        }
+    }
+
+    // 90 ms in, spring back in 160 ms; nothing moves under reduced motion or Calm/Reduced effects.
+    private fun pressAnimator(fx: FwEffects): StateListAnimator? {
+        if (!fx.motionPolicy().moves(FwMotionKind.Press)) return null
+        fun scale(to: Float, millis: Int) = AnimatorSet().apply {
+            playTogether(ObjectAnimator.ofFloat(null, View.SCALE_X, to), ObjectAnimator.ofFloat(null, View.SCALE_Y, to))
+            duration = millis.toLong()
+        }
+        return StateListAnimator().apply {
+            addState(intArrayOf(android.R.attr.state_pressed), scale(FwLight.PRESS_SCALE, FwMotionDurations.PRESS_IN))
+            addState(intArrayOf(), scale(1f, FwMotionDurations.PRESS_OUT).apply { interpolator = OvershootInterpolator(2f) })
+        }
+    }
+
     fun pinCodeMatchingError() {
-        resetInput()
-        shakeDotsAnimation()
+        val fx = sunlit
+        if (fx == null) {
+            resetInput()
+            shakeDotsAnimation()
+            return
+        }
+        // Wrong PIN: the entered dots turn danger and shake twice (6 dp, 300 ms), then clear.
+        binding.dotsProgressView.showError(true)
+        val clear = Runnable {
+            binding.dotsProgressView.showError(false)
+            resetInput()
+        }
+        if (fx.motionPolicy().moves(FwMotionKind.Shake)) {
+            val amplitude = FwMotionDurations.SHAKE_DP * resources.displayMetrics.density
+            ObjectAnimator.ofFloat(binding.dotsProgressView, View.TRANSLATION_X, 0f, -amplitude, amplitude, -amplitude, amplitude, 0f).apply {
+                duration = FwMotionDurations.SHAKE.toLong()
+                doOnEnd { clear.run() }
+                start()
+            }
+        } else {
+            binding.dotsProgressView.postDelayed(clear, FwMotionDurations.SHAKE.toLong())
+        }
     }
 
     private fun pinNumberAdded(number: String) {
@@ -105,5 +221,14 @@ class PinCodeView @JvmOverloads constructor(
     private fun shakeDotsAnimation() {
         val animation = AnimationUtils.loadAnimation(context, R.anim.shake)
         binding.dotsProgressView.startAnimation(animation)
+    }
+
+    private companion object {
+        const val MIN_HEIGHT_FOR_LOGO_DP = 680
+        const val MIN_WIDTH_FOR_ROOMY_KEYS_DP = 360
+        const val WINGS_MARGIN_DP = 20
+        const val SUN_GLOW_PADDING_DP = 18
+        const val KEY_SHADOW_ROOM_DP = 5f
+        const val ROOMY_KEY_DP = 74
     }
 }

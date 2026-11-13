@@ -72,6 +72,7 @@ class StakingRootActionLifetimeTest {
         on { currentAssetFlow() } doReturn MutableStateFlow(asset)
         on { assetWithChain } doReturn flowOf(SingleAssetSharedState.AssetWithChain(chain, chainAsset))
         on { selectionItem } doReturn emptyFlow()
+        on { settledSelection } doReturn emptyFlow()
     }
     private val interactor = mock<StakingInteractor> {
         onBlocking { getCurrentMetaAccount() } doReturn meta

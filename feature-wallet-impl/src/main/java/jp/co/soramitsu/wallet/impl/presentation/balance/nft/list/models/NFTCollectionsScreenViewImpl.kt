@@ -46,7 +46,8 @@ internal sealed interface ScreenModel {
             .toSortedMap(compareBy<Pair<String, String>> { it.second }.thenBy { it.first })
             .flatMap { (network, collections) ->
                 listOf<NFTCollectionsScreenView>(NetworkHeaderModel(network.first, network.second)) +
-                    collections.sortedBy { it.collectionName }.map { collection ->
+                    // One tile per contract on a network: the grid keys tiles that way, and a repeated key closes the app.
+                    collections.distinctBy { it.contractAddress }.sortedBy { it.collectionName }.map { collection ->
                         ItemModel(
                             collection = collection,
                             screenLayout = screenLayout,

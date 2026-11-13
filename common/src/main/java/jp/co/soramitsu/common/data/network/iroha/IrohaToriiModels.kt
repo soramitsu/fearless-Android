@@ -1,32 +1,12 @@
 package jp.co.soramitsu.common.data.network.iroha
 
-import com.google.gson.annotations.JsonAdapter
 import com.google.gson.annotations.SerializedName
-
-data class IrohaPageMetadata(
-    @SerializedName("has_more")
-    val hasMore: Boolean,
-    @SerializedName("count_mode")
-    val countMode: String,
-    @SerializedName("total")
-    val total: Long? = null,
-    @SerializedName("indexed_height")
-    val indexedHeight: Long? = null,
-    @SerializedName("indexed_block_hash")
-    val indexedBlockHash: String? = null,
-    @SerializedName("query_source")
-    val querySource: String? = null
-)
 
 data class IrohaAccountListResponse(
     @SerializedName("items")
-    val items: List<IrohaAccountListItem> = emptyList(),
-    @SerializedName("has_more")
-    val hasMore: Boolean,
-    @SerializedName("count_mode")
-    val countMode: String,
-    @SerializedName("total")
-    val total: Long? = null
+    val items: List<IrohaAccountListItem>,
+    @SerializedName("next_cursor")
+    val nextCursor: String? = null
 )
 
 data class IrohaAccountListItem(
@@ -46,13 +26,9 @@ data class IrohaAccountListItem(
 
 data class IrohaAccountAssetListResponse(
     @SerializedName("items")
-    val items: List<IrohaAccountAssetListItem> = emptyList(),
-    @SerializedName("has_more")
-    val hasMore: Boolean,
-    @SerializedName("count_mode")
-    val countMode: String,
-    @SerializedName("total")
-    val total: Long? = null
+    val items: List<IrohaAccountAssetListItem>,
+    @SerializedName("next_cursor")
+    val nextCursor: String? = null
 )
 
 data class IrohaAccountAssetListItem(
@@ -74,13 +50,9 @@ data class IrohaAccountAssetListItem(
 
 data class IrohaAssetDefinitionListResponse(
     @SerializedName("items")
-    val items: List<IrohaAssetDefinitionListItem> = emptyList(),
-    @SerializedName("has_more")
-    val hasMore: Boolean,
-    @SerializedName("count_mode")
-    val countMode: String,
-    @SerializedName("total")
-    val total: Long? = null
+    val items: List<IrohaAssetDefinitionListItem>,
+    @SerializedName("next_cursor")
+    val nextCursor: String? = null
 )
 
 data class IrohaAssetDefinitionListItem(
@@ -149,34 +121,41 @@ data class IrohaErrorEnvelope(
     val details: Any? = null
 )
 
-data class IrohaMcpJsonRpcRequest(
-    @SerializedName("jsonrpc")
-    val jsonrpc: String = "2.0",
-    @SerializedName("id")
-    val id: String,
-    @SerializedName("method")
-    val method: String,
-    @SerializedName("params")
-    val params: Map<String, Any?>? = null
+data class IrohaAccountHistoryPage(
+    @SerializedName("items")
+    val items: List<IrohaAccountHistoryItem> = emptyList(),
+    @SerializedName("next_cursor")
+    val nextCursor: String? = null
 )
 
-@JsonAdapter(IrohaMcpJsonRpcResponseAdapter::class, nullSafe = false)
-data class IrohaMcpJsonRpcResponse(
-    @SerializedName("jsonrpc")
-    val jsonrpc: String = "2.0",
+/** One account movement from `/v1/accounts/{account_id}/history`; absent fields are omitted by Torii. */
+data class IrohaAccountHistoryItem(
     @SerializedName("id")
     val id: String? = null,
-    @SerializedName("result")
-    val result: Any? = null,
-    @SerializedName("error")
-    val error: IrohaMcpJsonRpcError? = null
-)
-
-data class IrohaMcpJsonRpcError(
-    @SerializedName("code")
-    val code: Int,
-    @SerializedName("message")
-    val message: String,
-    @SerializedName("data")
-    val data: Any? = null
+    @SerializedName("type")
+    val type: String? = null,
+    @SerializedName("status")
+    val status: String? = null,
+    @SerializedName("result_ok")
+    val resultOk: Boolean? = null,
+    @SerializedName("direction")
+    val direction: String? = null,
+    @SerializedName("account_id")
+    val accountId: String? = null,
+    @SerializedName("counterparty_account_id")
+    val counterpartyAccountId: String? = null,
+    @SerializedName("asset_id")
+    val assetId: String? = null,
+    @SerializedName("asset_definition_id")
+    val assetDefinitionId: String? = null,
+    @SerializedName("amount")
+    val amount: String? = null,
+    @SerializedName("tx_hash")
+    val txHash: String? = null,
+    @SerializedName("timestamp_ms")
+    val timestampMs: Long? = null,
+    @SerializedName("block_height")
+    val blockHeight: Long? = null,
+    @SerializedName("movement_index")
+    val movementIndex: Long? = null
 )

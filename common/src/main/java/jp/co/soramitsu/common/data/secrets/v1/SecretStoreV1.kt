@@ -3,6 +3,7 @@ package jp.co.soramitsu.common.data.secrets.v1
 import jp.co.soramitsu.common.data.secrets.WalletSecretScalePreflight
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.MAX_WALLET_SECRET_PLAINTEXT_CHARS
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelopes
 import jp.co.soramitsu.common.utils.invoke
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.model.WithDerivationPath
@@ -59,7 +60,9 @@ class SecretStoreV1Impl(
     override suspend fun getSecuritySource(accountAddress: String): SecuritySource? = withContext(Dispatchers.Default) {
         val key = PREFS_SECURITY_SOURCE_MASK.format(accountAddress)
 
+        // Opened outside the corruption catch: a locked sealed value is not a malformed one.
         val raw = encryptedPreferences.getDecryptedString(key)
+            ?.let { WalletSecretEnvelopes.open(it) }
             ?: return@withContext null
         try {
             if (

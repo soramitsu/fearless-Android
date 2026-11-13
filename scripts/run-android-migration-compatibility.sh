@@ -48,4 +48,4 @@ for module in common core-db app; do
 done
 
 echo \
-  "[android-migration-compat] API $API_LEVEL: 41 critical tests passed and archived"
+  "[android-migration-compat] API $API_LEVEL: 44 critical tests passed and archived"

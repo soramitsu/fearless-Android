@@ -5,6 +5,26 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import coil.compose.AsyncImage
+import jp.co.soramitsu.common.compose.theme.customTypography
+import jp.co.soramitsu.common.compose.theme.fw.FwCard
+import jp.co.soramitsu.common.compose.theme.fw.FwElevation
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwRollingText
+import jp.co.soramitsu.common.compose.theme.fw.FwShape
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwEffects
+import jp.co.soramitsu.common.compose.theme.fw.fwStaggerIn
+import jp.co.soramitsu.common.compose.theme.fw.fwSurface
+import jp.co.soramitsu.common.compose.theme.fw.rememberFwStagger
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
@@ -55,12 +75,16 @@ fun PortfolioList(
             callback.onPortfolioMemberAction(walletId, member.chainId, member.chainAssetId, type)
         } else action = group.id to type
     }
-    LazyColumn(state = listState, verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(top = 8.dp, bottom = 80.dp)) {
+    val sunlit = FwRestyle.isEnabled(FwSurface.Portfolio)
+    val stagger = rememberFwStagger()
+    LazyColumn(state = listState, verticalArrangement = Arrangement.spacedBy(if (sunlit) 12.dp else 8.dp),
+        contentPadding = PaddingValues(top = 8.dp, bottom = 80.dp)) {
         item(key = "portfolio-header") { header() }
         if (data.assets.isEmpty() && data.portfolioItems.none { it == PortfolioListItem.EmptyWallet }) {
             item(key = "portfolio-empty") { EmptyAssetsContent(data.allAssetsHidden) }
         }
-        items(data.portfolioItems, key = { it.key }) { item ->
+        itemsIndexed(data.portfolioItems, key = { _, it -> it.key }) { index, item ->
+            Box(if (sunlit) Modifier.fwStaggerIn(stagger, index) else Modifier) {
             when (item) {
                 is PortfolioListItem.AssetRow -> Column(Modifier.padding(start = if (item.nested) 12.dp else 0.dp)) {
                     if (data.portfolioUi.lens == PortfolioLens.ByToken || data.selectedNetwork != null) {
@@ -72,13 +96,17 @@ fun PortfolioList(
                 is PortfolioListItem.NetworkHeader -> PortfolioNetworkHeader(item.first.state, !item.collapsed) {
                     callback.onPortfolioNetworkToggle(item.first.state.chainId)
                 }
-                is PortfolioListItem.TokenGroup -> PortfolioTokenGroup(item, { callback.onPortfolioGroupToggle(item.id) },
+                is PortfolioListItem.TokenGroup -> if (sunlit) SunlitTokenGroup(item, { callback.onPortfolioGroupToggle(item.id) },
+                    { act(item, ActionItemType.SEND) }, { act(item, ActionItemType.RECEIVE) },
+                    { act(item, ActionItemType.HIDE) }, isHideVisible)
+                else PortfolioTokenGroup(item, { callback.onPortfolioGroupToggle(item.id) },
                     { act(item, ActionItemType.SEND) }, { act(item, ActionItemType.RECEIVE) },
                     { act(item, ActionItemType.HIDE) }, isHideVisible)
                 is PortfolioListItem.ZeroSummary -> GrayButton(
                     text = stringResource(if (item.expanded) R.string.portfolio_hide_zero_networks else R.string.portfolio_show_zero_networks, item.networkCount),
                     modifier = Modifier.fillMaxWidth().testTag(item.key), onClick = { callback.onPortfolioZeroToggle(item.groupId) })
                 PortfolioListItem.EmptyWallet -> EmptyAssetsContent(data.allAssetsHidden)
+            }
             }
         }
         item(key = "portfolio-footer") { footer() }
@@ -163,5 +191,93 @@ private fun PortfolioTokenGroup(
                 if (canHide) TextButton(onClick = hide, modifier = Modifier.weight(1f)) { B1(text = hideLabel) }
             }
         }
+    }
+}
+
+/**
+ * Sun-lit token row: a Raised-1 surface with the token in an inset well, its total and value (the
+ * value flashes up/down when it changes) and the same Send / Receive / Hide actions.
+ */
+@Composable
+private fun SunlitTokenGroup(
+    group: PortfolioListItem.TokenGroup,
+    toggle: () -> Unit,
+    send: () -> Unit,
+    receive: () -> Unit,
+    hide: () -> Unit,
+    canHide: Boolean
+) {
+    val c = LocalFwColors.current
+    val fx = LocalFwEffects.current
+    val sendLabel = stringResource(R.string.common_action_send)
+    val receiveLabel = stringResource(R.string.common_action_receive)
+    val hideLabel = stringResource(R.string.common_action_hide)
+    val expansion = stringResource(if (group.expanded) R.string.common_collapse else R.string.common_expand)
+    val fiat = group.fiat?.formatFiat(group.members.first().fiatSymbol)?.let { if (group.priceIncomplete) "≈ $it" else it }
+        ?: stringResource(R.string.portfolio_price_unavailable)
+    FwCard(modifier = Modifier.fillMaxWidth().testTag(group.key), level = FwElevation.Raised1, shape = FwShape.Card) {
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
+            Row(
+                Modifier.fillMaxWidth().clickable(onClickLabel = expansion, onClick = toggle)
+                    .semantics(mergeDescendants = true) {
+                        stateDescription = expansion
+                        customActions = listOf(CustomAccessibilityAction(sendLabel) { send(); true },
+                            CustomAccessibilityAction(receiveLabel) { receive(); true }) +
+                            if (canHide) listOf(CustomAccessibilityAction(hideLabel) { hide(); true }) else emptyList()
+                    },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(Modifier.size(44.dp).fwSurface(fx, c, CircleShape, FwElevation.Inset), contentAlignment = Alignment.Center) {
+                    AsyncImage(
+                        model = getImageRequest(LocalContext.current, group.members.first().state.assetIconUrl),
+                        contentDescription = null,
+                        modifier = Modifier.size(30.dp).clip(CircleShape)
+                    )
+                }
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    H5(text = group.symbol)
+                    B2(text = stringResource(R.string.portfolio_group_networks, group.members.map { it.state.chainId }.distinct().size), color = c.textTertiary)
+                    if (group.priceIncomplete) B2(text = stringResource(R.string.portfolio_price_incomplete), color = c.textTertiary)
+                    if (group.hiddenCount > 0) B2(text = stringResource(R.string.portfolio_group_hidden, group.hiddenCount), color = c.textTertiary)
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    FwRollingText(text = fiat, style = MaterialTheme.customTypography.header5, roll = false)
+                    B2(text = group.total?.let { "${it.formatCrypto()} ${group.symbol}" }
+                        ?: stringResource(R.string.portfolio_balance_unavailable), color = c.textSecondary)
+                }
+                Spacer(Modifier.width(6.dp))
+                Icon(painterResource(if (group.expanded) R.drawable.ic_chevron_up_white else R.drawable.ic_chevron_down_white),
+                    contentDescription = null, tint = c.textTertiary, modifier = Modifier.size(20.dp))
+            }
+            Spacer(Modifier.height(10.dp))
+            if (LocalDensity.current.fontScale > 1.3f) {
+                GrayButton(sendLabel, modifier = Modifier.fillMaxWidth(), onClick = send)
+                Spacer(Modifier.height(8.dp))
+                GrayButton(receiveLabel, modifier = Modifier.fillMaxWidth(), onClick = receive)
+                if (canHide) {
+                    Spacer(Modifier.height(8.dp))
+                    GrayButton(hideLabel, modifier = Modifier.fillMaxWidth(), onClick = hide)
+                }
+            } else Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SunlitRowAction(sendLabel, send, Modifier.weight(1f))
+                SunlitRowAction(receiveLabel, receive, Modifier.weight(1f))
+                if (canHide) SunlitRowAction(hideLabel, hide, Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun SunlitRowAction(label: String, onClick: () -> Unit, modifier: Modifier) {
+    val c = LocalFwColors.current
+    Box(
+        modifier = modifier.heightIn(min = 40.dp).clip(FwShape.Pill)
+            .fwSurface(LocalFwEffects.current, c, FwShape.Pill, FwElevation.Inset, interactive = true)
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(label, style = MaterialTheme.customTypography.body1.copy(fontWeight = FontWeight.SemiBold), color = c.textPrimary,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp))
     }
 }

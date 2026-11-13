@@ -8,6 +8,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
+import jp.co.soramitsu.common.navigation.KeepSheetOpenOnBack
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 @AndroidEntryPoint
@@ -26,6 +27,8 @@ class ClaimRewardsFragment : BaseComposeBottomSheetDialogFragment<ClaimRewardsVi
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
+        val isClaiming by viewModel.isClaimInProgress.collectAsState()
+        KeepSheetOpenOnBack(submitting = isClaiming)
         ClaimRewardsContent(
             state = state,
             callback = viewModel

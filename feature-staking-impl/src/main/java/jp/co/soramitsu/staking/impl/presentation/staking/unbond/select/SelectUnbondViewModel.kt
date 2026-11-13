@@ -55,6 +55,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -131,12 +132,16 @@ class SelectUnbondViewModel @Inject constructor(
 
     val lockupPeriodLiveData = MutableLiveData<String>().apply {
         launch {
-            val networkInfo = stakingScenarioInteractor.observeNetworkInfoState().first()
-            val lockupPeriod = if (networkInfo.lockupPeriodInHours > HOURS_IN_DAY) {
-                val inDays = networkInfo.lockupPeriodInHours / HOURS_IN_DAY
+            // Read on its own: it never waits on, or fails with, the network's minimum stake. A period that cannot be
+            // read is left out rather than closing the app.
+            val read = runCatching { stakingScenarioInteractor.unbondingPeriodInHours() }
+            currentCoroutineContext().ensureActive()
+            val hours = read.getOrNull() ?: return@launch
+            val lockupPeriod = if (hours > HOURS_IN_DAY) {
+                val inDays = hours / HOURS_IN_DAY
                 resourceManager.getQuantityString(R.plurals.common_days_format, inDays, inDays)
             } else {
-                resourceManager.getQuantityString(R.plurals.common_hours_format, networkInfo.lockupPeriodInHours, networkInfo.lockupPeriodInHours)
+                resourceManager.getQuantityString(R.plurals.common_hours_format, hours, hours)
             }
             postValue(lockupPeriod)
         }

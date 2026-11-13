@@ -37,7 +37,7 @@ fun ArchivedWalletRecoveryScreen(
     cancel: () -> Unit,
     export: (ArchivedWalletRecovery.Record) -> Unit,
     closeExport: () -> Unit,
-    share: (String) -> Unit
+    copySecret: (String) -> Unit
 ) {
     // The legacy Fragment theme uses transparent surfaces; recovery dialogs must
     // remain opaque and readable over any wallet screen or activity background.
@@ -108,7 +108,7 @@ fun ArchivedWalletRecoveryScreen(
                         Text(stringResource(R.string.wallet_archive_export_warning))
                         Text(data, style = MaterialTheme.typography.caption)
                     } },
-                    confirmButton = { TextButton(onClick = { share(data) }) { Text(stringResource(R.string.wallet_archive_share)) } },
+                    confirmButton = { TextButton(onClick = { copySecret(data) }) { Text(stringResource(R.string.common_copy)) } },
                     dismissButton = { TextButton(onClick = closeExport) { Text(stringResource(R.string.common_close)) } })
             }
         }

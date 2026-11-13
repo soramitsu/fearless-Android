@@ -8,6 +8,7 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.core.models.Ecosystem
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import kotlinx.coroutines.runBlocking
@@ -15,7 +16,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito.doAnswer
+import org.mockito.Mockito.doThrow
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 
 class EthereumBalanceLoaderTest {
 
@@ -47,6 +52,65 @@ class EthereumBalanceLoaderTest {
         assertTrue(state.isStale)
         assertTrue(state.lastSuccessMillis != null)
         assertEquals("evm endpoint down", state.errorMessage)
+    }
+
+    @Test
+    fun `a first scan connects a network no background sync has connected`() = runBlocking {
+        val asset = evmAsset()
+        val chain = evmChain(asset)
+        val account = evmAccount()
+        val remoteSource = mock(EthereumRemoteSource::class.java)
+        doAnswer { BigInteger.ZERO }.`when`(remoteSource).fetchEthBalance(asset, requireNotNull(account.address(chain)))
+        val registry = mock(ChainRegistry::class.java)
+        `when`(registry.checkChainSyncedUp(chain)).thenReturn(false)
+
+        val updates = EthereumBalanceLoader(chain, remoteSource, null, registry).loadBalance(setOf(account))
+
+        verify(registry).setupChain(chain)
+        assertEquals(BigInteger.ZERO, updates.single().freeInPlanks)
+    }
+
+    @Test
+    fun `a network already connected is not set up again`() = runBlocking {
+        val asset = evmAsset()
+        val chain = evmChain(asset)
+        val account = evmAccount()
+        val remoteSource = mock(EthereumRemoteSource::class.java)
+        doAnswer { BigInteger.ONE }.`when`(remoteSource).fetchEthBalance(asset, requireNotNull(account.address(chain)))
+        val registry = mock(ChainRegistry::class.java)
+        `when`(registry.checkChainSyncedUp(chain)).thenReturn(true)
+
+        EthereumBalanceLoader(chain, remoteSource, null, registry).loadBalance(setOf(account))
+
+        verify(registry, never()).setupChain(chain)
+    }
+
+    @Test
+    fun `a wallet with no evm account opens no connection`() = runBlocking {
+        val chain = evmChain(evmAsset())
+        val registry = mock(ChainRegistry::class.java)
+        val account = evmAccount().copy(ethereumPublicKey = null)
+
+        val updates = EthereumBalanceLoader(chain, mock(EthereumRemoteSource::class.java), null, registry).loadBalance(setOf(account))
+
+        assertTrue(updates.isEmpty())
+        verify(registry, never()).setupChain(chain)
+    }
+
+    @Test
+    fun `a network that cannot be set up fails its own scan and does not throw`() = runBlocking {
+        val chain = evmChain(evmAsset())
+        val account = evmAccount()
+        val scanStateStore = NetworkScanStateStore(InMemoryPreferences())
+        val registry = mock(ChainRegistry::class.java)
+        `when`(registry.checkChainSyncedUp(chain)).thenReturn(false)
+        doThrow(IllegalStateException("There are no nodes")).`when`(registry).setupChain(chain)
+
+        val updates = EthereumBalanceLoader(chain, mock(EthereumRemoteSource::class.java), scanStateStore, registry).loadBalance(setOf(account))
+
+        assertTrue(updates.isEmpty())
+        val state = scanStateStore.states.value.getValue(NetworkScanKey(account.id, chain.id))
+        assertEquals("There are no nodes", state.errorMessage)
     }
 
     private fun evmAccount() = MetaAccount(

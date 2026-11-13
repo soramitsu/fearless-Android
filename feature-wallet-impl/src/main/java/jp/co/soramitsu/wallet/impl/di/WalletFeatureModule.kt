@@ -1,11 +1,12 @@
 package jp.co.soramitsu.wallet.impl.di
 
+import jp.co.soramitsu.account.api.domain.UniversalWalletFundsProbe
+import jp.co.soramitsu.wallet.impl.data.network.blockchain.balance.NetworkUniversalWalletFundsProbe
 import jp.co.soramitsu.common.data.network.config.MutationAuthorizationStore
 import jp.co.soramitsu.common.data.network.config.MutationCapability
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import android.content.ContentResolver
 import android.util.Log
-import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -73,8 +74,6 @@ import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecksProvider
-import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
-import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.CoinbaseProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.MoonPayProvider
 import jp.co.soramitsu.wallet.impl.data.buyToken.RampProvider
@@ -107,13 +106,9 @@ import jp.co.soramitsu.wallet.impl.domain.ReviewedPolkaswapBridgeInteractor
 import jp.co.soramitsu.wallet.impl.domain.ReviewedPolkaswapBridgeRuntimeAuthority
 import jp.co.soramitsu.wallet.impl.domain.SendPausePolicy
 import jp.co.soramitsu.wallet.impl.domain.SendPausedException
-import jp.co.soramitsu.wallet.impl.domain.TokenUseCase
 import jp.co.soramitsu.wallet.impl.domain.WalletInteractorImpl
 import jp.co.soramitsu.wallet.impl.domain.XcmInteractor
-import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconInteractor
-import jp.co.soramitsu.wallet.impl.domain.beacon.BeaconSharedState
 import jp.co.soramitsu.wallet.impl.domain.implementations.ExistentialDepositUseCaseImpl
-import jp.co.soramitsu.wallet.impl.domain.implementations.TokenUseCaseImpl
 import jp.co.soramitsu.wallet.impl.domain.interfaces.AddressBookRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TokenRepository
@@ -200,7 +195,7 @@ class WalletFeatureModule {
 
     @Provides
     fun provideHistoryApi(networkApiCreator: NetworkApiCreator): OperationsHistoryApi {
-        return networkApiCreator.create(OperationsHistoryApi::class.java)
+        return networkApiCreator.create(OperationsHistoryApi::class.java, followRedirects = false)
     }
 
     @Provides
@@ -785,6 +780,22 @@ class WalletFeatureModule {
     }
 
     @Provides
+    @Singleton
+    fun provideUniversalWalletFundsProbe(
+        chainsRepository: ChainsRepository,
+        bitcoinIndexerClient: BitcoinIndexerClient,
+        solanaBalanceSource: SolanaBalanceSource,
+        tonRemoteSource: TonRemoteSource,
+        irohaToriiClient: IrohaToriiClient
+    ): UniversalWalletFundsProbe = NetworkUniversalWalletFundsProbe(
+        chainsRepository,
+        bitcoinIndexerClient,
+        solanaBalanceSource,
+        tonRemoteSource,
+        irohaToriiClient
+    )
+
+    @Provides
     fun provideWalletConstants(
         chainRegistry: ChainRegistry
     ): WalletConstants = RuntimeWalletConstants(chainRegistry)
@@ -795,49 +806,6 @@ class WalletFeatureModule {
         chainsRepository: ChainsRepository
     ) =
         CurrentAccountAddressUseCase(accountRepository, chainsRepository)
-
-    @Provides
-    @Singleton
-    fun provideBeaconApi(
-        gson: Gson,
-        accountRepository: AccountRepository,
-        chainRegistry: ChainRegistry,
-        preferences: Preferences,
-        extrinsicService: ExtrinsicService,
-        beaconSharedState: BeaconSharedState
-    ) = BeaconInteractor(
-        gson,
-        accountRepository,
-        chainRegistry,
-        preferences,
-        extrinsicService,
-        beaconSharedState
-    )
-
-    @Provides
-    fun provideFeeLoaderMixin(
-        resourceManager: ResourceManager,
-        tokenUseCase: TokenUseCase
-    ): FeeLoaderMixin.Presentation = FeeLoaderProvider(
-        resourceManager,
-        tokenUseCase
-    )
-
-    @Provides
-    fun provideTokenUseCase(
-        tokenRepository: TokenRepository,
-        sharedState: BeaconSharedState
-    ): TokenUseCase = TokenUseCaseImpl(
-        tokenRepository,
-        sharedState
-    )
-
-    @Provides
-    @Singleton
-    fun provideBeaconSharedState(
-        chainRegistry: ChainRegistry,
-        preferences: Preferences
-    ): BeaconSharedState = BeaconSharedState(chainRegistry, preferences)
 
     @Provides
     @Singleton
@@ -931,7 +899,8 @@ class WalletFeatureModule {
         sendPausePolicy: SendPausePolicy,
         quoteStore: jp.co.soramitsu.wallet.impl.data.repository.tranfser.NativeSendQuoteStore,
         preferences: jp.co.soramitsu.common.data.storage.Preferences,
-        chainRegistry: ChainRegistry
+        chainRegistry: ChainRegistry,
+        operationDao: OperationDao
     ): TransferServiceProvider {
         return TransferServiceProvider(
             substrateSource,
@@ -947,7 +916,21 @@ class WalletFeatureModule {
             sendPausePolicy = sendPausePolicy,
             quoteStore = quoteStore,
             sendJournal = jp.co.soramitsu.common.data.network.send.WalletSendJournal(preferences),
-            currentChain = { chainRegistry.getChain(it) }
+            currentChain = { chainRegistry.getChain(it) },
+            onPaymentReleased = { payment, verified ->
+                // The pending row from this app is closed: failed when the payment provably never reached the chain,
+                // unknown when it was too old for its expiry to prove that.
+                val reviewed = payment.reviewed
+                if (reviewed != null) {
+                    operationDao.getOperation(payment.transactionId)?.takeIf {
+                        it.source == jp.co.soramitsu.coredb.model.OperationLocal.Source.APP && it.chainId == reviewed.chainId &&
+                            it.address == reviewed.sender && it.status == jp.co.soramitsu.coredb.model.OperationLocal.Status.PENDING
+                    }?.let {
+                        operationDao.insert(it.copy(status = if (verified) jp.co.soramitsu.coredb.model.OperationLocal.Status.FAILED
+                            else jp.co.soramitsu.coredb.model.OperationLocal.Status.UNKNOWN))
+                    }
+                }
+            }
         )
     }
 
