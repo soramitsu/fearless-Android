@@ -61,7 +61,7 @@ printf '\033[32m> Task :app:minifyReleaseWithR8\033[0m\r\n> Task :app:bundleRele
 "$VERIFY" "$valid_ansi" >/dev/null
 positive_count=$((positive_count + 1))
 
-# Release CI never defines the debug web client or every optional partner key.
+# Release builds read no Google web client, and CI never defines every optional partner key.
 valid_other_secrets="$tmp_dir/valid-other-secrets.log"
 printf '%s\n' \
   "Warning: Secret 'WEB_CLIENT_ID_DEBUG' is not defined in local.properties or as an environment variable." \
@@ -161,44 +161,6 @@ expect_failure \
   "ANSI-obfuscated missing ServiceLoader class warning" \
   "R8 missing ServiceLoader class warning detected" \
   "$VERIFY" "$ansi_service_warning"
-
-undefined_web_client="$tmp_dir/undefined-web-client.log"
-printf '%s\n' \
-  "Warning: Secret 'WEB_CLIENT_ID_RELEASE' is not defined in local.properties or as an environment variable." \
-  '> Task :app:minifyReleaseWithR8' \
-  '> Task :app:bundleRelease' \
-  'BUILD SUCCESSFUL in 7m' >"$undefined_web_client"
-expect_failure \
-  "undefined Google Drive web client" \
-  "WEB_CLIENT_ID_RELEASE is missing or blank" \
-  "$VERIFY" "$undefined_web_client"
-
-blank_web_client="$tmp_dir/blank-web-client.log"
-printf '%s\n' \
-  "Warning: Secret 'WEB_CLIENT_ID_RELEASE' is blank in local.properties or the environment." \
-  '> Task :app:minifyReleaseWithR8' \
-  '> Task :app:bundleRelease' \
-  'BUILD SUCCESSFUL in 7m' >"$blank_web_client"
-expect_failure \
-  "blank Google Drive web client" \
-  "WEB_CLIENT_ID_RELEASE is missing or blank" \
-  "$VERIFY" "$blank_web_client"
-
-whitespace_web_client="$tmp_dir/whitespace-web-client.log"
-printf "warning: secret\t'WEB_CLIENT_ID_RELEASE'\n IS   NOT defined\n> Task :app:minifyReleaseWithR8\n> Task :app:bundleRelease\nBUILD SUCCESSFUL in 7m\n" \
-  >"$whitespace_web_client"
-expect_failure \
-  "whitespace-obfuscated Google Drive web client warning" \
-  "WEB_CLIENT_ID_RELEASE is missing or blank" \
-  "$VERIFY" "$whitespace_web_client"
-
-ansi_web_client="$tmp_dir/ansi-web-client.log"
-printf "Warning: Secret 'WEB_CLIENT_ID_RELEASE' is \033[33mblank\033[0m in the environment.\n> Task :app:minifyReleaseWithR8\n> Task :app:bundleRelease\nBUILD SUCCESSFUL in 7m\n" \
-  >"$ansi_web_client"
-expect_failure \
-  "ANSI-obfuscated Google Drive web client warning" \
-  "WEB_CLIENT_ID_RELEASE is missing or blank" \
-  "$VERIFY" "$ansi_web_client"
 
 failed_build="$tmp_dir/failed-build.log"
 printf '%s\n' \
@@ -306,8 +268,8 @@ expect_failure \
 
 [[ "$positive_count" == "3" ]] ||
   fail "expected 3 positive cases; got $positive_count"
-[[ "$negative_count" == "30" ]] ||
-  fail "expected 30 negative cases; got $negative_count"
+[[ "$negative_count" == "26" ]] ||
+  fail "expected 26 negative cases; got $negative_count"
 
 echo \
   "[android-release-build-log-test] $positive_count positive + $negative_count negative/adversarial cases passed"

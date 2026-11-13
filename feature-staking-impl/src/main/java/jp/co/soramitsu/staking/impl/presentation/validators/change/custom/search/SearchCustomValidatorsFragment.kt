@@ -1,13 +1,11 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.change.custom.search
 
-import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import jp.co.soramitsu.common.base.BaseFragment
 import jp.co.soramitsu.common.utils.bindTo
-import jp.co.soramitsu.common.utils.setVisible
 import jp.co.soramitsu.common.view.viewBinding
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.FragmentSearchCustomValidatorsBinding
@@ -48,28 +46,8 @@ class SearchCustomValidatorsFragment :
     }
 
     override fun subscribe(viewModel: SearchCustomValidatorsViewModel) {
-        viewModel.screenState.observe {
-            binding.searchCustomValidatorsList.setVisible(it is SearchBlockProducersState.Success, falseState = View.INVISIBLE)
-            binding.searchCustomValidatorProgress.setVisible(it is SearchBlockProducersState.Loading, falseState = View.INVISIBLE)
-            binding.searchCustomValidatorsPlaceholder.setVisible(it is SearchBlockProducersState.NoResults || it is SearchBlockProducersState.NoInput)
-            binding.searchCustomValidatorListHeader.setVisible(it is SearchBlockProducersState.Success)
-
-            when (it) {
-                SearchBlockProducersState.NoInput -> {
-                    binding.searchCustomValidatorsPlaceholder.setCompoundDrawablesRelativeWithIntrinsicBounds(0, R.drawable.ic_placeholder, 0, 0)
-                    binding.searchCustomValidatorsPlaceholder.text = getString(R.string.common_search_start_title)
-                }
-                SearchBlockProducersState.NoResults -> {
-                    binding.searchCustomValidatorsPlaceholder.setCompoundDrawablesRelativeWithIntrinsicBounds(0, R.drawable.ic_no_search_results, 0, 0)
-                    binding.searchCustomValidatorsPlaceholder.text = getString(R.string.staking_validator_search_empty_title)
-                }
-                SearchBlockProducersState.Loading -> {}
-                is SearchBlockProducersState.Success -> {
-                    binding.searchCustomValidatorAccounts.text = it.headerTitle
-
-                    adapter.submitList(it.blockProducers)
-                }
-            }
+        viewModel.screenState.observe { state ->
+            binding.renderValidatorSearchState(state, viewModel::retryCatalogue) { adapter.submitList(it) }
         }
 
         binding.searchCustomValidatorsField.bindTo(viewModel.enteredQuery, viewLifecycleOwner.lifecycleScope)

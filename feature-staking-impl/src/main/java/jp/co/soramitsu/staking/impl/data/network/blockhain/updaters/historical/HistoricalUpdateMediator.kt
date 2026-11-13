@@ -9,14 +9,15 @@ import jp.co.soramitsu.core.updater.Updater
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.fetchValuesToCache
 import jp.co.soramitsu.staking.impl.data.network.blockhain.updaters.observeActiveEraIndex
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.historicalEras
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import java.math.BigInteger
 
@@ -41,22 +42,35 @@ class HistoricalUpdateMediator(
         val runtime = chainRegistry.getRuntime(chainId)
 
         return storageCache.observeActiveEraIndex(runtime, chainId)
-            .map {
-                val allKeysNeeded = constructHistoricalKeys(chainId, runtime)
-                val keysInDataBase = storageCache.filterKeysInCache(allKeysNeeded, chainId).toSet()
-
-                val missingKeys = allKeysNeeded.filter { it !in keysInDataBase }
-
-                missingKeys
-            }.filter { it.isNotEmpty() }
-            .onEach {
-                bulkRetriever.fetchValuesToCache(storageSubscriptionBuilder.socketService, it, storageCache, chainId)
-            }
+            .onEach { activeEra -> fetchMissingHistory(chainId, runtime, activeEra, storageSubscriptionBuilder.socketService) }
             .noSideAffects()
     }
 
-    private suspend fun constructHistoricalKeys(chainId: ChainId, runtime: RuntimeSnapshot): List<String> {
-        val historicalRange = stakingRepository.historicalEras(chainId)
+    /**
+     * Caches the history of the eras before [activeEra] that is not cached yet. The range follows the era this updater
+     * observes, so no remote era read can end the update system. A round that fails is left for the next era change;
+     * only the update system's own cancellation ends the updater.
+     */
+    private suspend fun fetchMissingHistory(
+        chainId: ChainId,
+        runtime: RuntimeSnapshot,
+        activeEra: BigInteger,
+        socketService: SocketService
+    ) {
+        val round = runCatching {
+            val allKeysNeeded = constructHistoricalKeys(chainId, runtime, activeEra)
+            val keysInDataBase = storageCache.filterKeysInCache(allKeysNeeded, chainId).toSet()
+            val missingKeys = allKeysNeeded.filter { it !in keysInDataBase }
+            if (missingKeys.isNotEmpty()) {
+                bulkRetriever.fetchValuesToCache(socketService, missingKeys, storageCache, chainId)
+            }
+        }
+        // A failed round only leaves the history uncached until the next era; the update system's cancellation ends it.
+        if (round.isFailure) currentCoroutineContext().ensureActive()
+    }
+
+    private suspend fun constructHistoricalKeys(chainId: ChainId, runtime: RuntimeSnapshot, activeEra: BigInteger): List<String> {
+        val historicalRange = stakingRepository.historicalEras(chainId, activeEra)
 
         return historicalUpdaters.map { updater ->
             historicalRange.map { updater.constructHistoricalKey(runtime, it) }

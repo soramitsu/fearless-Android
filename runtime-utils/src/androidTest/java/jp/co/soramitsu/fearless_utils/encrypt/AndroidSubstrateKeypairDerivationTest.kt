@@ -5,8 +5,8 @@ import org.junit.Test
 class AndroidSubstrateKeypairDerivationTest : SubstrateKeypairDerivationTest() {
 
     /*
-     Sr25519 cannot run on local machine since gradle rust plugin does not work with desktop targets
-     To overcome, run tests on android device
+     Runs the vectors against the device build of libsr25519java. The same file runs on the
+     JVM against the host build in HostSr25519KeypairDerivationTest.
      */
     @Test
     fun shouldRunSr25519Tests() {

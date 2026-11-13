@@ -16,7 +16,14 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.MaterialTheme
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.customTypography
+import jp.co.soramitsu.common.compose.theme.fw.FwCopyChip
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwRollingText
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
 data class AssetBalanceViewState(
@@ -33,6 +40,10 @@ fun AssetBalance(
     onAddressClick: () -> Unit,
     onBalanceClick: () -> Unit = emptyClick
 ) {
+    if (FwRestyle.paletteEnabled) {
+        SunlitAssetBalance(state, onAddressClick, onBalanceClick)
+        return
+    }
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -68,6 +79,46 @@ fun AssetBalance(
                 address = state.address,
                 onClick = onAddressClick,
                 modifier = Modifier.testTag("balance_address")
+            )
+        }
+    }
+}
+
+/** Sun-lit balance header: the amount rolls to new values; the address is a copy chip. */
+@Composable
+private fun SunlitAssetBalance(state: AssetBalanceViewState, onAddressClick: () -> Unit, onBalanceClick: () -> Unit) {
+    val c = LocalFwColors.current
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        state.changeViewState?.takeIf { it.fiatChange.isNotEmpty() }?.let { ChangeBalance(it) }
+        Row(
+            verticalAlignment = CenterVertically,
+            modifier = Modifier
+                .testTag("balance_fiat")
+                .clickableWithNoIndication(onBalanceClick)
+        ) {
+            FwRollingText(
+                text = state.transferableBalance ?: "—",
+                style = MaterialTheme.customTypography.header1.copy(fontFeatureSettings = "tnum"),
+                color = c.textPrimary
+            )
+            if (state.isInfoEnabled) {
+                MarginHorizontal(margin = 5.dp)
+                Image(res = R.drawable.ic_info_white_24, tint = c.textTertiary, modifier = Modifier.size(14.dp).align(CenterVertically))
+            }
+        }
+        state.balanceCaption?.let {
+            B2(text = it, color = c.textTertiary, modifier = Modifier.testTag("balance_caption"))
+        }
+        if (state.address.isNotEmpty()) {
+            MarginVertical(margin = 10.dp)
+            FwCopyChip(
+                text = state.address,
+                onCopy = onAddressClick,
+                modifier = Modifier.widthIn(max = 260.dp).testTag("balance_address")
             )
         }
     }

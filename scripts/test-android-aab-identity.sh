@@ -36,12 +36,12 @@ component_manifest_modes=(
   missing-service
   unexpected-service
   service-exported
-  revocation-permission-missing
-  revocation-permission-mutated
+  oauth-redirect-scheme-mutated
+  oauth-redirect-not-exported
+  oauth-redirect-extra-filter
+  oauth-sign-in-exported-true
   missing-receiver
   unexpected-receiver
-  firebase-receiver-permission-missing
-  firebase-receiver-exported-false
   profile-permission-missing
   receiver-intent-mutated
   missing-provider
@@ -874,13 +874,11 @@ if len(component_modes) != len(component_mode_names):
 permissions = [
     ("uses-permission", "android.permission.ACCESS_NETWORK_STATE", None),
     ("uses-permission", "android.permission.CAMERA", None),
+    ("uses-permission", "android.permission.HIDE_OVERLAY_WINDOWS", None),
     ("uses-permission", "android.permission.INTERNET", None),
-    ("uses-permission", "android.permission.POST_NOTIFICATIONS", None),
     ("uses-permission", "android.permission.USE_BIOMETRIC", None),
     ("uses-permission", "android.permission.USE_FINGERPRINT", None),
     ("uses-permission", "android.permission.VIBRATE", None),
-    ("uses-permission", "android.permission.WAKE_LOCK", None),
-    ("uses-permission", "com.google.android.c2dm.permission.RECEIVE", None),
     (
         "uses-permission",
         f"{package_name}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION",
@@ -1107,98 +1105,48 @@ root_component = add_component(
 wallet_root_component = add_component(
     "activity", wallet_root_activity, **{attribute_exported: "false"}
 )
+add_component(
+    "activity",
+    "jp.co.soramitsu.app.root.presentation.emergency.WalletEmergencyExportActivity",
+    **{attribute_exported: "false"},
+)
+add_component(
+    "activity",
+    "jp.co.soramitsu.app.root.presentation.keyloss.WalletKeyLossRecoveryActivity",
+    **{attribute_exported: "false"},
+)
 scanner = add_component(
     "activity",
     "jp.co.soramitsu.common.scan.ScannerActivity",
     **{attribute_exported: "false"},
 )
-add_component(
+oauth_sign_in = add_component(
     "activity",
-    "androidx.credentials.playservices.controllers.identityauth.HiddenActivity",
-    **{attribute_enabled: "true", attribute_exported: "false"},
-)
-add_component(
-    "activity",
-    "androidx.credentials.playservices.controllers.identitycredentials.IdentityCredentialApiHiddenActivity",
-    **{attribute_enabled: "true", attribute_exported: "false"},
-)
-add_component(
-    "activity",
-    "com.google.android.gms.auth.api.signin.internal.SignInHubActivity",
+    "jp.co.soramitsu.account.impl.presentation.google_signin.GoogleDriveSignInActivity",
     **{attribute_exported: "false"},
 )
-add_component(
+oauth_redirect = add_component(
     "activity",
-    "com.google.android.gms.common.api.GoogleApiActivity",
-    **{attribute_exported: "false"},
+    "jp.co.soramitsu.account.impl.presentation.google_signin.GoogleDriveSignInRedirectActivity",
+    **{attribute_exported: "true"},
+)
+oauth_redirect_filter = add_intent_filter(
+    oauth_redirect,
+    ["android.intent.action.VIEW"],
+    ["android.intent.category.DEFAULT", "android.intent.category.BROWSABLE"],
+    [{"scheme": "com.googleusercontent.apps.621183184145-jla1mrbl3soobt85btt2nebon8s3d30b"}],
 )
 add_component(
     "activity",
     "com.journeyapps.barcodescanner.CaptureActivity",
 )
 
-add_component(
-    "service",
-    "androidx.credentials.playservices.CredentialProviderMetadataHolder",
-    **{attribute_enabled: "true", attribute_exported: "false"},
-)
-firebase_messaging = add_component(
-    "service",
-    "com.google.firebase.messaging.FirebaseMessagingService",
-    **{attribute_exported: "false"},
-)
-add_intent_filter(
-    firebase_messaging,
-    ["com.google.firebase.MESSAGING_EVENT"],
-    priority=-500,
-)
-component_discovery = add_component(
-    "service",
-    "com.google.firebase.components.ComponentDiscoveryService",
-    **{attribute_exported: "false"},
-)
-revocation_service = add_component(
-    "service",
-    "com.google.android.gms.auth.api.signin.RevocationBoundService",
-    **{
-        attribute_exported: "true",
-        attribute_permission: (
-            "com.google.android.gms.auth.api.signin.permission."
-            "REVOCATION_NOTIFICATION"
-        ),
-    },
-)
-add_component(
+room_service = add_component(
     "service",
     "androidx.room.MultiInstanceInvalidationService",
     **{attribute_exported: "false"},
 )
-add_component(
-    "service",
-    "com.google.android.datatransport.runtime.backends.TransportBackendDiscovery",
-    **{attribute_exported: "false"},
-)
-add_component(
-    "service",
-    "com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService",
-    **{
-        attribute_exported: "false",
-        attribute_permission: "android.permission.BIND_JOB_SERVICE",
-    },
-)
 
-firebase_receiver = add_component(
-    "receiver",
-    "com.google.firebase.iid.FirebaseInstanceIdReceiver",
-    **{
-        attribute_exported: "true",
-        attribute_permission: "com.google.android.c2dm.permission.SEND",
-    },
-)
-firebase_receive_filter = add_intent_filter(
-    firebase_receiver,
-    ["com.google.android.c2dm.intent.RECEIVE"],
-)
 profile_receiver = add_component(
     "receiver",
     "androidx.profileinstaller.ProfileInstallReceiver",
@@ -1208,18 +1156,15 @@ profile_receiver = add_component(
         attribute_permission: "android.permission.DUMP",
     },
 )
-for profile_action in (
-    "androidx.profileinstaller.action.INSTALL_PROFILE",
-    "androidx.profileinstaller.action.SKIP_FILE",
-    "androidx.profileinstaller.action.SAVE_PROFILE",
-    "androidx.profileinstaller.action.BENCHMARK_OPERATION",
-):
+profile_filters = [
     add_intent_filter(profile_receiver, [profile_action])
-add_component(
-    "receiver",
-    "com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver",
-    **{attribute_exported: "false"},
-)
+    for profile_action in (
+        "androidx.profileinstaller.action.INSTALL_PROFILE",
+        "androidx.profileinstaller.action.SKIP_FILE",
+        "androidx.profileinstaller.action.SAVE_PROFILE",
+        "androidx.profileinstaller.action.BENCHMARK_OPERATION",
+    )
+]
 
 file_provider = add_component(
     "provider",
@@ -1228,22 +1173,6 @@ file_provider = add_component(
         attribute_authorities: f"{package_name}.provider",
         attribute_exported: "false",
         attribute_grant_uri_permissions: "true",
-    },
-)
-beacon_provider = add_component(
-    "provider",
-    "it.airgap.beaconsdk.core.provider.BeaconInitProvider",
-    **{
-        attribute_authorities: f"{package_name}.beaconinitprovider",
-        attribute_exported: "false",
-    },
-)
-firebase_provider = add_component(
-    "provider",
-    "com.google.firebase.provider.FirebaseInitProvider",
-    **{
-        attribute_authorities: f"{package_name}.firebaseinitprovider",
-        attribute_exported: "false",
     },
 )
 startup_provider = add_component(
@@ -1352,35 +1281,40 @@ elif mode == "mutated-ton-host":
 elif mode == "ton-autoverify-false":
     ton_filter.set(attribute_auto_verify, "false")
 elif mode == "missing-service":
-    remove_component(component_discovery)
+    remove_component(room_service)
 elif mode == "unexpected-service":
     add_component(
         "service", "jp.example.UnreviewedService", **{attribute_exported: "false"}
     )
 elif mode == "service-exported":
-    component_discovery.set(attribute_exported, "true")
-elif mode == "revocation-permission-missing":
-    del revocation_service.attrib[attribute_permission]
-elif mode == "revocation-permission-mutated":
-    revocation_service.set(attribute_permission, "jp.example.WRONG_PERMISSION")
+    room_service.set(attribute_exported, "true")
+elif mode == "oauth-redirect-scheme-mutated":
+    oauth_redirect_filter.find("data").set(attribute_scheme, "com.example.attacker")
+elif mode == "oauth-redirect-not-exported":
+    oauth_redirect.set(attribute_exported, "false")
+elif mode == "oauth-redirect-extra-filter":
+    add_intent_filter(
+        oauth_redirect,
+        ["android.intent.action.VIEW"],
+        ["android.intent.category.DEFAULT", "android.intent.category.BROWSABLE"],
+        [{"scheme": "https"}, {"host": "attacker.example"}],
+    )
+elif mode == "oauth-sign-in-exported-true":
+    oauth_sign_in.set(attribute_exported, "true")
 elif mode == "missing-receiver":
     remove_component(profile_receiver)
 elif mode == "unexpected-receiver":
     add_component(
         "receiver", "jp.example.UnreviewedReceiver", **{attribute_exported: "false"}
     )
-elif mode == "firebase-receiver-permission-missing":
-    del firebase_receiver.attrib[attribute_permission]
-elif mode == "firebase-receiver-exported-false":
-    firebase_receiver.set(attribute_exported, "false")
 elif mode == "profile-permission-missing":
     del profile_receiver.attrib[attribute_permission]
 elif mode == "receiver-intent-mutated":
-    firebase_receive_filter.find("action").set(
-        attribute_name, "com.google.android.c2dm.intent.ATTACK"
+    profile_filters[0].find("action").set(
+        attribute_name, "androidx.profileinstaller.action.ATTACK"
     )
 elif mode == "missing-provider":
-    remove_component(beacon_provider)
+    remove_component(startup_provider)
 elif mode == "unexpected-provider":
     add_component(
         "provider",
@@ -1395,8 +1329,8 @@ elif mode == "file-provider-exported-true":
 elif mode == "authority-mutated":
     file_provider.set(attribute_authorities, f"{package_name}.mutated")
 elif mode == "authority-duplicated":
-    beacon_provider.set(
-        attribute_authorities, firebase_provider.get(attribute_authorities)
+    startup_provider.set(
+        attribute_authorities, file_provider.get(attribute_authorities)
     )
 elif mode == "authority-repeated":
     authority = file_provider.get(attribute_authorities)
@@ -1504,9 +1438,8 @@ import zipfile
 
 source, destination, mode = sys.argv[1:]
 replacement_targets = {
-    "replace-sodium": "base/lib/arm64-v8a/libsodium.so",
+    "replace-sr25519-arm64": "base/lib/arm64-v8a/libsr25519java.so",
     "replace-sr25519": "base/lib/x86/libsr25519java.so",
-    "replace-sqlcipher": "base/lib/armeabi-v7a/libsqlcipher.so",
     "replace-path": "base/lib/x86_64/libandroidx.graphics.path.so",
 }
 network_security_entry = "base/res/xml/network_security_config.xml"
@@ -1641,7 +1574,7 @@ with zipfile.ZipFile(destination, "w") as archive:
         archive.writestr("base/lib/arm64-v8a/libevil.so", b"unexpected native\n")
     elif mode == "unexpected-module":
         archive.writestr(
-            "dynamic/lib/arm64-v8a/libsodium.so",
+            "dynamic/lib/arm64-v8a/libsr25519java.so",
             b"unexpected dynamic module native\n",
         )
     elif mode == "asset-elf":
@@ -1655,7 +1588,7 @@ with zipfile.ZipFile(destination, "w") as archive:
             b"\x7fELF\x02\x01\x01\x00renamed native payload\n",
         )
     elif mode == "duplicate-entry":
-        target = "base/lib/arm64-v8a/libsodium.so"
+        target = "base/lib/arm64-v8a/libsr25519java.so"
         original = next(data for info, data in entries if info.filename == target)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", UserWarning)
@@ -1882,7 +1815,7 @@ for bypass_mode in \
   missing-agp-metadata \
   duplicate-agp-metadata \
   missing-abi \
-  replace-sodium; do
+  replace-sr25519-arm64; do
   bypass_artifact="$tmp_dir/r8-policy-bypass-$bypass_mode.aab"
   mutate_artifact "$bypass_mode" "$bypass_artifact" "$fixture_without_r8"
   case "$bypass_mode" in
@@ -1892,7 +1825,7 @@ for bypass_mode in \
     missing-abi)
       expected_diagnostic="Native payload entries differ from the exact allowlist"
       ;;
-    replace-sodium)
+    replace-sr25519-arm64)
       expected_diagnostic="Embedded native library checksum mismatch"
       ;;
   esac
@@ -2120,9 +2053,8 @@ for mutation in \
 done
 
 for mutation in \
-  replace-sodium \
+  replace-sr25519-arm64 \
   replace-sr25519 \
-  replace-sqlcipher \
   replace-path; do
   artifact="$tmp_dir/$mutation.aab"
   mutate_artifact "$mutation" "$artifact"
@@ -2255,13 +2187,13 @@ for manifest_mode in "${component_manifest_modes[@]}"; do
     missing-root|missing-wallet-root|root-exported-true|root-disabled)
       expected_diagnostic="wallet startup activity chain is missing or has unsafe"
       ;;
-    scanner-exported-true|service-exported|revocation-permission-missing|firebase-receiver-permission-missing|profile-permission-missing|file-provider-exported-true)
+    scanner-exported-true|service-exported|oauth-redirect-scheme-mutated|oauth-redirect-extra-filter|oauth-sign-in-exported-true|profile-permission-missing|file-provider-exported-true)
       expected_diagnostic="exported non-launcher component lacks a required permission"
       ;;
     duplicate-launcher-filter)
       expected_diagnostic="contains duplicate intent filters"
       ;;
-    unexpected-activity|unexpected-activity-alias|launcher-extra-action|launcher-extra-category|launcher-extra-data|missing-ton-filter|mutated-ton-host|ton-autoverify-false|missing-service|unexpected-service|revocation-permission-mutated|missing-receiver|unexpected-receiver|firebase-receiver-exported-false|receiver-intent-mutated|missing-provider|unexpected-provider|authority-mutated|grant-uri-disabled|provider-read-permission|provider-write-permission)
+    unexpected-activity|unexpected-activity-alias|launcher-extra-action|launcher-extra-category|launcher-extra-data|missing-ton-filter|mutated-ton-host|ton-autoverify-false|missing-service|unexpected-service|oauth-redirect-not-exported|missing-receiver|unexpected-receiver|receiver-intent-mutated|missing-provider|unexpected-provider|authority-mutated|grant-uri-disabled|provider-read-permission|provider-write-permission)
       expected_diagnostic="exact manifest component surface differs from the reviewed allowlist"
       ;;
     authority-duplicated)
@@ -2315,8 +2247,8 @@ done
     "$r8_policy_negative_count"
 [[ "$positive_count" == "2" ]] ||
   fail "expected 2 positive cases; got $positive_count"
-[[ "$negative_count" == "135" ]] ||
-  fail "expected 135 negative cases; got $negative_count"
+[[ "$negative_count" == "134" ]] ||
+  fail "expected 134 negative cases; got $negative_count"
 
 printf '%s\n' \
   "[android-aab-r8-policy-test] $r8_policy_positive_count positive + $r8_policy_negative_count negative/adversarial cases passed"

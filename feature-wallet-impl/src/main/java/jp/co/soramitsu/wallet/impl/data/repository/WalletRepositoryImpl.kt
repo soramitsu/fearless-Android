@@ -56,6 +56,8 @@ import jp.co.soramitsu.wallet.impl.data.mappers.toDomainAssets
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.SubstrateRemoteSource
 import jp.co.soramitsu.wallet.impl.data.network.phishing.PhishingApi
+import jp.co.soramitsu.wallet.impl.data.repository.tranfser.EthereumTransferService
+import jp.co.soramitsu.wallet.impl.data.repository.tranfser.SubstrateTransferService
 import jp.co.soramitsu.wallet.impl.data.repository.tranfser.TransferServiceProvider
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletConstants
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
@@ -67,6 +69,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -209,7 +212,7 @@ class WalletRepositoryImpl(
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
     ): BigDecimal {
-        return transferServiceProvider.provide(chain).getTransferFee(transfer)
+        return transferServiceProvider.provide(chain, additional, batchAll).getTransferFee(transfer)
     }
 
     override suspend fun performTransfer(
@@ -219,23 +222,36 @@ class WalletRepositoryImpl(
         additional: (suspend ExtrinsicBuilder.() -> Unit)?,
         batchAll: Boolean
     ): String {
-        val transferService = transferServiceProvider.provide(chain)
+        val reviewedAccountId = accountId.copyOf()
+        require(transfer.chainAsset.chainId == chain.id) { "Transfer asset belongs to another chain" }
+        val transferService = transferServiceProvider.provide(chain, additional, batchAll)
+        if (transferService is SubstrateTransferService || transferService is EthereumTransferService) {
+            // These services sign for transfer.sender with whichever wallet holds its key, so it must be the
+            // account the caller reviewed. The other services check the sender against the selected wallet.
+            require(chain.accountIdOf(transfer.sender).contentEquals(reviewedAccountId)) {
+                "Transfer sender is not the reviewed account"
+            }
+        }
         val operationHash = transferService.transfer(transfer)
 
-        val accountAddress = chain.addressOf(accountId)
-        val utilityAsset = chain.assets.firstOrNull { it.isUtility }
+        if (chain.ecosystem == Ecosystem.Ton) return operationHash
 
-        if(chain.ecosystem == Ecosystem.Ton) return operationHash
-
-        val operation = createOperation(
-            operationHash,
-            transfer,
-            accountAddress,
-            OperationLocal.Source.APP,
-            utilityAsset
-        )
-
-        operationDao.insert(operation)
+        // The network has accepted the transfer. A failed or cancelled history write must not report the send as
+        // failed: the confirm screen would allow it again and the user could pay twice.
+        try {
+            withContext(NonCancellable) {
+                val operation = createOperation(
+                    operationHash,
+                    transfer,
+                    chain.addressOf(reviewedAccountId),
+                    OperationLocal.Source.APP,
+                    chain.assets.firstOrNull { it.isUtility }
+                )
+                operationDao.insert(operation)
+            }
+        } catch (_: Exception) {
+            // Only the local pending row is lost; the accepted hash is still returned.
+        }
         return operationHash
     }
 

@@ -11,11 +11,12 @@ class BitcoinSpendableAccountScanner(private val client: BitcoinIndexerClient) {
         expectedFirstReceiveAddress: String,
         network: BitcoinKeyDerivation.Network,
         baseUrl: String? = null,
-        gapLimit: Int? = null
+        gapLimit: Int? = null,
+        passphrase: String = ""
     ): BitcoinSpendableAccount {
-        val root = BitcoinKeyDerivation.deriveAccount(mnemonic, network = network)
+        val root = BitcoinKeyDerivation.deriveAccount(mnemonic, passphrase, network)
         require(root.firstReceiveAddress == expectedFirstReceiveAddress.lowercase()) { "Bitcoin root does not match wallet" }
-        val discovery = BitcoinReceiveDiscovery(client).discoverAccount(mnemonic, network = network, baseUrl = baseUrl, gapLimit = gapLimit)
+        val discovery = BitcoinReceiveDiscovery(client).discoverAccount(mnemonic, passphrase, network, baseUrl, gapLimit)
         val total = discovery.addresses.fold(0L) { sum, address -> addExact(sum, address.totalSats) }
         require(total <= BitcoinUtxoSelector.MAX_SATOSHI)
         val sources = discovery.addresses.filter { it.totalSats > 0 || it.confirmedSats > 0 }

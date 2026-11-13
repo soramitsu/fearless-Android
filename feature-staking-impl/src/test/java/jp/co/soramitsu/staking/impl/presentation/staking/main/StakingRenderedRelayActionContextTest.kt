@@ -102,6 +102,7 @@ class StakingRenderedRelayActionContextTest {
     private val selected = mock<StakingSharedState> {
         on { selectionRevision } doReturn revision
         on { selectionItem } doReturn selectionFlow
+        on { settledSelection } doReturn selectionFlow
         on { currentAssetFlow() } doReturn assets
         on { assetWithChain } doReturn flowOf(SingleAssetSharedState.AssetWithChain(chain, config))
     }

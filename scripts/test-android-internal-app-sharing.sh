@@ -4,7 +4,6 @@ umask 077
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GRADLEW="$ROOT_DIR/gradlew"
-PUBLIC_FIREBASE="$ROOT_DIR/app/src/release/google-services.json"
 FORBIDDEN_IAS_SOURCE="$ROOT_DIR/app/src/internalAppSharing"
 COVERAGE_CLEANER="$ROOT_DIR/scripts/remove-empty-gradle-coverage-directories.py"
 COVERAGE_CLEANER_TEST="$ROOT_DIR/scripts/test-android-gradle-coverage-cleanup.py"
@@ -41,8 +40,11 @@ for required_file in "$COVERAGE_CLEANER" "$COVERAGE_CLEANER_TEST"; do
   [[ ! -L "$required_file" && -f "$required_file" && -s "$required_file" ]] ||
     fail "coverage cleanup contract file is missing or unsafe: $required_file"
 done
-[[ ! -L "$PUBLIC_FIREBASE" && -f "$PUBLIC_FIREBASE" && -s "$PUBLIC_FIREBASE" ]] ||
-  fail "public Firebase fixture is missing or unsafe."
+google_services_files() {
+  find "$ROOT_DIR/app" -maxdepth 3 -name google-services.json -print 2>/dev/null | LC_ALL=C sort
+}
+[[ -z "$(google_services_files)" ]] ||
+  fail "Firebase is not part of the app; no google-services.json may exist under app/."
 [[ ! -e "$FORBIDDEN_IAS_SOURCE" && ! -L "$FORBIDDEN_IAS_SOURCE" ]] ||
   fail "zero-copy IAS forbids app/src/internalAppSharing."
 
@@ -69,7 +71,7 @@ snapshot_source() {
   local prefix="$1"
   git -C "$ROOT_DIR" status --porcelain=v1 -z --untracked-files=all >"$prefix.status"
   git -C "$ROOT_DIR" diff --binary HEAD >"$prefix.diff"
-  sha256_file "$PUBLIC_FIREBASE" >"$prefix.firebase"
+  google_services_files >"$prefix.google-services"
 }
 
 assert_source_unchanged() {
@@ -79,7 +81,8 @@ assert_source_unchanged() {
   snapshot_source "$current"
   cmp -s "$prefix.status" "$current.status" || fail "$label changed Git status."
   cmp -s "$prefix.diff" "$current.diff" || fail "$label changed tracked source."
-  cmp -s "$prefix.firebase" "$current.firebase" || fail "$label changed public Firebase bytes."
+  cmp -s "$prefix.google-services" "$current.google-services" ||
+    fail "$label created a Google Services configuration."
   [[ ! -e "$FORBIDDEN_IAS_SOURCE" && ! -L "$FORBIDDEN_IAS_SOURCE" ]] ||
     fail "$label created a forbidden IAS source tree."
 }
@@ -219,20 +222,15 @@ required_app = [
     'ANDROID_IAS_DEBUG_CERTIFICATE_PATH',
     'ANDROID_IAS_DEBUG_CERT_SHA256',
     'EXPECTED_IAS_DEBUG_CERT_SHA256',
-    '3085af682c8c8a166142f7ef867e0c3fa06a6f87436f3a15497f8ae7dac93d2f',
-    'https://fearless-public.firebaseio.com',
-    'fearless-public.appspot.com',
-    'GoogleServicesTask',
-    'processInternalAppSharingGoogleServices',
     'gradle.projectsEvaluated {',
-    'boundIasGoogleServicesTask.googleServicesJsonFiles.set(',
-    'boundIasGoogleServicesTask.googleServicesJsonFiles.finalizeValue()',
-    'Collections.singletonList(releaseGoogleServicesFile)',
-    'IAS Google Services direct input',
+    'requireNoGoogleServicesConfiguration("Internal App Sharing")',
+    'requireNoGoogleServicesConfiguration("IAS verification")',
+    'forbids Google Services configuration files',
+    'forbids Google Services processing tasks',
+    'includes: ["google-services.json", "src/*/google-services.json"]',
     'res.srcDir "src/release/res"',
     'outputs.cacheIf("IAS release-candidate output must never come from build cache")',
     'Resolved Internal App Sharing tasks require one exact',
-    'must have exactly one filesystem link.',
     'initWith release',
     'signingConfig null',
     'final one-run signer is created only after this Gradle job',
@@ -254,6 +252,11 @@ forbidden_app = [
     'iasDebugKeyStore',
     "apply plugin: 'com.github.triplet.play'",
     'play {',
+    "apply plugin: 'com.google.gms.google-services'",
+    "apply plugin: 'com.google.firebase.appdistribution'",
+    'firebaseAppDistribution',
+    'GoogleServicesTask',
+    'googleServicesJsonFiles',
 ]
 required_lock_configs = [
     'hiltAnnotationProcessorInternalAppSharing',
@@ -905,7 +908,7 @@ def trust_contract_errors(text, count_assertion=None):
         "upload-audit boundary must be a fresh root-owned traversable enclave",
     )
     for archive_contract in (
-        'expected_names = ["evidence.txt", "fearless-wallet-4.2.0-ias-231.aab"]',
+        'expected_names = ["evidence.txt", "fearless-wallet-4.3.4-ias-236.aab"]',
         "len(names) != len(set(names))",
         "not stat.S_ISREG(mode)",
         "entry.file_size > maximum",
@@ -1120,7 +1123,7 @@ def app_cleanup_contract_errors(text):
     bundle_guard_start = '''    if (internalAppSharingBundleRequested) {
         if (System.getenv("CI") != "true") {
 '''
-    bundle_guard_end = "\n    }\n\n    def releasePath = releaseGoogleServicesFile.toPath()"
+    bundle_guard_end = "\n    }\n}\n\nandroidComponents {"
     task_scope_start = '''    tasks.matching { task ->
         task.name == "bundleInternalAppSharing"
     }.configureEach { task ->
@@ -1193,15 +1196,35 @@ for needle in required_lock_configs:
     if needle not in root or needle not in locks:
         failures.append(f"missing strict IAS lock coverage: {needle}")
 required_resolved_lock = (
-    "androidx.credentials:credentials-play-services-auth:1.6.0="
+    "androidx.credentials:credentials:1.6.0="
     "internalAppSharingCompileClasspath,internalAppSharingRuntimeClasspath,"
     "releaseCompileClasspath,releaseRuntimeClasspath"
 )
 if locks.count(required_resolved_lock) != 1:
     failures.append(
-        "Google credentials transport must be locked once across exact "
+        "open-source Credential Manager must be locked once across exact "
         "release and IAS compile/runtime graphs"
     )
+# Google sign-in, Drive and attestation SDKs the app replaced with its own OAuth/Drive code.
+for removed_lock in (
+    "androidx.credentials:credentials-play-services-auth:",
+    "com.google.android.gms:play-services-auth:",
+    "com.google.android.gms:play-services-auth-api-phone:",
+    "com.google.android.gms:play-services-auth-base:",
+    "com.google.android.gms:play-services-auth-blockstore:",
+    "com.google.android.gms:play-services-fido:",
+    "com.google.android.gms:play-services-identity-credentials:",
+    "com.google.android.libraries.identity.googleid:",
+    "com.google.android.play:integrity:",
+    "com.google.android.play:core-common:",
+    "com.google.api-client:",
+    "com.google.apis:google-api-services-drive:",
+    "com.google.http-client:",
+    "com.google.oauth-client:",
+    "com.google.auth:",
+):
+    if removed_lock in locks:
+        failures.append(f"removed Google SDK is locked again: {removed_lock[:-1]}")
 for stale_lock in (
     "com.madgag.spongycastle:bcpg-jdk15on:1.58.0.0=",
     "com.madgag.spongycastle:bcpkix-jdk15on:1.58.0.0=",
@@ -2070,7 +2093,7 @@ else:
         ("upload-audit non-reused numeric UID", "          reserved_uid=61003\n", "          reserved_uid=61001\n", "third public-cert-only no-sudo UID"),
         ("upload-audit empty environment", '/usr/bin/env -i \\\n', '/usr/bin/env \\\n', "third public-cert-only no-sudo UID"),
         ("upload-audit no-sudo proof", "              if /usr/bin/sudo -n -u root /usr/bin/true 2>/dev/null; then exit 1; fi\n", "              if false; then true; fi\n", "third public-cert-only no-sudo UID"),
-        ("upload-audit exact entries", 'expected_names = ["evidence.txt", "fearless-wallet-4.2.0-ias-231.aab"]', 'expected_names = ["fearless-wallet-4.2.0-ias-231.aab"]', "downloaded archive contract missing expected_names"),
+        ("upload-audit exact entries", 'expected_names = ["evidence.txt", "fearless-wallet-4.3.4-ias-236.aab"]', 'expected_names = ["fearless-wallet-4.3.4-ias-236.aab"]', "downloaded archive contract missing expected_names"),
         ("upload-audit duplicate names", "len(names) != len(set(names))", "False", "downloaded archive contract missing len(names)"),
         ("upload-audit regular entries", "not stat.S_ISREG(mode)", "False", "downloaded archive contract missing not stat.S_ISREG"),
         ("upload-audit entry size bound", "entry.file_size > maximum", "False", "downloaded archive contract missing entry.file_size"),
@@ -2355,10 +2378,10 @@ positive_count=$((positive_count + 1))
 success_log="$temporary_dir/verify-success.log"
 run_gradle_with_env -- :app:verifyInternalAppSharingConfiguration >"$success_log" 2>&1 || {
   sed -n '1,180p' "$success_log" >&2
-  fail "zero-copy IAS verification failed."
+  fail "IAS verification failed."
 }
-grep -Fq 'IAS configuration verified with zero-copy public Firebase input' "$success_log" ||
-  fail "IAS verifier did not report zero-copy success."
+grep -Fq 'IAS configuration verified without Firebase or Google Services inputs' "$success_log" ||
+  fail "IAS verifier did not report success without Firebase inputs."
 assert_source_unchanged "$source_before" "successful IAS verification"
 positive_count=$((positive_count + 1))
 
@@ -2369,7 +2392,7 @@ expect_failure \
     -PiasVerificationForceFailure=TRUE
 expect_failure \
   "forced verifier failure" \
-  "Forced IAS verification failure after direct-input validation." \
+  "Forced IAS verification failure after configuration validation." \
   run_gradle_with_env -- :app:verifyInternalAppSharingConfiguration \
     -PiasVerificationForceFailure=true
 expect_failure \
@@ -2400,25 +2423,17 @@ expect_failure \
   "task 'bundleIAppSharing' not found in project ':app'" \
   run_gradle_with_env -- :app:bundleIAppSharing
 
-property_attack_init="$temporary_dir/property-attack.init.gradle"
+property_attack_init="$temporary_dir/google-services-task.init.gradle"
 cat >"$property_attack_init" <<'GRADLE'
 gradle.afterProject { candidate, state ->
     if (candidate.path == ":app") {
-        candidate.gradle.taskGraph.whenReady {
-            candidate.tasks.matching { task ->
-                task.name == "processInternalAppSharingGoogleServices"
-            }.configureEach { task ->
-                task.googleServicesJsonFiles.set(
-                    [new File(candidate.projectDir, "attacker.json")]
-                )
-            }
-        }
+        candidate.tasks.register("processInternalAppSharingGoogleServices")
     }
 }
 GRADLE
 expect_failure \
-  "finalized Google Services task input injection" \
-  "is final and cannot be changed any further" \
+  "injected Google Services processing task" \
+  "Internal App Sharing forbids Google Services processing tasks: processInternalAppSharingGoogleServices" \
   run_gradle_with_env -- :app:verifyInternalAppSharingConfiguration \
     --init-script "$property_attack_init"
 
@@ -2457,14 +2472,6 @@ done
 
 firebase_clone="$temporary_dir/firebase-adversarial-clone"
 git clone --quiet --no-hardlinks "$ROOT_DIR" "$firebase_clone"
-clone_firebase="$firebase_clone/app/src/release/google-services.json"
-firebase_backup="$temporary_dir/public-google-services.json"
-cp "$clone_firebase" "$firebase_backup"
-
-restore_clone_firebase() {
-  rm -f -- "$clone_firebase"
-  cp "$firebase_backup" "$clone_firebase"
-}
 
 run_clone_gradle() {
   remove_empty_gradle_coverage_directories "$firebase_clone"
@@ -2491,50 +2498,23 @@ run_clone_gradle() {
       --no-daemon --console=plain
 }
 
-rm -f "$clone_firebase"
-ln -s "$firebase_backup" "$clone_firebase"
+# Firebase is not part of the app: any Google Services configuration, in any source set and
+# whether a file or a symlink, stops IAS verification.
+for injected in app/src/release/google-services.json app/google-services.json; do
+  printf '{"project_info":{"project_id":"attacker"}}\n' >"$firebase_clone/$injected"
+  expect_failure \
+    "injected Google Services configuration $injected" \
+    "Internal App Sharing forbids Google Services configuration files: ${injected#app/}" \
+    run_clone_gradle
+  rm -f -- "$firebase_clone/$injected"
+done
+printf '{}\n' >"$temporary_dir/attacker-google-services.json"
+ln -s "$temporary_dir/attacker-google-services.json" "$firebase_clone/app/src/debug/google-services.json"
 expect_failure \
-  "symlink public Firebase input" \
-  "Release Firebase configuration must not traverse a symlink." \
+  "symlinked Google Services configuration" \
+  "Internal App Sharing forbids Google Services configuration files: src/debug/google-services.json" \
   run_clone_gradle
-
-restore_clone_firebase
-ln "$clone_firebase" "$temporary_dir/public-google-services-hardlink.json"
-expect_failure \
-  "hard-linked public Firebase input" \
-  "Release Firebase configuration must have exactly one filesystem link." \
-  run_clone_gradle
-rm -f "$temporary_dir/public-google-services-hardlink.json"
-
-restore_clone_firebase
-printf '\n' >>"$clone_firebase"
-expect_failure \
-  "checksum-mutated public Firebase input" \
-  "IAS requires the exact checksum-pinned reviewed public Firebase file." \
-  run_clone_gradle
-
-restore_clone_firebase
-printf '{ malformed json\n' >"$clone_firebase"
-expect_failure \
-  "malformed public Firebase JSON" \
-  "IAS requires the exact checksum-pinned reviewed public Firebase file." \
-  run_clone_gradle
-
-restore_clone_firebase
-python3 - "$clone_firebase" <<'PY'
-import json
-import pathlib
-import sys
-path = pathlib.Path(sys.argv[1])
-data = json.loads(path.read_text(encoding="utf-8"))
-data["client"][0]["api_key"][0]["current_key"] = "attacker-secret"
-path.write_text(json.dumps(data, separators=(",", ":")) + "\n", encoding="utf-8")
-PY
-expect_failure \
-  "secret-bearing public Firebase JSON" \
-  "IAS requires the exact checksum-pinned reviewed public Firebase file." \
-  run_clone_gradle
-restore_clone_firebase
+rm -f -- "$firebase_clone/app/src/debug/google-services.json"
 
 head_commit="$(git -C "$ROOT_DIR" rev-parse HEAD)"
 utils_commit="${FEARLESS_UTILS_COMMIT:-}"
@@ -2640,8 +2620,8 @@ assert_source_unchanged "$source_before" "complete IAS guard suite"
 
 [[ "$positive_count" == "8" ]] ||
   fail "expected 8 positive IAS Gradle cases; got $positive_count."
-[[ "$negative_count" == "39" ]] ||
-  fail "expected 39 behavioral negative IAS Gradle cases; got $negative_count."
+[[ "$negative_count" == "37" ]] ||
+  fail "expected 37 behavioral negative IAS Gradle cases; got $negative_count."
 
 echo \
   "[android-ias-gradle-test] $positive_count positive + $negative_count behavioral negative + $static_count static adversarial assertions passed"

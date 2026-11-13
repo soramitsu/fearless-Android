@@ -2,7 +2,10 @@ package jp.co.soramitsu.runtime.multiNetwork
 
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainNode
+import jp.co.soramitsu.runtime.assethub.AssetHubStaking
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.kusamaChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.tokengroups.CAGA_ANKARA_CHAIN_ID
 import jp.co.soramitsu.runtime.multiNetwork.tokengroups.bundledConfig
 import jp.co.soramitsu.runtime.multiNetwork.tokengroups.reviewedRegistryChains
@@ -13,6 +16,19 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when`
 
 class ChainActivationPolicyTest {
+
+    @Test
+    fun `staking Hub keeps its relay clock connected after relay staking is gone`() {
+        val stakingAsset = mock(Asset::class.java).also { `when`(it.staking).thenReturn(Asset.StakingType.RELAYCHAIN) }
+        val hub = chain(AssetHubStaking.POLKADOT).also { `when`(it.assets).thenReturn(listOf(stakingAsset)) }
+        val relay = chain(polkadotChainId)
+        val otherHub = chain(AssetHubStaking.KUSAMA)
+        val otherRelay = chain(kusamaChainId)
+
+        val selected = selectChainsForBackgroundSync(listOf(hub, relay, otherHub, otherRelay), emptySet())
+
+        assertEquals(setOf(hub.id, relay.id), selected.map { it.id }.toSet())
+    }
 
     @Test
     fun `native Bitcoin balance subscription does not require a websocket node`() {

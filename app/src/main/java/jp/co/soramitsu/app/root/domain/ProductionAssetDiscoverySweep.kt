@@ -121,6 +121,10 @@ class ProductionAssetDiscoverySweep @Inject constructor(
             }
 
             val updates = withTimeoutOrNull(CHAIN_SCAN_TIMEOUT_MILLIS) {
+                // The Substrate loader gives its runtime only 15 s, and a failed scan waits for the next sweep.
+                if (requiresConnection && !chain.isEthereumChain) {
+                    chainRegistry.awaitRuntimeProvider(chain.id).get()
+                }
                 balanceLoaderProvider.invoke(chain).loadBalance(accounts)
             }
             if (updates == null) {

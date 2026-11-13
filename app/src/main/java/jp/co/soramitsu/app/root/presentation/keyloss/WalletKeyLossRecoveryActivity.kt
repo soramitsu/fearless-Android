@@ -33,6 +33,8 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageFailureKin
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageUnavailableException
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
+import jp.co.soramitsu.common.view.protectSensitiveContent
+import jp.co.soramitsu.common.view.hideOtherAppsOverlays
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -69,6 +71,8 @@ class WalletKeyLossRecoveryActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(null)
         window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        window.decorView.protectSensitiveContent()
+        window.hideOtherAppsOverlays()
         content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(20), dp(24), dp(20), dp(24))

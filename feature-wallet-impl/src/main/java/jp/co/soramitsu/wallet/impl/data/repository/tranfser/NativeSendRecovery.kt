@@ -7,6 +7,7 @@ import jp.co.soramitsu.common.data.network.send.PendingWalletSend
 import jp.co.soramitsu.common.data.network.send.WalletSendJournal
 import jp.co.soramitsu.common.data.network.solana.SolanaBroadcastOptions
 import jp.co.soramitsu.common.data.network.solana.SolanaRpcClient
+import jp.co.soramitsu.common.data.network.solana.SolanaSignatureOutcome
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.WalletSelectionEpoch
 import jp.co.soramitsu.common.data.storage.pin.WalletViewOnlyAccess
@@ -47,7 +48,7 @@ class NativeSendRecovery @Inject constructor(
         if (wallet.id != expectedWallet) fail()
         val sender = wallet.address(chain) ?: fail()
         val payment = journal.read(scope(wallet.id, chainId)) ?: return null
-        requireKind(chain, payment)
+        requireKind(chain, payment.kind)
         return NativeSendRecoverySnapshot(wallet.id, chainId, sender, epoch, payment.transactionId, payment.state, reviewed = payment.reviewed, feeUnits = payment.feeUnits,
             accountRentUnits = payment.accountRentUnits, kind = payment.kind, solanaNetwork = payment.solanaNetwork,
             currentSolanaGenesisHash = chain.universalWalletSolanaIndexerNetwork()?.genesisHash).also { requireCurrent(it, chain, false) }
@@ -60,28 +61,49 @@ class NativeSendRecovery @Inject constructor(
         return journal.withWalletLock(scope) {
             requireCurrent(expected, chain)
             var payment = journal.read(scope)?.takeIf { it.transactionId == expected.transactionId } ?: fail()
-            requireKind(chain, payment)
+            requireKind(chain, payment.kind)
             requirePayment(expected, payment)
             val rpc = if (payment.kind == PendingWalletSend.Kind.Solana) {
                 solana.withGenesisHash(requireNotNull(payment.solanaNetwork).executionGenesisHash)
                     .withEndpoints(NativeSendRpcEndpoints.resolve(chain))
             } else null
+            // Whether the payment's record was removed, and if so whether its expiry still showed nothing was sent.
+            var released: Boolean? = null
             suspend fun settleObserved() {
                 if (payment.state != PendingWalletSend.State.Pending) return
                 requireCurrent(expected, chain)
+                var expiredUnseen = false
+                var corroborated = false
                 val observed = safely {
                     when (payment.kind) {
                         PendingWalletSend.Kind.Bitcoin -> bitcoin.transactionStatus(payment.transactionId,
                             requireNotNull(chain.universalWalletBitcoinIndexerNetwork()), bitcoinUrl(chain))
                             ?.takeIf { it.confirmed }?.let { PendingWalletSend.State.Confirmed }
-                        PendingWalletSend.Kind.Solana -> requireNotNull(rpc).signatureStatus(payment.transactionId)?.takeIf { it.isConfirmed }
-                            ?.let { if (it.errorJson == null) PendingWalletSend.State.Confirmed else PendingWalletSend.State.Failed }
+                        PendingWalletSend.Kind.Solana -> when (val outcome = requireNotNull(rpc).signatureOutcome(payment.transactionId,
+                            requireNotNull(payment.lastValidBlockHeight))) {
+                            is SolanaSignatureOutcome.Seen -> outcome.status.takeIf { it.isConfirmed }
+                                ?.let { if (it.errorJson == null) PendingWalletSend.State.Confirmed else PendingWalletSend.State.Failed }
+                            is SolanaSignatureOutcome.Expired -> null.also { expiredUnseen = true; corroborated = outcome.corroborated }
+                            SolanaSignatureOutcome.Unknown -> null
+                        }
                     }
                 }
                 requireCurrent(expected, chain)
                 if (observed != null) payment = journal.settle(scope, payment, observed)
+                else if (expiredUnseen) {
+                    // Final past its blockhash height with no trace: it can't land any more. Release the wallet, but
+                    // only a recent expiry that two endpoints proved shows that it never landed. The row closes
+                    // before the record goes.
+                    val verified = corroborated && payment.expiryVerifiable(System.currentTimeMillis())
+                    closeHistoryRow(chain, expected, payment.transactionId,
+                        if (verified) OperationLocal.Status.FAILED else OperationLocal.Status.UNKNOWN)
+                    journal.discard(scope, payment)
+                    released = verified
+                }
             }
+            fun releasedSnapshot(verified: Boolean) = expected.copy(expired = true, notSent = verified, unverified = !verified)
             settleObserved()
+            released?.let { return@withWalletLock releasedSnapshot(it) }
             val expired = if (rpc != null && payment.state == PendingWalletSend.State.Pending) {
                 safely { rpc.blockHeight() > requireNotNull(payment.lastValidBlockHeight) } ?: false
             } else false
@@ -109,24 +131,38 @@ class NativeSendRecovery @Inject constructor(
                 settleObserved()
             }
             requireCurrent(expected, chain)
+            released?.let { return@withWalletLock releasedSnapshot(it) }
             if (payment.state != PendingWalletSend.State.Pending) {
                 val status = if (payment.state == PendingWalletSend.State.Confirmed) OperationLocal.Status.COMPLETED else OperationLocal.Status.FAILED
-                operations.getOperation(payment.transactionId)?.takeIf {
-                    it.chainId == chain.id && it.address == expected.sender && it.source == OperationLocal.Source.APP
-                }?.let { requireCurrent(expected, chain); operations.insert(it.copy(status = status)) }
+                closeHistoryRow(chain, expected, payment.transactionId, status)
             }
             expected.copy(state = payment.state, expired = expired)
         }
     }
 
-    /** Validates local ownership again before a UI action opens an explorer for the retained network. */
+    private suspend fun closeHistoryRow(chain: Chain, expected: NativeSendRecoverySnapshot, transactionId: String, status: OperationLocal.Status) {
+        operations.getOperation(transactionId)?.takeIf {
+            it.chainId == chain.id && it.address == expected.sender && it.source == OperationLocal.Source.APP
+        }?.let { requireCurrent(expected, chain); operations.insert(it.copy(status = status)) }
+    }
+
+    /**
+     * Validates local ownership again before a UI action opens an explorer for the retained network. A payment
+     * released as unverified has no record left; its snapshot still names the network the user is asked to check.
+     */
     suspend fun explorerChain(expected: NativeSendRecoverySnapshot): Chain {
         val chain = registry.getChain(expected.chainId)
         val latest = requireCurrent(expected, chain)
-        val payment = journal.read(scope(expected.walletId, expected.chainId)) ?: fail()
-        requirePayment(expected, payment)
-        requireKind(chain, payment)
-        if (payment.solanaNetwork?.let { it.registryGenesisHash != it.executionGenesisHash } == true) fail()
+        val network = if (expected.unverified) {
+            requireKind(chain, expected.kind)
+            expected.solanaNetwork
+        } else {
+            val payment = journal.read(scope(expected.walletId, expected.chainId)) ?: fail()
+            requirePayment(expected, payment)
+            requireKind(chain, payment.kind)
+            payment.solanaNetwork
+        }
+        if (network?.let { it.registryGenesisHash != it.executionGenesisHash } == true) fail()
         return latest
     }
 
@@ -144,8 +180,8 @@ class NativeSendRecovery @Inject constructor(
         if (payment.transactionId != expected.transactionId || payment.kind != expected.kind || payment.solanaNetwork != expected.solanaNetwork) fail()
     }
 
-    private fun requireKind(chain: Chain, payment: PendingWalletSend) {
-        val matches = when (payment.kind) {
+    private fun requireKind(chain: Chain, kind: PendingWalletSend.Kind) {
+        val matches = when (kind) {
             PendingWalletSend.Kind.Bitcoin -> chain.isUniversalWalletBitcoin()
             PendingWalletSend.Kind.Solana -> chain.isUniversalWalletSolana()
         }

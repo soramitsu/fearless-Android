@@ -1,13 +1,8 @@
 package jp.co.soramitsu.nft.impl.presentation
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.app.Dialog
-import android.os.Build
-import android.os.Bundle
-import android.view.KeyEvent
+import androidx.activity.compose.BackHandler
 import androidx.activity.result.ActivityResultLauncher
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,7 +26,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.R
@@ -43,6 +37,7 @@ import jp.co.soramitsu.common.compose.component.ToolbarBottomSheet
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.common.compose.models.retrieveString
+import jp.co.soramitsu.common.navigation.popFlowPageOrExit
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.presentation.askPermissionsSafely
 import jp.co.soramitsu.common.scan.ScanTextContract
@@ -86,33 +81,6 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
 
     override val viewModel: NFTFlowViewModel by viewModels()
 
-    // Compose BackHandler does not work in DialogFragments, nor does BackPressedDispatcher
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            super.onCreateDialog(savedInstanceState).apply {
-                setOnKeyListener { _, keyCode, event ->
-                    val isBackPressDetected =
-                        keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP
-
-                    if (isBackPressDetected) {
-                        viewModel.onNavigationClick()
-                    }
-
-                    return@setOnKeyListener isBackPressDetected
-                }
-            }
-        } else {
-            // Call to super.onBackPressed() will cancel dialog as default behavior
-            object : BottomSheetDialog(requireContext(), theme) {
-                @SuppressLint("MissingSuperCall")
-                @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-                override fun onBackPressed() {
-                    viewModel.onNavigationClick()
-                }
-            }
-        }
-    }
-
     private fun requestCameraPermission() {
         viewLifecycleOwner.lifecycleScope.launch {
             if (!askPermissionsSafely(Manifest.permission.CAMERA).isSuccess) {
@@ -148,16 +116,8 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
 
             viewModel.navGraphActionsFlow.onEach {
                 when (it) {
-                    is NavAction.BackPressed -> {
-                        val isBackNavigationSuccess = navController.popBackStack()
-
-                        val currentRoute = navController.currentDestination?.route
-                        val loadingRoute = NFTNavGraphRoute.Loading.routeName
-
-                        if (currentRoute == loadingRoute || !isBackNavigationSuccess) {
-                            viewModel.exitFlow()
-                        }
-                    }
+                    is NavAction.BackPressed ->
+                        navController.popFlowPageOrExit(NFTNavGraphRoute.Loading.routeName, viewModel::exitFlow)
 
                     is NavAction.QRCodeScanner ->
                         requestCameraPermission()
@@ -198,7 +158,8 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
 
                 is LoadingState.Loading<Pair<TextModel, Int>> ->
                     MainToolbarShimmer(
-                        homeIconState = ToolbarHomeIconState.Navigation(jp.co.soramitsu.feature_wallet_impl.R.drawable.ic_arrow_back_24dp)
+                        homeIconState = ToolbarHomeIconState.Navigation(jp.co.soramitsu.feature_wallet_impl.R.drawable.ic_arrow_back_24dp),
+                        onNavigationClick = viewModel::onNavigationClick
                     )
             }
 
@@ -238,6 +199,10 @@ class NFTFlowFragment : BaseComposeBottomSheetDialogFragment<NFTFlowViewModel>()
                     ) { CircularProgressIndicator() }
                 }
             }
+
+            // After the NavHost, so it runs before the NavHost's own handler, which would pop to Loading,
+            // and before the sheet's, which would only collapse it. Toolbar and system Back are one path.
+            BackHandler(onBack = viewModel::onNavigationClick)
         }
     }
 

@@ -41,7 +41,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.core.models.Asset.StakingType
 import jp.co.soramitsu.core.models.ChainId
 import jp.co.soramitsu.core.models.Ecosystem
-import jp.co.soramitsu.core.utils.isValidAddress
+import jp.co.soramitsu.runtime.ext.isValidRecipientAddress
 import jp.co.soramitsu.coredb.model.AssetUpdateItem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -68,12 +68,10 @@ import jp.co.soramitsu.wallet.impl.domain.model.ControllerDeprecationWarning
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 import jp.co.soramitsu.wallet.impl.domain.model.OperationsPageChange
 import jp.co.soramitsu.wallet.impl.domain.model.PhishingModel
-import jp.co.soramitsu.wallet.impl.domain.model.QrContentCBDC
 import jp.co.soramitsu.wallet.impl.domain.model.QrContentSora
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.domain.model.toPhishingModel
-import jp.co.soramitsu.wallet.impl.domain.qr.CbdcQrParser
 import jp.co.soramitsu.xcm.domain.XcmEntitiesFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -312,7 +310,7 @@ class WalletInteractorImpl(
         withContext(Dispatchers.Default) {
             val chain = chainsRepository.getChain(chainId)
 
-            chain.isValidAddress(address)
+            chain.isValidRecipientAddress(address)
         }
 
     override suspend fun isAddressFromPhishingList(address: String): Boolean {
@@ -391,9 +389,6 @@ class WalletInteractorImpl(
         }
     }
 
-    override suspend fun tryReadCBDCAddressFormat(content: String): QrContentCBDC? {
-        return CbdcQrParser.parse(content)
-    }
 
     override fun extractTonAddress(input: String): String? = kotlin.runCatching {
         val regex = Regex("ton://transfer/([a-zA-Z0-9_\\-:.]+)")
@@ -575,42 +570,55 @@ class WalletInteractorImpl(
             )?.arguments?.isEmpty() == true
         }
 
+        // The warning is advice shown over the home page. One network that cannot answer (its runtime changed
+        // since the check above, a node error, a value this runtime cannot decode) is skipped: in 229 the Staking
+        // pallet leaving the relay chains closed the app from here.
         return chainsWithDeprecatedControllerAccount.mapNotNull { chainId ->
-            val chain = chains[chainId] ?: return@mapNotNull null
-            val accountId = currentAccount.accountId(chain) ?: return@mapNotNull null
-
-            // checking current account is stash
-
-            val controllerAccount = walletRepository.getControllerAccount(chainId, accountId)
-
-            val currentAccountIsStashAndController =
-                controllerAccount != null && controllerAccount.contentEquals(accountId) // the case is resolved
-            if (currentAccountIsStashAndController) {
-                return@mapNotNull null
+            try {
+                controllerDeprecationWarning(chains[chainId] ?: return@mapNotNull null, currentAccount)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                null
             }
-
-            val currentAccountHasAnotherController =
-                controllerAccount != null && !controllerAccount.contentEquals(accountId) // user needs to fix it
-            if (currentAccountHasAnotherController) {
-                return@mapNotNull ControllerDeprecationWarning.ChangeController(chainId, chain.name)
-            }
-
-            // checking current account is controller
-            val currentAccountIsNotStash = controllerAccount == null
-
-            if (currentAccountIsNotStash) {
-                val stash = walletRepository.getStashAccount(chainId, accountId)
-                // we've found the stash
-                if (stash != null) {
-                    return@mapNotNull ControllerDeprecationWarning.ImportStash(
-                        chainId,
-                        stash.toAddress(chain.addressPrefix.toShort())
-                    )
-                }
-            }
-
-            return@mapNotNull null
         }
+    }
+
+    private suspend fun controllerDeprecationWarning(chain: Chain, currentAccount: MetaAccount): ControllerDeprecationWarning? {
+        val chainId = chain.id
+        val accountId = currentAccount.accountId(chain) ?: return null
+
+        // checking current account is stash
+
+        val controllerAccount = walletRepository.getControllerAccount(chainId, accountId)
+
+        val currentAccountIsStashAndController =
+            controllerAccount != null && controllerAccount.contentEquals(accountId) // the case is resolved
+        if (currentAccountIsStashAndController) {
+            return null
+        }
+
+        val currentAccountHasAnotherController =
+            controllerAccount != null && !controllerAccount.contentEquals(accountId) // user needs to fix it
+        if (currentAccountHasAnotherController) {
+            return ControllerDeprecationWarning.ChangeController(chainId, chain.name)
+        }
+
+        // checking current account is controller
+        val currentAccountIsNotStash = controllerAccount == null
+
+        if (currentAccountIsNotStash) {
+            val stash = walletRepository.getStashAccount(chainId, accountId)
+            // we've found the stash
+            if (stash != null) {
+                return ControllerDeprecationWarning.ImportStash(
+                    chainId,
+                    stash.toAddress(chain.addressPrefix.toShort())
+                )
+            }
+        }
+
+        return null
     }
 
     override suspend fun canUseAsset(chainId: String, chainAssetId: String): Boolean {

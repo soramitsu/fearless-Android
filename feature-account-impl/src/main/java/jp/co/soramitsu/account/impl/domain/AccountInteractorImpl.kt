@@ -1,11 +1,13 @@
 package jp.co.soramitsu.account.impl.domain
 
 import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
+import jp.co.soramitsu.common.data.storage.envelope.PinVerification
 
 import android.content.Intent
 import androidx.activity.result.ActivityResultLauncher
 import java.io.File
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.universalWalletRoot
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.AndroidUniversalWalletMigrationSnapshotBuilder
@@ -27,6 +29,7 @@ import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.data.storage.pin.PinAttemptClock
 import jp.co.soramitsu.common.data.storage.pin.PinAttemptLimiter
 import jp.co.soramitsu.common.interfaces.FileProvider
 import jp.co.soramitsu.common.model.UNIVERSAL_WALLET_CUTOFF_AT_MILLIS
@@ -34,6 +37,7 @@ import jp.co.soramitsu.common.model.UniversalWalletMigrationSnapshot
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.utils.ComponentHolder
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
+import jp.co.soramitsu.common.utils.UniversalWalletPassphrase
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.nullIfEmpty
 import jp.co.soramitsu.core.model.Language
@@ -68,12 +72,12 @@ class AccountInteractorImpl(
     private val backupService: BackupService,
     private val walletInteractor: WalletInteractor,
     private val context: CoroutineContext = Dispatchers.Default,
-    private val nowProvider: () -> Long = { System.currentTimeMillis() },
+    private val pinAttemptClock: PinAttemptClock = PinAttemptClock.system,
     private val migrationSnapshotBuilder: AndroidUniversalWalletMigrationSnapshotBuilder =
         AndroidUniversalWalletMigrationSnapshotBuilder(UNIVERSAL_WALLET_CUTOFF_AT_MILLIS)
 ) : AccountInteractor {
 
-    private val pinAttemptLimiter = PinAttemptLimiter(preferences, nowProvider)
+    private val pinAttemptLimiter = PinAttemptLimiter(preferences, pinAttemptClock)
 
     override suspend fun generateMnemonic(length: Mnemonic.Length): List<String> {
         return accountRepository.generateMnemonic(length)
@@ -161,20 +165,32 @@ class AccountInteractorImpl(
     }
 
     override suspend fun isPinCorrect(code: String): Boolean {
-        if (pinAttemptLimiter.lockedUntil() != null) {
+        // No PIN is read or compared while a wrong-PIN delay runs.
+        if (pinAttemptLimiter.remainingDelayMillis() > 0L) {
             return false
         }
 
-        val pinCode = accountRepository.getPinCode()
-        val isCorrect = PinHealth.assess(true, pinCode) == PinHealth.HEALTHY && pinCode == code
-
-        if (isCorrect) {
-            pinAttemptLimiter.reset()
-            return true
+        // Opening the PIN wrap is the check; it also opens the wallet key for this session.
+        return when (accountRepository.verifyPinCode(code)) {
+            PinVerification.CORRECT -> {
+                pinAttemptLimiter.reset()
+                true
+            }
+            PinVerification.WRONG -> {
+                pinAttemptLimiter.registerFailure()
+                false
+            }
+            // Nothing can match a PIN this device cannot read, so it is no wrong guess.
+            PinVerification.UNREADABLE -> false
         }
+    }
 
-        pinAttemptLimiter.registerFailure()
-        return false
+    override suspend fun getPinRetryDelayMillis(): Long = pinAttemptLimiter.remainingDelayMillis()
+
+    override suspend fun verifyBiometricVaultPin(pin: String): Boolean {
+        if (accountRepository.verifyPinCode(pin) != PinVerification.CORRECT) return false
+        pinAttemptLimiter.reset()
+        return true
     }
 
     override suspend fun isBiometricEnabled(): Boolean {
@@ -272,7 +288,9 @@ class AccountInteractorImpl(
 
     override suspend fun createFileInTempStorageAndRetrieveAsset(fileName: String): Result<File> =
         runCatching {
-            fileProvider.getFileInExternalCacheStorage(fileName)
+            // Keystore exports stay in internal storage; the FileProvider
+            // shares this one directory with the app the user picks.
+            fileProvider.getFileInInternalShareStorage(fileName)
         }
 
     override suspend fun updateAccountName(metaId: Long, name: String) {
@@ -413,6 +431,8 @@ class AccountInteractorImpl(
         return backupService.authorize(launcher)
     }
 
+    override suspend fun hasGoogleBackupSession(): Boolean = backupService.hasSession()
+
     override suspend fun getSubstrateSecrets(metaId: Long): EncodableStruct<SubstrateSecrets>? {
         return accountRepository.getSubstrateSecrets(metaId)
     }
@@ -487,6 +507,25 @@ class AccountInteractorImpl(
             )
         }
         return result
+    }
+
+    override fun getDerivationPathForTonExport(metaId: Long): Flow<ComponentHolder> {
+        return lightMetaAccountsFlow().mapNotNull {
+            it.firstOrNull { it.id == metaId }
+        }.map {
+            val substrateDerivationPath = accountRepository.getSubstrateSecrets(metaId)?.get(SubstrateSecrets.SubstrateDerivationPath)
+            val passphrase = accountRepository.universalWalletRoot(metaId)?.passphrase.orEmpty()
+            // The root takes the Substrate path's password first; any other comes from the Ethereum path.
+            val ethereumHoldsPassword = passphrase.isNotEmpty() &&
+                UniversalWalletPassphrase.substratePassword(substrateDerivationPath) != passphrase
+            ComponentHolder(
+                listOf(
+                    substrateDerivationPath,
+                    accountRepository.getEthereumSecrets(metaId)?.get(EthereumSecrets.EthereumDerivationPath)
+                        .takeIf { ethereumHoldsPassword }
+                )
+            )
+        }
     }
 
     private fun EncodableStruct<SubstrateSecrets>.seedFromMnemonic() =

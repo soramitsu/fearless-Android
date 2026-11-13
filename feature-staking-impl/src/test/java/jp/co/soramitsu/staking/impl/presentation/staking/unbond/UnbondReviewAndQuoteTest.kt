@@ -51,7 +51,8 @@ class UnbondReviewAndQuoteTest {
         f.assets.value = f.initial.copy(bondedInPlanksState = AssetAmountState.Missing)
         dispatcher.scheduler.runCurrent()
         val confirm = f.confirm(payload); confirm.confirmClicked()
-        f.await { confirm.errorDialogStateLiveData.value != null }
+        // The error dialog is immediate; the fee projection completes on Dispatchers.Default.
+        f.await { confirm.errorDialogStateLiveData.value != null && confirm.feeStatusLiveData.value === FeeStatus.Error }
         assertTrue(f.calls.isEmpty()); assertTrue(f.submitted.isEmpty())
         assertSame(FeeStatus.Error, confirm.feeStatusLiveData.value)
     }

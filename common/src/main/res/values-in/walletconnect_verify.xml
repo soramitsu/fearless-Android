@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="walletconnect_origin_unverified">Situs ini tidak dapat diverifikasi. Lanjutkan hanya jika Anda memercayainya.</string>
+    <string name="walletconnect_origin_mismatch">Permintaan ini berasal dari %1$s, bukan %2$s. Ini mungkin situs palsu.</string>
+    <string name="walletconnect_scam_blocked">%1$s adalah situs penipuan yang dikenal. Fearless memblokirnya.</string>
+    <string name="walletconnect_link_expired">Tautan WalletConnect ini sudah kedaluwarsa. Minta tautan baru dari dApp.</string>
+    <string name="walletconnect_qr_invalid">Kode tidak valid. Silakan coba lagi.</string>
+    <string name="walletconnect_message_signed_title">Pesan ditandatangani</string>
+    <string name="walletconnect_message_signed_text">Tanda tangan telah dikirim ke dApp.</string>
+    <string name="walletconnect_transaction_signed_title">Transaksi ditandatangani</string>
+    <string name="walletconnect_transaction_signed_text">Transaksi yang ditandatangani telah dikirim ke dApp, yang akan mengirimkannya ke blockchain.</string>
+</resources>

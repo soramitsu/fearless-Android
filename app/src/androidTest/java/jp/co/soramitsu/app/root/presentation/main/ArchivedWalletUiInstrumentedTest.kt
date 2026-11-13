@@ -73,7 +73,7 @@ class ArchivedWalletUiInstrumentedTest {
         compose.onNodeWithText(text(R.string.wallet_archive_exact_data)).performScrollTo().performClick()
         compose.onNodeWithText(text(R.string.wallet_archive_export_warning)).assertIsDisplayed()
         capture("archive-exact-data.png")
-        compose.onNodeWithText(text(R.string.wallet_archive_share)).assertHasClickAction().performClick()
+        compose.onNodeWithText(text(R.string.common_copy)).assertHasClickAction().performClick()
         compose.runOnIdle { assertEquals("public fixture exact value", shared) }
         compose.onNodeWithText(text(R.string.common_close)).performClick()
     }

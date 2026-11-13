@@ -249,6 +249,9 @@ module_identities = {
     "app": [
         (gate, "legacyGateRelaunchDiscardsNonRestorableFragmentState"),
         (gate, "permanentRecoveryFailureShowsDiagnosticInsteadOfRetryOnlyRoute"),
+        (gate, "internalHandoffDropsNavigationDeepLinkExtras"),
+        (gate, "internalHandoffDropsNonAllowlistedUris"),
+        (gate, "internalHandoffKeepsOnlyAllowlistedEntryData"),
         *[(gate, f"gate-compatibility-{index}") for index in range(18)],
         (restart, "latchWhileStoppedDefersRedirectUntilForeground"),
         *[(restart, f"restart-compatibility-{index}") for index in range(2)],
@@ -634,7 +637,7 @@ negative_count=$((negative_count + 1))
 
 fixture="$(make_compatibility_fixture compatibility-extra-test)"
 path="$(result_file "$fixture" app)"
-replace_once "$path" 'tests="26"' 'tests="27"'
+replace_once "$path" 'tests="29"' 'tests="30"'
 replace_once "$path" '</testsuite>' \
   '<testcase classname="jp.co.soramitsu.app.root.presentation.WalletGateActivityLifecycleTest" name="unexpected-extra" /></testsuite>'
 output="$tmp_dir/compatibility-extra-test.log"
@@ -642,7 +645,7 @@ if MIGRATION_RESULTS_ROOT="$fixture" MIGRATION_RESULTS_PROFILE=compatibility \
   "$VERIFY" >"$output" 2>&1; then
   fail "compatibility shard with an extra test unexpectedly passed"
 fi
-grep -Fq "exact compatibility count is 26" "$output" ||
+grep -Fq "exact compatibility count is 29" "$output" ||
   fail "compatibility extra-test omitted expected diagnostic"
 negative_count=$((negative_count + 1))
 

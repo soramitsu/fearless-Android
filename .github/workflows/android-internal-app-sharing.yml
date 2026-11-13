@@ -156,26 +156,22 @@ jobs:
             "platforms;android-36" \
             "build-tools;36.0.0" \
             "platform-tools" \
-            "ndk;28.0.12674087" \
-            "ndk;25.2.9519653"
+            "ndk;30.0.16248370"
           {
             echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
             echo "ANDROID_HOME=$ANDROID_HOME"
-            echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087"
-            echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/28.0.12674087"
-            echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.0.12674087"
+            echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/30.0.16248370"
+            echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/30.0.16248370"
+            echo "NDK_HOME=$ANDROID_SDK_ROOT/ndk/30.0.16248370"
           } >>"$GITHUB_ENV"
 
       - name: Setup Rust Android targets
         run: |
           set -euo pipefail
-          rustup toolchain install stable --profile minimal
-          rustup default stable
-          rustup target add \
-            aarch64-linux-android \
-            armv7-linux-androideabi \
-            i686-linux-android \
-            x86_64-linux-android
+          # rust-toolchain.toml pins Rust 1.99.1 and the four Android targets
+          # that build libsr25519java.so; cargo-ndk is pinned in its manifest.
+          (cd runtime-utils/native/sr25519 && rustup toolchain install)
+          cargo install cargo-ndk --version 4.1.2 --locked
 
       - name: Verify IAS static and adversarial Gradle contract
         env:
@@ -817,7 +813,7 @@ jobs:
           )"
           [[ "$fingerprint" =~ ^[0-9A-F]{64}$ ]]
           [[ "$fingerprint" != \
-            "40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A" ]]
+            "AD6C1D07BE5DFA8C539E8C9B8BD43DC1C6CF79A839828B10B6F953AD57C1BDE8" ]]
           rm -f -- "$signer"
           signer=""
           if find "$signing_dir" -maxdepth 1 \
@@ -984,7 +980,7 @@ jobs:
           [[ "$aab_sha" == "$(sha256sum "$IAS_SIGNED_CANDIDATE" | awk '{print $1}')" ]]
           handoff_dir="$RUNNER_TEMP/fearless-ias-qualified-handoff"
           mkdir -m 0700 "$handoff_dir"
-          verified_aab="$handoff_dir/fearless-wallet-4.2.0-ias-231.aab"
+          verified_aab="$handoff_dir/fearless-wallet-4.3.4-ias-236.aab"
           sudo install -o "$(id -u)" -g "$(id -g)" -m 0400 \
             "$isolated" "$verified_aab"
           sudo rm -rf -- "$IAS_POSTSIGN_BOUNDARY"
@@ -1205,7 +1201,7 @@ jobs:
           import zipfile
 
           archive_path, output_dir, expected_aab, expected_evidence = sys.argv[1:]
-          expected_names = ["evidence.txt", "fearless-wallet-4.2.0-ias-231.aab"]
+          expected_names = ["evidence.txt", "fearless-wallet-4.3.4-ias-236.aab"]
           with zipfile.ZipFile(archive_path) as archive:
               entries = archive.infolist()
               names = sorted(entry.filename for entry in entries)
@@ -1235,7 +1231,7 @@ jobs:
               /usr/bin/timeout --signal=KILL 30m \
                 /bin/bash "$1/scripts/verify-android-internal-app-sharing-aab.sh" \
                   --signed-from "$2/input/verified-unsigned.aab" \
-                  "$2/output/fearless-wallet-4.2.0-ias-231.aab" "$5"
+                  "$2/output/fearless-wallet-4.3.4-ias-236.aab" "$5"
             ' audit-wrapper "$GITHUB_WORKSPACE" "$boundary" \
             "$IAS_HANDOFF_AAB_SHA256" \
             "$(sha256sum "$IAS_HANDOFF_DIR/evidence.txt" | awk '{print $1}')" \

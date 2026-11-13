@@ -10,11 +10,13 @@ import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.core.runtime.EndpointRuntimeStatus
 import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.coredb.recovery.selection.EndpointMutationLane
 import jp.co.soramitsu.runtime.multiNetwork.ChainState
 import jp.co.soramitsu.runtime.multiNetwork.ChainsStateTracker
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChainOrNull
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
+import jp.co.soramitsu.runtime.storage.NodesSettingsStorage
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.state.SocketStateMachine
 import kotlinx.coroutines.CancellationException
@@ -37,17 +39,23 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
+/** A catalog node that fails this many connection attempts in a row is replaced while Auto select is on. */
+internal const val NODE_SWITCH_FAILED_ATTEMPTS = 3
+
 /** The pool owns one serial configuration path; state observers never acquire that lane. */
 class ConnectionPool @Inject constructor(
     private val socketServiceProvider: Provider<SocketService>,
     private val externalRequirementFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
     private val chainDao: ChainDao,
-    private val networkStateService: NetworkStateService
+    private val networkStateService: NetworkStateService,
+    private val nodesSettingsStorage: NodesSettingsStorage
 ) {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val serial = Mutex()
     private val desired = ConcurrentHashMap<String, Any>()
     private val configured = mutableMapOf<String, Any>()
+    // The fresh read behind each chain's latest binding; automatic switches are admitted only against it.
+    private val configuredReads = ConcurrentHashMap<String, EndpointMutationLane.RuntimeVersion>()
     private val poolFlow = MutableStateFlow<Map<String, ChainConnection>>(emptyMap())
     private val observers = mutableMapOf<String, Job>()
 
@@ -122,9 +130,15 @@ class ConnectionPool @Inject constructor(
                         else if (created.state.value is SocketStateMachine.State.WaitingForReconnect) {
                             networkStateService.notifyConnectionProblem(chain.id)
                         }
+                        if (status.phase == EndpointRuntimeStatus.Phase.CONNECTING &&
+                            status.failedAttempts >= NODE_SWITCH_FAILED_ATTEMPTS) {
+                            switchUnreachableNode(chain.id, created, logical, status)
+                        }
                     }.launchIn(scope)
                 }
                 configured[chain.id] = command
+                // Before the binding exists, so none of its statuses can be paired with an older read.
+                configuredReads[chain.id] = read.version
                 connection.reconcile(fresh, externalRequirementFlow.value) {
                     desired[chain.id] === command && poolFlow.value[chain.id] === connection &&
                         chainDao.endpointMutationLane.isCurrent(read.version)
@@ -161,6 +175,7 @@ class ConnectionPool @Inject constructor(
                 connection.markRuntimeUnavailable()
                 return
             }
+            configuredReads[chainId] = read.version
             connection.reconcile(fresh, externalRequirementFlow.value) {
                 desired[chainId] === command && poolFlow.value[chainId] === connection &&
                     chainDao.endpointMutationLane.isCurrent(read.version)
@@ -176,8 +191,42 @@ class ConnectionPool @Inject constructor(
         }
     }
 
+    /**
+     * Auto select moves a chain off a catalog node that keeps failing, to the next catalog node. The intent is
+     * admitted only from the settled read that configured the failing binding, so it never retires a pending
+     * explicit selection or catalog replacement, and any such intent admitted later supersedes it before it
+     * commits. A custom node is the user's own choice and is never replaced.
+     */
+    private fun switchUnreachableNode(chainId: ChainId, connection: ChainConnection, node: ChainNode,
+        status: EndpointRuntimeStatus) {
+        if (!node.isDefault || connection.nodes.count { it.isDefault } < 2) return
+        if (!nodesSettingsStorage.getIsAutoSelectNodes(chainId)) return
+        val observed = configuredReads[chainId] ?: return
+        // Still current after that read: no newer binding (and so no newer read) has replaced the failing one.
+        if (!status.isCurrentFor(node)) return
+        val lane = chainDao.endpointMutationLane
+        // A newer intent between this check and admission leaves the read stale, so admission then fails too.
+        if (!lane.isSettled(observed)) return
+        val operation = lane.admitObserved(observed) ?: return
+        scope.launch {
+            try {
+                chainDao.selectNextCatalogNode(operation, chainId, node.url) {
+                    nodesSettingsStorage.getIsAutoSelectNodes(chainId)
+                }
+            } catch (canceled: CancellationException) {
+                throw canceled
+            } catch (_: Exception) {
+                // A superseded or failed switch changes nothing; the refreshed binding counts failures again.
+            }
+        }.invokeOnCompletion {
+            // Also runs if the job is cancelled before it starts, so the intent never stays pending.
+            lane.abandon(operation)
+        }
+    }
+
     private fun retireConnection(chainId: ChainId) {
         configured.remove(chainId)
+        configuredReads.remove(chainId)
         val connection = poolFlow.value[chainId]
         poolFlow.value = poolFlow.value - chainId
         observers.remove(chainId)?.cancel()

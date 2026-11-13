@@ -10,6 +10,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,6 +33,10 @@ import jp.co.soramitsu.common.compose.component.B2
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.green
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.FwTxStatus
+import jp.co.soramitsu.common.compose.theme.fw.FwTxStatusRing
 import jp.co.soramitsu.common.utils.formatTime
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
@@ -64,20 +72,40 @@ fun TransactionItem(
                 }
             }
 
-            AsyncImage(
-                model = when (item.assetIconUrl) {
-                    null -> item.operationIcon
-                    else -> getImageRequest(LocalContext.current, item.assetIconUrl)
-                },
-                contentDescription = null,
-                modifier = Modifier
-                    .size(32.dp)
-                    .constrainAs(image) {
-                        top.linkTo(parent.top)
-                        bottom.linkTo(parent.bottom)
-                        start.linkTo(parent.start)
-                    }
-            )
+            val icon: @Composable (Modifier) -> Unit = { modifier ->
+                AsyncImage(
+                    model = when (item.assetIconUrl) {
+                        null -> item.operationIcon
+                        else -> getImageRequest(LocalContext.current, item.assetIconUrl)
+                    },
+                    contentDescription = null,
+                    modifier = modifier
+                )
+            }
+            val imageConstraints = Modifier.constrainAs(image) {
+                top.linkTo(parent.top)
+                bottom.linkTo(parent.bottom)
+                start.linkTo(parent.start)
+            }
+            // Pending transactions wear a breathing amber ring; a ring seen pending fills and draws
+            // its check when the transaction completes, or shakes red when it fails.
+            var seenPending by remember(item.id) { mutableStateOf(false) }
+            if (item.statusAppearance == OperationStatusAppearance.PENDING) seenPending = true
+            val ringed = FwRestyle.isEnabled(FwSurface.History) && (seenPending ||
+                item.statusAppearance == OperationStatusAppearance.FAILED)
+            if (ringed) {
+                FwTxStatusRing(
+                    status = when (item.statusAppearance) {
+                        OperationStatusAppearance.PENDING -> FwTxStatus.Pending
+                        OperationStatusAppearance.FAILED -> FwTxStatus.Failed
+                        else -> FwTxStatus.Success
+                    },
+                    size = 40.dp,
+                    modifier = imageConstraints
+                ) { icon(Modifier.size(28.dp)) }
+            } else {
+                icon(imageConstraints.size(32.dp))
+            }
             Spacer(
                 modifier = Modifier
                     .width(8.dp)

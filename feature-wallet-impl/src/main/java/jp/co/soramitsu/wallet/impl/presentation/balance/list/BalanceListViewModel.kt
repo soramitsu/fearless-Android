@@ -1,5 +1,8 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import kotlinx.coroutines.flow.firstOrNull
+import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
+import jp.co.soramitsu.wallet.impl.presentation.balance.assetActions.buy.BuyMixin
 import android.net.Uri
 import android.util.Log
 import android.widget.LinearLayout
@@ -9,9 +12,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
-import com.reown.android.internal.common.exception.MalformedWalletConnectUri
+import co.jp.soramitsu.walletconnect.model.WalletConnectPairingExpiredException
+import co.jp.soramitsu.walletconnect.model.WalletConnectUriException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
+import jp.co.soramitsu.account.api.domain.UniversalWalletPasswordNotice
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
@@ -182,7 +187,9 @@ class BalanceListViewModel @Inject constructor(
     private val portfolioPreferences: PortfolioPresentationPreferences,
     private val tokenGroupRegistry: jp.co.soramitsu.runtime.multiNetwork.tokengroups.TokenGroupRegistry,
     private val updateSecurityNotice: UpdateSecurityNoticeTracker,
-) : BaseViewModel(), WalletScreenInterface {
+    private val universalPasswordNotice: UniversalWalletPasswordNotice = UniversalWalletPasswordNotice.NONE,
+    private val buyMixin: BuyMixin.Presentation = NoBuyProviders,
+) : BaseViewModel(), WalletScreenInterface, BuyMixin by buyMixin {
 
     private var awaitAssetsJob: Job? = null
 
@@ -194,6 +201,15 @@ class BalanceListViewModel @Inject constructor(
 
     private val _showUpdateSecurityNotice = MutableLiveData<Event<Unit>>()
     val showUpdateSecurityNotice: LiveData<Event<Unit>> = _showUpdateSecurityNotice
+
+    private val _showUniversalPasswordNotice = MutableLiveData<Event<UniversalPasswordNoticeState>>()
+    val showUniversalPasswordNotice: LiveData<Event<UniversalPasswordNoticeState>> = _showUniversalPasswordNotice
+
+    private val _universalPasswordSwitchResult = MutableLiveData<Event<UniversalPasswordNoticeState>>()
+    val universalPasswordSwitchResult: LiveData<Event<UniversalPasswordNoticeState>> = _universalPasswordSwitchResult
+
+    // Declared before init, which starts the notice observer.
+    private val universalPasswordNoticeCheck = MutableStateFlow(0)
 
     private val _openPlayMarket = MutableLiveData<Event<Unit>>()
     val openPlayMarket: LiveData<Event<Unit>> = _openPlayMarket
@@ -420,7 +436,8 @@ class BalanceListViewModel @Inject constructor(
             ),
             walletHasPositiveBalance = accountingItems.any {
                 it.total?.signum() == 1 && it.metadataTrust == AssetMetadataTrust.Verified
-            }
+            },
+            walletHasUnknownBalance = AssetListHelper.hasUnknownCountedBalance(accountingAssets)
         )
     }.distinctUntilChanged()
         .onStart { emit(buildInitialAssetsList()) }
@@ -478,10 +495,10 @@ class BalanceListViewModel @Inject constructor(
 
     private val assetStates = combine(freshAssetStates, portfolioUiFlow, tokenGroupRegistry.observeResolvedGroups()) { state, preference, groups ->
         if (state !is AssetsLoadingState.Loaded || state.walletId != preference.first) return@combine AssetsLoadingState.Loading()
-        val states = state.assets.associateBy { it.canonicalAssetKey }
+        val states = state.assets.associateBy { it.rowKey }
         val visible = state.portfolioAssets.map { it.copy(state = states[it.key] ?: it.state) }
         state.with(portfolioItems = PortfolioListBuilder.build(visible, state.availableAssets.filter { it.state.isHidden },
-            groups, preference.second, state.selectedNetwork, state.walletHasPositiveBalance),
+            groups, preference.second, state.selectedNetwork, state.walletHasPositiveBalance, state.walletHasUnknownBalance),
             portfolioUi = preference.second, tokenGroups = groups)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AssetsLoadingState.Loading())
 
@@ -861,6 +878,7 @@ class BalanceListViewModel @Inject constructor(
         observeToolbarStates()
         observeNetworkIssues()
         observeFiatSymbolChange()
+        observeUniversalPasswordNotice()
         viewModelScope.launch {
             withContext(coroutineManager.io) {
             }
@@ -881,12 +899,58 @@ class BalanceListViewModel @Inject constructor(
     }
 
     /** It counts as shown only once closed; one that was not closed is shown at the next launch. */
-    fun onUpdateSecurityNoticeClosed() = updateSecurityNotice.acknowledge()
+    fun onUpdateSecurityNoticeClosed() {
+        updateSecurityNotice.acknowledge()
+        universalPasswordNoticeCheck.value += 1
+    }
+
+    // Once per wallet, when a password wallet still holds addresses its words alone open;
+    // never on top of the update security notice.
+    private fun observeUniversalPasswordNotice() {
+        combine(currentMetaAccountFlow.map { it.id }.distinctUntilChanged(), universalPasswordNoticeCheck) { metaId, _ -> metaId }
+            .onEach { metaId ->
+                if (updateSecurityNotice.isPending || universalPasswordNotice.isDismissed(metaId)) return@onEach
+                val rows = withContext(coroutineManager.default) { universalPasswordRowsOrEmpty { rows(metaId) } }
+                if (rows.isNotEmpty()) _showUniversalPasswordNotice.value = Event(UniversalPasswordNoticeState(metaId, rows))
+            }.launchIn(viewModelScope)
+    }
+
+    fun onUniversalPasswordSwitch(metaId: Long) {
+        viewModelScope.launch {
+            val rows = withContext(coroutineManager.default) { universalPasswordRowsOrEmpty { switch(metaId) } }
+            _universalPasswordSwitchResult.value = Event(UniversalPasswordNoticeState(metaId, rows))
+            BalanceUpdateTrigger.invoke()
+        }
+    }
+
+    // The notice is optional: a wallet it cannot read simply shows none.
+    private suspend fun universalPasswordRowsOrEmpty(
+        read: suspend UniversalWalletPasswordNotice.() -> List<UniversalWalletPasswordNotice.Row>
+    ): List<UniversalWalletPasswordNotice.Row> = try {
+        universalPasswordNotice.read()
+    } catch (failure: CancellationException) {
+        throw failure
+    } catch (_: Exception) {
+        emptyList()
+    }
+
+    /** Shown automatically once; the wallet's options keep it reachable. */
+    fun onUniversalPasswordNoticeClosed(metaId: Long) = universalPasswordNotice.dismiss(metaId)
 
     override fun onRefresh() {
         sync()
         viewModelScope.launch {
             BalanceUpdateTrigger.invoke()
+        }
+        refreshUniversalPasswordNotice()
+    }
+
+    // Re-checks the addresses this wallet's slots left; funds that reached one show the notice again.
+    private fun refreshUniversalPasswordNotice() {
+        viewModelScope.launch {
+            val metaId = currentMetaAccountFlow.first().id
+            withContext(coroutineManager.default) { universalPasswordRowsOrEmpty { refresh(metaId); emptyList() } }
+            universalPasswordNoticeCheck.value += 1
         }
     }
 
@@ -971,8 +1035,14 @@ class BalanceListViewModel @Inject constructor(
     }
 
     private suspend fun checkControllerDeprecations() {
-        val warnings =
+        // Advice over the home page: reading it must never close the app (229: Staking left the relay chains).
+        val warnings = try {
             withContext(coroutineManager.default) { interactor.checkControllerDeprecations() }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (failure: Exception) {
+            emptyList()
+        }
         warnings.firstOrNull()?.let { warning ->
             val model = warning.toModel(resourceManager)
             showError(
@@ -1172,6 +1242,42 @@ class BalanceListViewModel @Inject constructor(
         state.value.balance.address.takeIf { it.isNotEmpty() }?.let(::copyToClipboard)
     }
 
+    private var heroPickJob: Job? = null
+
+    /** Wallet-level actions of the sun-lit hero: the same routes the asset rows use. */
+    override fun onHeroAction(action: ActionItemType) {
+        when (action) {
+            // Send without an asset opens Send with its own asset choice (as a scanned address does).
+            ActionItemType.SEND -> router.openSend(null)
+            ActionItemType.RECEIVE -> pickAssetThen { payload -> receiveClicked(payload) }
+            ActionItemType.BUY -> pickAssetThen { payload -> buyOrDetails(payload) }
+            ActionItemType.SWAP -> router.openSwapTokensScreen(chainId = null, assetIdFrom = null, assetIdTo = null)
+            else -> Unit
+        }
+    }
+
+    private fun pickAssetThen(action: suspend (AssetPayload) -> Unit) {
+        heroPickJob?.cancel()
+        // Results are read from this screen's entry, so observe them before the picker opens.
+        val chainResult = router.observeResult<String>(WalletRouterApi.KEY_CHAIN_ID)
+        val assetResult = router.observeResult<String>(WalletRouterApi.KEY_ASSET_ID)
+        router.openSelectAssetForReceive()
+        heroPickJob = launch {
+            val (chainId, assetId) = combine(chainResult, assetResult) { chain, asset -> chain to asset }.first()
+            action(AssetPayload(chainId, assetId))
+        }
+    }
+
+    private suspend fun buyOrDetails(payload: AssetPayload) {
+        val address = interactor.selectedAccountFlow(payload.chainId).firstOrNull()?.address
+        if (address != null && buyMixin.isBuyEnabled(payload.chainId, payload.chainAssetId)) {
+            buyMixin.buyClicked(payload.chainId, payload.chainAssetId, address)
+        } else {
+            // No provider sells this asset: its details list what can be done with it instead.
+            router.openAssetDetails(payload)
+        }
+    }
+
 
     fun onFiatSelected(item: FiatCurrency) {
         viewModelScope.launch {
@@ -1201,12 +1307,6 @@ class BalanceListViewModel @Inject constructor(
                 }
 
                 else -> {
-                    val cbdcFormat = interactor.tryReadCBDCAddressFormat(content)
-                    if (cbdcFormat != null) {
-                        router.openCBDCSend(cbdcQrInfo = cbdcFormat)
-                        return@launch
-                    }
-
                     val soraFormat =
                         interactor.tryReadSoraFormat(content)
                     if (soraFormat != null) {
@@ -1282,14 +1382,14 @@ class BalanceListViewModel @Inject constructor(
             pairingUri = pairingUri,
             onError = { error ->
                 viewModelScope.launch(coroutineManager.main.immediate) {
-                    if (error.throwable is MalformedWalletConnectUri) {
-                        showError(
+                    when (error) {
+                        is WalletConnectUriException -> showError(
                             title = resourceManager.getString(R.string.connection_invalid_url_error_title),
                             message = resourceManager.getString(R.string.connection_invalid_url_error_message),
                             positiveButtonText = resourceManager.getString(R.string.common_close)
                         )
-                    } else {
-                        showError(error.throwable.message ?: "WalletConnect pairing error")
+                        is WalletConnectPairingExpiredException -> showError(resourceManager.getString(R.string.walletconnect_link_expired))
+                        else -> showError(error.message ?: "WalletConnect pairing error")
                     }
                 }
             }
@@ -1349,4 +1449,13 @@ class BalanceListViewModel @Inject constructor(
             router.openScoreDetailsScreen(currentAccount.id)
         }
     }
+}
+
+/** Used where no buy provider registry is injected (tests); the hero then opens asset details. */
+private object NoBuyProviders : BuyMixin.Presentation {
+    override val showProviderChooserEvent = androidx.lifecycle.MutableLiveData<jp.co.soramitsu.common.utils.Event<BuyMixin.ProviderChooserPayload>>()
+    override val integrateWithBuyProviderEvent = androidx.lifecycle.MutableLiveData<jp.co.soramitsu.common.utils.Event<BuyMixin.IntegrationPayload>>()
+    override fun providerChosen(provider: jp.co.soramitsu.wallet.impl.domain.model.BuyTokenRegistry.Provider<*>, chainAsset: jp.co.soramitsu.core.models.Asset, accountAddress: String) = Unit
+    override suspend fun buyClicked(chainId: jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId, chainAssetId: String, accountAddress: String) = Unit
+    override suspend fun isBuyEnabled(chainId: jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId, chainAssetId: String) = false
 }

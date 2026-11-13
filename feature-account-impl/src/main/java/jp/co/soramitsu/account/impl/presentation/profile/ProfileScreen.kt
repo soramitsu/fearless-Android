@@ -1,5 +1,8 @@
 package jp.co.soramitsu.account.impl.presentation.profile
 
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -76,7 +79,7 @@ fun ProfileScreen(
             MarginVertical(margin = 16.dp)
             H4(
                 text = stringResource(R.string.settings_section_wallets_accounts),
-                color = white50,
+                color = if (FwRestyle.isEnabled(FwSurface.Settings)) LocalFwColors.current.textTertiary else white50,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
             SettingsItem(
@@ -88,7 +91,7 @@ fun ProfileScreen(
             SettingsDivider()
             H4(
                 text = stringResource(R.string.settings_section_networks_assets),
-                color = white50,
+                color = if (FwRestyle.isEnabled(FwSurface.Settings)) LocalFwColors.current.textTertiary else white50,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
             SettingsItem(
@@ -106,7 +109,7 @@ fun ProfileScreen(
             SettingsDivider()
             H4(
                 text = stringResource(R.string.settings_section_connections),
-                color = white50,
+                color = if (FwRestyle.isEnabled(FwSurface.Settings)) LocalFwColors.current.textTertiary else white50,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
             SettingsItem(
@@ -136,7 +139,7 @@ fun ProfileScreen(
             SettingsDivider()
             H4(
                 text = stringResource(R.string.settings_section_security),
-                color = white50,
+                color = if (FwRestyle.isEnabled(FwSurface.Settings)) LocalFwColors.current.textTertiary else white50,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
             SettingsItem(
@@ -153,7 +156,7 @@ fun ProfileScreen(
             SettingsDivider()
             H4(
                 text = stringResource(R.string.settings_section_preferences),
-                color = white50,
+                color = if (FwRestyle.isEnabled(FwSurface.Settings)) LocalFwColors.current.textTertiary else white50,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
             SettingsItem(
@@ -180,7 +183,7 @@ fun ProfileScreen(
             }
             H4(
                 text = stringResource(R.string.about_title),
-                color = white50,
+                color = if (FwRestyle.isEnabled(FwSurface.Settings)) LocalFwColors.current.textTertiary else white50,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
             SettingsItem(

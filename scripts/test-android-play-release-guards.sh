@@ -8,7 +8,7 @@ VERIFY="$ROOT_DIR/scripts/verify-android-play-release.sh"
 RESTORE="$ROOT_DIR/scripts/restore-release-overlays.sh"
 CLEANUP="$ROOT_DIR/scripts/cleanup-release-overlays.sh"
 SNAPSHOT="$ROOT_DIR/scripts/emit-verified-release-snapshot.sh"
-EXPECTED_UPLOAD_CERT_SHA256="40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A"
+EXPECTED_UPLOAD_CERT_SHA256="AD6C1D07BE5DFA8C539E8C9B8BD43DC1C6CF79A839828B10B6F953AD57C1BDE8"
 EXPECTED_POSITIVE_COUNT=4
 EXPECTED_NEGATIVE_COUNT=128
 
@@ -195,9 +195,8 @@ verify_static_contract() {
   local signing_secrets
   local expected_signing_secrets
   local controls_suite_line
-  local firebase_restore_line
   local unsigned_build_line
-  local firebase_cleanup_line
+  local overlay_cleanup_line
   local unsigned_stage_line
   local unsigned_attest_line
   local unsigned_verify_line
@@ -270,8 +269,8 @@ verify_static_contract() {
     awk -F= '$1 == "versionCode" { print $2 }' "$version_properties"
   )"
   if [[ ! "$version_code" =~ ^[1-9][0-9]*$ ]] ||
-    (( version_code < 231 )); then
-    static_fail "source-controlled versionCode must be an unused value at least 231"
+    (( version_code < 236 )); then
+    static_fail "source-controlled versionCode must be an unused value at least 236"
   fi
   forbid_text \
     "$root/build.gradle" \
@@ -429,6 +428,7 @@ verify_static_contract() {
     FL_BLAST_API_ETHEREUM_KEY \
     FL_WALLET_CONNECT_PROJECT_ID \
     FL_ANDROID_TON_API_KEY \
+    FL_ANDROID_SOLANA_RPC_URL \
     PLAY_SERVICE_ACCOUNT_JSON_B64 \
     CI_PLAY_KEY \
     "RELEASE_OVERLAY_MODE=firebase"; do
@@ -462,9 +462,9 @@ verify_static_contract() {
 
   require_exact_count \
     "$workflow" \
-    '${{ secrets.GOOGLE_SERVICES_RELEASE_JSON_B64 }}' \
-    1 \
-    "Firebase secret must be consumed exactly once in release-build"
+    'GOOGLE_SERVICES_RELEASE_JSON_B64' \
+    0 \
+    "Firebase is not part of the app; no job may receive a Firebase configuration"
   require_exact_count \
     "$workflow" \
     '${{ secrets.ANDROID_RELEASE_KEYSTORE_B64 }}' \
@@ -525,24 +525,20 @@ verify_static_contract() {
 
   require_text \
     "$restore" \
-    "firebase|signing) ;;" \
-    "overlay restore must allow exactly firebase and signing modes"
+    "  signing) ;;" \
+    "overlay restore must allow exactly the signing mode"
   require_text \
     "$restore" \
-    "RELEASE_OVERLAY_MODE must be exactly firebase or signing." \
+    "RELEASE_OVERLAY_MODE must be exactly signing." \
     "overlay restore lacks an exact fail-closed mode diagnostic"
   require_text \
     "$restore" \
-    "The Firebase-only overlay forbids signing and Play credentials." \
-    "Firebase overlay must reject signing and Play material"
+    "RELEASE_OVERLAY_MODE=firebase was removed" \
+    "overlay restore must refuse the removed Firebase mode explicitly"
   require_text \
     "$restore" \
     "The signing-only overlay forbids Firebase and Play credentials." \
     "signing overlay must reject Firebase and Play material"
-  require_text \
-    "$restore" \
-    "GOOGLE_SERVICES_RELEASE_JSON_B64 does not match the approved Firebase SHA-256 digest." \
-    "Firebase overlay must bind the approved digest"
   require_text \
     "$cleanup" \
     'rm -f "$play_credential" "$play_sentinel"' \
@@ -554,8 +550,8 @@ verify_static_contract() {
   require_exact_count \
     "$workflow" \
     "RELEASE_OVERLAY_MODE=firebase" \
-    1 \
-    "workflow must restore the Firebase-only overlay exactly once"
+    0 \
+    "workflow must not restore a Firebase overlay"
   require_exact_count \
     "$workflow" \
     "RELEASE_OVERLAY_MODE=signing" \
@@ -952,20 +948,15 @@ verify_static_contract() {
       "- name: Run adversarial release control suite" \
       "workflow lacks the credential-free adversarial control suite"
   )"
-  firebase_restore_line="$(
-    line_of "$workflow" \
-      "- name: Restore digest-pinned release Firebase configuration" \
-      "workflow lacks digest-pinned Firebase restoration"
-  )"
   unsigned_build_line="$(
     line_of "$workflow" \
       "- name: Build exact unsigned release AAB" \
       "workflow lacks exact unsigned AAB construction"
   )"
-  firebase_cleanup_line="$(
+  overlay_cleanup_line="$(
     line_of "$workflow" \
-      "- name: Remove Firebase overlay after Gradle exits" \
-      "workflow lacks immediate Firebase cleanup"
+      "- name: Clean release overlays after Gradle exits" \
+      "workflow lacks immediate overlay cleanup after Gradle"
   )"
   unsigned_stage_line="$(
     line_of "$workflow" \
@@ -1050,12 +1041,10 @@ verify_static_contract() {
 
   require_order "$controls_suite_line" "$build_job_line" \
     "all adversarial release controls must pass before protected build approval"
-  require_order "$firebase_restore_line" "$unsigned_build_line" \
-    "Firebase restore must immediately precede unsigned construction"
-  require_order "$unsigned_build_line" "$firebase_cleanup_line" \
-    "Firebase must be removed after Gradle exits"
-  require_order "$firebase_cleanup_line" "$unsigned_stage_line" \
-    "unsigned evidence must be staged only after Firebase cleanup"
+  require_order "$unsigned_build_line" "$overlay_cleanup_line" \
+    "overlays must be cleaned after Gradle exits"
+  require_order "$overlay_cleanup_line" "$unsigned_stage_line" \
+    "unsigned evidence must be staged only after overlay cleanup"
   require_order "$unsigned_stage_line" "$unsigned_attest_line" \
     "unsigned evidence must be staged before attestation"
   require_order "$unsigned_attest_line" "$unsigned_verify_line" \
@@ -1165,7 +1154,7 @@ verify_static_contract() {
     "unsigned artifact must include exact provenance"
   require_block_text \
     "$unsigned_stage_block" \
-    'schemaVersion: 3,' \
+    'schemaVersion: 4,' \
     "unsigned provenance must use the build-log-bound schema"
   require_block_text \
     "$unsigned_stage_block" \
@@ -1183,7 +1172,6 @@ verify_static_contract() {
     buildLog \
     release \
     source \
-    firebase \
     fearlessUtils \
     toolchain; do
     require_block_text \
@@ -1253,7 +1241,7 @@ verify_static_contract() {
     "signing must require the exact unsigned provenance key set"
   require_block_text \
     "$downloaded_verify_block" \
-    '.schemaVersion == 3 and' \
+    '.schemaVersion == 4 and' \
     "signing must require the build-log-bound unsigned schema"
   require_block_text \
     "$downloaded_verify_block" \
@@ -1405,7 +1393,6 @@ verify_static_contract() {
     unsignedArtifact \
     release \
     source \
-    firebase \
     fearlessUtils \
     buildToolchain \
     artifactVerification \
@@ -1597,7 +1584,7 @@ verify_static_contract() {
     "$build_job" \
     "./scripts/verify-android-release-source-tree.sh" \
     3 \
-    "build must prove source before utils, before Firebase, and after Gradle"
+    "build must prove source before utils, before Gradle, and after Gradle"
   require_block_exact_count \
     "$signing_job" \
     "./scripts/verify-android-release-source-tree.sh" \
@@ -1625,16 +1612,20 @@ verify_static_contract() {
     "source-tree test must fix its 14 adversarial cases"
   require_text \
     "$overlay_test" \
-    "expected 20 interruption cases" \
-    "overlay test must fix the 20 restore-interruption cases"
+    "expected 6 interruption cases" \
+    "overlay test must fix the 6 restore-interruption cases"
   require_text \
     "$overlay_test" \
-    "expected 8 cleanup-interruption cases" \
-    "overlay test must fix the 8 cleanup-interruption cases"
+    "expected 4 cleanup-interruption cases" \
+    "overlay test must fix the 4 cleanup-interruption cases"
   require_text \
     "$overlay_test" \
-    "expected 20 split-overlay negative cases" \
-    "overlay test must fix the 20 split-overlay adversarial cases"
+    "expected 3 legacy Firebase cleanup cases" \
+    "overlay test must fix the 3 legacy Firebase cleanup cases"
+  require_text \
+    "$overlay_test" \
+    "expected 15 split-overlay negative cases" \
+    "overlay test must fix the 15 split-overlay adversarial cases"
   require_text \
     "$overlay_test" \
     "expected 2 split-overlay positive cases" \
@@ -1673,8 +1664,8 @@ verify_static_contract() {
     "dependency-provenance test must retain both valid configurations"
   require_text \
     "$dependency_test" \
-    'EXPECTED_NEGATIVE_COUNT=65' \
-    "dependency-provenance test must retain all 65 adversarial cases"
+    'EXPECTED_NEGATIVE_COUNT=66' \
+    "dependency-provenance test must retain all 66 adversarial cases"
   require_block_text \
     "$controls_job" \
     '/bin/bash -p ./scripts/test-gradle-dependency-provenance.sh' \
@@ -1693,7 +1684,7 @@ verify_static_contract() {
     "runtime integrity test must exercise owned-source adversarial cases"
   require_text \
     "$identity_test" \
-    "expected 135 negative cases" \
+    "expected 134 negative cases" \
     "signed AAB identity test must fix its adversarial count"
   require_exact_line_count \
     "$identity_test" \
@@ -1786,8 +1777,8 @@ verify_static_contract() {
     "build-log test must retain all 3 valid execution cases"
   require_text \
     "$build_log_test" \
-    '[[ "$negative_count" == "30" ]]' \
-    "build-log test must retain all 30 adversarial cases"
+    '[[ "$negative_count" == "26" ]]' \
+    "build-log test must retain all 26 adversarial cases"
 }
 
 if [[ "${1:-}" == "--verify-static" ]]; then
@@ -1946,10 +1937,10 @@ expect_static_failure() {
 positive_count=$((positive_count + 1))
 
 fixture="$(make_fixture version-code-downgrade)"
-replace_once "$fixture/versioning/version.properties" "versionCode=231" "versionCode=230"
+replace_once "$fixture/versioning/version.properties" "versionCode=236" "versionCode=235"
 expect_static_failure \
   "downgraded Play version code" \
-  "versionCode must be an unused value at least 231" \
+  "versionCode must be an unused value at least 236" \
   "$fixture"
 
 fixture="$(make_fixture unexpected-workflow-job)"
@@ -2309,11 +2300,11 @@ expect_static_failure \
 
 fixture="$(make_fixture build-log-test-count-weakened)"
 replace_once "$fixture/scripts/test-android-release-build-log.sh" \
-  '[[ "$negative_count" == "30" ]]' \
-  '[[ "$negative_count" == "29" ]]'
+  '[[ "$negative_count" == "26" ]]' \
+  '[[ "$negative_count" == "25" ]]'
 expect_static_failure \
   "build-log adversarial count weakened" \
-  "retain all 30 adversarial cases" \
+  "retain all 26 adversarial cases" \
   "$fixture"
 
 fixture="$(make_fixture build-log-nofollow-open-removed)"
@@ -2410,13 +2401,13 @@ expect_static_failure \
   "43 adversarial cases" \
   "$fixture"
 
-fixture="$(make_fixture firebase-combined-overlay)"
+fixture="$(make_fixture firebase-overlay-reintroduced)"
 replace_once "$fixture/.github/workflows/android-release.yml" \
-  "RELEASE_OVERLAY_MODE=firebase" \
-  "RELEASE_OVERLAY_MODE=release"
+  "      - name: Build exact unsigned release AAB" \
+  $'      - name: Restore release Firebase configuration\n        run: RELEASE_OVERLAY_MODE=firebase ./scripts/restore-release-overlays.sh\n\n      - name: Build exact unsigned release AAB'
 expect_static_failure \
-  "combined overlay in build" \
-  "obsolete combined release overlay" \
+  "Firebase overlay reintroduced in build" \
+  "workflow must not restore a Firebase overlay" \
   "$fixture"
 
 fixture="$(make_fixture signing-combined-overlay)"
@@ -2430,8 +2421,8 @@ expect_static_failure \
 
 fixture="$(make_fixture firebase-secret-in-signing)"
 replace_once "$fixture/.github/workflows/android-release.yml" \
-  "      APPROVED_FIREBASE_JSON_SHA256: \${{ vars.ANDROID_RELEASE_FIREBASE_JSON_SHA256 }}" \
-  $'      GOOGLE_SERVICES_RELEASE_JSON_B64: ${{ secrets.GOOGLE_SERVICES_RELEASE_JSON_B64 }}\n      APPROVED_FIREBASE_JSON_SHA256: ${{ vars.ANDROID_RELEASE_FIREBASE_JSON_SHA256 }}'
+  "      UNSIGNED_PROVENANCE_SHA256: \${{ needs.release-build.outputs.unsigned_provenance_sha256 }}" \
+  $'      GOOGLE_SERVICES_RELEASE_JSON_B64: ${{ secrets.GOOGLE_SERVICES_RELEASE_JSON_B64 }}\n      UNSIGNED_PROVENANCE_SHA256: ${{ needs.release-build.outputs.unsigned_provenance_sha256 }}'
 expect_static_failure \
   "Firebase secret in signing" \
   "release-signing contains forbidden build/Play material: GOOGLE_SERVICES_RELEASE_JSON_B64" \
@@ -2439,8 +2430,8 @@ expect_static_failure \
 
 fixture="$(make_fixture keystore-secret-in-build)"
 replace_once "$fixture/.github/workflows/android-release.yml" \
-  "      ANDROID_RELEASE_FIREBASE_JSON_SHA256: \${{ vars.ANDROID_RELEASE_FIREBASE_JSON_SHA256 }}" \
-  $'      ANDROID_RELEASE_KEYSTORE_B64: ${{ secrets.ANDROID_RELEASE_KEYSTORE_B64 }}\n      ANDROID_RELEASE_FIREBASE_JSON_SHA256: ${{ vars.ANDROID_RELEASE_FIREBASE_JSON_SHA256 }}'
+  $'\n    steps:\n      - name: Checkout immutable release tag on fresh build runner' \
+  $'      ANDROID_RELEASE_KEYSTORE_B64: ${{ secrets.ANDROID_RELEASE_KEYSTORE_B64 }}\n\n    steps:\n      - name: Checkout immutable release tag on fresh build runner'
 expect_static_failure \
   "keystore secret in build" \
   "release-build contains forbidden signing/Play material: ANDROID_RELEASE_KEYSTORE_B64" \
@@ -2818,11 +2809,11 @@ expect_static_failure \
 
 fixture="$(make_fixture overlay-count-weakened)"
 replace_once "$fixture/scripts/test-release-overlay-interruption.sh" \
-  "expected 20 split-overlay negative cases" \
-  "expected 19 split-overlay negative cases"
+  "expected 15 split-overlay negative cases" \
+  "expected 14 split-overlay negative cases"
 expect_static_failure \
   "overlay adversarial count weakened" \
-  "20 split-overlay adversarial cases" \
+  "15 split-overlay adversarial cases" \
   "$fixture"
 
 fixture="$(make_fixture signer-count-weakened)"
@@ -2845,17 +2836,17 @@ expect_static_failure \
 
 fixture="$(make_fixture dependency-provenance-count-weakened)"
 replace_once "$fixture/scripts/test-gradle-dependency-provenance.sh" \
-  "EXPECTED_NEGATIVE_COUNT=65" \
-  "EXPECTED_NEGATIVE_COUNT=64"
+  "EXPECTED_NEGATIVE_COUNT=66" \
+  "EXPECTED_NEGATIVE_COUNT=65"
 expect_static_failure \
   "dependency-provenance adversarial count weakened" \
-  "retain all 65 adversarial cases" \
+  "retain all 66 adversarial cases" \
   "$fixture"
 
 fixture="$(make_fixture identity-count-weakened)"
 replace_once "$fixture/scripts/test-android-aab-identity.sh" \
-  "expected 135 negative cases" \
-  "expected 134 negative cases"
+  "expected 134 negative cases" \
+  "expected 133 negative cases"
 expect_static_failure \
   "AAB identity adversarial count weakened" \
   "identity test must fix its adversarial count" \
@@ -2991,15 +2982,7 @@ expect_failure \
   "$VERIFY" --artifact "$tmp_dir/symlink.aab" "$malformed_aab_sha256"
 
 overlay_dir="$tmp_dir/overlay"
-firebase_fixture="$tmp_dir/google-services.json"
-cp "$ROOT_DIR/app/src/release/google-services.json" "$firebase_fixture"
-firebase_before="$(hash_file "$firebase_fixture")"
-release_json="$tmp_dir/release-google-services.json"
-printf '%s' \
-  '{"project_info":{"project_id":"fearless-release-test"},"client":[{"client_info":{"android_client_info":{"package_name":"jp.co.soramitsu.fearless"}}}]}' \
-  >"$release_json"
-release_json_b64="$(base64_one_line "$release_json")"
-release_json_sha256="$(hash_file "$release_json")"
+legacy_release_json_b64="$(printf '%s' '{"project_info":{"project_id":"fearless-release-test"}}' | base64 | tr -d '\n')"
 dummy_keystore="$tmp_dir/fearless-upload.jks"
 printf 'test-only-keystore-material\n' >"$dummy_keystore"
 dummy_keystore_b64="$(base64_one_line "$dummy_keystore")"
@@ -3015,58 +2998,48 @@ PY
 
 expect_failure \
   "missing explicit overlay mode" \
-  "must be exactly firebase or signing" \
+  "must be exactly signing" \
   env -i PATH="$PATH" HOME="$HOME" CI=true \
     RELEASE_OVERLAY_DIR="$overlay_dir" \
-    GOOGLE_SERVICES_RELEASE_PATH="$firebase_fixture" \
     "$RESTORE"
 expect_failure \
   "obsolete combined release mode" \
-  "must be exactly firebase or signing" \
+  "must be exactly signing" \
   env -i PATH="$PATH" HOME="$HOME" CI=true \
     RELEASE_OVERLAY_MODE=release \
     RELEASE_OVERLAY_DIR="$overlay_dir" \
-    GOOGLE_SERVICES_RELEASE_PATH="$firebase_fixture" \
     "$RESTORE"
 expect_failure \
   "removed Play overlay mode" \
-  "must be exactly firebase or signing" \
+  "must be exactly signing" \
   env -i PATH="$PATH" HOME="$HOME" CI=true \
     RELEASE_OVERLAY_MODE=play \
     PLAY_SERVICE_ACCOUNT_JSON_B64=dGVzdA== \
     RELEASE_OVERLAY_DIR="$overlay_dir" \
     "$RESTORE"
 expect_failure \
-  "Firebase overlay with signing material" \
-  "Firebase-only overlay forbids signing and Play credentials" \
+  "removed Firebase overlay mode" \
+  "RELEASE_OVERLAY_MODE=firebase was removed" \
   env -i PATH="$PATH" HOME="$HOME" CI=true \
     RELEASE_OVERLAY_MODE=firebase \
     RELEASE_OVERLAY_DIR="$overlay_dir" \
-    GOOGLE_SERVICES_RELEASE_PATH="$firebase_fixture" \
-    GOOGLE_SERVICES_RELEASE_JSON_B64="$release_json_b64" \
-    ANDROID_RELEASE_FIREBASE_JSON_SHA256="$release_json_sha256" \
+    GOOGLE_SERVICES_RELEASE_JSON_B64="$legacy_release_json_b64" \
+    "$RESTORE"
+expect_failure \
+  "removed Firebase overlay mode with signing material" \
+  "RELEASE_OVERLAY_MODE=firebase was removed" \
+  env -i PATH="$PATH" HOME="$HOME" CI=true \
+    RELEASE_OVERLAY_MODE=firebase \
+    RELEASE_OVERLAY_DIR="$overlay_dir" \
     ANDROID_RELEASE_KEYSTORE_B64="$dummy_keystore_b64" \
     "$RESTORE"
 expect_failure \
-  "Firebase overlay with Play material" \
-  "Firebase-only overlay forbids signing and Play credentials" \
+  "removed Firebase overlay mode with Play material" \
+  "RELEASE_OVERLAY_MODE=firebase was removed" \
   env -i PATH="$PATH" HOME="$HOME" CI=true \
     RELEASE_OVERLAY_MODE=firebase \
     RELEASE_OVERLAY_DIR="$overlay_dir" \
-    GOOGLE_SERVICES_RELEASE_PATH="$firebase_fixture" \
-    GOOGLE_SERVICES_RELEASE_JSON_B64="$release_json_b64" \
-    ANDROID_RELEASE_FIREBASE_JSON_SHA256="$release_json_sha256" \
     PLAY_SERVICE_ACCOUNT_JSON_B64=dGVzdA== \
-    "$RESTORE"
-expect_failure \
-  "Firebase overlay digest mismatch" \
-  "does not match the approved Firebase SHA-256 digest" \
-  env -i PATH="$PATH" HOME="$HOME" CI=true \
-    RELEASE_OVERLAY_MODE=firebase \
-    RELEASE_OVERLAY_DIR="$overlay_dir" \
-    GOOGLE_SERVICES_RELEASE_PATH="$firebase_fixture" \
-    GOOGLE_SERVICES_RELEASE_JSON_B64="$release_json_b64" \
-    ANDROID_RELEASE_FIREBASE_JSON_SHA256=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
     "$RESTORE"
 expect_failure \
   "signing overlay outside explicit CI" \
@@ -3083,7 +3056,7 @@ expect_failure \
   env -i PATH="$PATH" HOME="$HOME" CI=true \
     RELEASE_OVERLAY_MODE=signing \
     RELEASE_OVERLAY_DIR="$overlay_dir" \
-    GOOGLE_SERVICES_RELEASE_JSON_B64="$release_json_b64" \
+    GOOGLE_SERVICES_RELEASE_JSON_B64="$legacy_release_json_b64" \
     ANDROID_UNSIGNED_AAB_PATH="$unsigned_aab" \
     ANDROID_RELEASE_KEYSTORE_B64="$dummy_keystore_b64" \
     "$RESTORE"
@@ -3098,43 +3071,34 @@ expect_failure \
     ANDROID_RELEASE_KEYSTORE_B64="$dummy_keystore_b64" \
     "$RESTORE"
 
-env -i PATH="$PATH" HOME="$HOME" CI=true \
-  RELEASE_OVERLAY_MODE=firebase \
-  RELEASE_OVERLAY_DIR="$overlay_dir" \
-  GOOGLE_SERVICES_RELEASE_PATH="$firebase_fixture" \
-  GOOGLE_SERVICES_RELEASE_JSON_B64="$release_json_b64" \
-  ANDROID_RELEASE_FIREBASE_JSON_SHA256="$release_json_sha256" \
-  "$RESTORE" >/dev/null
-[[ "$(hash_file "$firebase_fixture")" == "$release_json_sha256" &&
-  -s "$overlay_dir/.release-overlay-active" &&
-  ! -e "$overlay_dir/fearless-upload.jks" ]] ||
-  fail "Firebase-only positive case did not remain isolated"
+# A legacy Firebase overlay left in the directory by an earlier version is removed, never restored.
+mkdir -p "$overlay_dir"
+printf '{"project_info":{}}\n' >"$overlay_dir/release-google-services.backup"
+printf 'active\n' >"$overlay_dir/.release-overlay-active"
 env -i PATH="$PATH" HOME="$HOME" CI=true \
   RELEASE_OVERLAY_DIR="$overlay_dir" \
-  GOOGLE_SERVICES_RELEASE_PATH="$firebase_fixture" \
   "$CLEANUP" >/dev/null
-[[ "$(hash_file "$firebase_fixture")" == "$firebase_before" ]] ||
-  fail "Firebase-only cleanup did not restore the placeholder"
+[[ ! -e "$overlay_dir/release-google-services.backup" &&
+  ! -e "$overlay_dir/.release-overlay-active" &&
+  -z "$(find "$ROOT_DIR/app" -maxdepth 3 -name google-services.json -print)" ]] ||
+  fail "legacy Firebase overlay cleanup did not remove only the overlay state"
 positive_count=$((positive_count + 1))
 
 env -i PATH="$PATH" HOME="$HOME" CI=true \
   RELEASE_OVERLAY_MODE=signing \
   RELEASE_OVERLAY_DIR="$overlay_dir" \
-  GOOGLE_SERVICES_RELEASE_PATH="$firebase_fixture" \
   ANDROID_UNSIGNED_AAB_PATH="$unsigned_aab" \
   ANDROID_RELEASE_KEYSTORE_B64="$dummy_keystore_b64" \
   "$RESTORE" >/dev/null
 [[ -s "$overlay_dir/fearless-upload.jks" &&
   -s "$overlay_dir/.signing-overlay-active" &&
-  "$(hash_file "$firebase_fixture")" == "$firebase_before" ]] ||
+  ! -e "$overlay_dir/.release-overlay-active" ]] ||
   fail "signing-only positive case did not remain isolated"
 env -i PATH="$PATH" HOME="$HOME" CI=true \
   RELEASE_OVERLAY_DIR="$overlay_dir" \
-  GOOGLE_SERVICES_RELEASE_PATH="$firebase_fixture" \
   "$CLEANUP" >/dev/null
 [[ ! -e "$overlay_dir/fearless-upload.jks" &&
-  ! -e "$overlay_dir/.signing-overlay-active" &&
-  "$(hash_file "$firebase_fixture")" == "$firebase_before" ]] ||
+  ! -e "$overlay_dir/.signing-overlay-active" ]] ||
   fail "signing-only cleanup left credential material"
 positive_count=$((positive_count + 1))
 

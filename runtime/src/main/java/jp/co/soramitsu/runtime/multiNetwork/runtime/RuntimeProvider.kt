@@ -9,6 +9,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainsStateTracker
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.reefChainId
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.runtime.assethub.AssetHubRuntimeTypes
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -129,7 +130,7 @@ class RuntimeProvider(
                 val metadataRaw = runCatching { runtimeFilesCache.getChainMetadata(chainId) }
                     .getOrElse { throw ChainInfoNotInCacheException }
                 val ownTypesRaw =
-                    runCatching { chainDao.getTypes(chainId) ?: throw ChainInfoNotInCacheException }
+                    runCatching { AssetHubRuntimeTypes.forChain(chainId, chainDao.getTypes(chainId)) ?: throw ChainInfoNotInCacheException }
                         .getOrElse { throw ChainInfoNotInCacheException }
 
                 val runtime = if (chainId == reefChainId) {

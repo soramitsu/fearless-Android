@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.detail
 
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -211,6 +212,8 @@ class BalanceDetailFragment : BaseComposeFragment<BalanceDetailViewModel>() {
 
     @Composable
     override fun Background() {
+        // Sun-lit palette: the page light behind this screen (main tabs or the activity root) shows through.
+        if (FwRestyle.paletteEnabled) return
         Box(
             modifier = Modifier.fillMaxSize()
         ) {

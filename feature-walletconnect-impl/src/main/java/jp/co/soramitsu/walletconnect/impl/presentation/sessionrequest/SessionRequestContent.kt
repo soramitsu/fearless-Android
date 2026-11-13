@@ -41,9 +41,12 @@ import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white
 
 data class SessionRequestViewState(
+    /** The site shown for the dApp: the verified origin, or the claimed URL when it is unverified. */
     val connectionUrl: String?,
     val message: InfoItemViewState,
-    val wallet: WalletItemViewState
+    val wallet: WalletItemViewState,
+    /** Replaces the general signing warning when the site is unverified or differs from what it claims. */
+    val originWarning: String? = null
 ) {
 
     companion object {
@@ -124,7 +127,7 @@ fun SessionRequestContent(state: SessionRequestViewState, callback: SessionReque
                 )
 
                 AttentionMessage(
-                    message = stringResource(id = R.string.connection_sign_message_warning)
+                    message = state.originWarning ?: stringResource(id = R.string.connection_sign_message_warning)
                 )
             }
 

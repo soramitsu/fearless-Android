@@ -11,9 +11,9 @@ fail() {
 }
 
 [[ -f "$VERIFY" && ! -L "$VERIFY" ]] ||
-  fail "Google Drive web client verifier is missing or unsafe"
+  fail "Google Drive OAuth client verifier is missing or unsafe"
 [[ -f "$PIN" && ! -L "$PIN" ]] ||
-  fail "Google Drive web client pin is missing or unsafe"
+  fail "Google Drive OAuth client pin is missing or unsafe"
 for command_name in grep mktemp python3; do
   command -v "$command_name" >/dev/null 2>&1 ||
     fail "required command is unavailable: $command_name"
@@ -186,21 +186,21 @@ expect_failure \
 blank_aab="$tmp_dir/blank.aab"
 make_artifact "$blank_aab" aab "base/dex/classes.dex=$common_strings,"
 expect_failure \
-  "blank web client" \
-  "No Google OAuth web client id is compiled" \
+  "blank Drive OAuth client" \
+  "No Google OAuth client id is compiled" \
   python3 "$fixture_verify" "$blank_aab"
 
 padded_aab="$tmp_dir/padded.aab"
 make_artifact "$padded_aab" aab "base/dex/classes.dex=$common_strings,$pinned_client "
 expect_failure \
-  "whitespace-padded web client" \
+  "whitespace-padded Drive OAuth client" \
   "1 other string(s) mention .apps.googleusercontent.com" \
   python3 "$fixture_verify" "$padded_aab"
 
 other_aab="$tmp_dir/other.aab"
 make_artifact "$other_aab" aab "base/dex/classes.dex=$common_strings,$other_client"
 expect_failure \
-  "different web client" \
+  "different Drive OAuth client" \
   "is not the pinned client" \
   python3 "$fixture_verify" "$other_aab"
 

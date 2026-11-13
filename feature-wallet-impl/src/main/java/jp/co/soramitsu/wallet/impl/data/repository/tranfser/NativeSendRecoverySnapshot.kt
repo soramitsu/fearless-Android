@@ -12,6 +12,10 @@ data class NativeSendRecoverySnapshot(
     val transactionId: String,
     val state: PendingWalletSend.State,
     val expired: Boolean = false,
+    /** The payment expired with no trace on the network: its record was removed and nothing was sent. */
+    val notSent: Boolean = false,
+    /** The payment expired with no trace, but too long ago to show that nothing was sent: its record was removed. */
+    val unverified: Boolean = false,
     val reviewed: ReviewedWalletSend? = null,
     val feeUnits: String = "0",
     val accountRentUnits: String = "0",

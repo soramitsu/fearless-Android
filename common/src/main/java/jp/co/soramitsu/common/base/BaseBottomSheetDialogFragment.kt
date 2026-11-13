@@ -15,6 +15,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.theme.fw.fwSheetNavigationBar
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
@@ -62,6 +63,7 @@ abstract class BaseBottomSheetDialogFragment<T : BaseViewModel>(@LayoutRes priva
     private fun setupBottomSheet() {
         dialog?.setOnShowListener {
             val bottomSheetDialog = it as BottomSheetDialog
+            bottomSheetDialog.fwSheetNavigationBar()
             setupBehavior(bottomSheetDialog.behavior)
         }
     }
@@ -69,7 +71,8 @@ abstract class BaseBottomSheetDialogFragment<T : BaseViewModel>(@LayoutRes priva
     protected open fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.isDraggable = false
-        behavior.isHideable = false
+        // Material answers system Back from Android 13 and can only collapse a sheet that can't be hidden.
+        behavior.isHideable = true
     }
 
     protected fun showError(errorMessage: String) {

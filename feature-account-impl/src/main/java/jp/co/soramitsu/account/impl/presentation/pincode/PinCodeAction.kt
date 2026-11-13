@@ -14,9 +14,14 @@ sealed class PinCodeAction(open val toolbarConfiguration: ToolbarConfiguration) 
     @Parcelize class Create(val delayedNavigation: DelayedNavigation) :
         PinCodeAction(ToolbarConfiguration(R.string.pincode_title_create, false))
 
+    /**
+     * [allowBiometric] is true only for unlocking the wallet. Exports and recovery screens take the
+     * PIN itself, so a fingerprint can never stand in for it there.
+     */
     @Parcelize class Check(
         val delayedNavigation: DelayedNavigation?,
-        override val toolbarConfiguration: ToolbarConfiguration
+        override val toolbarConfiguration: ToolbarConfiguration,
+        val allowBiometric: Boolean = true
     ) : PinCodeAction(toolbarConfiguration)
 
     @Parcelize object Change :

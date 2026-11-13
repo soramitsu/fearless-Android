@@ -19,6 +19,7 @@ import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.model.cache.CachedNumericState
 import jp.co.soramitsu.coredb.dao.AssetDao
+import jp.co.soramitsu.fearless_utils.encrypt.ton.TonEd25519
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
 import jp.co.soramitsu.runtime.multiNetwork.chain.ton.TonWalletContract
@@ -39,7 +40,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
-import org.ton.api.pk.PrivateKeyEd25519
 import org.ton.bitstring.BitString
 import org.ton.block.AddrNone
 import org.ton.block.AddrStd
@@ -56,7 +56,6 @@ import org.ton.cell.CellBuilder
 import org.ton.cell.buildCell
 import org.ton.contract.wallet.MessageData
 import org.ton.contract.wallet.WalletTransfer
-import org.ton.crypto.Ed25519
 import org.ton.tlb.CellRef
 import org.ton.tlb.constructor.AnyTlbConstructor
 import org.ton.tlb.storeRef
@@ -102,7 +101,8 @@ class TonTransferService(
 
         val seqnoDeferred = async { tonRemoteSource.getSeqno(chain, senderAccountId) }
 
-        val fakePrivateKey = PrivateKeyEd25519(ByteArray(Ed25519.KEY_SIZE_BYTES))
+        // Fee estimation signs with an all-zero key.
+        val fakePrivateKey = ByteArray(TonEd25519.KEY_SIZE_BYTES)
 
         val customPayloadStateInit = when (transfer.chainAsset.type) {
             ChainAssetType.Normal -> {
@@ -124,7 +124,7 @@ class TonTransferService(
             customPayloadStateInit
         }
 
-        val fakeRecipientAddress = V4R2WalletContract(fakePrivateKey.publicKey()).address.toWalletAddress(chain.isTestNet)
+        val fakeRecipientAddress = V4R2WalletContract(TonEd25519.publicKey(fakePrivateKey)).address.toWalletAddress(chain.isTestNet)
 
         val transferUnsignedBody = createUnsignedBody(
             transfer.copy(recipient = fakeRecipientAddress),
@@ -152,7 +152,7 @@ class TonTransferService(
             Maybe.of(either)
         }
         val transferUnsignedBodyMessage = transferUnsignedBody.hash().toByteArray()
-        val signature = BitString(fakePrivateKey.sign(transferUnsignedBodyMessage))
+        val signature = BitString(TonEd25519.sign(fakePrivateKey, transferUnsignedBodyMessage))
 
         val transferBody = CellBuilder.createCell {
             storeBits(signature)
@@ -217,7 +217,7 @@ class TonTransferService(
 
         val keypair =
             keyPairRepository.getKeypairFor(chain, tonPublicKey)
-        val privateKey = PrivateKeyEd25519.of(keypair.privateKey)
+        val privateKey = TonEd25519.privateKeyOf(keypair.privateKey)
 
         val seqno = seqnoDeferred.await()
 
@@ -260,7 +260,11 @@ class TonTransferService(
             Maybe.of(either)
         }
 
-        val signature = BitString(privateKey.sign(transferUnsignedBody.hash().toByteArray()))
+        val signature = try {
+            BitString(TonEd25519.sign(privateKey, transferUnsignedBody.hash().toByteArray()))
+        } finally {
+            privateKey.fill(0)
+        }
         val transferBody = CellBuilder.createCell {
             storeBits(signature)
             storeBits(transferUnsignedBody.bits)
@@ -317,7 +321,7 @@ class TonTransferService(
         val normalizedRecipientAccountId = if (transfer.recipient.endsWith(".ton")) {
             transfer.recipient.lowercase().trim().unicodeToPunycode()
         } else if(transfer.recipient.isEmpty()) {
-            PrivateKeyEd25519().publicKey().key.toByteArray().v4r2tonAddress(chain.isTestNet)
+            TonEd25519.publicKey(TonEd25519.generatePrivateKey()).v4r2tonAddress(chain.isTestNet)
         } else {
             transfer.recipient
         }

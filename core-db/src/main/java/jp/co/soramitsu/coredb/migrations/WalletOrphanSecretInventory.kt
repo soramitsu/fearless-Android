@@ -10,10 +10,13 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletPublicIdentityIntegrity
 import jp.co.soramitsu.common.data.storage.encrypt.WalletRecoveryStateIntegrityException
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretConcurrentMutationException
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretArchive
+import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageUnavailableException
 import jp.co.soramitsu.common.data.storage.encrypt.planArchiveMove
 import jp.co.soramitsu.common.data.storage.encrypt.replaceEncryptedStringsForStatesDurably
 import jp.co.soramitsu.common.data.storage.encrypt.requireSnapshotMovesReady
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelope
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelopes
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 
 /**
@@ -64,16 +67,22 @@ class WalletOrphanSecretInventory internal constructor(
     )
 
     /**
-     * Current-schema startup reconciliation. Mutation journals must be
-     * reconciled before this is called, so no active journal owns a candidate.
-     * The report is informational; no outcome blocks startup.
+     * Current-schema startup reconciliation, after the mutation journals. A
+     * journal whose replay waits for the PIN (4.3.2: its staged values are
+     * sealed) still owns its wallet's keys, so they are excluded, and a sealed
+     * orphan is archived only once the session can open it: before the PIN no
+     * pass archives a sealed value. The report is informational; no outcome
+     * blocks startup.
      */
     fun reconcile(database: SupportSQLiteDatabase): WalletOrphanSecretReport {
         encryptedPreferences.requireDurableStorageHealthy()
+        val pending = WalletSecretMutationJournalStore(encryptedPreferences).loadIntent()
         val plan = prepare(
             database = database,
-            excludedActiveKeys = emptySet(),
-            includeTonConnectScopedKeys = true
+            excludedActiveKeys = pending?.let { it.secretKeysToPut + it.secretKeysToRemove }.orEmpty(),
+            includeTonConnectScopedKeys = true,
+            excludedMetaIds = setOfNotNull(pending?.metaId),
+            skipSealedWhileLocked = true
         )
         plan.requireReady()
         plan.commit()
@@ -87,7 +96,9 @@ class WalletOrphanSecretInventory internal constructor(
     internal fun prepare(
         database: SupportSQLiteDatabase,
         excludedActiveKeys: Set<String>,
-        includeTonConnectScopedKeys: Boolean
+        includeTonConnectScopedKeys: Boolean,
+        excludedMetaIds: Set<Long> = emptySet(),
+        skipSealedWhileLocked: Boolean = false
     ): WalletOrphanSecretRecoveryPlan {
         val walletMetaIds = readWalletMetaIds(database)
         val chainAccountSecretKeys = readChainAccountSecretKeys(database)
@@ -138,6 +149,7 @@ class WalletOrphanSecretInventory internal constructor(
                 }
             }
             if (!hasOwner) {
+                if (owner.metaId in excludedMetaIds) return@forEach
                 check(orphanActiveKeys.put(activeKey, owner.metaId) == null) {
                     "Wallet orphan-secret inventory contains duplicate keys"
                 }
@@ -164,7 +176,7 @@ class WalletOrphanSecretInventory internal constructor(
                 )
             )
         } else {
-            prepareArchivePlan(orphanActiveKeys.keys, unrecognizedSecretKeys)
+            prepareArchivePlan(orphanActiveKeys.keys, unrecognizedSecretKeys, skipSealedWhileLocked)
         }
     }
 
@@ -430,10 +442,12 @@ class WalletOrphanSecretInventory internal constructor(
 
     private fun prepareArchivePlan(
         orphanActiveKeys: Set<String>,
-        unrecognizedSecretKeys: Int
+        unrecognizedSecretKeys: Int,
+        skipSealedWhileLocked: Boolean
     ): WalletOrphanSecretRecoveryPlan {
         val snapshotMoves = mutableListOf<EncryptedPreferenceSnapshotMove>()
         val destinations = linkedSetOf<String>()
+        var deferred = 0
 
         orphanActiveKeys.forEach { activeKey ->
             if (!encryptedPreferences.hasKey(activeKey)) {
@@ -445,6 +459,15 @@ class WalletOrphanSecretInventory internal constructor(
                 encryptedPreferences.getDecryptedStringSnapshot(activeKey)
             ) {
                 "An orphan wallet secret disappeared during inventory"
+            }
+            if (
+                skipSealedWhileLocked &&
+                WalletSecretEnvelope.isSealed(activeSnapshot.plaintext) &&
+                WalletSecretEnvelopes.openOrNull(activeSnapshot.plaintext) == null
+            ) {
+                // Archived after the PIN, when the same pass runs again.
+                deferred += 1
+                return@forEach
             }
             val move = encryptedPreferences.planArchiveMove(
                 sourceKey = activeKey,
@@ -460,7 +483,7 @@ class WalletOrphanSecretInventory internal constructor(
             snapshotMoves = snapshotMoves,
             report = WalletOrphanSecretReport(
                 archivedCount = snapshotMoves.size,
-                deferredCount = 0,
+                deferredCount = deferred,
                 unrecognizedSecretKeyCount = unrecognizedSecretKeys
             )
         )

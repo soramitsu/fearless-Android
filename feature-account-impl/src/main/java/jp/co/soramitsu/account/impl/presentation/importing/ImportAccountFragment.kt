@@ -6,13 +6,13 @@ import android.text.method.DigitsKeyListener
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import androidx.core.view.isVisible
 import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.accountSource.SourceTypeChooserBottomSheetDialog
+import jp.co.soramitsu.account.impl.presentation.common.SecureScreenGuard
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.FileRequester
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportError
 import jp.co.soramitsu.account.impl.presentation.importing.source.model.ImportSource
@@ -70,7 +70,10 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
     }
 
     private lateinit var binding: FragmentImportAccountBinding
-    private var hadSecureFlag = false
+
+    // Every import mode shows a recovery phrase, raw seed or keystore JSON as it is entered, so
+    // none of them may reach a screen capture, including during the PIN round trip of a recovery.
+    private val secureScreen = SecureScreenGuard(this, warnAboutScreenReaders = true)
 
     override val viewModel: ImportAccountViewModel by viewModels()
 
@@ -80,21 +83,30 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentImportAccountBinding.inflate(inflater, container, false)
-        if (viewModel.isRebinding) {
-            hadSecureFlag = requireActivity().window.attributes.flags and WindowManager.LayoutParams.FLAG_SECURE != 0
-            requireActivity().window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
-            binding.root.excludeRecoveryInputFromPersistence()
-        }
+        // Phrases, seeds, JSON passwords and ///password paths stay out of saved state, autofill
+        // and keyboard learning on every import, not only when rebinding a wallet.
+        binding.root.excludeRecoveryInputFromPersistence()
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        secureScreen.onViewCreated()
+        super.onViewCreated(view, savedInstanceState)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        secureScreen.onStart()
     }
 
     override fun onStop() {
         viewModel.recoveryScreenStopped()
+        secureScreen.onStop()
         super.onStop()
     }
 
     override fun onDestroyView() {
-        if (viewModel.isRebinding && !hadSecureFlag) requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        secureScreen.onDestroyView()
         super.onDestroyView()
     }
 
@@ -147,6 +159,15 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
             binding.advancedBlockView.setSubstrateEncryption(it.name)
         }
 
+        viewModel.substratePasswordChooserEvent.observeEvent {
+            SubstratePasswordChooserBottomSheetDialog(
+                requireActivity(),
+                it,
+                viewModel::substratePasswordAccountChosen
+            )
+                .show()
+        }
+
         viewModel.nextButtonState.observe(binding.nextBtn::setState)
 
         binding.advancedBlockView.substrateDerivationPathEditText.bindTo(viewModel.substrateDerivationPathLiveData, viewLifecycleOwner)
@@ -168,7 +189,7 @@ class ImportAccountFragment : BaseFragment<ImportAccountViewModel>() {
 
     private fun buildSourceTypesViews(blockchainType: WalletEcosystem) = viewModel.sourceTypes.map {
         val view = createSourceView(it, blockchainType)
-        if (viewModel.isRebinding) view.excludeRecoveryInputFromPersistence()
+        view.excludeRecoveryInputFromPersistence()
 
         view.observeSource(it, blockchainType, viewLifecycleOwner)
         view.observeCommon(viewModel, viewLifecycleOwner)

@@ -41,6 +41,44 @@ class ArchivedWalletRecoveryTest {
         assertEquals(exact, preferences.getDecryptedString(key))
     }
 
+    @Test fun aSealedRecordOpensWithSkAndIsLockedWithoutIt() = runBlocking {
+        val key = WalletSecretArchive.keyFor("7:ACCESS_SECRETS")
+        val exact = "retained original plaintext"
+        val keyId = ByteArray(16) { 4 }
+        val sk = ByteArray(32) { 5 }
+        val sealed = jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelope.seal(
+            sk,
+            jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelope.Header(
+                keyId, jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelopeScope.LEGACY_META_ACCOUNT, "7:ACCESS_SECRETS", ByteArray(0)
+            ),
+            exact,
+            java.security.SecureRandom()
+        )
+        preferences.putEncryptedString(key, sealed)
+        jp.co.soramitsu.common.data.storage.envelope.WalletSecretSession.clear()
+
+        val locked = recovery.read().single()
+        assertTrue(locked.locked)
+        assertFalse(locked.readable)
+        assertFalse(locked.canPurge)
+        assertTrue(runCatching { recovery.exactExport(locked) }.isFailure)
+        assertTrue(runCatching { recovery.purge(locked) }.isFailure)
+        coVerify(exactly = 0) { coordinator.purgeArchived(any(), any()) }
+
+        try {
+            jp.co.soramitsu.common.data.storage.envelope.WalletSecretSession.open(
+                keyId, sk, jp.co.soramitsu.common.data.storage.envelope.WalletSecretSession.Origin.PIN_WRAP
+            )
+            val opened = recovery.read().single()
+            assertFalse(opened.locked)
+            assertTrue(opened.readable)
+            assertEquals(exact, JsonParser.parseString(recovery.exactExport(opened)).asJsonObject["storedData"].asString)
+        } finally {
+            jp.co.soramitsu.common.data.storage.envelope.WalletSecretSession.clear()
+        }
+        assertEquals(sealed, preferences.getDecryptedString(key))
+    }
+
     @Test fun malformedArchiveNamesRemainVisibleWithExactExportButNoInvalidPurgeAction() = runBlocking {
         preferences.putEncryptedString(WalletSecretArchive.KEY_PREFIX, "unknown original bytes")
         val record = recovery.read().single()

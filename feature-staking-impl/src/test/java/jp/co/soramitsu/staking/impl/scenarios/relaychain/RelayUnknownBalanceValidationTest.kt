@@ -88,6 +88,7 @@ class RelayUnknownBalanceValidationTest {
         val accounts = mock<AccountRepository> { onBlocking { getSelectedMetaAccount() } doReturn selectedAccount }
         val shared = mock<StakingSharedState> {
             on { selectionItem } doReturn flowOf(StakingAssetSelection.RelayChainStaking("missing-chain", "native"))
+            on { settledSelection } doReturn flowOf(StakingAssetSelection.RelayChainStaking("missing-chain", "native"))
         }
         // No current configured asset means the optional ledger refresh returns without a network call.
         val chain = mock<Chain> { on { assetsById } doReturn emptyMap() }

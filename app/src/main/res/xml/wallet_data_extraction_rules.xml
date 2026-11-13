@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Android 12+ cloud backup and device-to-device transfer rules.
+
+    Wallet secrets, the PIN and the wrapped database keys are encrypted with
+    Android Keystore keys that never leave this device. A copy of the app data
+    on another phone cannot be decrypted there, so it would only open in the
+    key-loss state while the user believes the wallet moved. android:allowBackup
+    does not stop device-to-device transfer for apps targeting Android 12+, so
+    every domain is excluded here. Wallets move with their recovery phrase or
+    the in-app backup.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" path="." />
+        <exclude domain="file" path="." />
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="external" path="." />
+        <exclude domain="device_root" path="." />
+        <exclude domain="device_file" path="." />
+        <exclude domain="device_database" path="." />
+        <exclude domain="device_sharedpref" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" path="." />
+        <exclude domain="file" path="." />
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
+        <exclude domain="external" path="." />
+        <exclude domain="device_root" path="." />
+        <exclude domain="device_file" path="." />
+        <exclude domain="device_database" path="." />
+        <exclude domain="device_sharedpref" path="." />
+    </device-transfer>
+</data-extraction-rules>

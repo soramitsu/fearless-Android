@@ -18,6 +18,23 @@ import org.junit.runner.RunWith
 /** Renderer evidence runs against both the prior and candidate shared library. Public IDs only. */
 @RunWith(AndroidJUnit4::class)
 class WalletAvatarBrandInstrumentedTest {
+    /** A picture drawn at its recorded size and clipped to its box keeps only its top-left corner. */
+    @Test fun aWalletAvatarFillsTheBoxItIsShownInAtAnyGeneratedSize() {
+        val generator = IconGenerator()
+        val id = ByteArray(32) { it.toByte() }
+        for ((generated, shown) in listOf(105 to 58, 84 to 105, 105 to 168, 63 to 84, 168 to 105, 105 to 105)) {
+            val bitmap = Bitmap.createBitmap(shown, shown, Bitmap.Config.ARGB_8888)
+            generator.getSvgImage(id, generated, false, 0x1C1F3D).apply { setBounds(0, 0, shown, shown) }.draw(Canvas(bitmap))
+            val quadrants = IntArray(4)
+            for (y in 0 until shown) for (x in 0 until shown) {
+                if (bitmap.getPixel(x, y) ushr 24 > 100) quadrants[(if (x < shown / 2) 0 else 1) + (if (y < shown / 2) 0 else 2)]++
+            }
+            val fullest = quadrants.max()
+            assertTrue("$generated shown at $shown: ${quadrants.toList()}", fullest > 0 && quadrants.all { it >= fullest * 8 / 10 })
+            bitmap.recycle()
+        }
+    }
+
     @Test fun addressDerivedPatternsRemainDeterministicAndRenderAtWalletSizes() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val label = InstrumentationRegistry.getArguments().getString("avatarEvidenceLabel") ?: "current"

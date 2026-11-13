@@ -8,7 +8,7 @@ Key Areas
 - Errors: `base/errors/*` including `FearlessException`, `ValidationException`, `TitledException`.
 - Validation: `validation/*` (`Validation`, `ValidationExecutor`).
 - Storage/Encryption: `data/storage/*` with `EncryptedPreferences` and `PreferencesImpl`.
-- Utilities: `utils/*` (e.g., `Base58Ext`, `TonUtils`, coroutines helpers), QR scanning in `qrScanner/*`.
+- Utilities: `utils/*` (e.g., `TonUtils`, coroutines helpers), QR scanning in `qrScanner/*`.
 
 Common Tasks
 - Add a reusable bottom sheet or view: place in `view/*` and keep dependencies minimal.
@@ -19,7 +19,6 @@ Known TODOs/Tech Debt
 - `base/errors/FearlessException.kt`: replace TODOs with localized string resources.
 - `data/storage/PreferencesImpl.kt`: note about listener GC — consider rework.
 - `data/network/rpc/SocketSingleRequestExecutor.kt`: marked unused; confirm and remove if truly dead.
-- `utils/Base58Ext.kt`: keep Base58 behavior aligned with app-owned `runtime-utils`.
 
 Tests & Checks
 - Use `:test-shared` utilities where applicable.

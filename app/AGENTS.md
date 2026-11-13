@@ -15,7 +15,8 @@ Build Types
 - `internalAppSharing` is CI-only and file-only. It inherits release shrinker
   semantics, uses a run-bound ephemeral JKS with the Android Debug identity and
   the `-ias` version-name suffix, and cannot upgrade a Play-installed app.
-- R8/shrinker toggled for remote builds; Firebase App Distribution configured on CI branches.
+- R8/shrinker toggled for remote builds. Firebase App Distribution and the Google Services
+  plugin are gone (4.3.2).
 
 Configs & Secrets (see README for details)
 - WalletConnect: `WALLET_CONNECT_PROJECT_ID` in `BuildConfig`.
@@ -23,21 +24,20 @@ Configs & Secrets (see README for details)
   `MOONPAY_PRODUCTION_PUBLIC_KEY` only. URL signatures and server secrets must
   never be generated, stored, or injected in the Android app.
 - Buy providers: `RAMP_TOKEN_DEBUG`, `RAMP_TOKEN_RELEASE`, `COINBASE_APP_ID`.
-- Firebase: checked-in `google-services.json` files are placeholders; real
-  Firebase project files must come from private CI or local overlay config for
-  governed production release builds. IAS finalizes the typed input of
-  `processInternalAppSharingGoogleServices` directly to the checked-in
-  `fearless-public` release placeholder. It must never create an
-  `app/src/internalAppSharing` tree. Its fake/empty Firebase and OAuth values
-  mean IAS cannot qualify live Firebase, Google sign-in, or Drive/passkey
-  backup and restore.
+- Google Drive backup: `GOOGLE_DRIVE_OAUTH_CLIENT_ID` (optional; default is
+  project 621183184145's public iOS client) feeds `BuildConfig` and the
+  `googleDriveOAuthRedirectScheme` manifest placeholder of the exported
+  `GoogleDriveSignInRedirectActivity`. No `google-services.json` may exist under
+  `app/`; IAS verification fails on one. IAS must never create an
+  `app/src/internalAppSharing` tree.
 - EVM/API keys: `FL_BLAST_API_*`, `FL_ANDROID_*SCAN_API_KEY`.
 
 Release Safety
 - Never use the legacy combined `RELEASE_OVERLAY_MODE=release`. The protected
   workflow first runs a credential-free `release-controls` source/governance
-  gate, then uses `firebase` in the protected build job and `signing` in a
-  separate protected fresh signing job.
+  gate, then restores nothing in the protected build job (the `firebase`
+  overlay mode was removed in 4.3.2) and `signing` in a separate protected
+  fresh signing job.
 - At every boundary, use `scripts/verify-android-release-source-tree.sh` to
   prove the exact commit/tree and reject tracked, staged, untracked, or
   source-like ignored drift. Runtime modules belong to the same app tree; nested
@@ -66,7 +66,7 @@ Release Safety
   manually upload those exact bytes to Play Console Internal App Sharing;
   Gradle and CI must never upload to Google/Play or mutate any track. Never
   uninstall a funded wallet for IAS, and never treat IAS as production
-  migration or signing evidence. Update all reviewed IAS `4.2.0-ias` / `231`
+  migration or signing evidence. Update all reviewed IAS `4.3.4-ias` / `236`
   hardcodes in the same commit as any source-controlled version change.
 
 Common Tasks
@@ -83,6 +83,8 @@ Run, Lint, Test
 - Full checks: `./gradlew detektAll runTest`
 
 Troubleshooting
-- WalletConnect init errors: verify `WALLET_CONNECT_PROJECT_ID` and network reachability.
+- WalletConnect does not pair: verify `WALLET_CONNECT_PROJECT_ID` (32 hex characters) and that
+  `wss://relay.walletconnect.org` is reachable. The in-repo client connects only while a pairing
+  or session is stored.
 - Missing features at runtime: ensure `matchingFallbacks` and proper build type are used.
 - Runtime source is owned by `runtime-utils` and `runtime-websocket`; validate its manifest before release.

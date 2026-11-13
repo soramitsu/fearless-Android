@@ -1,6 +1,7 @@
 package jp.co.soramitsu.account.impl.data.repository
 
 import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
+import jp.co.soramitsu.common.data.storage.envelope.PinVerification
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -21,6 +22,8 @@ import jp.co.soramitsu.account.api.domain.model.hasEthereum
 import jp.co.soramitsu.account.api.domain.model.hasSubstrate
 import jp.co.soramitsu.account.impl.data.mappers.toDomain
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
+import jp.co.soramitsu.account.impl.domain.UniversalWalletFreshRoots
+import jp.co.soramitsu.account.impl.domain.UniversalWalletWatchList
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
@@ -34,6 +37,7 @@ import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
+import jp.co.soramitsu.common.utils.UniversalWalletPassphrase
 import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretCorruptionException
 import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretValidator
 import jp.co.soramitsu.common.data.storage.encrypt.WalletPublicIdentityIntegrityException
@@ -106,7 +110,9 @@ class AccountRepositoryImpl(
     private val accountRepositoryDelegate: AccountRepositoryDelegate,
     private val walletSecretMutationCoordinator: WalletSecretMutationCoordinator,
     private val walletSecretAccessGuard: WalletSecretAccessGuard,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val universalWalletFreshRoots: UniversalWalletFreshRoots? = null,
+    private val universalWalletWatchList: UniversalWalletWatchList? = null
 ) : AccountRepository {
 
     override fun getEncryptionTypes(): List<CryptoType> {
@@ -211,7 +217,17 @@ class AccountRepositoryImpl(
     }
 
     override suspend fun deleteAccount(metaId: Long) {
+        val substratePublicKey = try {
+            getMetaAccount(metaId).substratePublicKey
+        } catch (failure: kotlinx.coroutines.CancellationException) {
+            throw failure
+        } catch (_: Exception) {
+            null
+        }
         walletSecretMutationCoordinator.delete(metaId)
+        // What this device kept about the wallet's universal accounts goes with it.
+        universalWalletFreshRoots?.forget(metaId, substratePublicKey)
+        universalWalletWatchList?.forget(metaId)
     }
 
     override suspend fun importFromSeed(
@@ -466,8 +482,8 @@ class AccountRepositoryImpl(
         return accountDataSource.savePinCode(code)
     }
 
-    override suspend fun getPinCode(): String? {
-        return accountDataSource.getPinCode()
+    override suspend fun verifyPinCode(code: String): PinVerification {
+        return accountDataSource.verifyPinCode(code)
     }
 
     override suspend fun generateMnemonic(length: Mnemonic.Length): List<String> {
@@ -575,24 +591,26 @@ class AccountRepositoryImpl(
         metaId: Long?,
         chainId: ChainId
     ): EncodableStruct<ChainAccountSecrets>? {
-        return (metaId?.let { getMetaAccount(it) } ?: getSelectedMetaAccount()).let { metaAccount ->
-            if (metaAccount.hasChainAccount((chainId))) {
-                metaAccount.chainAccounts[chainId]?.let { chainAccount ->
-                    walletSecretAccessGuard.requireAccess(
-                        metaId = metaAccount.id,
-                        scope = WalletSecretScope.chainAccount(chainAccount.accountId)
-                    )
-                    legacyStoreV2.getChainAccountSecretsWithVerifiedRecovery(
-                        metaId = metaAccount.id,
-                        accountId = chainAccount.accountId,
-                        expectedPublicKey = chainAccount.publicKey,
-                        expectedCryptoType = chainAccount.cryptoType
-                    )
-                }
-            } else {
-                null
-            }
-        }
+        val metaAccount = metaId?.let { getMetaAccount(it) } ?: getSelectedMetaAccount()
+        return readValidatedChainAccountSecrets(metaAccount, chainId)
+    }
+
+    /** Reads the secrets of the exact chain account [metaAccount] names, never a later reread of the wallet. */
+    private suspend fun readValidatedChainAccountSecrets(
+        metaAccount: MetaAccount,
+        chainId: ChainId
+    ): EncodableStruct<ChainAccountSecrets>? {
+        val chainAccount = metaAccount.chainAccounts[chainId] ?: return null
+        walletSecretAccessGuard.requireAccess(
+            metaId = metaAccount.id,
+            scope = WalletSecretScope.chainAccount(chainAccount.accountId)
+        )
+        return legacyStoreV2.getChainAccountSecretsWithVerifiedRecovery(
+            metaId = metaAccount.id,
+            accountId = chainAccount.accountId,
+            expectedPublicKey = chainAccount.publicKey,
+            expectedCryptoType = chainAccount.cryptoType
+        )
     }
 
     override suspend fun generateRestoreJson(metaId: Long, chainId: ChainId, password: String) =
@@ -602,7 +620,8 @@ class AccountRepositoryImpl(
             require(metaAccount.hasSubstrate || metaAccount.hasEthereum)
             val hasChainAccount = metaAccount.hasChainAccount(chainId)
             val (keypairSchema, seed) = if (hasChainAccount) {
-                val secrets = getChainAccountSecrets(metaId, chainId)
+                // The address and crypto type below come from this same wallet read.
+                val secrets = readValidatedChainAccountSecrets(metaAccount, chainId)
 
                 val keypairSchema = secrets?.get(ChainAccountSecrets.Keypair)
 
@@ -617,21 +636,18 @@ class AccountRepositoryImpl(
                     WalletSecretScope.Substrate
                 }
                 requireScopeAccess(metaAccount, keyScope)
-                val substrateSecrets = if (isScopeAccessible(metaAccount, WalletSecretScope.Substrate)) {
-                    readValidatedSubstrateSecrets(metaAccount)
+                if (chain.isEthereumBased) {
+                    // The seed travels with the key it belongs to; a Substrate seed never goes into an Ethereum export.
+                    val ethereumSecrets = readValidatedEthereumSecrets(metaAccount)
+                    ethereumSecrets?.get(EthereumSecrets.EthereumKeypair) to ethereumSecrets?.get(EthereumSecrets.Seed)
                 } else {
-                    null
+                    val substrateSecrets = if (isScopeAccessible(metaAccount, WalletSecretScope.Substrate)) {
+                        readValidatedSubstrateSecrets(metaAccount)
+                    } else {
+                        null
+                    }
+                    substrateSecrets?.get(SubstrateSecrets.SubstrateKeypair) to substrateSecrets?.get(SubstrateSecrets.Seed)
                 }
-
-                val keypairSchema = if (chain.isEthereumBased) {
-                    readValidatedEthereumSecrets(metaAccount)
-                        ?.get(EthereumSecrets.EthereumKeypair)
-                } else {
-                    substrateSecrets?.get(SubstrateSecrets.SubstrateKeypair)
-                }
-
-                val seed = substrateSecrets?.get(SubstrateSecrets.Seed)
-                keypairSchema to seed
             }
 
             val publicKey = keypairSchema?.get(KeyPairSchema.PublicKey)
@@ -705,8 +721,10 @@ class AccountRepositoryImpl(
         }
     }
 
-    override suspend fun isGoogleBackupSupported(walletId: Long): Boolean {
-        return try {
+    // Reading secrets re-derives each key to prove its phrase restores it, which takes seconds on a slow
+    // phone. The backup screens call these from the main thread, so the reads below leave the caller's thread.
+    override suspend fun isGoogleBackupSupported(walletId: Long): Boolean = withContext(dispatcher) {
+        try {
             val metaAccount = getMetaAccount(walletId)
             requireScopeAccess(metaAccount, WalletSecretScope.Substrate)
             val substrateSecrets = readValidatedSubstrateSecrets(metaAccount)
@@ -716,8 +734,11 @@ class AccountRepositoryImpl(
         }
     }
 
-    override suspend fun getBestBackupType(walletId: Long, type: WalletEcosystem): BackupAccountType? {
-        return try {
+    override suspend fun getBestBackupType(
+        walletId: Long,
+        type: WalletEcosystem
+    ): BackupAccountType? = withContext(dispatcher) {
+        try {
             val metaAccount = getMetaAccount(walletId)
             when (type) {
                 WalletEcosystem.Substrate -> {
@@ -725,10 +746,10 @@ class AccountRepositoryImpl(
                     val substrateSecrets =
                         readValidatedSubstrateSecrets(metaAccount)
                     if (substrateSecrets?.get(SubstrateSecrets.Entropy) != null) {
-                        return BackupAccountType.PASSPHRASE
+                        return@withContext BackupAccountType.PASSPHRASE
                     }
                     if (substrateSecrets?.get(SubstrateSecrets.Seed) != null) {
-                        return BackupAccountType.SEED
+                        return@withContext BackupAccountType.SEED
                     }
                 }
 
@@ -737,10 +758,10 @@ class AccountRepositoryImpl(
                     val ethereumSecrets =
                         readValidatedEthereumSecrets(metaAccount)
                     if (ethereumSecrets?.get(EthereumSecrets.Entropy) != null) {
-                        return BackupAccountType.PASSPHRASE
+                        return@withContext BackupAccountType.PASSPHRASE
                     }
                     if (ethereumSecrets?.get(EthereumSecrets.Seed) != null) {
-                        return BackupAccountType.SEED
+                        return@withContext BackupAccountType.SEED
                     }
                 }
 
@@ -748,22 +769,25 @@ class AccountRepositoryImpl(
                     requireScopeAccess(metaAccount, WalletSecretScope.Ton)
                     val tonSecrets = readValidatedTonSecrets(metaAccount)
                     if (tonSecrets != null) {
-                        return BackupAccountType.PASSPHRASE
+                        return@withContext BackupAccountType.PASSPHRASE
                     }
                 }
 
                 WalletEcosystem.Bitcoin,
                 WalletEcosystem.Solana,
-                WalletEcosystem.Iroha -> return null
+                WalletEcosystem.Iroha -> return@withContext null
             }
             null
         } catch (failure: WalletRecoveryRequiredException) {
             null
+        } catch (failure: jp.co.soramitsu.common.data.storage.envelope.WalletSecretLockedException) {
+            // Sealed and locked: nothing is offered until the PIN opens it.
+            null
         }
     }
 
-    override suspend fun getSupportedBackupTypes(walletId: Long): Set<BackupAccountType> {
-        return try {
+    override suspend fun getSupportedBackupTypes(walletId: Long): Set<BackupAccountType> = withContext(dispatcher) {
+        try {
             // Each ecosystem offers what its own key supports; a blocked key
             // contributes nothing and never hides the others.
             val metaAccount = getMetaAccount(walletId)
@@ -790,7 +814,7 @@ class AccountRepositoryImpl(
                 }
 
                 types.add(BackupAccountType.JSON)
-                return types
+                return@withContext types
             }
 
             if (tonSecrets != null) {
@@ -799,6 +823,9 @@ class AccountRepositoryImpl(
 
             types
         } catch (failure: WalletRecoveryRequiredException) {
+            emptySet()
+        } catch (failure: jp.co.soramitsu.common.data.storage.envelope.WalletSecretLockedException) {
+            // Sealed and locked: nothing is offered until the PIN opens it.
             emptySet()
         }
     }
@@ -846,22 +873,22 @@ class AccountRepositoryImpl(
         }
     }
 
-    override suspend fun getSubstrateSecrets(metaId: Long): EncodableStruct<SubstrateSecrets>? {
+    override suspend fun getSubstrateSecrets(metaId: Long): EncodableStruct<SubstrateSecrets>? = withContext(dispatcher) {
         val metaAccount = getMetaAccount(metaId)
         requireScopeAccess(metaAccount, WalletSecretScope.Substrate)
-        return readValidatedSubstrateSecrets(metaAccount)
+        readValidatedSubstrateSecrets(metaAccount)
     }
 
-    override suspend fun getEthereumSecrets(metaId: Long): EncodableStruct<EthereumSecrets>? {
+    override suspend fun getEthereumSecrets(metaId: Long): EncodableStruct<EthereumSecrets>? = withContext(dispatcher) {
         val metaAccount = getMetaAccount(metaId)
         requireScopeAccess(metaAccount, WalletSecretScope.Ethereum)
-        return readValidatedEthereumSecrets(metaAccount)
+        readValidatedEthereumSecrets(metaAccount)
     }
 
-    override suspend fun getTonSecrets(metaId: Long): EncodableStruct<TonSecrets>? {
+    override suspend fun getTonSecrets(metaId: Long): EncodableStruct<TonSecrets>? = withContext(dispatcher) {
         val metaAccount = getMetaAccount(metaId)
         requireScopeAccess(metaAccount, WalletSecretScope.Ton)
-        return readValidatedTonSecrets(metaAccount)
+        readValidatedTonSecrets(metaAccount)
     }
 
     // Secrets handed out by this repository feed phrase, seed and JSON export,
@@ -890,13 +917,63 @@ class AccountRepositoryImpl(
         )
     }
 
-    private fun readValidatedTonSecrets(
+    private suspend fun readValidatedTonSecrets(
         metaAccount: MetaAccount
-    ): EncodableStruct<TonSecrets>? {
-        return tonSecretStore.getWithVerifiedRecovery(
-            metaId = metaAccount.id,
-            expectedPublicKey = metaAccount.tonPublicKey
-        )
+    ): EncodableStruct<TonSecrets>? = readTonForIdentity(metaAccount) { publicKey, quarantine ->
+        getWithVerifiedRecovery(metaAccount.id, publicKey, quarantine = quarantine)
+            ?: universalTonPassphrases(metaAccount).takeIf(List<String>::isNotEmpty)?.let { passphrases ->
+                getWithVerifiedRecovery(metaAccount.id, publicKey, passphrases, quarantine)
+            }
+    }
+
+    // [metaAccount] was read before its TON secret; a universal TON swap may have committed since.
+    private suspend fun <T> readTonForIdentity(
+        metaAccount: MetaAccount,
+        read: TonSecretStore.(publicKey: ByteArray?, quarantine: Boolean) -> T
+    ): T = tonSecretStore.readForIdentity(
+        expectedPublicKey = metaAccount.tonPublicKey,
+        currentPublicKey = { accountDataSource.getMetaAccount(metaAccount.id).tonPublicKey },
+        read = read
+    )
+
+    /**
+     * A password wallet derives its universal TON key with its BIP39 passphrase, which only its
+     * Substrate or Ethereum derivation path holds. Read only after the phrase alone failed.
+     */
+    private fun universalTonPassphrases(metaAccount: MetaAccount): List<String> {
+        if (metaAccount.tonPublicKey == null) return emptyList()
+        if (metaAccount.substratePublicKey == null && metaAccount.ethereumPublicKey == null) return emptyList()
+        return try {
+            val substrate = if (isScopeAccessible(metaAccount, WalletSecretScope.Substrate)) {
+                readValidatedSubstrateSecrets(metaAccount)
+            } else {
+                null
+            }
+            val ethereum = if (isScopeAccessible(metaAccount, WalletSecretScope.Ethereum)) {
+                readValidatedEthereumSecrets(metaAccount)
+            } else {
+                null
+            }
+            val substrateEntropy = substrate?.get(SubstrateSecrets.Entropy)
+            val passphrase = when {
+                substrateEntropy != null -> UniversalWalletPassphrase.resolve(
+                    substrate[SubstrateSecrets.SubstrateDerivationPath],
+                    ethereum?.get(EthereumSecrets.EthereumDerivationPath),
+                    ethereum?.get(EthereumSecrets.Entropy)?.contentEquals(substrateEntropy) == true
+                )
+                ethereum?.get(EthereumSecrets.Entropy) != null ->
+                    UniversalWalletPassphrase.ethereumPassword(ethereum[EthereumSecrets.EthereumDerivationPath])
+                else -> ""
+            }
+            listOfNotNull(passphrase.takeIf(String::isNotEmpty))
+        } catch (failure: kotlinx.coroutines.CancellationException) {
+            throw failure
+        } catch (failure: jp.co.soramitsu.common.data.storage.envelope.WalletSecretLockedException) {
+            // A sealed root while locked is not a missing password.
+            throw failure
+        } catch (_: Exception) {
+            emptyList()
+        }
     }
 
     override suspend fun isWalletRecoveryRequired(metaId: Long): Boolean {
@@ -925,6 +1002,16 @@ class AccountRepositoryImpl(
         scope: WalletSecretScope
     ): Boolean {
         return jp.co.soramitsu.common.data.storage.pin.WalletViewOnlyAccess.isEnabled() || !isScopeAccessible(getMetaAccount(metaId), scope)
+    }
+
+    override suspend fun hasSigningMaterial(metaId: Long, chain: IChain): Boolean {
+        val metaAccount = getMetaAccount(metaId)
+        val chainAccount = metaAccount.chainAccounts[chain.id]
+        return if (chainAccount != null) {
+            legacyStoreV2.hasChainSecrets(metaId, chainAccount.accountId)
+        } else {
+            substrateSecretStore.hasSecret(metaId)
+        }
     }
 
     override suspend fun isSigningRecoveryRequired(metaId: Long, chain: IChain): Boolean {
@@ -967,10 +1054,16 @@ class AccountRepositoryImpl(
             }
 
             WalletEcosystem.Ton -> readIfAccessible(metaAccount, WalletSecretScope.Ton) {
-                tonSecretStore.getWithAssessment(
-                    metaId = metaAccount.id,
-                    expectedPublicKey = metaAccount.tonPublicKey
-                )?.second
+                readTonForIdentity(metaAccount) { publicKey, quarantine ->
+                    val assessment = getWithAssessment(metaAccount.id, publicKey, quarantine = quarantine)?.second
+                    if (assessment is RecoveryAssessment.Unverified) {
+                        universalTonPassphrases(metaAccount).takeIf(List<String>::isNotEmpty)?.let { passphrases ->
+                            getWithAssessment(metaAccount.id, publicKey, passphrases, quarantine)?.second
+                        } ?: assessment
+                    } else {
+                        assessment
+                    }
+                }
             }
 
             // Derived from a root phrase; they have no stored material of their own.

@@ -1,9 +1,11 @@
 package jp.co.soramitsu.account.impl.presentation.create_backup_password
 
 import android.app.Activity
+import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,6 +21,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.account.api.presentation.create_backup_password.SaveBackupPayload
 import jp.co.soramitsu.backup.GoogleSignInResult
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
+import jp.co.soramitsu.common.view.protectSensitiveContent
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -38,6 +41,15 @@ class CreateBackupPasswordDialog : BaseComposeBottomSheetDialogFragment<CreateBa
     }
 
     override val viewModel: CreateBackupPasswordViewModel by viewModels()
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        // The sheet takes the backup password in its own window, which never inherits the
+        // Activity window flags; keep it out of screenshots and the recents preview.
+        return super.onCreateDialog(savedInstanceState).apply {
+            window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            window?.decorView?.protectSensitiveContent()
+        }
+    }
 
     private val launcher: ActivityResultLauncher<Intent> = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()

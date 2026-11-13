@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import co.jp.soramitsu.feature_walletconnect_impl.R
 import co.jp.soramitsu.walletconnect.domain.WalletConnectInteractor
 import co.jp.soramitsu.walletconnect.domain.WalletConnectRouter
-import com.reown.walletkit.client.Wallet
+import co.jp.soramitsu.walletconnect.model.WalletConnectSession
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.address
@@ -20,6 +20,7 @@ import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.mapList
 import jp.co.soramitsu.walletconnect.impl.presentation.caip2id
 import jp.co.soramitsu.walletconnect.impl.presentation.dappUrl
+import jp.co.soramitsu.walletconnect.impl.presentation.displayedHost
 import jp.co.soramitsu.walletconnect.impl.presentation.walletConnectValueOrBack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharedFlow
@@ -39,7 +40,7 @@ class ConnectionInfoViewModel @Inject constructor(
     private val accountRepository: AccountRepository
 ) : ConnectionInfoScreenInterface, BaseViewModel() {
     private val topic: String = savedStateHandle[ConnectionInfoFragment.CONNECTION_TOPIC_KEY] ?: error("No connection info provided")
-    private val session: Wallet.Model.Session? = walletConnectValueOrBack(
+    private val session: WalletConnectSession? = walletConnectValueOrBack(
         value = walletConnectInteractor.getActiveSessionByTopic(topic),
         onUnavailable = walletConnectRouter::back
     )
@@ -111,7 +112,7 @@ class ConnectionInfoViewModel @Inject constructor(
 
         val sessionState = InfoItemViewState(
             title = activeSession.metaData?.name,
-            subtitle = activeSession.metaData?.dappUrl,
+            subtitle = activeSession.verifyContext?.displayedHost ?: activeSession.metaData?.dappUrl,
             imageUrl = activeSession.metaData?.icons?.firstOrNull(),
             placeholderIcon = R.drawable.ic_dapp_connection
         )

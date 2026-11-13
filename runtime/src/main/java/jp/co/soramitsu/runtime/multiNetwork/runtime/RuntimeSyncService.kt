@@ -13,6 +13,7 @@ import jp.co.soramitsu.runtime.multiNetwork.ChainsStateTracker
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.connection.ConnectionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.types.TypesFetcher
+import jp.co.soramitsu.runtime.assethub.AssetHubRuntimeTypes
 import jp.co.soramitsu.runtime.network.executeAsyncCatching
 import jp.co.soramitsu.fearless_utils.runtime.metadata.GetMetadataRequest
 import jp.co.soramitsu.fearless_utils.wsrpc.mappers.nonNull
@@ -120,7 +121,7 @@ class RuntimeSyncService(
             null
         }
 
-        val types = chainDao.getTypes(chainId)
+        val types = AssetHubRuntimeTypes.forChain(chainId, chainDao.getTypes(chainId))
         val typesHash = types?.md5()
 
         syncFinished(chainId)

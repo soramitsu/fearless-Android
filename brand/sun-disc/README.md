@@ -10,6 +10,8 @@ Source: Figma file `6nJRypk3njagBkp9B642tg` ("💰 Fearless Wallet"), frame **Fe
 | `winged-sun-badge.svg` | Winged sun / Silhouette - badge | 60201-10529 | 512×512 | Round badge, solid wings (small icons, favicons) |
 | `winged-sun-badge-lines.svg` | Winged sun / Silhouette lines - badge | 60201-10532 | 512×512 | Round badge, line-art wings (primary app icon candidate) |
 
+`common/src/main/res/drawable/fw_brand_wings.xml` is `winged-sun-badge-lines.svg` framed to its mark, without the badge's circle: the same wing, joint and disc paths, for full-page screens (PIN, welcome, About, launch).
+
 `preview/` holds QuickLook PNG renders for quick viewing only (square thumbnails crop wide marks); regenerate production rasters from the SVGs.
 
 ## Palette found in the artwork

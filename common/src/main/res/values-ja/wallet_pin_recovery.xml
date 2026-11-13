@@ -13,4 +13,7 @@
     <string name="pin_recovery_verify_backup">ウォレットのバックアップを確認</string>
     <string name="pin_recovery_reset">ウォレットPINを復旧</string>
     <string name="pin_recovery_view_only_title">閲覧専用アクセス</string>
+    <string name="pin_recovery_forgot">PINをお忘れですか？</string>
+    <string name="pin_recovery_forgot_intro">PINを忘れた場合は、いずれかのウォレットのバックアップを確認して新しいPINを設定してください。</string>
+    <string name="pin_recovery_key_unavailable">このバックアップではウォレットの鍵を開けません。別のウォレットのバックアップをお試しください。</string>
 </resources>

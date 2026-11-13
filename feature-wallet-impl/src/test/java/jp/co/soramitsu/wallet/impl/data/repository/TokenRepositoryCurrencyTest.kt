@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.impl.data.repository
 
 import io.mockk.every
 import io.mockk.mockk
+import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.core.models.Asset
@@ -51,6 +52,9 @@ class TokenRepositoryCurrencyTest {
     )
 
     private suspend fun <T> Channel<T>.next(): T = withTimeout(5000) { receive() }
+
+    private val currencyList = listOf(FiatCurrency("usd", "$", "US Dollar", ""), FiatCurrency("eur", "€", "Euro", ""))
+    private fun listedCurrency(id: String) = currencyList.firstOrNull { it.id == id }
 
     private fun assertUnpriced(token: Token, currency: String) {
         assertEquals(currency, token.fiatContext?.currencyId)
@@ -171,6 +175,80 @@ class TokenRepositoryCurrencyTest {
         val token = repository(dao, Selection("cad")).getToken(configuration())
         assertEquals("cad", token.fiatSymbol)
         assertEquals(BigDecimal("2.50"), token.fiatRate)
+    }
+
+    @Test fun getAndObserveShowMoneyWithTheSelectedCurrencysOwnSymbol() = runBlocking {
+        val dollar = FiatCurrency("usd", "$", "US Dollar", "")
+        val selection = Selection("usd") { id -> dollar.takeIf { it.id == id } }
+        val repository = repository(RawDao(), selection)
+        assertEquals("$", repository.getToken(configuration()).fiatSymbol)
+        assertEquals("$", repository.observeToken(configuration()).first().fiatSymbol)
+        // A currency the list does not know is still shown with its own id, never another currency's symbol.
+        selection.selected.set("cad")
+        assertEquals("cad", repository.getToken(configuration()).fiatSymbol)
+    }
+
+    @Test fun getKeepsTheSymbolCapturedBeforeADelayedRead() = runBlocking {
+        val selection = Selection("usd", ::listedCurrency); val dao = RawDao()
+        val entered = CompletableDeferred<Unit>(); val release = CompletableDeferred<Unit>()
+        dao.getter = { entered.complete(Unit); release.await(); listOf(row(currency = "usd")) }
+        val result = async { repository(dao, selection).getToken(configuration()) }
+        try {
+            withTimeout(5000) { entered.await() }
+            selection.selected.set("eur")
+            release.complete(Unit)
+            val token = withTimeout(5000) { result.await() }
+            assertEquals("eur", selection.selected.get())
+            assertEquals("$", token.fiatSymbol)
+            assertEquals("usd", token.fiatContext?.currencyId)
+            assertEquals(BigDecimal("2.50"), token.fiatRate)
+        } finally { release.complete(Unit); result.cancelAndJoin() }
+    }
+
+    @Test fun observeShowsEachSelectionsOwnSymbolAndDeliveredTokensKeepTheirs() = runBlocking {
+        val selection = Selection("usd", ::listedCurrency); val dao = RawDao()
+        val inputs = listOf(Channel<List<RawCachedTokenPriceRow>>(Channel.UNLIMITED), Channel<List<RawCachedTokenPriceRow>>(Channel.UNLIMITED))
+        var subscription = 0; dao.observer = { inputs[subscription++].receiveAsFlow() }
+        val output = Channel<Token>(Channel.UNLIMITED)
+        val job = launch { repository(dao, selection).observeToken(configuration()).collect { output.send(it) } }
+        try {
+            assertEquals("$", output.next().fiatSymbol)
+            inputs[0].send(listOf(row())); val dollars = output.next()
+            assertEquals("$", dollars.fiatSymbol); assertEquals(BigDecimal("2.50"), dollars.fiatRate)
+            selection.selected.set("eur")
+            assertEquals("€", output.next().fiatSymbol)
+            inputs[1].send(listOf(row(currency = "eur", rate = "3"))); val euros = output.next()
+            assertEquals("€", euros.fiatSymbol); assertEquals(BigDecimal("3"), euros.fiatRate)
+            assertEquals("$", dollars.fiatSymbol); assertEquals("usd", dollars.fiatContext?.currencyId)
+            assertEquals(BigDecimal("2.50"), dollars.fiatRate)
+        } finally { job.cancelAndJoin(); inputs.forEach { it.close() }; output.close() }
+    }
+
+    @Test fun aCurrencyNotOnTheListShowsItsIdAndNeverBorrowsASymbol() = runBlocking {
+        val borrowed = FiatCurrency("usd", "$", "US Dollar", "")
+        for (known in listOf<(String) -> FiatCurrency?>({ null }, ::listedCurrency, { borrowed })) {
+            val repository = repository(RawDao(), Selection("cad", known))
+            assertEquals("cad", repository.getToken(configuration()).fiatSymbol)
+            assertEquals("cad", repository.observeToken(configuration()).first().fiatSymbol)
+        }
+    }
+
+    @Test fun theSymbolLabelsATokenWithoutChangingItsRateOrAmount() = runBlocking {
+        val dao = RawDao().apply {
+            getter = { listOf(row(currency = "usd")) }
+            observer = { flowOf(listOf(row(currency = "usd"))) }
+        }
+        suspend fun read(known: (String) -> FiatCurrency?) = listOf(
+            repository(dao, Selection("usd", known)).getToken(configuration()),
+            repository(dao, Selection("usd", known)).observeToken(configuration()).first { it.fiatRate != null }
+        )
+        read(::listedCurrency).zip(read { null }).forEach { (shown, bare) ->
+            assertEquals("$", shown.fiatSymbol); assertEquals("usd", bare.fiatSymbol)
+            assertEquals(BigDecimal("2.50"), shown.fiatRate)
+            assertEquals(bare.fiatRate, shown.fiatRate)
+            assertEquals(bare.recentRateChange, shown.recentRateChange)
+            assertEquals(bare.fiatAmount(BigDecimal("4")), shown.fiatAmount(BigDecimal("4")))
+        }
     }
 
     @Test fun getAndObserveUntrustedPriceStayUnpriced() = runBlocking {
@@ -376,7 +454,7 @@ class TokenRepositoryCurrencyTest {
     /** Extra instance state prevents coroutine stack-recovery copies from weakening identity checks. */
     private class StorageFailure(val marker: Any) : RuntimeException("controlled storage failure")
 
-    private class Selection(initial: String) {
+    private class Selection(initial: String, metadata: (String) -> FiatCurrency? = { null }) {
         private val selectedFiatValue = AtomicReference(initial)
         private val changes = Channel<String?>(Channel.UNLIMITED)
         private val preferences = mockk<Preferences> {
@@ -392,7 +470,7 @@ class TokenRepositoryCurrencyTest {
                 flow<String?> { emit(selectedFiatValue.get()); emitAll(changes.receiveAsFlow()) }
             }
         }
-        val selected = SelectedFiat(preferences)
+        val selected = SelectedFiat(preferences, metadata)
     }
 
     /** Legacy and writer entries fail; each test exercises the real bounded get/observe wrappers. */

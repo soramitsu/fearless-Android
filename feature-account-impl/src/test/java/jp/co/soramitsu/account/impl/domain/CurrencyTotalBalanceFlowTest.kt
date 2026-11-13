@@ -97,7 +97,10 @@ class CurrencyTotalBalanceFlowTest {
         val assets = mockk<AssetDao> { every { observePortfolioBalances(any()) } returns flowOf(emptyList()) }
         val chains = mockk<ChainsRepository> { every { chainsByIdFlow() } returns flowOf(emptyMap()) }
         val prices = mockk<TokenPriceDao> { every { observeTokenPricesByIds(any()) } returns flowOf(emptyList()) }
-        val fiat = mockk<SelectedFiat> { every { flow() } returns flowOf("cad") }
+        val fiat = mockk<SelectedFiat> {
+            every { flow() } returns flowOf("cad")
+            every { metadata(any()) } returns null
+        }
         return ProfileModule().provideCurrentAccountAssetReader(assets, chains, accounts, prices, fiat)
     }
 
