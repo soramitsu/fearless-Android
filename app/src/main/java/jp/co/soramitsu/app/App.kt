@@ -50,6 +50,11 @@ open class App : Application() {
     }
 
     override fun onCreate() {
+        // Before super.onCreate(): Hilt builds the injected singletons there, and one that starts a coroutine
+        // deriving a TON address could otherwise reach the wallet code first, from the Default pool, which is the
+        // deadlock this warm-up exists to prevent (229 ANR: main thread waiting on that class initializer).
+        initializeTonAddressCode()
+
         super.onCreate()
 
         // Set before any Activity exists. Set later, AppCompat restarts the first Activity to apply it, which
@@ -57,8 +62,6 @@ open class App : Application() {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         // Sound and touch for transfers; nothing is loaded until a screen asks for it.
         TransferFeedback.install(this)
-
-        initializeTonAddressCode()
 
         OptionsProvider.APPLICATION_ID = BuildConfig.LIBRARY_PACKAGE_NAME
         OptionsProvider.CURRENT_VERSION_CODE = BuildConfig.VERSION_CODE

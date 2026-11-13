@@ -44,6 +44,7 @@ import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenar
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.requireFee
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -112,6 +113,9 @@ class ConfirmPayoutViewModel @Inject constructor(
 
         addressModelGenerator.createAddressModel(destinationAddress, AddressIconGenerator.SIZE_SMALL, destinationAddressDisplay)
     }
+        // The row only informs. A destination the app cannot read ("None", or one this runtime no longer
+        // decodes) used to close the app from this page; now the row stays empty and the payout can go on.
+        .catch { }
         .inBackground()
         .asLiveData()
 

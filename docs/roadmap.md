@@ -2,6 +2,20 @@
 
 # Roadmap & Technical Debt
 
+## 4.3.4 (236): open items — 13 November 2026
+
+- **Rollout (owner's call):** 236 is live at 20% since 13 November 2026 10:27 KST; 235's rollout was replaced. Raising
+  it is the owner's decision, after its Vitals. Until then most devices still run 4.2.0 (229), the source of nearly every
+  crash Play reports.
+- **Pendulum metadata hash:** Pendulum spec 27 accepts transactions signed with Mode::Enabled and this app's hash
+  (live check, 13 November 2026), so its `MetadataHashExemptions` entry is no longer needed. Removing it changes signing
+  for Pendulum and needs its own review and live check.
+- **`getChain` after a network leaves the catalogue:** 4.2.0 crashed in `ChainsRepository.getChain` from a screen Play's
+  trace does not name. 4.3.4 catches it in the history panel; other screens that ask for a missing network still wait
+  60 seconds and fail in their own way.
+- **Play crash traces 21 to 28** were not read (Chrome access dropped). They are single events on old versions or rare
+  4.2.0 paths, all listed in `docs/releases/4.3.4.md`.
+
 ## Yatagarasu brand: open items — 10 November 2026
 
 Described in `docs/status.md`. Not yet done:

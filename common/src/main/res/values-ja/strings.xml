@@ -253,8 +253,8 @@
   <string name="common_network">ネットワーク</string>
   <string name="common_network_fee">ネットワーク手数料</string>
   <string name="common_network_management">ネットワーク管理</string>
-  <plurals name="common_networks_format" formatted="false">
-    <item quantity="other">%dネット\n%dネットワーク</item>
+  <plurals name="common_networks_format">
+    <item quantity="other">%dネットワーク</item>
   </plurals>
   <string name="common_next">次へ</string>
   <string name="common_no">いいえ</string>

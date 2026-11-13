@@ -271,7 +271,7 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
         }
         unregisterNetworkCallback()
         if (navigatorAttached) {
-            navigator.detach()
+            navigator.detach(this)
             navigatorAttached = false
         }
 

@@ -2,6 +2,21 @@
 
 # Status Summary
 
+## Production candidate 4.3.4 (236): fixes for the crashes Play reported — 13 November 2026
+
+Google Play's crash list for the last 28 days held 28 clusters, nearly all from 4.2.0 (229), which most devices still
+run while 4.3.3 (235) is at 20%. No cluster named 235 yet. 4.3.3 already fixed the largest; 4.3.4 is 4.3.3 plus the
+fixes for what it still had: transaction history rows, the history panel's network lookup, three broken translations,
+the controller-account warning, unreadable reward destinations, NFT tiles, navigator ownership, the JSON import result
+and the TON start-up warm-up order. Branch `release/android-4.3.4` from `release/android-4.3.3`. The database schema
+stays 84. Every cluster, its cause and the release that fixes it: `docs/releases/4.3.4.md`.
+
+Built, signed and verified locally from `7a1ca3989` (bundle SHA-256 `5a57bc74…fe49`): 8,080 unit cases, the static,
+Gradle and live checks, the signed-artifact suites, and upgrades 235 → 236 and 229 → 236 on an emulator with the PIN,
+addresses and recovery phrase intact and no crash or ANR. Live on Google Play since 13 November 2026 10:27 KST as a
+20% Production rollout, on the owner's "Yes, submit at 20%" (sent for review at about 09:35, approved within the hour).
+It replaced 235's halted rollout; 229 still serves the other 80%.
+
 ## Ignite launch, feel and sound — 13 November 2026
 
 The owner asked on 13 November 2026: "make the yatagarasu ignite animation the launching splash animation and zoom into

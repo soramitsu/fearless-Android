@@ -1,6 +1,5 @@
 package jp.co.soramitsu.wallet.impl.presentation.transaction.history.mixin
 
-import io.ktor.util.collections.ConcurrentSet
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.data.model.CursorPage
@@ -21,9 +20,13 @@ import jp.co.soramitsu.wallet.impl.presentation.model.OperationModel
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.TransactionDetailsState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 import jp.co.soramitsu.wallet.impl.presentation.transaction.history.model.DayHeader
+import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -45,7 +48,10 @@ class TransactionHistoryProvider(
     private val resourceManager: ResourceManager,
     private val addressDisplayUseCase: AddressDisplayUseCase,
     private val assetPayloadStateFlow: MutableStateFlow<AssetPayload>
-) : TransactionHistoryMixin, CoroutineScope by CoroutineScope(Dispatchers.Default) {
+) : TransactionHistoryMixin,
+    // The history is one panel of the asset page. A failure in it must leave the page running: without a handler a
+    // failure here was uncaught and closed the app.
+    CoroutineScope by CoroutineScope(Dispatchers.Default + SupervisorJob() + CoroutineExceptionHandler { _, _ -> }) {
 
     companion object {
         const val PAGE_SIZE = 100
@@ -57,7 +63,9 @@ class TransactionHistoryProvider(
     // Set while the network's history service cannot serve this account; the explorer link stands in for the list.
     @Volatile private var explorerOnlyMessage: String? = null
 
-    private val currentData = ConcurrentSet<Operation>()
+    // One entry per operation id. The list keys its rows by id and a repeated key closes the app, so a later copy
+    // of an operation (a pending transfer that completed, a row the next page repeats) replaces the earlier one.
+    private val currentData = ConcurrentHashMap<String, Operation>()
 
     private val _state =
         MutableStateFlow<TransactionHistoryUi.State>(TransactionHistoryUi.State.Refreshing)
@@ -73,7 +81,16 @@ class TransactionHistoryProvider(
 
     init {
         reloadHistoryEvent.debounce(100).onEach {
-            reloadHistory()
+            try {
+                reloadHistory()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                // getChain gives up after 60 s when the network left the catalogue or never synced (229 crash).
+                _state.emit(TransactionHistoryUi.State.Empty(
+                    resourceManager.getString(R.string.wallet_transaction_history_error_message)
+                ))
+            }
         }.launchIn(this)
 
         assetPayloadStateFlow.onEach {
@@ -118,7 +135,7 @@ class TransactionHistoryProvider(
                 _state.emit(explorerOnlyMessage?.let { TransactionHistoryUi.State.Empty(it, explorerOnly = true) }
                     ?: TransactionHistoryUi.State.Empty())
             } else {
-                currentData.addAll(page.items)
+                currentData.putAll(page.items.associateBy(Operation::id))
                 _state.emit(TransactionHistoryUi.State.Data(transformData(filteredPageItems, ecosystem)))
             }
         }.launchIn(this)
@@ -198,7 +215,14 @@ class TransactionHistoryProvider(
         }
 
         launch {
-            loadNextPage(assetPayload)
+            try {
+                loadNextPage(assetPayload)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                // The loaded rows stay; the next scroll may try again.
+                nextPageLoading = false
+            }
         }
     }
 
@@ -229,10 +253,10 @@ class TransactionHistoryProvider(
                 if (it.isEmpty()) {
                     return@onSuccess
                 }
-                currentData.addAll(it.items)
+                currentData.putAll(it.items.associateBy(Operation::id))
                 val ecosystem = walletInteractor.getChain(assetPayload.chainId).ecosystem
                 _state.emit(TransactionHistoryUi.State.Data(transformData(
-                    currentData,
+                    currentData.values,
                     ecosystem
                 )))
             }
@@ -242,9 +266,7 @@ class TransactionHistoryProvider(
         transactionModel: OperationModel,
         assetPayload: AssetPayload
     ): TransactionDetailsState {
-        val operations = currentData
-
-        val clickedOperation = operations.firstOrNull { it.id == transactionModel.id }
+        val clickedOperation = currentData[transactionModel.id]
             ?: throw IllegalStateException("Cannot find operation in cache")
 
         val chain = walletInteractor.getChain(assetPayload.chainId)
@@ -261,7 +283,7 @@ class TransactionHistoryProvider(
         data: Collection<Operation>,
         ecosystem: Ecosystem
     ): List<Any> {
-        val operations = data.map {
+        val operations = data.latestById().map {
             mapOperationToOperationModel(it, resourceManager, iconGenerator, ecosystem)
         }.sortedByDescending { it.time }
 
@@ -277,3 +299,9 @@ class TransactionHistoryProvider(
             }.flatten()
     }
 }
+
+/**
+ * One operation per id, the last copy winning. An explorer can list one transaction twice (two token transfers in it,
+ * or the same row on two pages), and the history list refuses two rows with one key.
+ */
+internal fun Collection<Operation>.latestById(): List<Operation> = associateBy(Operation::id).values.toList()

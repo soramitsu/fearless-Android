@@ -56,3 +56,6 @@
 
 # The sun-lit redesign and balance/navigation fixes; the database schema is unchanged.
 4.3.3+235=84
+
+# Crash fixes from Google Play's 12 November 2026 reports; the database schema is unchanged.
+4.3.4+236=84

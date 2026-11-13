@@ -452,7 +452,14 @@ class StakingViewModel @Inject constructor(
             .launchIn(this)
 
         interactor.selectionStateFlow().onEach {
-            val warning = interactor.checkControllerDeprecations(it.first, it.second.chain)
+            // Advice only: a network that cannot answer shows no warning instead of closing the app.
+            val warning = try {
+                interactor.checkControllerDeprecations(it.first, it.second.chain)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                null
+            }
             warning?.let {
                 val model = warning.toModel(resourceManager)
                 showError(
