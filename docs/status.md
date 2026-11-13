@@ -24,7 +24,15 @@ its preference. The wallet's DOT on Hydration, an unranked network, was listed 8
   until the process ended. `WalletSyncService` now reads through the same lease, so afterwards only the background-sync
   selection stays connected: ranked networks, networks a live feature needs, and every network holding funds or a shown
   asset. One network that cannot be connected or read no longer aborts the whole first scan; its rows stay unknown and
-  the sweep reads it again.
+  the sweep reads it again. Heap of the emulator app after a new wallet's first scan and sweep: 36 Substrate
+  connections, 36 runtime providers and 35 decoded runtimes before, 15, 14 and 13 after.
+- **A stopped EVM connection reconnected on its own.** `EthereumConnectionPool.stop` shut the client down, which closed
+  its socket, and the Closed status started the next node attempt outside the pool, while the pool's status watcher kept
+  the object alive; setup also built connections inside a retried state update, so contention could leave duplicates
+  connecting. Stopping now closes a connection for good (`EthereumChainConnection.close`: no further node attempts, the
+  watcher cancelled) and setup builds one connection per network under a lock. Discovery stops networks routinely now,
+  so this had to hold: without it the same heap held 52 EVM connection objects, with it 7, the seven ranked EVM
+  networks (18 before these changes).
 - **Solana was marked "Asset discovery timed out" after every sweep.** The catalog stores the app-owned networks as
   Substrate, Solana with an HTTP node, so the sweep waited 45 s for a Substrate runtime that never comes and flagged
   Solana stale although its balance read fine. `Chain.needsRegistryConnection()` (runtime) is now the one rule for both
@@ -39,6 +47,17 @@ its preference. The wallet's DOT on Hydration, an unranked network, was listed 8
 Already true on this line and unchanged: a row whose read fails stays listed, with its last stored amount or "Balance
 unavailable" when none was ever read, under the network's stale marker; an explicitly shown asset is listed at zero
 (`PortfolioVisibility.isVisible`); explicit Hidden choices are kept.
+
+Verified locally on `fc63951a9` (this project has no hosted CI gate): the unit suites of runtime (455, 10 skipped), app
+(252), feature-account-impl (1,098) and feature-wallet-impl (828) pass with no failures, and `detektAll` passes. The
+background-sync rule is covered by `ChainActivationPolicyTest` and by `ChainIdsNeedingSyncDaoTest`, run on an API 34
+emulator; the lease by `ChainRegistryDiscoveryLeaseTest`, the hand-over by `DiscoveryHandoverTest`, and the first scan,
+the EVM pool and Equilibrium by their own tests. `DiscoveryHandoverTest` and the Equilibrium test fail on the previous
+code, and each lease test fails with its rule undone. Emulator, debug builds with the public dev phrase and nothing
+enabled: the Hydration DOT was listed after import on both builds; after the first scan and sweep, Solana carried no
+error; with Hydration zeroed and out of background sync, the sweep found it again and background sync kept the
+connection (the next sweep read Hydration over it in 0.3 s). The base build did not hit the hand-over race in its one
+device run; the window depends on timing, which the test fixes.
 
 ## One branch for every open Android PR — 10 November 2026
 
