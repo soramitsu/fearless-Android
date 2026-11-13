@@ -21,6 +21,8 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -29,7 +31,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import okhttp3.OkHttpClient
@@ -44,8 +45,12 @@ private const val EVM_CONNECTION_TAG = "EVM Connection"
 class EthereumConnectionPool(
     private val networkStateService: NetworkStateService,
 ) {
-    private val poolStateFlow = MutableStateFlow<MutableMap<String, EthereumChainConnection>>(mutableMapOf())
+    private val poolStateFlow = MutableStateFlow<Map<String, EthereumChainConnection>>(emptyMap())
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
+    // Guards creation and removal, so a chain never has two connections; statusJobs is read only under it.
+    private val lock = Any()
+    private val statusJobs = mutableMapOf<String, Job>()
 
     suspend fun await(chainId: String): EthereumChainConnection {
         return poolStateFlow.map { it[chainId] }.filterNotNull().first()
@@ -55,37 +60,37 @@ class EthereumConnectionPool(
         return poolStateFlow.value[chainId]
     }
 
-    fun setupConnection(chain: Chain, onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit): EthereumChainConnection {
-        val connection = poolStateFlow.updateAndGet { currentPool ->
-            if (currentPool.containsKey(chain.id)) {
-                currentPool
-            } else {
-                val newConnection = EthereumChainConnection(
-                    chain,
-                    onSelectedNodeChange = onSelectedNodeChange
-                ) { networkStateService.notifyConnectionProblem(chain.id) }
+    /**
+     * The chain's connection, created on first use. Created under a lock and outside any retried
+     * state update: a connection starts connecting as it is built, so a discarded duplicate would
+     * keep a socket of its own.
+     */
+    fun setupConnection(chain: Chain, onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit): EthereumChainConnection =
+        synchronized(lock) {
+            poolStateFlow.value[chain.id]?.let { return it }
+            val newConnection = EthereumChainConnection(
+                chain,
+                onSelectedNodeChange = onSelectedNodeChange
+            ) { networkStateService.notifyConnectionProblem(chain.id) }
 
-                newConnection.statusFlow.onEach { status ->
-                    if (status is EvmConnectionStatus.Connected) {
-                        networkStateService.notifyConnectionSuccess(chain.id)
-                    } else {
-                        networkStateService.notifyConnectionProblem(chain.id)
-                    }
-                }.launchIn(scope)
-
-                currentPool.toMutableMap().apply { put(chain.id, newConnection) }
-            }
-        }[chain.id]!!
-
-        return connection
-    }
-
-    fun stop(chainId: String) {
-        poolStateFlow.update { currentPool ->
-            currentPool.toMutableMap().apply {
-                remove(chainId)?.apply { web3j?.shutdown() }
-            }
+            statusJobs[chain.id] = newConnection.statusFlow.onEach { status ->
+                if (status is EvmConnectionStatus.Connected) {
+                    networkStateService.notifyConnectionSuccess(chain.id)
+                } else {
+                    networkStateService.notifyConnectionProblem(chain.id)
+                }
+            }.launchIn(scope)
+            poolStateFlow.value = poolStateFlow.value + (chain.id to newConnection)
+            newConnection
         }
+
+    /** Removes the chain's connection and closes it for good: no reconnect, no further node attempts. */
+    fun stop(chainId: String) {
+        val removed = synchronized(lock) {
+            statusJobs.remove(chainId)?.cancel()
+            poolStateFlow.value[chainId]?.also { poolStateFlow.value = poolStateFlow.value - chainId }
+        }
+        removed?.close()
     }
 }
 
@@ -115,6 +120,10 @@ class EthereumChainConnection(
     private var connection: EVMConnection? = null
     val web3j get() = connection?.web3j
     val service: Web3jService? get() = connection?.service
+
+    @Volatile
+    internal var isClosed = false
+        private set
 
     val statusFlow = MutableStateFlow<EvmConnectionStatus?>(null)
 
@@ -157,9 +166,22 @@ class EthereumChainConnection(
         }
     }
 
+    /**
+     * Ends this connection for good. Shutting the client down alone closed its socket, and the Closed
+     * status then started the next node attempt, so a stopped connection reconnected on its own,
+     * outside the pool.
+     */
+    fun close() {
+        isClosed = true
+        statusFlow.value = EvmConnectionStatus.ClosedByApp
+        scope.cancel()
+        connection?.web3j?.shutdown()
+    }
+
     private fun connectNextNode() {
         scope.launch {
             supervisorScope {
+                if (isClosed) return@supervisorScope
                 if (nodesAttempts.all { it.value.get() >= 5 }) {
                     allNodesHaveFailed()
                     return@supervisorScope
@@ -178,11 +200,13 @@ class EthereumChainConnection(
                 when {
                     nextNode.url.startsWith("wss") -> {
                         connection = EVMConnection.WSS(nextNode.url) { newStatus ->
-                            statusFlow.update { prevStatus ->
-                                if (newStatus is EvmConnectionStatus.Closed && prevStatus is EvmConnectionStatus.ClosedByApp) {
-                                    EvmConnectionStatus.ClosedByApp
-                                } else {
-                                    newStatus
+                            if (!isClosed) {
+                                statusFlow.update { prevStatus ->
+                                    if (newStatus is EvmConnectionStatus.Closed && prevStatus is EvmConnectionStatus.ClosedByApp) {
+                                        EvmConnectionStatus.ClosedByApp
+                                    } else {
+                                        newStatus
+                                    }
                                 }
                             }
                         }
@@ -191,7 +215,7 @@ class EthereumChainConnection(
 
                     nextNode.url.startsWith("http") -> {
                         connection = EVMConnection.HTTP(nextNode.url) { newStatus ->
-                            statusFlow.update { newStatus }
+                            if (!isClosed) statusFlow.update { newStatus }
                         }
                     }
 
@@ -199,6 +223,12 @@ class EthereumChainConnection(
                         statusFlow.update { null }
                         return@supervisorScope
                     }
+                }
+
+                // close() may run while this attempt connects: its client is shut down, never handed out.
+                if (isClosed) {
+                    connection?.web3j?.shutdown()
+                    return@supervisorScope
                 }
 
                 nodesAttempts[nextNode.url]?.incrementAndGet()
