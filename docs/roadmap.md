@@ -4,9 +4,9 @@
 
 ## 4.3.4 (236): open items — 13 November 2026
 
-- **Rollout:** 236 is in Google's review as a 20% Production rollout (sent 13 November 2026); 235's rollout is halted.
-  After approval it needs publishing, and raising it beyond 20% follows the Vitals gate. Most devices still run 4.2.0
-  (229), the source of nearly every crash Play reports.
+- **Rollout (owner's call):** 236 is live at 20% since 13 November 2026 10:27 KST; 235's rollout was replaced. Raising
+  it is the owner's decision, after its Vitals. Until then most devices still run 4.2.0 (229), the source of nearly every
+  crash Play reports.
 - **Pendulum metadata hash:** Pendulum spec 27 accepts transactions signed with Mode::Enabled and this app's hash
   (live check, 13 November 2026), so its `MetadataHashExemptions` entry is no longer needed. Removing it changes signing
   for Pendulum and needs its own review and live check.

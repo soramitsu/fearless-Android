@@ -13,9 +13,9 @@ stays 84. Every cluster, its cause and the release that fixes it: `docs/releases
 
 Built, signed and verified locally from `7a1ca3989` (bundle SHA-256 `5a57bc74…fe49`): 8,080 unit cases, the static,
 Gradle and live checks, the signed-artifact suites, and upgrades 235 → 236 and 229 → 236 on an emulator with the PIN,
-addresses and recovery phrase intact and no crash or ANR. Sent to Google's review on 13 November 2026 as a
-20% Production rollout, on the owner's "Yes, submit at 20%"; not yet published. Saving it halted 235's rollout, so
-devices not already on 235 stay on 229 until 236 is published.
+addresses and recovery phrase intact and no crash or ANR. Live on Google Play since 13 November 2026 10:27 KST as a
+20% Production rollout, on the owner's "Yes, submit at 20%" (sent for review at about 09:35, approved within the hour).
+It replaced 235's halted rollout; 229 still serves the other 80%.
 
 ## Android release takeover — 10 November 2026
 
