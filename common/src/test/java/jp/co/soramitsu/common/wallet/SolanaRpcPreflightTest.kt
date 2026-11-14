@@ -50,7 +50,9 @@ class SolanaRpcPreflightTest {
     @Test
     fun `processed signatures never settle while confirmed legacy or finalized observations do`() {
         assertFalse(SolanaRpcSignatureStatus(1, "processed", 0, null).isConfirmed)
-        assertFalse(SolanaRpcSignatureStatus(1, null, null, null).isConfirmed)
+        // A node without confirmationStatus reports a rooted transaction with confirmations null.
+        assertTrue(SolanaRpcSignatureStatus(1, null, null, null).isConfirmed)
+        assertTrue(SolanaRpcSignatureStatus(1, "finalized", null, null).isConfirmed)
         assertTrue(SolanaRpcSignatureStatus(1, "confirmed", 1, null).isConfirmed)
         assertTrue(SolanaRpcSignatureStatus(1, null, 2, null).isConfirmed)
     }
@@ -71,6 +73,24 @@ class SolanaRpcPreflightTest {
             result = """{"context":{"slot":12},"value":$number}"""
             try { client.balance(WALLET); error("Expected invalid RPC balance") }
             catch (error: SolanaRpcException) { assertEquals(SolanaRpcException.Code.INVALID_BALANCE_RESPONSE, error.code) }
+        }
+    }
+
+    @Test
+    fun `a status without its confirmations or err key is malformed and never read as rooted`() = runTest {
+        var status = """{"slot":11,"confirmations":null,"err":null}"""
+        val client = RetrofitSolanaRpcClient(object : SolanaRpcApi {
+            override suspend fun postJsonRpc(url: String, body: JsonObject): JsonObject {
+                val value = if (body["method"].asString == "getGenesisHash") "\"${UniversalWalletRegistry.SOLANA_MAINNET_GENESIS_HASH}\""
+                    else """{"context":{"slot":12},"value":[$status]}"""
+                return JsonParser.parseString("""{"jsonrpc":"2.0","id":${body["id"]},"result":$value}""").asJsonObject
+            }
+        }, "http://127.0.0.1:8899")
+        assertTrue(client.signatureStatus("1".repeat(64))!!.isConfirmed)
+        for (missing in listOf("""{"slot":11,"err":null}""", """{"slot":11,"confirmations":null}""")) {
+            status = missing
+            try { client.signatureStatus("1".repeat(64)); error("Expected a malformed status") }
+            catch (error: SolanaRpcException) { assertEquals(SolanaRpcException.Code.INVALID_SIGNATURE_STATUS_RESPONSE, error.code) }
         }
     }
 

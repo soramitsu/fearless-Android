@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Fail closed unless an Android App Bundle or APK carries the pinned Google Drive web client.
+"""Fail closed unless an Android App Bundle or APK carries the pinned Google Drive OAuth client.
 
 Google Drive keeps every wallet backup in the appDataFolder of the Google Cloud project that owns
-the app's OAuth clients. Releases 2.4.1 through 4.2.0 all compiled the same web client id
-(`WEB_CLIENT_ID_RELEASE`), so a release built with a different, blank or malformed value would sign
-upgrading users in against another project, or not at all, and their existing backups would look
-gone. The expected id is pinned only by its SHA-256 in
-`.github/release/android-google-drive-web-client-sha256.txt`; this script never prints the id.
+the app's OAuth clients. Since 4.3.2 the app signs in to Drive with its own OAuth 2.0 + PKCE code
+and the public client id `GOOGLE_DRIVE_OAUTH_CLIENT_ID` (default: project 621183184145's iOS
+client); a release built with a client of another project, or none, would sign upgrading users in
+against another project, or not at all, and their existing backups would look gone. The expected
+id is pinned by its SHA-256 in `.github/release/android-google-drive-web-client-sha256.txt`; this
+script never prints the id. (The file names predate 4.3.2, when the pinned id was a web client.)
 """
 
 from __future__ import annotations
@@ -72,11 +73,11 @@ def require_safe_regular_file(raw_path: str, label: str, maximum_bytes: int) -> 
 
 
 def read_pinned_digest() -> str:
-    path = require_safe_regular_file(str(PIN_PATH), "Google Drive web client pin file", MAX_PIN_BYTES)
+    path = require_safe_regular_file(str(PIN_PATH), "Google Drive OAuth client pin file", MAX_PIN_BYTES)
     try:
         text = path.read_bytes().decode("ascii")
     except UnicodeDecodeError as error:
-        raise VerificationError("Google Drive web client pin is malformed: not ASCII.") from error
+        raise VerificationError("Google Drive OAuth client pin is malformed: not ASCII.") from error
     values = [
         line.strip()
         for line in text.splitlines()
@@ -84,7 +85,7 @@ def read_pinned_digest() -> str:
     ]
     if len(values) != 1 or not re.fullmatch(r"[0-9a-f]{64}", values[0]):
         raise VerificationError(
-            "Google Drive web client pin is malformed: expected exactly one lowercase SHA-256."
+            "Google Drive OAuth client pin is malformed: expected exactly one lowercase SHA-256."
         )
     return values[0]
 
@@ -189,23 +190,23 @@ def verify_artifact(path: Path, pinned_digest: str) -> tuple[str, str, list[str]
 
     if not client_ids:
         raise VerificationError(
-            "No Google OAuth web client id is compiled into the artifact's dex files "
+            "No Google OAuth client id is compiled into the artifact's dex files "
             f"({near_misses} other string(s) mention {CLIENT_ID_SUFFIX.decode()}). "
-            "WEB_CLIENT_ID_RELEASE was missing, blank or malformed at build time."
+            "The Drive backup OAuth client was missing or malformed at build time."
         )
     if len(client_ids) != 1:
         raise VerificationError(
             f"Artifact contains {len(client_ids)} distinct Google OAuth client ids; "
-            "expected only the pinned Google Drive web client."
+            "expected only the pinned Google Drive OAuth client."
         )
     value, locations = next(iter(client_ids.items()))
     project = CLIENT_ID.fullmatch(value).group(1).decode()
     value_digest = hashlib.sha256(value).hexdigest()
     if value_digest != pinned_digest:
         raise VerificationError(
-            f"The compiled Google OAuth web client (project {project}, sha256 {value_digest}) "
-            "is not the pinned client that 2.4.1 through 4.2.0 shipped; "
-            "set WEB_CLIENT_ID_RELEASE to that client."
+            f"The compiled Google OAuth client (project {project}, sha256 {value_digest}) "
+            "is not the pinned client; build with the reviewed GOOGLE_DRIVE_OAUTH_CLIENT_ID "
+            "or leave it unset for the default."
         )
     return digest.hexdigest(), project, sorted(set(locations))
 
@@ -226,7 +227,7 @@ def main(argv: list[str]) -> int:
     print(
         "[android-google-drive-web-client] artifact sha256="
         + artifact_digest
-        + " carries the pinned Google Drive web client (project "
+        + " carries the pinned Google Drive OAuth client (project "
         + project
         + ", sha256 "
         + pinned_digest

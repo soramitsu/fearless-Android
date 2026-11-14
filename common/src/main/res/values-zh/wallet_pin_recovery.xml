@@ -13,4 +13,7 @@
     <string name="pin_recovery_verify_backup">验证钱包备份</string>
     <string name="pin_recovery_reset">恢复钱包 PIN</string>
     <string name="pin_recovery_view_only_title">只读访问</string>
+    <string name="pin_recovery_forgot">忘记 PIN？</string>
+    <string name="pin_recovery_forgot_intro">忘记 PIN 了？验证任一钱包的备份即可设置新 PIN。</string>
+    <string name="pin_recovery_key_unavailable">此备份无法解锁钱包密钥。请尝试其他钱包的备份。</string>
 </resources>

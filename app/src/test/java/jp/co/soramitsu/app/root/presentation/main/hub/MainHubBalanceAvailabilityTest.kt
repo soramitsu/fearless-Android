@@ -42,7 +42,7 @@ class MainHubBalanceAvailabilityTest {
         val accounts = mockk<AccountRepository> {
             coEvery { getSelectedMetaAccount() } returns wallet
             coEvery { isSigningRecoveryRequired(7, chain) } returns false
-            coEvery { getSubstrateSecrets(7) } returns mockk()
+            coEvery { hasSigningMaterial(7, chain) } returns true
         }
         val registry = mockk<ChainRegistry> {
             coEvery { getChain("sora-fixture") } returns chain

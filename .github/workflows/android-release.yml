@@ -33,7 +33,6 @@ jobs:
       version_properties_sha256: ${{ steps.release_metadata.outputs.version_properties_sha256 }}
     env:
       CI: true
-      SR25519_SOURCE_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
       FEARLESS_UTILS_COMMIT: 3d22dad159ca5304d199acd08c5a622dea3c1577
       EXPECTED_RELEASE_TAGGER_EMAIL: ${{ vars.ANDROID_RELEASE_TAGGER_EMAIL }}
       EXPECTED_ANDROID_RELEASE_BUILD_REVIEWER_IDS: ${{ vars.ANDROID_RELEASE_BUILD_REVIEWER_IDS }}
@@ -222,6 +221,7 @@ jobs:
           python3 ./scripts/test-android-runtime-source-pins.py
           python3 ./scripts/verify-owned-remote-config.py
           python3 ./scripts/test-owned-remote-config.py
+          python3 ./scripts/test-remote-config-signing.py
           python3 ./scripts/test-owned-native-build.py
           bash ./scripts/test-iroha-production-send-readiness-audit.sh
           bash ./scripts/audit-iroha-production-send-readiness.sh
@@ -303,14 +303,12 @@ jobs:
       RELEASE_VERSION_NAME: ${{ needs.release-controls.outputs.version_name }}
       RELEASE_VERSION_CODE: ${{ needs.release-controls.outputs.version_code }}
       VERSION_PROPERTIES_SHA256: ${{ needs.release-controls.outputs.version_properties_sha256 }}
-      SR25519_SOURCE_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
       FEARLESS_UTILS_COMMIT: 3d22dad159ca5304d199acd08c5a622dea3c1577
       BUNDLETOOL_VERSION: "1.18.3"
       BUNDLETOOL_SHA256: a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29
       TEMURIN_JDK_VERSION: "21.0.12+8"
       TEMURIN_JDK_URL: https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/OpenJDK21U-jdk_x64_linux_hotspot_21.0.12_8.tar.gz
       TEMURIN_JDK_ARCHIVE_SHA256: e4446ff06a276155697597cc0f1b15da004ff083f4964a35271ecee567177370
-      ANDROID_RELEASE_FIREBASE_JSON_SHA256: ${{ vars.ANDROID_RELEASE_FIREBASE_JSON_SHA256 }}
       EXPECTED_RELEASE_TAGGER_EMAIL: ${{ vars.ANDROID_RELEASE_TAGGER_EMAIL }}
       EXPECTED_ANDROID_RELEASE_BUILD_REVIEWER_IDS: ${{ vars.ANDROID_RELEASE_BUILD_REVIEWER_IDS }}
       EXPECTED_ANDROID_RELEASE_SIGNING_REVIEWER_IDS: ${{ vars.ANDROID_RELEASE_SIGNING_REVIEWER_IDS }}
@@ -562,31 +560,14 @@ jobs:
           set -euo pipefail
           [[ "$(sha256sum versioning/version.properties | awk '{print $1}')" == \
             "$VERSION_PROPERTIES_SHA256" ]]
-          [[ "$ANDROID_RELEASE_FIREBASE_JSON_SHA256" =~ ^[0-9a-f]{64}$ ]] || {
-            echo "ANDROID_RELEASE_FIREBASE_JSON_SHA256 is missing or malformed" >&2
-            exit 1
-          }
           ./scripts/verify-android-release-source-tree.sh \
             "$RELEASE_COMMIT" \
             "$RELEASE_TREE"
-
-      - name: Restore digest-pinned release Firebase configuration
-        env:
-          GOOGLE_SERVICES_RELEASE_JSON_B64: ${{ secrets.GOOGLE_SERVICES_RELEASE_JSON_B64 }}
-        run: |
-          set -euo pipefail
-          RELEASE_OVERLAY_MODE=firebase ./scripts/restore-release-overlays.sh
-          [[ "$(sha256sum app/src/release/google-services.json | awk '{print $1}')" == \
-            "$ANDROID_RELEASE_FIREBASE_JSON_SHA256" ]] || {
-            echo "Materialized Firebase configuration digest changed" >&2
-            exit 1
-          }
 
       - name: Build exact unsigned release AAB
         env:
           RAMP_TOKEN_RELEASE: ${{ secrets.RAMP_TOKEN_RELEASE }}
           COINBASE_APP_ID: ${{ secrets.COINBASE_APP_ID }}
-          WEB_CLIENT_ID_RELEASE: ${{ secrets.WEB_CLIENT_ID_RELEASE }}
           FL_BLAST_API_ETHEREUM_KEY: ${{ secrets.FL_BLAST_API_ETHEREUM_KEY }}
           FL_BLAST_API_BSC_KEY: ${{ secrets.FL_BLAST_API_BSC_KEY }}
           FL_BLAST_API_SEPOLIA_KEY: ${{ secrets.FL_BLAST_API_SEPOLIA_KEY }}
@@ -602,6 +583,10 @@ jobs:
           FL_DWELLIR_API_KEY: ${{ secrets.FL_DWELLIR_API_KEY }}
           FL_ANDROID_TON_API_KEY: ${{ secrets.FL_ANDROID_TON_API_KEY }}
           FL_ANDROID_TON_INDEXER_URL: ${{ secrets.FL_ANDROID_TON_INDEXER_URL }}
+          # Optional: an https Solana mainnet JSON-RPC URL carrying the provider key; unset means public nodes only.
+          FL_ANDROID_SOLANA_RPC_URL: ${{ secrets.FL_ANDROID_SOLANA_RPC_URL }}
+          FL_NOMIS_API_KEY: ${{ secrets.FL_NOMIS_API_KEY }}
+          FL_NOMIS_CLIENT_ID: ${{ secrets.FL_NOMIS_CLIENT_ID }}
         run: |
           set -euo pipefail
           ./scripts/install-android-release-sdk.sh verify
@@ -681,7 +666,7 @@ jobs:
             echo "ANDROID_RELEASE_BUILD_LOG_SHA256=$build_log_sha256"
           } >>"$GITHUB_ENV"
 
-      - name: Remove Firebase overlay after Gradle exits
+      - name: Clean release overlays after Gradle exits
         if: ${{ always() }}
         run: ./scripts/cleanup-release-overlays.sh
 
@@ -768,7 +753,6 @@ jobs:
             --arg versionPropertiesSha256 "$VERSION_PROPERTIES_SHA256" \
             --arg gradleWrapperSha256 "$gradle_wrapper_sha256" \
             --arg verificationMetadataSha256 "$verification_metadata_sha256" \
-            --arg firebaseSha256 "$ANDROID_RELEASE_FIREBASE_JSON_SHA256" \
             --arg fearlessUtilsCommit "$FEARLESS_UTILS_COMMIT" \
             --arg fearlessUtilsTree "$FEARLESS_UTILS_TREE" \
             --arg runtimeSourcePinsSha256 "$runtime_source_pins_sha256" \
@@ -788,7 +772,7 @@ jobs:
               "$ANDROID_RELEASE_SDK_EVIDENCE_SHA256" \
             --rawfile androidSdkEvidence \
               "$ANDROID_RELEASE_SDK_EVIDENCE" '{
-              schemaVersion: 3,
+              schemaVersion: 4,
               artifactKind: "unsigned-android-app-bundle",
               artifactFilename: $artifactFilename,
               artifactSha256: $artifactSha256,
@@ -810,9 +794,6 @@ jobs:
                 gradleWrapperPropertiesSha256: $gradleWrapperSha256,
                 dependencyVerificationMetadataSha256:
                   $verificationMetadataSha256
-              },
-              firebase: {
-                configurationSha256: $firebaseSha256
               },
               fearlessUtils: {
                 commit: $fearlessUtilsCommit,
@@ -961,8 +942,6 @@ jobs:
       ANDROID_UNSIGNED_AAB_SHA256: ${{ needs.release-build.outputs.unsigned_artifact_sha256 }}
       ANDROID_RELEASE_BUILD_LOG_SHA256: ${{ needs.release-build.outputs.unsigned_build_log_sha256 }}
       UNSIGNED_PROVENANCE_SHA256: ${{ needs.release-build.outputs.unsigned_provenance_sha256 }}
-      APPROVED_FIREBASE_JSON_SHA256: ${{ vars.ANDROID_RELEASE_FIREBASE_JSON_SHA256 }}
-      SR25519_SOURCE_COMMIT: 7500809f33243ee47ecb2ec8563fc284ac4de0d6
       FEARLESS_UTILS_COMMIT: 3d22dad159ca5304d199acd08c5a622dea3c1577
       BUNDLETOOL_VERSION: "1.18.3"
       BUNDLETOOL_SHA256: a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29
@@ -1027,10 +1006,6 @@ jobs:
           bash ./scripts/verify-android-release-governance.sh
           [[ "$(sha256sum versioning/version.properties | awk '{print $1}')" == \
             "$VERSION_PROPERTIES_SHA256" ]]
-          [[ "$APPROVED_FIREBASE_JSON_SHA256" =~ ^[0-9a-f]{64}$ ]] || {
-            echo "Approved Firebase digest is missing or malformed" >&2
-            exit 1
-          }
           if git config --local --get-regexp '^http\..*\.extraheader$'; then
             echo "Signing checkout persisted a GitHub credential" >&2
             exit 1
@@ -1167,7 +1142,6 @@ jobs:
             --arg versionPropertiesSha256 "$VERSION_PROPERTIES_SHA256" \
             --arg gradleWrapperSha256 "$gradle_wrapper_sha256" \
             --arg verificationMetadataSha256 "$verification_metadata_sha256" \
-            --arg firebaseSha256 "$APPROVED_FIREBASE_JSON_SHA256" \
             --arg fearlessUtilsCommit "$FEARLESS_UTILS_COMMIT" \
             --arg runtimeSourcePinsSha256 "$runtime_source_pins_sha256" \
             --arg javaVersion "$TEMURIN_JDK_VERSION" \
@@ -1235,13 +1209,12 @@ jobs:
                 "artifactSha256",
                 "buildLog",
                 "fearlessUtils",
-                "firebase",
                 "release",
                 "schemaVersion",
                 "source",
                 "toolchain"
               ] | sort) and
-              .schemaVersion == 3 and
+              .schemaVersion == 4 and
               .artifactKind == "unsigned-android-app-bundle" and
               .artifactFilename == $artifactFilename and
               .artifactSha256 == $artifactSha256 and
@@ -1263,9 +1236,6 @@ jobs:
                 gradleWrapperPropertiesSha256: $gradleWrapperSha256,
                 dependencyVerificationMetadataSha256:
                   $verificationMetadataSha256
-              } and
-              .firebase == {
-                configurationSha256: $firebaseSha256
               } and
               (.fearlessUtils | type == "object") and
               .fearlessUtils.commit == $fearlessUtilsCommit and
@@ -1649,7 +1619,6 @@ jobs:
             --arg gradleWrapperSha256 "$gradle_wrapper_sha256" \
             --arg verificationMetadataSha256 \
               "$verification_metadata_sha256" \
-            --arg firebaseSha256 "$APPROVED_FIREBASE_JSON_SHA256" \
             --arg fearlessUtilsCommit "$FEARLESS_UTILS_COMMIT" \
             --arg runtimeSourcePinsSha256 \
               "$runtime_source_pins_sha256" \
@@ -1660,7 +1629,7 @@ jobs:
             --arg androidSdkLockSha256 "$android_sdk_lock_sha256" \
             --slurpfile androidSdkLock \
               scripts/android-release-sdk-linux.lock.json \
-            --arg signingCertificateSha256 "40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A" \
+            --arg signingCertificateSha256 "AD6C1D07BE5DFA8C539E8C9B8BD43DC1C6CF79A839828B10B6F953AD57C1BDE8" \
             --arg aabPermissionsSha256 "$AAB_PERMISSIONS_SHA256" \
             --arg aabIdentityEvidenceSha256 "$AAB_IDENTITY_EVIDENCE_SHA256" \
             --rawfile aabIdentityEvidence "$AAB_IDENTITY_EVIDENCE" \
@@ -1719,13 +1688,12 @@ jobs:
                   "artifactSha256",
                   "buildLog",
                   "fearlessUtils",
-                  "firebase",
                   "release",
                   "schemaVersion",
                   "source",
                   "toolchain"
                 ] | sort) and
-                .schemaVersion == 3 and
+                .schemaVersion == 4 and
                 .artifactKind == "unsigned-android-app-bundle" and
                 .artifactFilename == $unsignedFilename and
                 .artifactSha256 == $unsignedSha256 and
@@ -1747,9 +1715,6 @@ jobs:
                   gradleWrapperPropertiesSha256: $gradleWrapperSha256,
                   dependencyVerificationMetadataSha256:
                     $verificationMetadataSha256
-                } and
-                .firebase == {
-                  configurationSha256: $firebaseSha256
                 } and
                 (.fearlessUtils | type == "object") and
                 (.fearlessUtils | keys | sort) == ([
@@ -1806,7 +1771,7 @@ jobs:
               if exact_approved_unsigned_provenance then
                 . as $unsigned |
                 {
-                  schemaVersion: 3,
+                  schemaVersion: 4,
                   artifactKind: "signed-android-app-bundle",
                   artifactFilename: $artifactFilename,
                   artifactSha256: $artifactSha256,
@@ -1818,7 +1783,6 @@ jobs:
                   },
                   release: $unsigned.release,
                   source: $unsigned.source,
-                  firebase: $unsigned.firebase,
                   fearlessUtils: $unsigned.fearlessUtils,
                   buildToolchain: $unsigned.toolchain,
                   artifactVerification: {
@@ -1885,14 +1849,13 @@ jobs:
                 "buildLog",
                 "buildToolchain",
                 "fearlessUtils",
-                "firebase",
                 "release",
                 "schemaVersion",
                 "signing",
                 "source",
                 "unsignedArtifact"
               ] | sort) and
-              .schemaVersion == 3 and
+              .schemaVersion == 4 and
               .artifactKind == "signed-android-app-bundle" and
               .artifactFilename == $artifactFilename and
               .artifactSha256 == $artifactSha256 and
@@ -1925,7 +1888,7 @@ jobs:
                 "runnerImage"
               ] | sort) and
               .signing.certificateSha256 ==
-                "40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A" and
+                "AD6C1D07BE5DFA8C539E8C9B8BD43DC1C6CF79A839828B10B6F953AD57C1BDE8" and
               .signing.runnerImage == "ubuntu-24.04" and
               .signing.javaDistribution == "temurin-jdkfile" and
               .signing.javaVersion == $signingJavaVersion and

@@ -17,5 +17,9 @@ enum class FwSurface(internal val requested: Boolean) {
     Navigation(BuildConfig.FW_RESTYLE_NAVIGATION),
     Mnemonic(BuildConfig.FW_RESTYLE_MNEMONIC),
     Staking(BuildConfig.FW_RESTYLE_STAKING),
-    Loading(BuildConfig.FW_RESTYLE_LOADING)
+    Loading(BuildConfig.FW_RESTYLE_LOADING),
+    Pin(BuildConfig.FW_RESTYLE_PIN),
+    AssetDetails(BuildConfig.FW_RESTYLE_ASSET_DETAILS),
+    History(BuildConfig.FW_RESTYLE_HISTORY),
+    Settings(BuildConfig.FW_RESTYLE_SETTINGS)
 }

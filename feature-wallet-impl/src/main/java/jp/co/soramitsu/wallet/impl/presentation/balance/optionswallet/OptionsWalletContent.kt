@@ -32,7 +32,8 @@ import jp.co.soramitsu.feature_wallet_impl.R
 data class OptionsWalletScreenViewState(
     val isSelected: Boolean,
     val showScoreButton: Boolean,
-    val showDetailsButton: Boolean
+    val showDetailsButton: Boolean,
+    val showOldAddressesButton: Boolean = false
 )
 
 interface OptionsWalletCallback {
@@ -48,6 +49,9 @@ interface OptionsWalletCallback {
     fun onCloseClick()
 
     fun onShowWalletScoreClick()
+
+    /** Reopens the notice about addresses the recovery words alone open. */
+    fun onOldAddressesClick() = Unit
 }
 
 @Composable
@@ -102,6 +106,16 @@ fun OptionsWalletContent(
                 text = stringResource(id = R.string.change_wallet_name),
                 onClick = callback::onChangeWalletNameClick
             )
+            if (state.showOldAddressesButton) {
+                MarginVertical(margin = 12.dp)
+                GrayButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp),
+                    text = stringResource(id = R.string.universal_password_notice_options),
+                    onClick = callback::onOldAddressesClick
+                )
+            }
             if (state.showScoreButton) {
                 MarginVertical(margin = 12.dp)
                 GrayButton(

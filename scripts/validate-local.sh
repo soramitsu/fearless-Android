@@ -4,7 +4,8 @@ set -euo pipefail
 REQUIRED_JAVA=21
 REQUIRED_API=36
 REQUIRED_BUILD_TOOLS=36.0.0
-REQUIRED_NDK=28.0.12674087
+# Must equal ndkVersion in runtime-utils/build.gradle (libsr25519java.so build).
+REQUIRED_NDK=30.0.16248370
 
 log() { echo -e "[validate] $*"; }
 warn() { echo -e "[validate][warn] $*" >&2; }

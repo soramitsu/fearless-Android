@@ -1,5 +1,7 @@
 package jp.co.soramitsu.staking.impl.data.repository
 
+import jp.co.soramitsu.core.extrinsic.SigningRuntime
+import jp.co.soramitsu.core.extrinsic.SigningRuntimeSource
 import jp.co.soramitsu.core.extrinsic.keypair_provider.GuardedKeypairProvider
 import jp.co.soramitsu.core.extrinsic.keypair_provider.WalletBoundKeypairProvider
 import jp.co.soramitsu.core.extrinsic.mortality.Mortality
@@ -123,7 +125,7 @@ class StakingPoolMemberSubmissionTest {
         var fees = 0
         val registry = mock<IChainRegistry>()
         val mortality = mock<MortalityConstructor>()
-        val service = ExtrinsicService(rpc, provider, ExtrinsicBuilderFactory(rpc, registry, mortality))
+        val service = ExtrinsicService(rpc, provider, ExtrinsicBuilderFactory(rpc, registry, mortality, fixtureSigningRuntimes(registry)))
         val selection = mock<StakingSharedState>()
         val api = StakingPoolApi(service, selection, mock(), PoolJoinPreferencesFixture().journal(), mock())
         init {
@@ -189,4 +191,9 @@ class StakingPoolMemberSubmissionTest {
             )
         }
     }
+}
+
+// These fixtures pin Mode::Disabled encodings; the metadata hash path has its own tests.
+private fun fixtureSigningRuntimes(registry: IChainRegistry) = SigningRuntimeSource { chain, _ ->
+    SigningRuntime.MetadataHashExempt(registry.getRuntime(chain.id), "test fixture signs Mode::Disabled")
 }

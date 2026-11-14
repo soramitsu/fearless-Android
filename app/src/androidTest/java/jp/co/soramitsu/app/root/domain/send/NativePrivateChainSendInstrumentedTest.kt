@@ -28,6 +28,7 @@ import jp.co.soramitsu.wallet.impl.domain.SendPausePolicy
 import jp.co.soramitsu.wallet.impl.domain.model.Transfer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -130,12 +131,19 @@ class NativePrivateChainSendInstrumentedTest {
         val network = UniversalWalletRegistry.solanaDevnet.copy(rpcUrl = url, genesisHash = genesisHash)
         val real = RetrofitSolanaRpcClient(retrofit().create(SolanaRpcApi::class.java), url, expectedGenesisHash = genesisHash)
         var statusUnknown = true; var submissions = 0; val signed = mutableListOf<String>()
+        var unreachable = false; var requestLost = false
         fun ambiguous(delegate: SolanaRpcClient): SolanaRpcClient = object : SolanaRpcClient by delegate {
             override fun withGenesisHash(expectedGenesisHash: String) = ambiguous(delegate.withGenesisHash(expectedGenesisHash))
             override fun withEndpoints(rpcUrls: List<String>) = ambiguous(delegate.withEndpoints(rpcUrls))
             override suspend fun signatureStatus(signature: String, rpcUrl: String?) = if (statusUnknown) null else delegate.signatureStatus(signature, rpcUrl)
+            override suspend fun signatureOutcome(signature: String, lastValidBlockHeight: Long, rpcUrl: String?) =
+                if (statusUnknown) SolanaSignatureOutcome.Unknown else delegate.signatureOutcome(signature, lastValidBlockHeight, rpcUrl)
             override suspend fun sendRawTransaction(transactionBase64: String, options: SolanaBroadcastOptions, rpcUrl: String?): String {
                 submissions++; signed += transactionBase64
+                // No node reachable: the client's own verdict for a request that never left the device.
+                if (unreachable) throw SolanaBroadcastException(SolanaBroadcastException.Outcome.NOT_SENT, IOException("Simulated unreachable node"))
+                // A request lost on the way: nobody can tell whether a node got it.
+                if (requestLost) throw IOException("Simulated request lost before the validator")
                 val result = delegate.sendRawTransaction(transactionBase64, options, rpcUrl)
                 if (submissions == 1) throw IOException("Simulated lost local response")
                 return result
@@ -173,6 +181,50 @@ class NativePrivateChainSendInstrumentedTest {
         val second = service().transfer(repeated.copy(estimateFee = existingFee)); awaitConfirmed(real, second)
         assertEquals(second, service().transfer(repeated.copy(estimateFee = existingFee)))
         assertEquals(BigInteger("1750000"), real.tokenAccounts(recipient, TOKEN_PROGRAM).single { it.mint == mint }.amount)
+        // A broadcast no node received is released at once and reported as not sent; the same review then sends.
+        val fresh = SolanaKeyDerivation.deriveAccount(OTHER_MNEMONIC, derivationPath = "m/44'/501'/1'/0'").address
+        unreachable = true
+        val unsent = native.copy(recipient = fresh, amount = BigDecimal("0.002"), quoteId = UUID.randomUUID().toString())
+        val unsentFee = service().getTransferFee(unsent)
+        val notSent = runCatching { service().transfer(unsent.copy(estimateFee = unsentFee)) }.exceptionOrNull()
+        assertEquals(NativeSendException.Code.PAYMENT_NOT_SENT, (notSent as NativeSendException).code)
+        assertNull(journal.read(scope))
+        assertNull(real.signatureStatus(notSent.transactionId!!))
+        unreachable = false
+        val resent = service().transfer(unsent.copy(estimateFee = unsentFee)); awaitConfirmed(real, resent)
+        assertEquals(notSent.transactionId, resent)
+        assertEquals(2_000_000L, real.balance(fresh))
+        // A request lost on the way stays pending and blocks other payments until a node final past its blockhash
+        // height has no trace of it. The call that finds this releases it and stops; confirming the next payment
+        // again sends it, and it is the only one that lands. The local cluster has one endpoint, so that proof is
+        // never corroborated and the release is reported as unverified.
+        requestLost = true
+        val lost = native.copy(recipient = fresh, amount = BigDecimal("0.003"), quoteId = UUID.randomUUID().toString())
+        val lostSignature = service().transfer(lost.copy(estimateFee = service().getTransferFee(lost)))
+        val pending = requireNotNull(journal.read(scope))
+        assertEquals(PendingWalletSend.State.Pending, pending.state); assertEquals(lostSignature, pending.transactionId)
+        requestLost = false
+        val next = native.copy(recipient = fresh, amount = BigDecimal("0.004"), quoteId = UUID.randomUUID().toString())
+        val nextFee = service().getTransferFee(next)
+        val early = runCatching { service().transfer(next.copy(estimateFee = nextFee)) }.exceptionOrNull()
+        assertEquals(NativeSendException.Code.PAYMENT_PENDING, (early as NativeSendException).code)
+        withTimeout(240_000) {
+            while (real.blockHeight(SolanaRpcCommitment.Finalized) <= requireNotNull(pending.lastValidBlockHeight)) delay(1_000)
+        }
+        // The early review's blockhash expired too; the next payment is reviewed again.
+        val after = next.copy(quoteId = UUID.randomUUID().toString())
+        val afterFee = service().getTransferFee(after)
+        val retained = submissions
+        val released = runCatching { service().transfer(after.copy(estimateFee = afterFee)) }.exceptionOrNull()
+        assertEquals(NativeSendException.Code.PRIOR_PAYMENT_UNVERIFIED, (released as NativeSendException).code)
+        assertEquals(lostSignature, released.transactionId)
+        assertNull(journal.read(scope))
+        assertEquals(retained, submissions)
+        val nextSignature = service().transfer(after.copy(estimateFee = afterFee)); awaitConfirmed(real, nextSignature)
+        assertNull(journal.read(scope)?.takeIf { it.transactionId == lostSignature })
+        assertEquals(retained + 1, submissions)
+        assertNull(real.signatureStatus(lostSignature))
+        assertEquals(2_000_000L + 4_000_000L, real.balance(fresh))
         // Native Max is the actual balance less the reviewed network fee, including priority fee.
         val max = native.copy(amount = BigDecimal.ONE, sendMax = true, quoteId = UUID.randomUUID().toString())
         val amount = service().getTransferMaxAmount(max); val maxFee = service().getTransferFee(max)

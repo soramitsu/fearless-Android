@@ -27,19 +27,20 @@ class AndroidBrandAssetsInstrumentedTest {
 
     @Test fun mergedBrandResourcesRenderAtShippedIconAndHeroSizes() {
         val resources = listOf(
-            Triple("colour-hero", R.drawable.fw_brand_hero, Pair(738, 152)),
-            Triple("line-badge-48", R.drawable.fw_brand_badge, Pair(48, 48)),
-            Triple("solid-badge-24", R.drawable.fw_brand_badge_small, Pair(24, 24)),
-            Triple("compact-mark-24", R.drawable.ic_fearless_bird, Pair(24, 24)),
-            Triple("legacy-welcome", R.drawable.drawable_fearless_logo, Pair(738, 152)),
+            Triple("stacked-lockup", R.drawable.fw_brand_lockup, Pair(840, 663)),
+            Triple("crest-badge-192", R.drawable.fw_brand_badge, Pair(192, 192)),
+            Triple("crest-badge-small-72", R.drawable.fw_brand_badge_small, Pair(72, 72)),
+            Triple("crest-badge-wallet-120", R.drawable.ic_wallet, Pair(120, 120)),
+            Triple("crest-mark-192", R.drawable.ic_fearless_logo, Pair(192, 192)),
+            Triple("crest-small-mark-72", R.drawable.ic_fearless_bird, Pair(72, 72)),
             Triple("neutral-artwork", R.drawable.drawable_fearless_bird, Pair(112, 110))
         )
         resources.forEach { (name, id, size) ->
             val drawable = AppCompatResources.getDrawable(context, id)!!
             val bitmap = render(drawable, size.first, size.second)
             assertTrue("$name is empty", visiblePixels(bitmap) > size.first)
-            if (name.contains("badge")) {
-                assertTrue("$name has no white mark", whitePixels(bitmap) > 10)
+            if (name.contains("badge") || name.contains("mark") || name.contains("lockup")) {
+                assertTrue("$name has no white crest", whitePixels(bitmap) > 10)
             }
             save(name, bitmap)
         }
@@ -64,8 +65,25 @@ class AndroidBrandAssetsInstrumentedTest {
             val theme = ContextThemeWrapper(context, jp.co.soramitsu.app.R.style.Theme_Soramitsu_Fearless_Starting)
             val attributes = theme.obtainStyledAttributes(intArrayOf(android.R.attr.windowSplashScreenAnimatedIcon))
             try {
-                assertEquals(R.drawable.fw_brand_badge, attributes.getResourceId(0, 0))
-                save("android12-starting-icon", render(attributes.getDrawable(0)!!, 288, 288))
+                assertEquals(R.drawable.fw_splash_icon, attributes.getResourceId(0, 0))
+                val icon = render(attributes.getDrawable(0)!!, 288, 288)
+                // Android keeps only the centre 192 dp of this 288 dp icon: the whole crest must fit inside.
+                for (y in 0 until 288) for (x in 0 until 288) {
+                    val outside = (x - 144) * (x - 144) + (y - 144) * (y - 144) > 96 * 96
+                    if (outside) assertEquals("The crest leaves the system's mask at $x/$y", 0, Color.alpha(icon.getPixel(x, y)))
+                }
+                // ... and fills it: white crest pixels reach beyond 80 dp from the centre.
+                val reach = (0 until 288).maxOf { y -> (0 until 288).maxOf { x ->
+                    if (Color.alpha(icon.getPixel(x, y)) > 200) (x - 144) * (x - 144) + (y - 144) * (y - 144) else 0
+                } }
+                assertTrue("The crest shrank inside the splash circle", reach > 80 * 80)
+                assertEquals(
+                    jp.co.soramitsu.common.R.color.fw_brand_ink,
+                    theme.obtainStyledAttributes(intArrayOf(android.R.attr.windowSplashScreenBackground)).run {
+                        try { getResourceId(0, 0) } finally { recycle() }
+                    }
+                )
+                save("android12-starting-icon", icon)
             } finally { attributes.recycle() }
         }
     }

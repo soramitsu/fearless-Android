@@ -38,6 +38,14 @@ import org.mockito.Mockito.mock
 import java.math.BigInteger
 
 class BitcoinBalanceLoaderTest {
+
+    // Secrets are read only in an unlocked session (4.3.2); these tests run unlocked.
+    @org.junit.Before
+    fun unlockWalletSession() = jp.co.soramitsu.common.data.storage.pin.WalletSessionLock.unlock()
+
+    @org.junit.After
+    fun lockWalletSession() = jp.co.soramitsu.common.data.storage.pin.WalletSessionLock.lock()
+
     @Test
     fun `other historical catalog alias does not query or duplicate this exact native account`() = runBlocking {
         val chain = bitcoinChain(isTestNet = false)
@@ -50,6 +58,32 @@ class BitcoinBalanceLoaderTest {
         org.mockito.Mockito.verifyNoInteractions(client)
     }
 
+
+    @Test
+    fun `a locked wallet reads no root secret until the PIN, and view-only reads none at all`() = runBlocking {
+        val chain = bitcoinChain(isTestNet = false)
+        val account = BitcoinKeyDerivation.deriveAccount(MNEMONIC, network = BitcoinKeyDerivation.Network.Mainnet)
+        val metaAccount = metaAccount(chain, publicKey = account.publicKey, accountId = ACCOUNT_ID)
+        val client = FakeBitcoinIndexerClient(
+            addressResponse = BitcoinEsploraAddress(MAINNET_ADDRESS, BitcoinEsploraStats(1, 1_000, 0, 0, 1), BitcoinEsploraStats(0, 0, 0, 0, 0))
+        )
+        val repository = org.mockito.Mockito.mock(jp.co.soramitsu.account.api.domain.interfaces.AccountRepository::class.java)
+        val loader = BitcoinBalanceLoader(chain, client, accountRepository = repository)
+        jp.co.soramitsu.common.data.storage.pin.WalletSessionLock.lock()
+
+        val pending = kotlinx.coroutines.withTimeoutOrNull(300) { loader.loadBalance(setOf(metaAccount)) }
+        assertEquals(null, pending)
+        org.mockito.Mockito.verifyNoInteractions(repository)
+
+        jp.co.soramitsu.common.data.storage.pin.WalletViewOnlyAccess.enter()
+        try {
+            val viewOnly = loader.loadBalance(setOf(metaAccount))
+            assertEquals(1, viewOnly.size)
+            org.mockito.Mockito.verifyNoInteractions(repository)
+        } finally {
+            jp.co.soramitsu.common.data.storage.pin.WalletViewOnlyAccess.pinResetCompleted()
+        }
+    }
 
     @Test
     fun `loads native bitcoin balance from validated mainnet address`() = runBlocking {

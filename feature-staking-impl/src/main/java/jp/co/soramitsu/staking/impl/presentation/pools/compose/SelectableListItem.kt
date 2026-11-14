@@ -7,6 +7,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material.Text
+import androidx.compose.ui.semantics.Role
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -27,6 +31,13 @@ import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.accentRadioButtonColors
+import jp.co.soramitsu.common.compose.theme.fw.FwCheckMark
+import jp.co.soramitsu.common.compose.theme.fw.FwListRow
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.FwTextRole
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
+import jp.co.soramitsu.common.compose.theme.fw.fwTextStyle
 import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.compose.theme.warningOrange
@@ -52,6 +63,10 @@ fun <T> SelectableListItem(
     onSelected: (SelectableListItemState<T>) -> Unit,
     onInfoClick: (SelectableListItemState<T>) -> Unit
 ) {
+    if (FwRestyle.isEnabled(FwSurface.Staking)) {
+        SunlitSelectableListItem(state, onSelected, onInfoClick)
+        return
+    }
     Row(
         modifier = Modifier
             .clickableWithNoIndication { onSelected(state) }
@@ -88,6 +103,40 @@ fun <T> SelectableListItem(
                 .padding(start = 16.dp, top = 12.dp, bottom = 12.dp)
         ) {
             Image(res = R.drawable.ic_info_14, modifier = Modifier.align(Alignment.CenterEnd))
+        }
+    }
+}
+
+/** A raised row: the chosen pool or validator carries the brand rim and a check, and its info keeps its own target. */
+@Composable
+private fun <T> SunlitSelectableListItem(
+    state: SelectableListItemState<T>,
+    onSelected: (SelectableListItemState<T>) -> Unit,
+    onInfoClick: (SelectableListItemState<T>) -> Unit
+) {
+    val c = LocalFwColors.current
+    FwListRow(
+        modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
+        selected = state.isSelected,
+        role = Role.RadioButton,
+        onClick = { onSelected(state) },
+        contentPadding = PaddingValues(start = 14.dp, end = 2.dp, top = 8.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(state.title, style = fwTextStyle(FwTextRole.LabelL), color = c.textPrimary)
+            state.subtitle?.let { Text(it, style = fwTextStyle(FwTextRole.BodyS), color = c.textSecondary) }
+            state.caption?.let { Text(it, style = fwTextStyle(FwTextRole.BodyS), color = c.textSecondary) }
+        }
+        state.additionalStatuses.forEach {
+            Image(modifier = Modifier.size(14.dp), res = it.iconRes, tint = it.iconTintColor)
+        }
+        if (state.isSelected) FwCheckMark()
+        Box(
+            modifier = Modifier.size(48.dp).clickableWithNoIndication(onClick = { onInfoClick(state) }),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(res = R.drawable.ic_info_14)
         }
     }
 }

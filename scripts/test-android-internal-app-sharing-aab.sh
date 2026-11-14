@@ -628,7 +628,7 @@ env \
   sed -n '1,200p' "$positive_log" >&2
   fail "valid IAS artifact with localized keytool metadata did not pass the complete verifier."
 }
-grep -Fq 'exact IAS identity, public Firebase resources, native payload, bundletool validity, and debug signature verified' \
+grep -Fq 'exact IAS identity, no Firebase resources, native payload, bundletool validity, and debug signature verified' \
   "$positive_log" || fail "positive IAS verifier omitted its evidence summary."
 grep -Fq 'cannot upgrade a Play-installed wallet' "$positive_log" ||
   fail "positive IAS verifier omitted the mandatory upgrade warning."
@@ -643,7 +643,7 @@ env -u ANDROID_IAS_DEBUG_KEYSTORE_PATH \
   sed -n '1,200p' "$public_certificate_log" >&2
   fail "valid IAS artifact did not pass with only its public signer certificate."
 }
-grep -Fq 'exact IAS identity, public Firebase resources, native payload, bundletool validity, and debug signature verified' \
+grep -Fq 'exact IAS identity, no Firebase resources, native payload, bundletool validity, and debug signature verified' \
   "$public_certificate_log" ||
   fail "public-certificate IAS verification omitted its evidence summary."
 positive_count=$((positive_count + 1))
@@ -679,7 +679,7 @@ env \
   sed -n '1,200p' "$unsigned_positive_log" >&2
   fail "valid unsigned IAS artifact did not pass the unsigned verifier."
 }
-grep -Fq 'exact unsigned IAS identity, public Firebase resources, native payload, and bundletool validity verified' \
+grep -Fq 'exact unsigned IAS identity, no Firebase resources, native payload, and bundletool validity verified' \
   "$unsigned_positive_log" ||
   fail "unsigned IAS verification omitted its evidence summary."
 positive_count=$((positive_count + 1))
@@ -1469,7 +1469,7 @@ expect_failure \
 if [[ "$signer_mode" == "keystore" ]]; then
 rewrite_unsigned \
   "$fixture" "$temporary_dir/wrong-version.aab" \
-  base/manifest/AndroidManifest.xml 4.2.0-ias 9.9.9-ias
+  base/manifest/AndroidManifest.xml 4.3.3-ias 9.9.9-ias
 resign_with_debug_key "$temporary_dir/wrong-version.aab"
 expect_failure \
   "mutated embedded version" \
@@ -1486,36 +1486,16 @@ expect_failure \
   "AAB source commit mismatch" \
   "$VERIFY" "$temporary_dir/wrong-source.aab" "$expected_commit"
 
+# Firebase is not part of the app: a string resource with a name the Google Services plugin
+# generates must fail the bundle. common_cancel and google_app_id are both 13 bytes.
 rewrite_unsigned \
-  "$fixture" "$temporary_dir/wrong-firebase.aab" \
-  base/resources.pb fearless-public fearless-attack project_id
-resign_with_debug_key "$temporary_dir/wrong-firebase.aab"
+  "$fixture" "$temporary_dir/firebase-resource.aab" \
+  base/resources.pb common_cancel google_app_id
+resign_with_debug_key "$temporary_dir/firebase-resource.aab"
 expect_failure \
-  "mutated compiled Firebase identity" \
-  "compiled Firebase resource project_id does not have exactly the approved public-placeholder value." \
-  "$VERIFY" "$temporary_dir/wrong-firebase.aab" "$expected_commit"
-
-rewrite_unsigned \
-  "$fixture" "$temporary_dir/wrong-database-url.aab" \
-  base/resources.pb \
-  https://fearless-public.firebaseio.com \
-  https://fearless-attack.firebaseio.com
-resign_with_debug_key "$temporary_dir/wrong-database-url.aab"
-expect_failure \
-  "mutated compiled Firebase database URL" \
-  "compiled Firebase resource firebase_database_url does not have exactly the approved public-placeholder value." \
-  "$VERIFY" "$temporary_dir/wrong-database-url.aab" "$expected_commit"
-
-rewrite_unsigned \
-  "$fixture" "$temporary_dir/wrong-storage-bucket.aab" \
-  base/resources.pb \
-  fearless-public.appspot.com \
-  fearless-attack.appspot.com
-resign_with_debug_key "$temporary_dir/wrong-storage-bucket.aab"
-expect_failure \
-  "mutated compiled Firebase storage bucket" \
-  "compiled Firebase resource google_storage_bucket does not have exactly the approved public-placeholder value." \
-  "$VERIFY" "$temporary_dir/wrong-storage-bucket.aab" "$expected_commit"
+  "injected Firebase resource" \
+  "Firebase or Google Services resources are present: google_app_id" \
+  "$VERIFY" "$temporary_dir/firebase-resource.aab" "$expected_commit"
 
 python3 - "$fixture" "$temporary_dir/extra-module.aab" <<'PY'
 import re
@@ -1672,7 +1652,7 @@ import zipfile
 
 source, destination = sys.argv[1:]
 signature = re.compile(r"^META-INF/(MANIFEST\.MF|[^/]+\.(SF|RSA|DSA|EC))$", re.I)
-target = "base/lib/arm64-v8a/libsodium.so"
+target = "base/lib/arm64-v8a/libsr25519java.so"
 changed = False
 with zipfile.ZipFile(source, "r") as source_zip, zipfile.ZipFile(destination, "w") as output_zip:
     for info in source_zip.infolist():
@@ -1696,7 +1676,7 @@ fi
 [[ "$positive_count" == "7" ]] ||
   fail "expected 7 positive artifacts; got $positive_count."
 if [[ "$signer_mode" == "keystore" ]]; then
-  expected_negative_count=$((84 + linux_resource_negative_count))
+  expected_negative_count=$((82 + linux_resource_negative_count))
 else
   expected_negative_count=$((76 + linux_resource_negative_count))
 fi

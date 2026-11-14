@@ -81,7 +81,7 @@ interface BackupMnemonicCallback {
 }
 
 @Composable
-internal fun BackupMnemonicContent(
+fun BackupMnemonicContent(
     state: BackupMnemonicState,
     isGoogleAvailable: Boolean,
     callback: BackupMnemonicCallback

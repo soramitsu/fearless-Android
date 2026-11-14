@@ -76,82 +76,87 @@ class DAppBridge(
         }
     }
 
-    override fun jsInjection(): String {
+    override fun jsInjection(token: String): String {
+        require(DappBridgeAccess.isWellFormedToken(token)) { "Invalid bridge token" }
         val funcs = availableFunctions.joinToString(",") {
             """
             $it: (...args) => {
-                return new Promise((resolve, reject) => window.invokeRnFunc('$it', args, resolve, reject))
+                return new Promise((resolve, reject) => invokeRnFunc('$it', args, resolve, reject))
             }
         """
         }.replace("\n", "").replace("  ", "")
 
+        // The token lives only in this closure. Every call carries it, and a response or
+        // event without it, such as one posted by another frame, is ignored.
         return """
             (() => {
-                if (!window.$windowKey) {
-                    window.rnPromises = {};
-                    window.rnEventListeners = [];
-                    window.invokeRnFunc = (name, args, resolve, reject) => {
-                        const invocationId = btoa(Math.random()).substring(0, 12);
-                        const timeoutMs = $timeout;
-                        const timeoutId = timeoutMs ? setTimeout(() => reject(new Error('bridge timeout for function with name: '+name+'')), timeoutMs) : null;
-                        window.rnPromises[invocationId] = { resolve, reject, timeoutId }
-                        window.ReactNativeWebView.postMessage(JSON.stringify({
-                            type: '${BridgeMessage.Type.InvokeRnFunc.value}',
-                            invocationId: invocationId,
-                            name,
-                            args,
-                        }));
-                    };
-                    
-                    window.addEventListener('message', ({ data }) => {
-                        try {
-                            const message = data;
-                            console.log('message bridge', JSON.stringify(message));
-                            if (message.type === '${BridgeMessage.Type.FunctionResponse.value}') {
-                                const promise = window.rnPromises[message.invocationId];
-                                
-                                if (!promise) {
-                                    return;
-                                }
-                                
-                                if (promise.timeoutId) {
-                                    clearTimeout(promise.timeoutId);
-                                }
-                                
-                                if (message.status === 'fulfilled') {
-                                    promise.resolve(JSON.parse(message.data));
-                                } else {
-                                    promise.reject(new Error(message.data));
-                                }
-                                
-                                delete window.rnPromises[message.invocationId];
+                const token = '$token';
+                const rnPromises = {};
+                const rnEventListeners = [];
+                const invokeRnFunc = (name, args, resolve, reject) => {
+                    const invocationId = btoa(Math.random()).substring(0, 12);
+                    const timeoutMs = $timeout;
+                    const timeoutId = timeoutMs ? setTimeout(() => reject(new Error('bridge timeout for function with name: '+name+'')), timeoutMs) : null;
+                    rnPromises[invocationId] = { resolve, reject, timeoutId }
+                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                        type: '${BridgeMessage.Type.InvokeRnFunc.value}',
+                        ${JsBridge.TOKEN_KEY}: token,
+                        invocationId: invocationId,
+                        name,
+                        args,
+                    }));
+                };
+
+                window.addEventListener('message', ({ data }) => {
+                    try {
+                        const message = data;
+                        if (!message || message.${JsBridge.TOKEN_KEY} !== token) {
+                            return;
+                        }
+                        if (message.type === '${BridgeMessage.Type.FunctionResponse.value}') {
+                            const promise = rnPromises[message.invocationId];
+
+                            if (!promise) {
+                                return;
                             }
-                            
-                            if (message.type === '${BridgeMessage.Type.Event.value}') {
-                                window.rnEventListeners.forEach((listener) => listener(message.event));
+
+                            if (promise.timeoutId) {
+                                clearTimeout(promise.timeoutId);
                             }
-                        } catch { }
-                    });
-                }
-                
+
+                            if (message.status === 'fulfilled') {
+                                promise.resolve(JSON.parse(message.data));
+                            } else {
+                                promise.reject(new Error(message.data));
+                            }
+
+                            delete rnPromises[message.invocationId];
+                        }
+
+                        if (message.type === '${BridgeMessage.Type.Event.value}') {
+                            rnEventListeners.forEach((listener) => listener(message.event));
+                        }
+                    } catch { }
+                });
+
                 const listen = (cb) => {
-                    window.rnEventListeners.push(cb);
+                    rnEventListeners.push(cb);
                     return () => {
-                        const index = window.rnEventListeners.indexOf(cb);
+                        const index = rnEventListeners.indexOf(cb);
                         if (index > -1) {
-                            window.rnEventListeners.splice(index, 1);
+                            rnEventListeners.splice(index, 1);
                         }
                     };
                 };
-                
+
                 window.$windowKey = {
                     tonconnect: Object.assign(${JSONObject(keys)},{ $funcs },{ listen })
                 };
-                
+
                 window.tonapi = {
                     fetch: async (url, options) => {
                         return new Promise((resolve, reject) => {
-                            window.invokeRnFunc('tonapi.fetch', [url, options], (result) => {
+                            invokeRnFunc('tonapi.fetch', [url, options], (result) => {
                                 try {
                                     const headers = new Headers(result.headers);
                                     const response = new Response(result.body, {

@@ -1,11 +1,6 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation
 
-import android.annotation.SuppressLint
-import android.app.Dialog
-import android.os.Build
-import android.os.Bundle
-import android.view.KeyEvent
-import androidx.annotation.RequiresApi
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -31,7 +26,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetDialog
@@ -42,6 +36,7 @@ import jp.co.soramitsu.common.compose.component.ToolbarBottomSheet
 import jp.co.soramitsu.common.compose.component.ToolbarHomeIconState
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.common.compose.models.retrieveString
+import jp.co.soramitsu.common.navigation.popFlowPageOrExit
 import jp.co.soramitsu.common.presentation.InfoDialog
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.feature_liquiditypools_impl.R
@@ -62,33 +57,6 @@ class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewMode
 
     override val viewModel: PoolsFlowViewModel by viewModels()
 
-    // Compose BackHandler does not work in DialogFragments, nor does BackPressedDispatcher
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            super.onCreateDialog(savedInstanceState).apply {
-                setOnKeyListener { _, keyCode, event ->
-                    val isBackPressDetected =
-                        keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP
-
-                    if (isBackPressDetected) {
-                        viewModel.onNavigationClick()
-                    }
-
-                    return@setOnKeyListener isBackPressDetected
-                }
-            }
-        } else {
-            // Call to super.onBackPressed() will cancel dialog as default behavior
-            object : BottomSheetDialog(requireContext(), theme) {
-                @SuppressLint("MissingSuperCall")
-                @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-                override fun onBackPressed() {
-                    viewModel.onNavigationClick()
-                }
-            }
-        }
-    }
-
     @Composable
     override fun Content(padding: PaddingValues) {
         val navController = rememberNavController()
@@ -108,16 +76,8 @@ class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewMode
 
             viewModel.navGraphActionsFlow.onEach {
                 when (it) {
-                    is NavAction.BackPressed -> {
-                        val isBackNavigationSuccess = navController.popBackStack()
-
-                        val currentRoute = navController.currentDestination?.route
-                        val loadingRoute = LiquidityPoolsNavGraphRoute.Loading.routeName
-
-                        if (currentRoute == loadingRoute || !isBackNavigationSuccess) {
-                            viewModel.exitFlow()
-                        }
-                    }
+                    is NavAction.BackPressed ->
+                        navController.popFlowPageOrExit(LiquidityPoolsNavGraphRoute.Loading.routeName, viewModel::exitFlow)
 
                     is NavAction.ShowError ->
                         showErrorDialog(
@@ -159,7 +119,8 @@ class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewMode
 
                 is LoadingState.Loading<TextModel> ->
                     MainToolbarShimmer(
-                        homeIconState = ToolbarHomeIconState.Navigation(jp.co.soramitsu.feature_wallet_impl.R.drawable.ic_arrow_back_24dp)
+                        homeIconState = ToolbarHomeIconState.Navigation(jp.co.soramitsu.feature_wallet_impl.R.drawable.ic_arrow_back_24dp),
+                        onNavigationClick = viewModel::onNavigationClick
                     )
             }
 
@@ -221,6 +182,10 @@ class PoolsFlowFragment : BaseComposeBottomSheetDialogFragment<PoolsFlowViewMode
                     ) { CircularProgressIndicator() }
                 }
             }
+
+            // After the NavHost, so it runs before the NavHost's own handler, which would pop to Loading,
+            // and before the sheet's, which would only collapse it. Toolbar and system Back are one path.
+            BackHandler(onBack = viewModel::onNavigationClick)
         }
     }
 

@@ -76,6 +76,8 @@ interface AccountRouter : SecureRouter {
 
     fun openLanguages()
 
+    fun openAppearance()
+
     fun openAccountDetails(metaAccountId: Long)
 
     fun openNodeDetails(payload: NodeDetailsPayload)
@@ -101,11 +103,7 @@ interface AccountRouter : SecureRouter {
 
     fun openChangePinCode()
 
-    fun openBeacon(qrContent: String? = null)
-
     fun openOnboardingNavGraph(chainId: ChainId, metaId: Long, isImport: Boolean)
-
-    fun openExperimentalFeatures()
 
     fun openOptionsAddAccount(metaId: Long, type: WalletEcosystem)
 
@@ -114,6 +112,9 @@ interface AccountRouter : SecureRouter {
     fun openCreateWalletDialogFromGoogleBackup()
 
     fun openCreateBackupPasswordDialogWithResult(payload: SaveBackupPayload?): Flow<Int>
+
+    /** Opens the backup password dialog for an existing wallet only after the PIN check; emits its result. */
+    fun openCreateBackupPasswordDialogAfterPinCheck(payload: SaveBackupPayload, pinCodeTitleRes: Int? = null): Flow<Int>
 
     fun openMnemonicAgreementsDialogForGoogleBackup(
         accountName: String,

@@ -83,6 +83,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -197,7 +198,8 @@ class StakingViewModel @Inject constructor(
 
     val assetSelectorMixin = StakingAssetSelector(stakingSharedState, this, resourceManager.getString(jp.co.soramitsu.common.R.string.portfolio_balance_unavailable))
 
-    val stakingTypeFlow = stakingSharedState.selectionItem.map { it.type }
+    /** Null while the stored choice is not offered, so no network info or staking body is shown for it. */
+    val stakingTypeFlow: Flow<StakingType?> = stakingSharedState.settledSelection.map { it?.type }
 
     private val _showRewardEstimationEvent = MutableLiveData<Event<StakingRewardEstimationBottomSheet.Payload>?>()
     val showRewardEstimationEvent: LiveData<Event<StakingRewardEstimationBottomSheet.Payload>?> = _showRewardEstimationEvent
@@ -405,26 +407,40 @@ class StakingViewModel @Inject constructor(
         mapStakingNetworkInfoState(selection.type, state, defaultNetworkInfoStates)
     }
 
-    val state = combine(
-        stakingSharedState.selectionItem,
-        assetSelectorMixin.selectedAssetModelFlow,
-        networkInfoState,
-        stakingViewState
-    ) { selection, selectedAsset, networkInfo, stakingState ->
+    val state = stakingSharedState.settledSelection.flatMapLatest { settled ->
+        if (settled == null) {
+            // The stored choice left the catalog (relay staking moved to Asset Hub, or its network was retired).
+            // Show the chooser instead of waiting for a selection that cannot arrive; the choice stays stored.
+            flowOf(unavailableSelectionScreenState())
+        } else {
+            combine(
+                stakingSharedState.selectionItem,
+                assetSelectorMixin.selectedAssetModelFlow,
+                networkInfoState,
+                stakingViewState
+            ) { selection, selectedAsset, networkInfo, stakingState ->
 
-        val selectorState = AssetSelectorState(
-            selectedAsset.chainName,
-            selectedAsset.imageUrl,
-            selectedAsset.assetBalance,
-            (selectedAsset.selectionItem as? StakingAssetSelection.Pool)?.type?.name
-        )
+                val selectorState = AssetSelectorState(
+                    selectedAsset.chainName,
+                    selectedAsset.imageUrl,
+                    selectedAsset.assetBalance,
+                    (selectedAsset.selectionItem as? StakingAssetSelection.Pool)?.type?.name
+                )
 
-        StakingScreenViewState(
-            selectorState,
-            networkInfo,
-            mapStakingBodyState(selection.type, stakingState)
-        )
+                StakingScreenViewState(
+                    selectorState,
+                    networkInfo,
+                    mapStakingBodyState(selection.type, stakingState)
+                )
+            }
+        }
     }.debounce(50).stateIn(scope = this, started = SharingStarted.Eagerly, initialValue = null)
+
+    private fun unavailableSelectionScreenState() = StakingScreenViewState(
+        AssetSelectorState(resourceManager.getString(jp.co.soramitsu.common.R.string.common_select_network), "", ""),
+        StakingAssetInfoViewState.RelayChain.default(resourceManager),
+        null
+    )
 
     private val quickInputsStateFlow = MutableStateFlow<Map<Double, BigDecimal>?>(null)
     init {

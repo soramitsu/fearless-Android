@@ -3,8 +3,7 @@ set -euo pipefail
 umask 077
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PRODUCTION_UPLOAD_CERTIFICATE_SHA256="40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A"
-PINNED_PUBLIC_FIREBASE_SHA256="3085af682c8c8a166142f7ef867e0c3fa06a6f87436f3a15497f8ae7dac93d2f"
+PRODUCTION_UPLOAD_CERTIFICATE_SHA256="AD6C1D07BE5DFA8C539E8C9B8BD43DC1C6CF79A839828B10B6F953AD57C1BDE8"
 PINNED_BUNDLETOOL_SHA256="a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29"
 temporary_dir=""
 verified_output=""
@@ -1531,69 +1530,20 @@ fi
 
 expected_version_name="$(version_property versionName)-ias"
 expected_version_code="$(version_property versionCode)"
-[[ "$expected_version_name" == "4.2.0-ias" ]] ||
-  fail "IAS versionName must remain exactly 4.2.0-ias for this testing candidate."
-[[ "$expected_version_code" == "231" ]] ||
-  fail "IAS versionCode must remain exactly 231 for this testing candidate."
+[[ "$expected_version_name" == "4.3.3-ias" ]] ||
+  fail "IAS versionName must remain exactly 4.3.3-ias for this testing candidate."
+[[ "$expected_version_code" == "235" ]] ||
+  fail "IAS versionCode must remain exactly 235 for this testing candidate."
 
-public_firebase="$ROOT_DIR/app/src/release/google-services.json"
-require_regular_file "$public_firebase" "public Firebase configuration" 65536
-[[ "$(sha256_file "$public_firebase")" == "$PINNED_PUBLIC_FIREBASE_SHA256" ]] ||
-  fail "public Firebase configuration does not match the exact reviewed checksum."
-python3 - "$public_firebase" <<'PY'
-import json
-import sys
-
-def unique_object(pairs):
-    result = {}
-    for key, value in pairs:
-        if key in result:
-            raise ValueError(f"duplicate JSON key: {key}")
-        result[key] = value
-    return result
-
-try:
-    with open(sys.argv[1], encoding="utf-8") as source:
-        data = json.load(source, object_pairs_hook=unique_object)
-except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as error:
-    raise SystemExit(f"[android-ias-aab][error] public Firebase JSON is unsafe: {error}")
-project = data.get("project_info")
-clients = data.get("client")
-if not isinstance(project, dict) or not isinstance(clients, list):
-    raise SystemExit("[android-ias-aab][error] public Firebase JSON structure is malformed.")
-matching = [
-    client for client in clients
-    if isinstance(client, dict)
-    and client.get("client_info", {}).get("android_client_info", {}).get("package_name")
-        == "jp.co.soramitsu.fearless"
-]
-keys = [
-    item.get("current_key")
-    for client in clients if isinstance(client, dict)
-    for item in client.get("api_key", []) if isinstance(item, dict)
-]
-web = [
-    item.get("client_id")
-    for item in (matching[0].get("oauth_client", []) if len(matching) == 1 else [])
-    if isinstance(item, dict) and item.get("client_type") == 3
-]
-valid = (
-    project.get("project_id") == "fearless-public"
-    and project.get("project_number") == "000000000000"
-    and project.get("firebase_url") == "https://fearless-public.firebaseio.com"
-    and project.get("storage_bucket") == "fearless-public.appspot.com"
-    and len(matching) == 1
-    and matching[0].get("client_info", {}).get("mobilesdk_app_id")
-        == "1:000000000000:android:0000000000000000000002"
-    and web == ["000000000000-public-1-1.apps.googleusercontent.com"]
-    and bool(keys)
-    and all(value == "" for value in keys)
-)
-if not valid:
-    raise SystemExit(
-        "[android-ias-aab][error] only the reviewed public-placeholder Firebase JSON is allowed."
-    )
-PY
+# Firebase and Google Play services are not part of the app: no source set may hold a Google
+# Services configuration, and the bundle must not carry the resources one would generate.
+google_services_configurations="$(
+  find "$ROOT_DIR/app" -maxdepth 3 -name google-services.json \
+    \( -path "$ROOT_DIR/app/google-services.json" -o -path "$ROOT_DIR/app/src/*/google-services.json" \) \
+    -print 2>/dev/null || true
+)"
+[[ -z "$google_services_configurations" ]] ||
+  fail "IAS forbids Google Services configuration files: $google_services_configurations"
 
 certificate_validity_source="$temporary_dir/CheckCertificateValidity.java"
 cat >"$certificate_validity_source" <<'JAVA'
@@ -1791,42 +1741,44 @@ if ! run_limited_command \
 fi
 sed -n '1,160p' "$identity_verification_log"
 
-verify_resource() {
-  local name="$1" expected="$2" output="$temporary_dir/resource-$1.txt"
-  local error_output="$temporary_dir/resource-$1.error.txt"
-  run_limited_command \
-    "bundletool resource dump ($name)" "$output" "$error_output" \
-    java "${bundletool_java_args[@]}" -jar "$BUNDLETOOL_JAR" \
-    dump resources --bundle "$artifact" \
-    --resource "string/$name" --values || {
-    sed -n '1,80p' "$error_output" >&2
-    fail "bundletool could not read IAS Firebase resource $name."
-  }
-  python3 - "$output" "$name" "$expected" <<'PY'
+resource_listing="$temporary_dir/resource-names.txt"
+resource_listing_error="$temporary_dir/resource-names.error.txt"
+run_limited_command \
+  "bundletool resource listing" "$resource_listing" "$resource_listing_error" \
+  java "${bundletool_java_args[@]}" -jar "$BUNDLETOOL_JAR" \
+  dump resources --bundle "$artifact" || {
+  sed -n '1,80p' "$resource_listing_error" >&2
+  fail "bundletool could not list the IAS resources."
+}
+python3 - "$resource_listing" <<'PY'
 import re
 import sys
-path, name, expected = sys.argv[1:]
+
+# Resources the Google Services plugin generates from google-services.json.
+FIREBASE_RESOURCES = {
+    "default_web_client_id",
+    "firebase_database_url",
+    "gcm_defaultSenderId",
+    "google_api_key",
+    "google_app_id",
+    "google_crash_reporting_api_key",
+    "google_storage_bucket",
+    "project_id",
+}
 try:
-    text = open(path, encoding="utf-8").read()
+    text = open(sys.argv[1], encoding="utf-8").read()
 except (OSError, UnicodeError) as error:
-    raise SystemExit(f"[android-ias-aab][error] could not read compiled resource {name}: {error}")
-matches = re.findall(r'\[STR\] "(.*)"\s*$', text, re.MULTILINE)
-if matches != [expected]:
+    raise SystemExit(f"[android-ias-aab][error] could not read the resource listing: {error}")
+names = set(re.findall(r"\bstring/([A-Za-z0-9_.]+)", text))
+if not names:
+    raise SystemExit("[android-ias-aab][error] the resource listing contains no string resources.")
+present = sorted(FIREBASE_RESOURCES & names)
+if present:
     raise SystemExit(
-        f"[android-ias-aab][error] compiled Firebase resource {name} "
-        "does not have exactly the approved public-placeholder value."
+        "[android-ias-aab][error] Firebase or Google Services resources are present: "
+        + ", ".join(present)
     )
 PY
-}
-
-verify_resource project_id fearless-public
-verify_resource firebase_database_url https://fearless-public.firebaseio.com
-verify_resource google_storage_bucket fearless-public.appspot.com
-verify_resource google_app_id 1:000000000000:android:0000000000000000000002
-verify_resource google_api_key ''
-verify_resource google_crash_reporting_api_key ''
-verify_resource default_web_client_id 000000000000-public-1-1.apps.googleusercontent.com
-verify_resource gcm_defaultSenderId 000000000000
 
 verify_original_unchanged "$input_artifact" "$artifact_identity" "IAS AAB"
 verify_original_unchanged "$input_bundletool" "$bundletool_identity" "BUNDLETOOL_JAR"
@@ -2255,12 +2207,12 @@ if [[ -n "$verified_output" ]]; then
 fi
 if [[ "$verification_mode" == "unsigned" ]]; then
   cat <<'NOTICE'
-[android-ias-aab] exact unsigned IAS identity, public Firebase resources, native payload, and bundletool validity verified
+[android-ias-aab] exact unsigned IAS identity, no Firebase resources, native payload, and bundletool validity verified
 [android-ias-aab] UNSIGNED QUARANTINE ONLY: this artifact is not installable and must be signed only in the fresh qualifier.
 NOTICE
 else
   cat <<'NOTICE'
-[android-ias-aab] exact IAS identity, public Firebase resources, native payload, bundletool validity, and debug signature verified
+[android-ias-aab] exact IAS identity, no Firebase resources, native payload, bundletool validity, and debug signature verified
 [android-ias-aab] TEST ONLY: Google IAS re-signing/debug signing cannot upgrade a Play-installed wallet.
 [android-ias-aab] Never uninstall a funded wallet; this artifact does not prove production migration coverage.
 NOTICE

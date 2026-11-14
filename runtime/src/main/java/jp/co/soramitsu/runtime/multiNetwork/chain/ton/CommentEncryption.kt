@@ -1,13 +1,11 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain.ton
 
 import io.ktor.util.hex
-import org.ton.api.pk.PrivateKeyEd25519
-import org.ton.api.pub.PublicKeyEd25519
+import jp.co.soramitsu.fearless_utils.encrypt.ton.TonEd25519
 import org.ton.block.AddrStd
 import org.ton.cell.Cell
 import org.ton.cell.CellBuilder
-import org.ton.crypto.Ed25519
-import org.ton.crypto.SecureRandom
+import java.security.SecureRandom
 import javax.crypto.Cipher
 import javax.crypto.Mac
 import javax.crypto.spec.IvParameterSpec
@@ -19,9 +17,11 @@ object CommentEncryption {
     private const val ROOT_CELL_BYTE_LENGTH = 35 + 4
     private const val CELL_BYTE_LENGTH = 127
 
+    private val secureRandom = SecureRandom()
+
     fun decryptComment(
-        publicKey: PublicKeyEd25519,
-        privateKey: PrivateKeyEd25519,
+        publicKey: ByteArray,
+        privateKey: ByteArray,
         cipherText: String,
         senderAddress: String
     ): String {
@@ -29,24 +29,12 @@ object CommentEncryption {
 
         val decryptedData = decryptData(
             hex(cipherText),
-            publicKey.key.toByteArray(),
-            privateKey.key.toByteArray(),
+            publicKey,
+            privateKey,
             address.toByteArray()
         )
 
         return decryptedData.decodeToString()
-    }
-    fun encryptComment(
-        comment: String,
-        myPublicKey: PublicKeyEd25519,
-        theirPublicKey: PublicKeyEd25519,
-        myPrivateKey: PrivateKeyEd25519,
-        senderAddress: String
-    ): Cell {
-        val myPublicKeyBytes = myPublicKey.key.toByteArray()
-        val theirPublicKeyBytes = theirPublicKey.key.toByteArray()
-        val myPrivateKeyBytes = myPrivateKey.key.toByteArray()
-        return encryptComment(comment, myPublicKeyBytes, theirPublicKeyBytes, myPrivateKeyBytes, senderAddress)
     }
 
     fun encryptComment(
@@ -125,7 +113,7 @@ object CommentEncryption {
         privateKey: ByteArray,
         salt: ByteArray
     ): ByteArray {
-        val sharedSecret = Ed25519.sharedKey(privateKey, theirPublicKey)
+        val sharedSecret = TonEd25519.sharedKey(privateKey, theirPublicKey)
 
         val encrypted = encryptDataImpl(data, sharedSecret, salt)
         val prefixedEncrypted = ByteArray(myPublicKey.size + encrypted.size)
@@ -166,7 +154,7 @@ object CommentEncryption {
 
     private fun getRandomPrefix(dataLength: Int, minPadding: Int): ByteArray {
         val prefixLength = ((minPadding + 15 + dataLength) and -16) - dataLength
-        val prefix = SecureRandom.nextBytes(prefixLength)
+        val prefix = ByteArray(prefixLength).also(secureRandom::nextBytes)
         prefix[0] = prefixLength.toByte()
         if ((prefixLength + dataLength) % 16 != 0) throw IllegalArgumentException("Prefix length is invalid")
         return prefix
@@ -182,7 +170,7 @@ object CommentEncryption {
         for (i in publicKey.indices) {
             theirPublicKey[i] = data[i] xor publicKey[i]
         }
-        val sharedSecret = Ed25519.sharedKey(privateKey, theirPublicKey)
+        val sharedSecret = TonEd25519.sharedKey(privateKey, theirPublicKey)
         return decryptDataImpl(data.sliceArray(publicKey.size until data.size), sharedSecret, salt)
     }
 

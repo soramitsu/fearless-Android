@@ -1,9 +1,11 @@
 package jp.co.soramitsu.runtime.multiNetwork
 
 import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
+import jp.co.soramitsu.runtime.ext.isUniversalWalletIroha
 import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
 
 import android.util.Log
+import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.utils.diffed
 import jp.co.soramitsu.common.utils.failure
@@ -16,6 +18,7 @@ import jp.co.soramitsu.coredb.dao.AssetReadOnlyCache
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.model.chain.ChainNodeLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
+import jp.co.soramitsu.runtime.assethub.AssetHubStaking
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChainOrNull
 import jp.co.soramitsu.runtime.multiNetwork.chain.mapNodeLocalToNode
@@ -36,6 +39,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -44,6 +48,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
@@ -54,7 +59,11 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
@@ -90,11 +99,26 @@ internal fun selectChainsForBackgroundSync(
     }
     val requiredIdentityChainIds = chains.mapNotNull(Chain::identityChain).toSet()
     val identityHolders = chains.filter { it.id in requiredIdentityChainIds }
+    // Hub staking reads its era clock (Babe and Session) from the relay chain.
+    val stakingClockIds = chainsWithStaking.mapNotNull { AssetHubStaking.relay(it.id) }.toSet()
+    val stakingClocks = chains.filter { it.id in stakingClockIds }
 
-    return (popularChains + enabledChains + chainsWithStaking + identityHolders)
+    return (popularChains + enabledChains + chainsWithStaking + identityHolders + stakingClocks)
         .distinctBy(Chain::id)
         .filter { it.nodes.isNotEmpty() || it.isUniversalWalletBitcoin() }
 }
+
+/**
+ * Whether reading this chain's balances needs a registry connection: a Substrate runtime or an EVM
+ * client. Bitcoin, Solana and Iroha are read over their own HTTP clients, even where the catalog
+ * stores them as Substrate with a node, and TON needs no registry connection either.
+ */
+fun Chain.needsRegistryConnection(): Boolean =
+    nodes.isNotEmpty() &&
+        ecosystem in REGISTRY_CONNECTION_ECOSYSTEMS &&
+        !isUniversalWalletBitcoin() && !isUniversalWalletSolana() && !isUniversalWalletIroha()
+
+private val REGISTRY_CONNECTION_ECOSYSTEMS = setOf(Ecosystem.Substrate, Ecosystem.Ethereum, Ecosystem.EthereumBased)
 
 /**
  * Central registry coordinating chain runtimes, connections, and sync lifecycle.
@@ -154,6 +178,26 @@ class ChainRegistry @Inject constructor(
 
     private val syncStarted = AtomicBoolean()
 
+    // Who may disconnect a chain. The background-sync selection and every discovery lease are read
+    // and changed under this lock, and so are the stops they decide (see withDiscoveryConnection).
+    private val ownership = Mutex()
+
+    // The chains the latest background-sync selection keeps; null until the first selection.
+    private val selectedChainIds = MutableStateFlow<Set<ChainId>?>(null)
+
+    // Guarded by [ownership].
+    private val discoveryLeases = mutableMapOf<ChainId, DiscoveryLease>()
+
+    private val setupLocks = ConcurrentHashMap<ChainId, Mutex>()
+
+    private class DiscoveryLease {
+        var holders = 0
+
+        // Disconnect when the last read ends unless the selection keeps the chain then: set when a
+        // read connected it, or when the selection dropped it during a read.
+        var stopOnRelease = false
+    }
+
     // Note: call `syncUp()` to start observing/maintaining chain connections.
 
     /**
@@ -167,8 +211,14 @@ class ChainRegistry @Inject constructor(
                 val addedIds = addedOrModified.map(Chain::id).toSet()
                 val removedTrue = removed.filterNot { it.id in addedIds } // skip chains that are just updated
 
-                val removedDeferred = removedTrue.map {
-                    async { stopChain(it) }
+                // A discovery read never loses a connection this selection keeps, and a chain the
+                // selection drops while a read uses it is disconnected when that read ends.
+                ownership.withLock {
+                    selectedChainIds.value = all.mapTo(HashSet(), Chain::id)
+                    removedTrue.forEach { chain ->
+                        val lease = discoveryLeases[chain.id]
+                        if (lease != null) lease.stopOnRelease = true else stopChain(chain)
+                    }
                 }
 
                 val syncDeferred = addedOrModified.map { chain ->
@@ -185,7 +235,7 @@ class ChainRegistry @Inject constructor(
                     }
                 }
 
-                (removedDeferred + syncDeferred).awaitAll()
+                syncDeferred.awaitAll()
                 coroutineContext.job.invokeOnCompletion {
                     val errorMessage = it?.let { error -> "with error: ${error.javaClass.simpleName}" } ?: ""
                     Log.d("ChainRegistry", "chains sync completed $errorMessage")
@@ -220,10 +270,54 @@ class ChainRegistry @Inject constructor(
 
     /**
      * Applies environment-specific configuration and establishes connections/runtime providers.
+     * Calls for one chain run one at a time: a concurrent second call would supersede the first
+     * one's connection command, which then fails as "Runtime configuration was superseded".
      */
     suspend fun setupChain(chain: Chain) {
-        chainEnvironmentConfiguratorProvider.provide(chain).configure(chain)
+        setupLocks.getOrPut(chain.id) { Mutex() }.withLock {
+            chainEnvironmentConfiguratorProvider.provide(chain).configure(chain)
+        }
     }
+
+    /**
+     * Runs [block] while [chain] is connected, for a discovery read of a chain background sync may
+     * not keep.
+     *
+     * A chain the current selection keeps stays the registry's: it is read on the registry's
+     * connection and left connected. Any other chain is connected for the read and disconnected
+     * when the read ends, unless the selection took it over meanwhile, as it does once the read
+     * stores a funded balance. While the read runs, a selection change cannot disconnect the chain.
+     */
+    suspend fun <T> withDiscoveryConnection(chain: Chain, block: suspend () -> T): T {
+        val lease = ownership.withLock {
+            discoveryLeases.getOrPut(chain.id) { DiscoveryLease() }.also { it.holders++ }
+        }
+        try {
+            if (selectedChainIds.value?.contains(chain.id) != true && !checkChainSyncedUp(chain)) {
+                ownership.withLock { lease.stopOnRelease = true }
+                setupChain(chain)
+            }
+            return block()
+        } finally {
+            withContext(NonCancellable) {
+                ownership.withLock {
+                    lease.holders--
+                    if (lease.holders == 0) {
+                        discoveryLeases.remove(chain.id)
+                        if (lease.stopOnRelease && selectedChainIds.value?.contains(chain.id) != true) {
+                            stopChain(chain)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /** Waits at most [timeoutMillis] for background sync to keep [chainId]; true once it does. */
+    suspend fun awaitBackgroundSync(chainId: ChainId, timeoutMillis: Long): Boolean =
+        withTimeoutOrNull(timeoutMillis) {
+            selectedChainIds.first { selected -> selected?.contains(chainId) == true }
+        } != null
 
     /**
      * Verifies whether a chain currently has an active connection and (for Substrate) a runtime.

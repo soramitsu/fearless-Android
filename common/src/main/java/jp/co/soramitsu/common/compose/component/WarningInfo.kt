@@ -20,6 +20,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.black2
+import jp.co.soramitsu.common.compose.theme.fw.FwExpandChevron
+import jp.co.soramitsu.common.compose.theme.fw.FwNotice
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
 import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.common.utils.withNoFontPadding
@@ -36,6 +41,10 @@ fun WarningInfo(
     state: WarningInfoState,
     onClick: () -> Unit = {}
 ) {
+    if (FwRestyle.isEnabled(FwSurface.Signing)) {
+        SunlitWarningInfo(state, onClick)
+        return
+    }
     BackgroundCorneredWithBorder(
         borderColor = state.color
     ) {
@@ -95,6 +104,33 @@ fun WarningInfo(
             }
         }
     }
+}
+
+/** The same still notice as every other warning; a warning with details opens them under its chevron. */
+@Composable
+private fun SunlitWarningInfo(state: WarningInfoState, onClick: () -> Unit) {
+    val c = LocalFwColors.current
+    FwNotice(
+        message = state.message,
+        title = stringResource(id = R.string.common_warning),
+        modifier = Modifier.clickableWithNoIndication(onClick).testTag("warning_layout"),
+        action = if (state.extras.isEmpty()) {
+            null
+        } else {
+            {
+                FwExpandChevron(expanded = state.isExpanded, modifier = Modifier.align(Alignment.End))
+                if (state.isExpanded) {
+                    state.extras.forEach {
+                        Row(Modifier.padding(top = 6.dp).testTag("warning_extra_${it.first}")) {
+                            H6(text = "${it.first}:", color = c.textSecondary)
+                            MarginHorizontal(margin = 4.dp)
+                            B2(text = it.second)
+                        }
+                    }
+                }
+            }
+        }
+    )
 }
 
 @Composable

@@ -13,4 +13,7 @@
     <string name="pin_recovery_verify_backup">Verificar cópia da carteira</string>
     <string name="pin_recovery_reset">Recuperar PIN da carteira</string>
     <string name="pin_recovery_view_only_title">Acesso apenas de leitura</string>
+    <string name="pin_recovery_forgot">Esqueceu o PIN?</string>
+    <string name="pin_recovery_forgot_intro">Esqueceu o PIN? Comprove o backup de uma carteira para definir um novo.</string>
+    <string name="pin_recovery_key_unavailable">Este backup não desbloqueia as chaves da carteira. Tente o backup de outra carteira.</string>
 </resources>

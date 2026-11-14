@@ -1,25 +1,21 @@
 package jp.co.soramitsu.wallet.impl.data.repository.tranfser
 
-import jp.co.soramitsu.common.data.network.solana.SolanaRpcRoutes
-import jp.co.soramitsu.common.model.UniversalWalletRegistry
+import jp.co.soramitsu.common.BuildConfig
+import jp.co.soramitsu.common.data.network.solana.SolanaRpcEndpoints
 import jp.co.soramitsu.runtime.ext.universalWalletSolanaIndexerNetwork
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 
-/** Resolves only registry peers for the same cluster, with a second known public mainnet provider. */
+/**
+ * Ordered JSON-RPC endpoints for balances, quotes, broadcast and status checks of one Solana chain:
+ * the optional build provider, the selected node, the public mainnet nodes (mainnet only), then the
+ * chain's other nodes. Requests remain bound to the chain's genesis hash by the RPC client.
+ */
 object NativeSendRpcEndpoints {
-    fun resolve(chain: Chain): List<String> {
+    fun resolve(chain: Chain, buildProvider: String? = BuildConfig.SOLANA_RPC_PROVIDER_URL): List<String> {
         val network = chain.universalWalletSolanaIndexerNetwork()
             ?: throw NativeSendException(NativeSendException.Code.UNSUPPORTED_ACCOUNT)
         val selected = requireNotNull(chain.nodes.singleOrNull { it.isActive }) { "Selected endpoint unavailable" }
-        val preferred = SolanaRpcRoutes.normalizeRpcUrl(selected.url)
-        val alternatives = chain.nodes.asSequence().filterNot { it.isActive }.sortedByDescending { it.isDefault }
-            .mapNotNull { runCatching { SolanaRpcRoutes.normalizeRpcUrl(it.url) }.getOrNull() }
-        val configured = (sequenceOf(preferred) + alternatives).distinct().take(8).toList()
-        val public = listOf(UniversalWalletRegistry.SOLANA_MAINNET_RPC_URL, "https://solana-rpc.publicnode.com")
-        return if (network.rpcUrl == public.first() && configured.all { it in public }) {
-            (configured + public).distinct()
-        } else {
-            configured
-        }
+        val others = chain.nodes.filterNot { it.isActive }.sortedByDescending { it.isDefault }.map { it.url }
+        return SolanaRpcEndpoints.ordered(network.genesisHash, selected.url, others, buildProvider)
     }
 }

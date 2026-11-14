@@ -153,6 +153,22 @@ fs.writeFileSync(path, text.slice(0, start) + text.slice(start, end).replace('en
 NODE
 expect_failure "Nexus enabled" "$fixture" "Nexus registry default"
 
+fixture="$(new_fixture mcp-endpoint-in-main)"
+mkdir -p "$fixture/feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/historySource"
+printf 'package history\n\nconst val HISTORY_PATH = "/v1/mcp"\n' > \
+  "$fixture/feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/historySource/IrohaHistorySource.kt"
+expect_failure "MCP endpoint in Kotlin main sources" "$fixture" "must call Torii REST routes directly"
+
+fixture="$(new_fixture mcp-tool-call-in-main)"
+printf 'class Tools { static final String METHOD = "tools/call"; }\n' > \
+  "$fixture/iroha-sdk-bridge/src/main/java/jp/co/soramitsu/iroha/bridge/Tools.java"
+expect_failure "MCP tool call in Java main sources" "$fixture" "must call Torii REST routes directly"
+
+fixture="$(new_fixture mcp-endpoint-in-tests-only)"
+printf 'const val RETIRED_PATH = "/v1/mcp"\n' > \
+  "$fixture/feature-wallet-impl/src/test/java/jp/co/soramitsu/wallet/impl/data/repository/tranfser/Retired.kt"
+run_audit "$fixture" >/dev/null
+
 fixture="$(new_fixture sdk-dependency)"
 printf 'dependencies { implementation("org.hyperledger.iroha.sdk:client-android:0.1") }\n' > "$fixture/feature-wallet-impl/iroha.gradle"
 expect_failure "untracked production SDK dependency" "$fixture" "leaked outside the two audited staging modules"

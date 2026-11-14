@@ -7,6 +7,8 @@ import android.view.View
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -14,6 +16,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.os.bundleOf
@@ -21,17 +24,22 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.AndroidEntryPoint
+import jp.co.soramitsu.common.launch.LaunchLanding
 import jp.co.soramitsu.account.api.presentation.account.create.ChainAccountCreatePayload
 import jp.co.soramitsu.backup.GoogleSignInResult
 import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.presentation.askPermissionsSafely
 import jp.co.soramitsu.common.scan.ScanTextContract
 import jp.co.soramitsu.common.scan.ScannerActivity
-import jp.co.soramitsu.common.utils.isGooglePlayServicesAvailable
+import jp.co.soramitsu.common.utils.canOpenHttpsLinks
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -80,6 +88,15 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
         viewModel.authorizeGoogle(launcher = launcher)
     }
 
+    // Brand ink behind the status bar: the welcome crow's sky fades into it instead of meeting the page light
+    // in a hard line. The other onboarding pages paint their own page below the bar.
+    @Composable
+    override fun Background() {
+        if (FwRestyle.isEnabled(FwSurface.Welcome)) {
+            Box(Modifier.fillMaxSize().background(LocalFwColors.current.brandInk))
+        }
+    }
+
     @ExperimentalMaterialApi
     @Composable
     override fun Content(
@@ -87,8 +104,14 @@ class WelcomeFragment : BaseComposeFragment<WelcomeViewModel>() {
         scrollState: ScrollState,
         modalBottomSheetState: ModalBottomSheetState
     ) {
-        val isGoogleAvailable = context?.isGooglePlayServicesAvailable() == true
+        val isGoogleAvailable = context?.canOpenHttpsLinks() == true
         val navController = rememberNavController()
+        // The launch clip waits on its hold frame until a first page a person can act on is shown here.
+        val currentEntry by navController.currentBackStackEntryAsState()
+        LaunchedEffect(currentEntry?.destination?.route) {
+            val route = currentEntry?.destination?.route ?: return@LaunchedEffect
+            if (route != WelcomeEvent.Onboarding.SplashScreen.route) LaunchLanding.screenReady()
+        }
 
         LaunchedEffect(Unit) {
             viewModel.events

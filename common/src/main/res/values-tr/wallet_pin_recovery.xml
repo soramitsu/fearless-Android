@@ -13,4 +13,7 @@
     <string name="pin_recovery_verify_backup">Cüzdan yedeğini doğrula</string>
     <string name="pin_recovery_reset">Cüzdan PIN kodunu kurtar</string>
     <string name="pin_recovery_view_only_title">Yalnızca görüntüleme</string>
+    <string name="pin_recovery_forgot">PIN\'i mi unuttunuz?</string>
+    <string name="pin_recovery_forgot_intro">PIN\'i mi unuttunuz? Yeni bir PIN belirlemek için bir cüzdanın yedeğini doğrulayın.</string>
+    <string name="pin_recovery_key_unavailable">Bu yedek cüzdan anahtarlarını açamıyor. Başka bir cüzdanın yedeğini deneyin.</string>
 </resources>

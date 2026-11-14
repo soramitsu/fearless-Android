@@ -63,6 +63,8 @@ import jp.co.soramitsu.common.compose.theme.black3
 import jp.co.soramitsu.common.compose.theme.black4
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.darkButtonBackground
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.compose.theme.transparent
 import jp.co.soramitsu.common.compose.theme.white
@@ -107,6 +109,10 @@ fun ManageAssetsContent(
     state: ManageAssetsScreenViewState,
     callback: ManageAssetsContentInterface
 ) {
+    if (FwRestyle.isEnabled(FwSurface.ManageAssets)) {
+        ManageAssetsSunlitContent(state, callback)
+        return
+    }
     Column(Modifier.nestedScroll(rememberNestedScrollInteropConnection()).padding(horizontal = 16.dp).fillMaxWidth()) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = CenterVertically) {
             B0(text = stringResource(R.string.common_done), color = colorAccentDark,
@@ -135,7 +141,7 @@ fun ManageAssetsContent(
                 }
                 else -> state.assets.forEach { (section, assets) ->
                     if (!section.startsWith("group:") && !section.startsWith("network:")) {
-                        items(assets, key = { it.canonicalAssetKey }) {
+                        items(assets, key = ManageAssetItemState::listKey) {
                             ManageAssetItem(it, callback::onEditClicked, callback::onItemClicked, callback::onChecked)
                         }
                     } else {
@@ -144,7 +150,7 @@ fun ManageAssetsContent(
                             GroupItem(state.allSectionAssets[section] ?: assets, collapsed, section.startsWith("network:"),
                                 { callback.onSectionToggle(section) }, { callback.onGroupChecked(section, it) })
                         }
-                        if (!collapsed) items(assets, key = { it.canonicalAssetKey }) {
+                        if (!collapsed) items(assets, key = ManageAssetItemState::listKey) {
                             ManageAssetItem(it.copy(isGrouped = true), callback::onEditClicked, callback::onItemClicked, callback::onChecked)
                         }
                     }
@@ -232,7 +238,13 @@ data class ManageAssetItemState(
     val isTestnet: Boolean = false,
     val isFavorite: Boolean = false,
     val isRankedMainnet: Boolean = false
-)
+) {
+    /**
+     * The list key. The canonical key is not unique: Acala's tDOT and GLMR, Karura's RMRK and taiKSM and
+     * Bifrost's vKSM and vsKSM each share a currencyId across namespaces, and a repeated key crashes the list.
+     */
+    val listKey: String get() = "$chainId:$id"
+}
 
 @Composable
 fun ManageAssetItem(

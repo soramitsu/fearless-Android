@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The launch art's stacked lockup at its largest size, 280 dp wide (viewBox 640 x 505.30), so its crest
+         (radius 86.6 dp) nearly matches the Android 12+ system splash crest (radius 88 dp) it follows. -->
+    <dimen name="fw_launch_lockup_width">280dp</dimen>
+    <dimen name="fw_launch_lockup_height">221.07dp</dimen>
+    <!-- The crest's centre sits 23.17 dp above the lockup's centre; a top inset of twice that puts the crest
+         where the system splash drew it, in the middle of the window. -->
+    <dimen name="fw_launch_lockup_drop">46.35dp</dimen>
+</resources>

@@ -16,11 +16,13 @@ bash scripts/run-android-migration-full.sh
 bash scripts/verify-android-migration-instrumentation-results.sh
 ```
 
-The ordinary run keeps the production `legacy` presentation flags. The loading
-rollback check expects moving frames for this artifact. A separate debug build
-enables only `FW_PALETTE=v1`, `FW_RESTYLE_RECOVERY=true` and
-`FW_RESTYLE_LOADING=true`; all five focus, recovery-button and loading-frame
-tests must pass. Production Gradle defaults remain unchanged.
+The ordinary run uses the production Gradle defaults: `FW_PALETTE=v1` with every
+`FW_RESTYLE_*` surface on (`gradle.properties`). Under reduced motion its loading
+skeletons must hold still. A separate debug build names `FW_PALETTE=v1`,
+`FW_RESTYLE_RECOVERY=true` and `FW_RESTYLE_LOADING=true` explicitly; all five
+focus, recovery-button and loading-frame tests must pass, so this check keeps
+holding if a default later changes. `FW_PALETTE=legacy` is the rollback build, and
+this profile does not qualify it.
 
 The journal profile invokes individual Join/Create fixture methods in ordered
 fresh processes. It observes the admitted fake transaction, kills that exact

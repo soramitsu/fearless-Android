@@ -3,6 +3,7 @@ package jp.co.soramitsu.account.impl.presentation.recovery
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -24,6 +25,7 @@ import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.impl.domain.recovery.WalletRecoveryInventory
 import jp.co.soramitsu.common.compose.theme.fw.FwRecoveryAppearance
 import jp.co.soramitsu.common.compose.theme.fw.FwRecoveryButton
+import jp.co.soramitsu.common.compose.theme.fw.FwRecoveryCard
 import jp.co.soramitsu.common.compose.theme.fw.FwRecoveryTextButton
 import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
 import jp.co.soramitsu.common.compose.theme.fw.FwSurface
@@ -65,45 +67,58 @@ fun RecoveryCenterScreen(
             if (state.readFailed) Text(stringResource(R.string.wallet_recovery_inventory_failed))
             state.wallets.forEach { wallet ->
                 if (wallet.items.isNotEmpty() || wallet.advisories.isNotEmpty() || wallet.readFailed) {
-                    Divider()
-                    Text(wallet.name, style = MaterialTheme.typography.h6, modifier = Modifier.semantics { heading() })
-                    if (wallet.readFailed) Text(stringResource(R.string.wallet_recovery_inventory_failed))
-                    wallet.items.forEach { item ->
-                        Text(scopeLabel(item.target.scope()), style = MaterialTheme.typography.subtitle1)
-                        Text(stringResource(when (item.kind) {
-                            WalletRecoveryKind.IDENTITY_MISMATCH -> R.string.wallet_recovery_identity_issue
-                            WalletRecoveryKind.MISSING_KEY -> R.string.wallet_recovery_missing_key
-                            WalletRecoveryKind.QUARANTINED -> R.string.wallet_recovery_unusable_key
-                        }))
-                        if (item.kind == WalletRecoveryKind.IDENTITY_MISMATCH) {
-                            Action(R.string.wallet_recovery_import_corrected) { importCorrected(item.target) }
-                        } else {
-                            Action(R.string.wallet_recovery_use_phrase) { restore(item.target, ImportMode.MnemonicPhrase) }
-                            if (item.target.scope() != WalletSecretScope.Ton) {
-                                Action(R.string.wallet_recovery_use_seed) { restore(item.target, ImportMode.RawSeed) }
-                                Action(R.string.wallet_recovery_use_json) { restore(item.target, ImportMode.Json) }
+                    RecoveryGroup(restyled) {
+                        Text(wallet.name, style = MaterialTheme.typography.h6, modifier = Modifier.semantics { heading() })
+                        if (wallet.readFailed) Text(stringResource(R.string.wallet_recovery_inventory_failed))
+                        wallet.items.forEach { item ->
+                            Text(scopeLabel(item.target.scope()), style = MaterialTheme.typography.subtitle1)
+                            Text(stringResource(when (item.kind) {
+                                WalletRecoveryKind.IDENTITY_MISMATCH -> R.string.wallet_recovery_identity_issue
+                                WalletRecoveryKind.MISSING_KEY -> R.string.wallet_recovery_missing_key
+                                WalletRecoveryKind.QUARANTINED -> R.string.wallet_recovery_unusable_key
+                            }))
+                            if (item.kind == WalletRecoveryKind.IDENTITY_MISMATCH) {
+                                Action(R.string.wallet_recovery_import_corrected) { importCorrected(item.target) }
+                            } else {
+                                Action(R.string.wallet_recovery_use_phrase) { restore(item.target, ImportMode.MnemonicPhrase) }
+                                if (item.target.scope() != WalletSecretScope.Ton) {
+                                    Action(R.string.wallet_recovery_use_seed) { restore(item.target, ImportMode.RawSeed) }
+                                    Action(R.string.wallet_recovery_use_json) { restore(item.target, ImportMode.Json) }
+                                }
                             }
                         }
-                    }
-                    wallet.advisories.forEach { advisory ->
-                        Text(scopeLabel(advisory.scope), style = MaterialTheme.typography.subtitle1)
-                        Text(stringResource(if (advisory.asTyped) R.string.wallet_recovery_as_typed else R.string.wallet_recovery_backup_advisory))
-                        Action(R.string.wallet_recovery_backup_key) { backupWallet(wallet.id, advisory.chainId) }
+                        wallet.advisories.forEach { advisory ->
+                            Text(scopeLabel(advisory.scope), style = MaterialTheme.typography.subtitle1)
+                            Text(stringResource(if (advisory.asTyped) R.string.wallet_recovery_as_typed else R.string.wallet_recovery_backup_advisory))
+                            Action(R.string.wallet_recovery_backup_key) { backupWallet(wallet.id, advisory.chainId) }
+                        }
                     }
                 }
             }
             if (!state.loading && !state.readFailed && state.wallets.none { it.items.isNotEmpty() || it.advisories.isNotEmpty() || it.readFailed }) {
                 Text(stringResource(R.string.wallet_recovery_no_attention))
             }
-            Divider()
-            Text(stringResource(R.string.wallet_recovery_retained), style = MaterialTheme.typography.h6, modifier = Modifier.semantics { heading() })
-            Text(stringResource(R.string.wallet_recovery_retained_intro))
-            Action(R.string.wallet_keyloss_retry, previousSecureStorage)
-            Action(R.string.saved_endpoints_title, savedEndpoints)
-            Action(R.string.wallet_archive_open, archivedData)
-            Action(R.string.wallet_emergency_open, exportStored)
-            Action(R.string.wallet_recovery_keep_view_only, back)
+            RecoveryGroup(restyled) {
+                Text(stringResource(R.string.wallet_recovery_retained), style = MaterialTheme.typography.h6, modifier = Modifier.semantics { heading() })
+                Text(stringResource(R.string.wallet_recovery_retained_intro))
+                Action(R.string.wallet_keyloss_retry, previousSecureStorage)
+                Action(R.string.saved_endpoints_title, savedEndpoints)
+                Action(R.string.wallet_archive_open, archivedData)
+                Action(R.string.wallet_emergency_open, exportStored)
+                Action(R.string.wallet_recovery_keep_view_only, back)
+            }
         }
+    }
+}
+
+/** A flat card when restyled; the legacy page keeps its divider and its plain column. */
+@Composable
+private fun RecoveryGroup(restyled: Boolean, content: @Composable ColumnScope.() -> Unit) {
+    if (restyled) {
+        FwRecoveryCard(content = content)
+    } else {
+        Divider()
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp), content = content)
     }
 }
 

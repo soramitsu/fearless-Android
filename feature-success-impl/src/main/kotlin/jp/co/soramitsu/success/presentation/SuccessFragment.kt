@@ -18,6 +18,7 @@ import jp.co.soramitsu.account.api.presentation.actions.ExternalActionsSheet
 import jp.co.soramitsu.account.api.presentation.actions.ExternalViewCallback
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
+import jp.co.soramitsu.common.feedback.TransferMoments
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.feature_success_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -48,12 +49,21 @@ class SuccessFragment : BaseComposeBottomSheetDialogFragment<SuccessViewModel>()
 
     override val viewModel: SuccessViewModel by viewModels()
 
+    // The solar ignite marks a transfer the network just accepted; other operations keep the plain mark.
+    private var ignite = false
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        ignite = savedInstanceState == null && TransferMoments.consumeRecentSend(System.nanoTime() / NANOS_PER_MILLI)
+    }
+
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
         SuccessContent(
             state = state,
-            callback = viewModel
+            callback = viewModel,
+            ignite = ignite
         )
     }
 
@@ -120,3 +130,5 @@ class SuccessFragment : BaseComposeBottomSheetDialogFragment<SuccessViewModel>()
         behavior.skipCollapsed = true
     }
 }
+
+private const val NANOS_PER_MILLI = 1_000_000L

@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -26,6 +28,7 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.theme.fw.FwRecoveryAppearance
 import jp.co.soramitsu.common.compose.theme.fw.FwRecoveryButton
+import jp.co.soramitsu.common.compose.theme.fw.FwRecoveryTextButton
 import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
 import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
@@ -72,7 +75,12 @@ fun SavedEndpointsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                SavedEndpointAction(stringResource(R.string.wallet_recovery_back), back)
+                if (FwRestyle.isEnabled(FwSurface.Recovery)) {
+                    FwRecoveryTextButton(stringResource(R.string.wallet_recovery_back), back)
+                    Spacer(Modifier.height(12.dp))
+                } else {
+                    SavedEndpointAction(stringResource(R.string.wallet_recovery_back), back)
+                }
                 Text(stringResource(R.string.saved_endpoints_title), style = MaterialTheme.typography.h5,
                     modifier = Modifier.semantics { heading() })
                 Text(stringResource(R.string.saved_endpoints_intro), modifier = Modifier.padding(top = 16.dp))
@@ -82,6 +90,7 @@ fun SavedEndpointsScreen(
                 item {
                     Text(stringResource(R.string.saved_endpoints_locked))
                     if (state.unlockFailed) Text(stringResource(R.string.saved_endpoints_unlock_failed))
+                    if (FwRestyle.isEnabled(FwSurface.Recovery)) Spacer(Modifier.height(16.dp))
                     SavedEndpointAction(stringResource(R.string.saved_endpoints_unlock), unlock)
                 }
             } else if (state.decisionForm != null) {
@@ -203,8 +212,8 @@ fun SavedEndpointsScreen(
 
 @Composable
 private fun SavedEndpointAction(text: String, action: () -> Unit, enabled: Boolean = true) {
-    if (enabled && FwRestyle.isEnabled(FwSurface.Recovery)) {
-        FwRecoveryButton(text, action)
+    if (FwRestyle.isEnabled(FwSurface.Recovery)) {
+        FwRecoveryButton(text, action, enabled = enabled)
     } else {
         TextButton(onClick = action, enabled = enabled, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
             Text(text)

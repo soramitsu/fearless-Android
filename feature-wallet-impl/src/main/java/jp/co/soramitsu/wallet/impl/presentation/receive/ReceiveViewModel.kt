@@ -13,6 +13,8 @@ import javax.inject.Inject
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
+import jp.co.soramitsu.common.feedback.FeedbackCue
+import jp.co.soramitsu.common.feedback.TransferFeedback
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
@@ -39,17 +41,17 @@ import jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup.ChainAssetsMan
 import jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup.ChainType
 import jp.co.soramitsu.wallet.impl.presentation.receive.model.QrSharingPayload
 import jp.co.soramitsu.wallet.impl.presentation.receive.model.ReceiveToggleType
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 
 private const val QR_TEMP_IMAGE_NAME = "address.png"
@@ -202,6 +204,8 @@ class ReceiveViewModel @Inject constructor(
         if (snapshot.qrCode == null) return
 
         clipboardManager.addToClipboard(snapshot.account.address)
+        // A light tap with the "copied" message (brand kit SPEC part 2).
+        TransferFeedback.cue(FeedbackCue.Copied)
 
         val message = resourceManager.getString(R.string.common_copied)
         showMessage(message)

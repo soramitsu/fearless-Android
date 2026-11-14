@@ -4,7 +4,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:background="@android:color/transparent"
-    tools:background="@drawable/bg_splash"
+    tools:background="@drawable/fw_splash_launch"
     android:layout_height="match_parent">
 
 </FrameLayout>

@@ -85,12 +85,12 @@ private class ScreenHeader(
     collection: NFTCollection.Loaded.Result.Collection
 ) : NFTsScreenView.ScreenHeader {
 
-    override val key: Any = R.drawable.animated_bird
+    override val key: Any = R.drawable.drawable_fearless_bird
 
     override val thumbnail: Loadable<ImageModel> = Loadable.ReadyToRender(
         ImageModel.UrlWithFallbackOption(
             collection.imageUrl,
-            ImageModel.Gif(R.drawable.animated_bird)
+            ImageModel.ResId(R.drawable.drawable_fearless_bird)
         )
     )
 

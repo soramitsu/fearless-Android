@@ -50,6 +50,14 @@ class NativeSendPresentationTest {
         assertEquals(R.string.send_bitcoin_address_help, NativeSendError.message(BitcoinSendPlannerException(BitcoinSendPlannerException.Code.INVALID_RECIPIENT_ADDRESS)))
         assertEquals(R.string.send_solana_rent, NativeSendError.message(SolanaAccountPreflightException(SolanaAccountPreflightException.Code.SENDER_BELOW_RENT)))
         assertEquals(R.string.send_review_changed, NativeSendError.message(SolanaPaymentQuoteException(SolanaPaymentQuoteException.Code.BLOCKHASH_EXPIRED)))
+        assertEquals(R.string.send_solana_token2022_unsupported, NativeSendError.message(SolanaPaymentQuoteException(SolanaPaymentQuoteException.Code.UNSUPPORTED_TOKEN)))
+        // A release only claims that nothing left the wallet when the expiry was recent enough to show it.
+        assertEquals(R.string.send_solana_not_sent, NativeSendError.message(NativeSendException(NativeSendException.Code.PAYMENT_NOT_SENT)))
+        assertEquals(R.string.send_solana_refused, NativeSendError.message(NativeSendException(NativeSendException.Code.PAYMENT_REFUSED)))
+        assertEquals(R.string.send_solana_expired_not_sent, NativeSendError.message(NativeSendException(NativeSendException.Code.PAYMENT_EXPIRED)))
+        assertEquals(R.string.send_solana_payment_unverified, NativeSendError.message(NativeSendException(NativeSendException.Code.PAYMENT_UNVERIFIED)))
+        assertEquals(R.string.send_solana_prior_expired, NativeSendError.message(NativeSendException(NativeSendException.Code.PRIOR_PAYMENT_EXPIRED)))
+        assertEquals(R.string.send_solana_prior_unverified, NativeSendError.message(NativeSendException(NativeSendException.Code.PRIOR_PAYMENT_UNVERIFIED)))
         assertEquals(R.string.send_storage_unavailable, NativeSendError.message(WalletSendJournalException(WalletSendJournalException.Code.CORRUPT_RECORD)))
         assertEquals(R.string.fee_calculation_error, NativeSendError.message(IllegalArgumentException("untrusted provider text")))
         // Every declared protocol code has a safe resource mapping, including future generic failures.

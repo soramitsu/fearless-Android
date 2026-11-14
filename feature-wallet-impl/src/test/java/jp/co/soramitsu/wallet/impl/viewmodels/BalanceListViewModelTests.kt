@@ -72,6 +72,7 @@ import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.AssetsLoadingState
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.BalanceListViewModel
+import jp.co.soramitsu.wallet.impl.presentation.balance.list.PortfolioListItem
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.PortfolioPresentationPreferences
 import jp.co.soramitsu.wallet.impl.presentation.bundledPortfolioVisibility
 import jp.co.soramitsu.common.utils.formatFiat
@@ -493,6 +494,51 @@ class BalanceListViewModelTests {
     }
 
     @Test
+    fun `hero send and swap open their existing asset selection flows`() = runTest {
+        every { walletRouter.openSend(any(), any(), any(), any()) } just runs
+        every { walletRouter.openSwapTokensScreen(any(), any(), any()) } just runs
+
+        vm.onHeroAction(ActionItemType.SEND)
+        vm.onHeroAction(ActionItemType.SWAP)
+
+        verify(exactly = 1) { walletRouter.openSend(null, any(), any(), any()) }
+        verify(exactly = 1) { walletRouter.openSwapTokensScreen(null, null, null) }
+    }
+
+    @Test
+    fun `hero receive waits for both selected network and asset before opening the address`() = runTest {
+        val chain = kotlinx.coroutines.flow.MutableSharedFlow<String>()
+        val asset = kotlinx.coroutines.flow.MutableSharedFlow<String>()
+        every { walletRouter.observeResult<String>(jp.co.soramitsu.wallet.api.presentation.WalletRouter.KEY_CHAIN_ID) } returns chain
+        every { walletRouter.observeResult<String>(jp.co.soramitsu.wallet.api.presentation.WalletRouter.KEY_ASSET_ID) } returns asset
+        every { walletRouter.openSelectAssetForReceive() } just runs
+        every { walletRouter.openReceive(any()) } just runs
+
+        vm.onHeroAction(ActionItemType.RECEIVE)
+        advanceUntilIdle()
+        chain.emit("selected-chain")
+        advanceUntilIdle()
+        verify(exactly = 0) { walletRouter.openReceive(any()) }
+        asset.emit("selected-asset")
+        advanceUntilIdle()
+        verify(exactly = 1) { walletRouter.openReceive(AssetPayload("selected-chain", "selected-asset")) }
+    }
+
+    @Test
+    fun `hero buy falls back to exact asset details when the wallet has no eligible account`() = runTest {
+        every { walletRouter.observeResult<String>(jp.co.soramitsu.wallet.api.presentation.WalletRouter.KEY_CHAIN_ID) } returns flowOf("selected-chain")
+        every { walletRouter.observeResult<String>(jp.co.soramitsu.wallet.api.presentation.WalletRouter.KEY_ASSET_ID) } returns flowOf("selected-asset")
+        every { walletRouter.openSelectAssetForReceive() } just runs
+        every { walletRouter.openAssetDetails(any()) } just runs
+        every { walletInteractor.selectedAccountFlow("selected-chain") } returns emptyFlow()
+
+        vm.onHeroAction(ActionItemType.BUY)
+        advanceUntilIdle()
+
+        verify(exactly = 1) { walletRouter.openAssetDetails(AssetPayload("selected-chain", "selected-asset")) }
+    }
+
+    @Test
     fun `explicit shown zero row is listed and an auto zero non-default row is not`() = runTest {
         val shownSecondary = portfolioAsset("shown-secondary", "SEC", TOKEN_CHAIN_ID)
         val autoUtility = portfolioAsset("auto-utility", "TKN", TOKEN_CHAIN_ID, isUtility = true)
@@ -520,6 +566,52 @@ class BalanceListViewModelTests {
 
         assertEquals(listOf(DOT_ASSET_ID), loaded.assets.map { it.chainAssetId })
         assertFalse(loaded.walletHasPositiveBalance)
+    }
+
+    @Test
+    fun `new wallet on the popular filter is not called empty while another network is unread`() = runTest {
+        every { walletInteractor.observeSelectedAccountChainSelectFilter() } returns
+            flowOf(ChainSelectorViewStateWithFilters.Filter.Popular)
+        val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
+        val unread = portfolioAsset("unranked-utility", "TKN", TOKEN_CHAIN_ID, isUtility = true, priceId = "token")
+
+        val loaded = loadedPortfolio(
+            chains = listOf(portfolioChain(POLKADOT_CHAIN_ID, rank = 8, dot), portfolioChain(TOKEN_CHAIN_ID, rank = null, unread)),
+            assets = listOf(portfolioRow(dot, free = BigInteger.ZERO, enabled = null), portfolioRow(unread, free = null, enabled = null))
+        )
+
+        assertEquals(listOf(DOT_ASSET_ID), loaded.assets.map { it.chainAssetId })
+        assertTrue(loaded.walletHasUnknownBalance)
+        assertFalse(loaded.portfolioItems.contains(PortfolioListItem.EmptyWallet))
+    }
+
+    @Test
+    fun `new wallet with every balance read as zero is called empty`() = runTest {
+        every { walletInteractor.observeSelectedAccountChainSelectFilter() } returns
+            flowOf(ChainSelectorViewStateWithFilters.Filter.Popular)
+        val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
+        val other = portfolioAsset("unranked-utility", "TKN", TOKEN_CHAIN_ID, isUtility = true, priceId = "token")
+
+        val loaded = loadedPortfolio(
+            chains = listOf(portfolioChain(POLKADOT_CHAIN_ID, rank = 8, dot), portfolioChain(TOKEN_CHAIN_ID, rank = null, other)),
+            assets = listOf(portfolioRow(dot, free = BigInteger.ZERO, enabled = null), portfolioRow(other, free = BigInteger.ZERO, enabled = null))
+        )
+
+        assertFalse(loaded.walletHasUnknownBalance)
+        assertTrue(loaded.portfolioItems.contains(PortfolioListItem.EmptyWallet))
+    }
+
+    @Test
+    fun `a hidden row with an unread balance leaves the wallet empty`() = runTest {
+        val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
+        val hidden = portfolioAsset("hidden-token", "HID", POLKADOT_CHAIN_ID)
+
+        val loaded = loadedPortfolio(
+            chains = listOf(portfolioChain(POLKADOT_CHAIN_ID, rank = 8, dot, hidden)),
+            assets = listOf(portfolioRow(dot, free = BigInteger.ZERO, enabled = null), portfolioRow(hidden, free = null, enabled = false))
+        )
+
+        assertFalse(loaded.walletHasUnknownBalance)
     }
 
     @Test
@@ -846,7 +938,7 @@ class BalanceListViewModelTests {
 
     private fun portfolioRow(
         asset: Asset,
-        free: BigInteger,
+        free: BigInteger?,
         enabled: Boolean?,
         rate: String? = null
     ) = createWalletAsset(WALLET_ID, asset).let { row ->
@@ -854,7 +946,7 @@ class BalanceListViewModelTests {
             asset = row.asset.copy(
                 token = Token(asset, rate?.let(::BigDecimal).asAssetAmountState(), AssetAmountState.Known(BigDecimal.ZERO),
                     FiatValuationContext("usd", FiatCurrency("usd", "$", "Dollar", "")), "usd", asset.priceId),
-                freeInPlanksState = AssetAmountState.Known(free),
+                freeInPlanksState = free.asAssetAmountState(),
                 enabled = enabled
             )
         )

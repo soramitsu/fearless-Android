@@ -1,9 +1,9 @@
 {
-  "$description": "Fearless Wallet \"Neon Glass\" v1 design tokens (design-system.md sections 3, 4, 7 and 9), W3C design-tokens format. The single source for scripts/design/gen-fw-tokens.mjs; never edit the generated platform files.",
+  "$description": "Fearless Wallet sun-lit neumorphism v2 design tokens (DESIGN-SPEC 2026-11-08; evolved from Neon Glass v1), W3C design-tokens format. The single source for scripts/design/gen-fw-tokens.mjs; never edit the generated platform files.",
   "$extensions": {
     "fw": {
       "format": "fearless.design-tokens",
-      "version": 1,
+      "version": 2,
       "outputs": "Android FwColors.kt + fw_colors.xml, iOS colors/FW/*.colorset + FWTokens.swift, web fw-tokens.scss"
     }
   },
@@ -114,10 +114,10 @@
             "colorSpace": "srgb",
             "components": [
               1,
-              0.302,
-              0.7216
+              0.3098,
+              0.6392
             ],
-            "hex": "#FF4DB8"
+            "hex": "#FF4FA3"
           }
         },
         "500": {
@@ -125,11 +125,11 @@
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              1,
+              0.902,
               0,
-              0.6039
+              0.4353
             ],
-            "hex": "#FF009A"
+            "hex": "#E6006F"
           }
         },
         "600": {
@@ -139,9 +139,9 @@
             "components": [
               0.8392,
               0,
-              0.498
+              0.4157
             ],
-            "hex": "#D6007F"
+            "hex": "#D6006A"
           }
         },
         "700": {
@@ -149,11 +149,11 @@
           "$value": {
             "colorSpace": "srgb",
             "components": [
-              0.6392,
+              0.6588,
               0,
-              0.4157
+              0.3529
             ],
-            "hex": "#A3006A"
+            "hex": "#A8005A"
           }
         }
       },
@@ -281,6 +281,42 @@
             ],
             "hex": "#C9CEE8"
           }
+        },
+        "50": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.9333,
+              0.9412,
+              0.9804
+            ],
+            "hex": "#EEF0FA"
+          }
+        },
+        "350": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.6627,
+              0.6824,
+              0.7961
+            ],
+            "hex": "#A9AECB"
+          }
+        },
+        "450": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.498,
+              0.5255,
+              0.6667
+            ],
+            "hex": "#7F86AA"
+          }
         }
       },
       "aqua": {
@@ -308,6 +344,18 @@
               0.3412
             ],
             "hex": "#FFA057"
+          }
+        },
+        "250": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1.0,
+              0.6235,
+              0.3412
+            ],
+            "hex": "#FF9F57"
           }
         }
       },
@@ -349,6 +397,18 @@
             ],
             "hex": "#B3302A"
           }
+        },
+        "350": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1.0,
+              0.4196,
+              0.3686
+            ],
+            "hex": "#FF6B5E"
+          }
         }
       },
       "amber": {
@@ -378,6 +438,313 @@
             "hex": "#FFFFFF"
           }
         }
+      },
+      "dusk": {
+        "500": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.0824,
+              0.0941,
+              0.1922
+            ],
+            "hex": "#151831"
+          }
+        },
+        "600": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.102,
+              0.1137,
+              0.2314
+            ],
+            "hex": "#1A1D3B"
+          }
+        },
+        "800": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.0549,
+              0.0627,
+              0.1412
+            ],
+            "hex": "#0E1024"
+          }
+        },
+        "shadow": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.0196,
+              0.0235,
+              0.0588
+            ],
+            "hex": "#05060F"
+          }
+        }
+      },
+      "black": {
+        "base": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "hex": "#000000"
+          }
+        }
+      },
+      "crest": {
+        "$description": "Yatagarasu brand kit tokens/colors.json (2026-11-10) and the derived ink steps.",
+        "ink": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.0706,
+              0.0392,
+              0.1804
+            ],
+            "hex": "#120A2E"
+          }
+        },
+        "inkDeep": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.0471,
+              0.0275,
+              0.1333
+            ],
+            "hex": "#0C0722"
+          }
+        },
+        "shadow": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.0196,
+              0.0118,
+              0.0588
+            ],
+            "hex": "#05030F"
+          }
+        },
+        "night": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.102,
+              0.0549,
+              0.2431
+            ],
+            "hex": "#1A0E3E"
+          }
+        },
+        "plum": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.2275,
+              0.0627,
+              0.3765
+            ],
+            "hex": "#3A1060"
+          }
+        },
+        "pink": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.902,
+              0.0,
+              0.4353
+            ],
+            "hex": "#E6006F"
+          }
+        },
+        "fillTop": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.8392,
+              0.0,
+              0.4157
+            ],
+            "hex": "#D6006A"
+          }
+        },
+        "fillBottom": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.6588,
+              0.0,
+              0.3529
+            ],
+            "hex": "#A8005A"
+          }
+        },
+        "pinkLight": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1.0,
+              0.3098,
+              0.6392
+            ],
+            "hex": "#FF4FA3"
+          }
+        },
+        "iconPink": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.8784,
+              0.0706,
+              0.4314
+            ],
+            "hex": "#E0126E"
+          }
+        },
+        "iconPlum": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.2902,
+              0.0667,
+              0.3765
+            ],
+            "hex": "#4A1160"
+          }
+        },
+        "ember": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1.0,
+              0.4784,
+              0.102
+            ],
+            "hex": "#FF7A1A"
+          }
+        },
+        "gold": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              1.0,
+              0.7608,
+              0.2902
+            ],
+            "hex": "#FFC24A"
+          }
+        },
+        "mint": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.3098,
+              0.9412,
+              0.7216
+            ],
+            "hex": "#4FF0B8"
+          }
+        },
+        "text": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.9804,
+              0.9647,
+              1.0
+            ],
+            "hex": "#FAF6FF"
+          }
+        },
+        "textSoft": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.9137,
+              0.8863,
+              0.9608
+            ],
+            "hex": "#E9E2F5"
+          }
+        },
+        "textMuted": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.8118,
+              0.7686,
+              0.902
+            ],
+            "hex": "#CFC4E6"
+          }
+        },
+        "textTertiary": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.5922,
+              0.5412,
+              0.7294
+            ],
+            "hex": "#978ABA"
+          }
+        },
+        "textDisabled": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.4157,
+              0.3647,
+              0.549
+            ],
+            "hex": "#6A5D8C"
+          }
+        },
+        "line": {
+          "$type": "color",
+          "$value": {
+            "colorSpace": "srgb",
+            "components": [
+              0.4627,
+              0.3804,
+              0.5569
+            ],
+            "hex": "#76618E"
+          }
+        }
       }
     },
     "semantic": {
@@ -386,17 +753,17 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
+            0.0706,
             0.0392,
-            0.0471,
-            0.1059
+            0.1804
           ],
-          "hex": "#0A0C1B"
+          "hex": "#120A2E"
         },
-        "$description": "Page background, scrim-free calm pages.",
+        "$description": "Page and every neumorphic surface: brand ink (Yatagarasu, 2026-11-10).",
         "$extensions": {
           "fw": {
             "semantic": "bg.base",
-            "raw": "navy.900",
+            "raw": "crest.ink",
             "ios": "fwBgBase",
             "css": "--fw-bg-base"
           }
@@ -408,16 +775,16 @@
           "colorSpace": "srgb",
           "components": [
             0.0706,
-            0.0824,
-            0.1686
+            0.0392,
+            0.1804
           ],
-          "hex": "#12152B"
+          "hex": "#120A2E"
         },
-        "$description": "Opaque fallback for every glass; calm surfaces; signing sheet.",
+        "$description": "Raised-1/Raised-2 surfaces share the page base; depth comes from the light model.",
         "$extensions": {
           "fw": {
             "semantic": "surface.raised",
-            "raw": "navy.800",
+            "raw": "crest.ink",
             "ios": "fwSurfaceRaised",
             "css": "--fw-raised"
           }
@@ -429,16 +796,16 @@
           "colorSpace": "srgb",
           "components": [
             0.102,
-            0.1176,
-            0.2275
+            0.0549,
+            0.2431
           ],
-          "hex": "#1A1E3A"
+          "hex": "#1A0E3E"
         },
-        "$description": "Segmented thumb, tags, disabled button fill, dialogs.",
+        "$description": "Sheets and dialogs that rise toward the key light.",
         "$extensions": {
           "fw": {
             "semantic": "surface.raised2",
-            "raw": "navy.700",
+            "raw": "crest.night",
             "ios": "fwSurfaceRaised2",
             "css": "--fw-raised-2"
           }
@@ -449,17 +816,17 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.1412,
-            0.1647,
-            0.302
+            0.0471,
+            0.0275,
+            0.1333
           ],
-          "hex": "#242A4D"
+          "hex": "#0C0722"
         },
-        "$description": "Pressed and selected rows (opaque).",
+        "$description": "Pressed controls sink into an inset well (bgDeep).",
         "$extensions": {
           "fw": {
             "semantic": "surface.pressed",
-            "raw": "navy.600",
+            "raw": "crest.inkDeep",
             "ios": "fwSurfacePressed",
             "css": "--fw-pressed"
           }
@@ -470,17 +837,17 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.0235,
+            0.0471,
             0.0275,
-            0.0588
+            0.1333
           ],
-          "hex": "#06070F"
+          "hex": "#0C0722"
         },
-        "$description": "Input wells, children container.",
+        "$description": "bgDeep: inset wells, input fields, selected tab well.",
         "$extensions": {
           "fw": {
             "semantic": "surface.sunken",
-            "raw": "navy.sunken",
+            "raw": "crest.inkDeep",
             "ios": "fwSurfaceSunken",
             "css": "--fw-sunken"
           }
@@ -491,18 +858,18 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.0784,
-            0.0941,
-            0.2
+            0.0706,
+            0.0392,
+            0.1804
           ],
-          "alpha": 0.72,
-          "hex": "#141833"
+          "alpha": 1,
+          "hex": "#120A2E"
         },
-        "$description": "Cards and list containers (with glassSheen).",
+        "$description": "Cards are opaque raised surfaces in the sun-lit model.",
         "$extensions": {
           "fw": {
             "semantic": "surface.glass",
-            "raw": "navy.750",
+            "raw": "crest.ink",
             "ios": "fwSurfaceGlass",
             "css": "--fw-glass"
           }
@@ -513,14 +880,14 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            1,
-            1,
-            1
+            1.0,
+            1.0,
+            1.0
           ],
-          "alpha": 0.04,
+          "alpha": 0,
           "hex": "#FFFFFF"
         },
-        "$description": "White sheen over surface.glass.",
+        "$description": "Retired sheen; the rim light carries the edge.",
         "$extensions": {
           "fw": {
             "semantic": "surface.glass.sheen",
@@ -536,17 +903,17 @@
           "colorSpace": "srgb",
           "components": [
             0.102,
-            0.1176,
-            0.2275
+            0.0549,
+            0.2431
           ],
-          "alpha": 0.86,
-          "hex": "#1A1E3A"
+          "alpha": 1,
+          "hex": "#1A0E3E"
         },
-        "$description": "Popovers and menus.",
+        "$description": "Elevated cards and sheets (opaque).",
         "$extensions": {
           "fw": {
             "semantic": "surface.glass.elevated",
-            "raw": "navy.700",
+            "raw": "crest.night",
             "ios": "fwSurfaceGlassElevated",
             "css": "--fw-glass-elevated"
           }
@@ -557,11 +924,11 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            1,
-            1,
-            1
+            1.0,
+            1.0,
+            1.0
           ],
-          "alpha": 0.05,
+          "alpha": 0,
           "hex": "#FFFFFF"
         },
         "$description": "White sheen over surface.glass.elevated.",
@@ -579,18 +946,18 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.0549,
-            0.0667,
-            0.149
+            0.0706,
+            0.0392,
+            0.1804
           ],
-          "alpha": 0.88,
-          "hex": "#0E1126"
+          "alpha": 0.96,
+          "hex": "#120A2E"
         },
         "$description": "Bottom bar, sticky headers, sheets over blur 24 (Full).",
         "$extensions": {
           "fw": {
             "semantic": "surface.chrome",
-            "raw": "navy.850",
+            "raw": "crest.ink",
             "ios": "fwSurfaceChrome",
             "css": "--fw-chrome"
           }
@@ -601,11 +968,11 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            1,
-            1,
-            1
+            1.0,
+            1.0,
+            1.0
           ],
-          "alpha": 0.03,
+          "alpha": 0,
           "hex": "#FFFFFF"
         },
         "$description": "White sheen over surface.chrome.",
@@ -623,18 +990,18 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.0549,
-            0.0667,
-            0.149
+            0.0706,
+            0.0392,
+            0.1804
           ],
-          "alpha": 0.96,
-          "hex": "#0E1126"
+          "alpha": 1,
+          "hex": "#120A2E"
         },
         "$description": "Chrome in Lite or when blur is unavailable.",
         "$extensions": {
           "fw": {
             "semantic": "surface.chrome.solid",
-            "raw": "navy.850",
+            "raw": "crest.ink",
             "ios": "fwSurfaceChromeSolid",
             "css": "--fw-chrome-solid"
           }
@@ -645,18 +1012,18 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.0157,
             0.0196,
-            0.051
+            0.0118,
+            0.0588
           ],
           "alpha": 0.72,
-          "hex": "#04050D"
+          "hex": "#05030F"
         },
         "$description": "Behind sheets and dialogs.",
         "$extensions": {
           "fw": {
             "semantic": "scrim",
-            "raw": "navy.950",
+            "raw": "crest.shadow",
             "ios": "fwScrim",
             "css": "--fw-scrim"
           }
@@ -667,17 +1034,17 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.9294,
-            0.9412,
-            0.9804
+            0.9804,
+            0.9647,
+            1.0
           ],
-          "hex": "#EDF0FA"
+          "hex": "#FAF6FF"
         },
         "$description": "Headings, amounts, body.",
         "$extensions": {
           "fw": {
             "semantic": "text.primary",
-            "raw": "ink.100",
+            "raw": "crest.text",
             "ios": "fwTextPrimary",
             "css": "--fw-text-1"
           }
@@ -688,17 +1055,17 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.7216,
-            0.7451,
-            0.8588
+            0.8118,
+            0.7686,
+            0.902
           ],
-          "hex": "#B8BEDB"
+          "hex": "#CFC4E6"
         },
         "$description": "Secondary lines, captions, HUD overlines, unselected tabs.",
         "$extensions": {
           "fw": {
             "semantic": "text.secondary",
-            "raw": "ink.300",
+            "raw": "crest.textMuted",
             "ios": "fwTextSecondary",
             "css": "--fw-text-2"
           }
@@ -709,17 +1076,17 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.5686,
-            0.5961,
-            0.7373
+            0.5922,
+            0.5412,
+            0.7294
           ],
-          "hex": "#9198BC"
+          "hex": "#978ABA"
         },
-        "$description": "Meta, timestamps, indices. Restricted (3.4).",
+        "$description": "Auxiliary text; at least 4.5:1 on every sun-lit surface.",
         "$extensions": {
           "fw": {
             "semantic": "text.tertiary",
-            "raw": "ink.400",
+            "raw": "crest.textTertiary",
             "ios": "fwTextTertiary",
             "css": "--fw-text-3"
           }
@@ -730,17 +1097,17 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.3686,
-            0.3922,
-            0.5294
+            0.4157,
+            0.3647,
+            0.549
           ],
-          "hex": "#5E6487"
+          "hex": "#6A5D8C"
         },
         "$description": "Disabled labels only, with a reason line in text.secondary.",
         "$extensions": {
           "fw": {
             "semantic": "text.disabled",
-            "raw": "ink.600",
+            "raw": "crest.textDisabled",
             "ios": "fwTextDisabled",
             "css": "--fw-text-dis"
           }
@@ -772,17 +1139,17 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.1804,
-            0.902,
-            1
+            1.0,
+            0.3098,
+            0.6392
           ],
-          "hex": "#2EE6FF"
+          "hex": "#FF4FA3"
         },
         "$description": "Links, Retry, Manage.",
         "$extensions": {
           "fw": {
             "semantic": "text.link",
-            "raw": "cyan.400",
+            "raw": "crest.pinkLight",
             "ios": "fwTextLink",
             "css": "--fw-link"
           }
@@ -793,17 +1160,17 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            1,
-            0.302,
-            0.7216
+            1.0,
+            0.3098,
+            0.6392
           ],
-          "hex": "#FF4DB8"
+          "hex": "#FF4FA3"
         },
         "$description": "Rare brand emphasis. Restricted (3.4).",
         "$extensions": {
           "fw": {
             "semantic": "text.brand",
-            "raw": "magenta.400",
+            "raw": "crest.pinkLight",
             "ios": "fwTextBrand",
             "css": "--fw-brand-text"
           }
@@ -835,17 +1202,17 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            1,
-            0,
-            0.6039
+            0.902,
+            0.0,
+            0.4353
           ],
-          "hex": "#FF009A"
+          "hex": "#E6006F"
         },
-        "$description": "Brand mark and glow colour. Never behind text.",
+        "$description": "Brand mark and glow, the active tab (Fearless pink #E6006F); kept off buttons with text (4.6:1).",
         "$extensions": {
           "fw": {
             "semantic": "accent.glow",
-            "raw": "magenta.500",
+            "raw": "crest.pink",
             "ios": "fwBrand",
             "css": "--fw-brand"
           }
@@ -857,16 +1224,16 @@
           "colorSpace": "srgb",
           "components": [
             0.8392,
-            0,
-            0.498
+            0.0,
+            0.4157
           ],
-          "hex": "#D6007F"
+          "hex": "#D6006A"
         },
-        "$description": "Primary fill gradient top; toggle-on track.",
+        "$description": "Primary fill top (brand rollout spec item 9): white labels read 5.2:1.",
         "$extensions": {
           "fw": {
             "semantic": "accent.fill.top",
-            "raw": "magenta.600",
+            "raw": "crest.fillTop",
             "ios": "fwFillTop",
             "css": "--fw-fill-top"
           }
@@ -877,17 +1244,17 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.6392,
-            0,
-            0.4157
+            0.6588,
+            0.0,
+            0.3529
           ],
-          "hex": "#A3006A"
+          "hex": "#A8005A"
         },
-        "$description": "Primary fill gradient bottom; pressed primary.",
+        "$description": "Primary fill bottom and pressed primary (spec item 9): white labels read 7.5:1.",
         "$extensions": {
           "fw": {
             "semantic": "accent.fill.bottom",
-            "raw": "magenta.700",
+            "raw": "crest.fillBottom",
             "ios": "fwFillBottom",
             "css": "--fw-fill-bottom"
           }
@@ -898,18 +1265,18 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            1,
-            0.302,
-            0.7216
+            1.0,
+            0.3098,
+            0.6392
           ],
           "alpha": 0.55,
-          "hex": "#FF4DB8"
+          "hex": "#FF4FA3"
         },
         "$description": "1 px inside edge on fills; lifts the toggle-on track to 3:1.",
         "$extensions": {
           "fw": {
             "semantic": "accent.edge",
-            "raw": "magenta.400",
+            "raw": "crest.pinkLight",
             "ios": "fwAccentEdge",
             "css": "--fw-accent-edge"
           }
@@ -983,17 +1350,17 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            1,
-            0.6275,
+            1.0,
+            0.6235,
             0.3412
           ],
-          "hex": "#FFA057"
+          "hex": "#FF9F57"
         },
         "$description": "Price change down, always with the down glyph and sign.",
         "$extensions": {
           "fw": {
             "semantic": "price.down",
-            "raw": "orange.300",
+            "raw": "orange.250",
             "ios": "fwPriceDown",
             "css": "--fw-down"
           }
@@ -1046,17 +1413,17 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            1,
-            0.4549,
-            0.4
+            1.0,
+            0.4196,
+            0.3686
           ],
-          "hex": "#FF7466"
+          "hex": "#FF6B5E"
         },
         "$description": "Danger text and glyphs.",
         "$extensions": {
           "fw": {
             "semantic": "status.danger",
-            "raw": "coral.400",
+            "raw": "coral.350",
             "ios": "fwDanger",
             "css": "--fw-danger"
           }
@@ -1109,18 +1476,18 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            1,
-            0,
-            0.6039
+            0.902,
+            0.0,
+            0.4353
           ],
           "alpha": 0.16,
-          "hex": "#FF009A"
+          "hex": "#E6006F"
         },
         "$description": "Selected chip, selected tab pill.",
         "$extensions": {
           "fw": {
             "semantic": "select.fill",
-            "raw": "magenta.500",
+            "raw": "crest.pink",
             "ios": "fwSelectFill",
             "css": "--fw-select-fill"
           }
@@ -1131,17 +1498,17 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            1,
-            0.302,
-            0.7216
+            1.0,
+            0.3098,
+            0.6392
           ],
-          "hex": "#FF4DB8"
+          "hex": "#FF4FA3"
         },
-        "$description": "Selected chip and pill edge (non-text 3:1).",
+        "$description": "Selected row, chip and pill edge: brand text pink (spec item 9; non-text 3:1).",
         "$extensions": {
           "fw": {
             "semantic": "select.edge",
-            "raw": "magenta.400",
+            "raw": "crest.pinkLight",
             "ios": "fwSelectEdge",
             "css": "--fw-select-edge"
           }
@@ -1152,18 +1519,18 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            1,
-            0,
-            0.6039
+            0.902,
+            0.0,
+            0.4353
           ],
           "alpha": 0.1,
-          "hex": "#FF009A"
+          "hex": "#E6006F"
         },
-        "$description": "Selected list row on glass.",
+        "$description": "Selected list row on glass: a brand-pink tint.",
         "$extensions": {
           "fw": {
             "semantic": "row.selected",
-            "raw": "magenta.500",
+            "raw": "crest.pink",
             "ios": "fwRowSelected",
             "css": "--fw-row-selected"
           }
@@ -1174,11 +1541,11 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            1,
-            1,
-            1
+            1.0,
+            1.0,
+            1.0
           ],
-          "alpha": 0.08,
+          "alpha": 0.06,
           "hex": "#FFFFFF"
         },
         "$description": "Row dividers.",
@@ -1284,17 +1651,17 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.7882,
-            0.8078,
-            0.9098
+            0.8118,
+            0.7686,
+            0.902
           ],
-          "hex": "#C9CEE8"
+          "hex": "#CFC4E6"
         },
         "$description": "Toggle-off thumb.",
         "$extensions": {
           "fw": {
             "semantic": "toggle.thumbOff",
-            "raw": "ink.thumb",
+            "raw": "crest.textMuted",
             "ios": "fwThumbOff",
             "css": "--fw-thumb-off"
           }
@@ -1341,6 +1708,410 @@
             "css": "--fw-qr-field"
           }
         }
+      },
+      "keyHighlight": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "alpha": 0.07,
+          "hex": "#FFFFFF"
+        },
+        "$description": "Key-light highlight shadow, offset up-left (-0.6, -0.8).",
+        "$extensions": {
+          "fw": {
+            "semantic": "light.key.highlight",
+            "raw": "white.base",
+            "ios": null,
+            "css": null
+          }
+        }
+      },
+      "keyShadow": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0196,
+            0.0118,
+            0.0588
+          ],
+          "alpha": 0.7,
+          "hex": "#05030F"
+        },
+        "$description": "Key-light shadow, offset down-right.",
+        "$extensions": {
+          "fw": {
+            "semantic": "light.key.shadow",
+            "raw": "crest.shadow",
+            "ios": null,
+            "css": null
+          }
+        }
+      },
+      "rimLight": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "alpha": 0.1,
+          "hex": "#FFFFFF"
+        },
+        "$description": "One-pixel inside rim catching the key light (top, fading by 70 %).",
+        "$extensions": {
+          "fw": {
+            "semantic": "light.rim",
+            "raw": "white.base",
+            "ios": null,
+            "css": null
+          }
+        }
+      },
+      "sunRim": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1.0,
+            0.3098,
+            0.6392
+          ],
+          "hex": "#FF4FA3"
+        },
+        "$description": "Top rim catching the sun bounce; alpha 0-0.35 weighted by distance from the sun.",
+        "$extensions": {
+          "fw": {
+            "semantic": "light.sun.rim",
+            "raw": "crest.pinkLight",
+            "ios": null,
+            "css": null
+          }
+        }
+      },
+      "sunBounce": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.902,
+            0.0,
+            0.4353
+          ],
+          "alpha": 0.18,
+          "hex": "#E6006F"
+        },
+        "$description": "Warm radial bounce the emissive sun casts onto the page.",
+        "$extensions": {
+          "fw": {
+            "semantic": "light.sun.bounce",
+            "raw": "crest.pink",
+            "ios": null,
+            "css": null
+          }
+        }
+      },
+      "sunBounceMid": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.902,
+            0.0,
+            0.4353
+          ],
+          "alpha": 0.075,
+          "hex": "#E6006F"
+        },
+        "$description": "Sun bounce at half its reach (soft light falloff).",
+        "$extensions": {
+          "fw": {
+            "semantic": "light.sun.bounce.mid",
+            "raw": "crest.pink",
+            "ios": null,
+            "css": null
+          }
+        }
+      },
+      "skyAmbient": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.5451,
+            0.3608,
+            1.0
+          ],
+          "alpha": 0.1,
+          "hex": "#8B5CFF"
+        },
+        "$description": "Ambient sky from the bottom-right corner.",
+        "$extensions": {
+          "fw": {
+            "semantic": "light.sky",
+            "raw": "violet.500",
+            "ios": null,
+            "css": null
+          }
+        }
+      },
+      "sunCore": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1.0,
+            0.7608,
+            0.2902
+          ],
+          "hex": "#FFC24A"
+        },
+        "$description": "Brand gold, the solar motif: the core of the crest badge's glow; emissive accents only.",
+        "$extensions": {
+          "fw": {
+            "semantic": "light.sun.core",
+            "raw": "crest.gold",
+            "ios": null,
+            "css": null
+          }
+        }
+      },
+      "brandStart": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.8784,
+            0.0706,
+            0.4314
+          ],
+          "hex": "#E0126E"
+        },
+        "$description": "App-icon gradient pink stop (icon background, emissive light).",
+        "$extensions": {
+          "fw": {
+            "semantic": "brand.gradient.start",
+            "raw": "crest.iconPink",
+            "ios": null,
+            "css": null
+          }
+        }
+      },
+      "brandEnd": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.2902,
+            0.0667,
+            0.3765
+          ],
+          "hex": "#4A1160"
+        },
+        "$description": "App-icon gradient plum stop.",
+        "$extensions": {
+          "fw": {
+            "semantic": "brand.gradient.end",
+            "raw": "crest.iconPlum",
+            "ios": null,
+            "css": null
+          }
+        }
+      },
+      "insetShadow": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "alpha": 0.6,
+          "hex": "#000000"
+        },
+        "$description": "Inner shadow of wells, top-left (mirrored key light).",
+        "$extensions": {
+          "fw": {
+            "semantic": "light.inset.shadow",
+            "raw": "black.base",
+            "ios": null,
+            "css": null
+          }
+        }
+      },
+      "insetHighlight": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "alpha": 0.045,
+          "hex": "#FFFFFF"
+        },
+        "$description": "Inner highlight of wells, bottom-right.",
+        "$extensions": {
+          "fw": {
+            "semantic": "light.inset.highlight",
+            "raw": "white.base",
+            "ios": null,
+            "css": null
+          }
+        }
+      },
+      "emissiveGlow": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.902,
+            0.0,
+            0.4353
+          ],
+          "alpha": 0.45,
+          "hex": "#E6006F"
+        },
+        "$description": "Outer glow of emissive controls in their own colour.",
+        "$extensions": {
+          "fw": {
+            "semantic": "light.emissive.glow",
+            "raw": "crest.pink",
+            "ios": null,
+            "css": null
+          }
+        }
+      },
+      "occlusion": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "alpha": 0.1,
+          "hex": "#000000"
+        },
+        "$description": "Ambient occlusion: inner corners of wells 8-12 % darker.",
+        "$extensions": {
+          "fw": {
+            "semantic": "light.occlusion",
+            "raw": "black.base",
+            "ios": null,
+            "css": null
+          }
+        }
+      },
+      "brandPressed": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.6588,
+            0.0,
+            0.3529
+          ],
+          "hex": "#A8005A"
+        },
+        "$description": "Pressed primary action: the fill bottom, solid (spec item 9).",
+        "$extensions": {
+          "fw": {
+            "raw": "crest.fillBottom",
+            "ios": "fwBrandPressed",
+            "css": "--fw-brand-pressed"
+          }
+        }
+      },
+      "brandInk": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.0706,
+            0.0392,
+            0.1804
+          ],
+          "hex": "#120A2E"
+        },
+        "$description": "Brand ink: launch, splash and welcome surfaces.",
+        "$extensions": {
+          "fw": {
+            "raw": "crest.ink",
+            "ios": "fwBrandInk",
+            "css": "--fw-brand-ink"
+          }
+        }
+      },
+      "brandNight": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.102,
+            0.0549,
+            0.2431
+          ],
+          "hex": "#1A0E3E"
+        },
+        "$description": "Brand night: raised brand surfaces.",
+        "$extensions": {
+          "fw": {
+            "raw": "crest.night",
+            "ios": "fwBrandNight",
+            "css": "--fw-brand-night"
+          }
+        }
+      },
+      "brandPlum": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            0.2275,
+            0.0627,
+            0.3765
+          ],
+          "hex": "#3A1060"
+        },
+        "$description": "Brand plum: the top of brand page gradients.",
+        "$extensions": {
+          "fw": {
+            "raw": "crest.plum",
+            "ios": "fwBrandPlum",
+            "css": "--fw-brand-plum"
+          }
+        }
+      },
+      "brandGold": {
+        "$type": "color",
+        "$value": {
+          "colorSpace": "srgb",
+          "components": [
+            1.0,
+            0.7608,
+            0.2902
+          ],
+          "hex": "#FFC24A"
+        },
+        "$description": "Brand gold: the solar motif and selection marks.",
+        "$extensions": {
+          "fw": {
+            "raw": "crest.gold",
+            "ios": "fwBrandGold",
+            "css": "--fw-brand-gold"
+          }
+        }
       }
     },
     "highContrast": {
@@ -1350,11 +2121,11 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.8353,
-            0.8549,
-            0.9176
+            0.9137,
+            0.8863,
+            0.9608
           ],
-          "hex": "#D5DAEA"
+          "hex": "#E9E2F5"
         },
         "$extensions": {
           "fw": {
@@ -1367,11 +2138,11 @@
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            0.7294,
-            0.7529,
-            0.8314
+            0.8118,
+            0.7686,
+            0.902
           ],
-          "hex": "#BAC0D4"
+          "hex": "#CFC4E6"
         },
         "$extensions": {
           "fw": {
@@ -1399,48 +2170,27 @@
       }
     },
     "aurora": {
-      "$description": "Static backdrop blobs (3.2); geometry is relative to the screen. Used by the backdrop recipes and the contrast worst cases.",
+      "$description": "Global illumination of the page: the emissive sun bounce and the ambient sky (centre and radius are fractions of the page width/height; radius of the width).",
       "magenta": {
         "$type": "color",
         "$value": {
           "colorSpace": "srgb",
           "components": [
-            1,
-            0,
-            0.6039
+            0.902,
+            0.0,
+            0.4353
           ],
           "alpha": 0.18,
-          "hex": "#FF009A"
+          "hex": "#E6006F"
         },
+        "$description": "Sun bounce; centred on the hero sun when one is on screen.",
         "$extensions": {
           "fw": {
             "center": [
-              0.15,
-              0.12
+              0.5,
+              0.21
             ],
-            "radius": 0.55
-          }
-        }
-      },
-      "cyan": {
-        "$type": "color",
-        "$value": {
-          "colorSpace": "srgb",
-          "components": [
-            0.1804,
-            0.902,
-            1
-          ],
-          "alpha": 0.12,
-          "hex": "#2EE6FF"
-        },
-        "$extensions": {
-          "fw": {
-            "center": [
-              0.95,
-              0.08
-            ],
-            "radius": 0.45
+            "radius": 1.1
           }
         }
       },
@@ -1451,18 +2201,19 @@
           "components": [
             0.5451,
             0.3608,
-            1
+            1.0
           ],
-          "alpha": 0.16,
+          "alpha": 0.1,
           "hex": "#8B5CFF"
         },
+        "$description": "Ambient sky from the bottom-right corner.",
         "$extensions": {
           "fw": {
             "center": [
-              0.5,
+              1,
               1
             ],
-            "radius": 0.6
+            "radius": 1.3
           }
         }
       }
@@ -1480,18 +2231,18 @@
     }
   },
   "gradient": {
-    "hairline": {
+    "rim": {
       "$type": "gradient",
       "$value": [
         {
           "color": {
             "colorSpace": "srgb",
             "components": [
-              1,
-              1,
-              1
+              1.0,
+              1.0,
+              1.0
             ],
-            "alpha": 0.22,
+            "alpha": 0.1,
             "hex": "#FFFFFF"
           },
           "position": 0
@@ -1500,91 +2251,62 @@
           "color": {
             "colorSpace": "srgb",
             "components": [
-              1,
-              1,
-              1
+              1.0,
+              1.0,
+              1.0
             ],
-            "alpha": 0.06,
+            "alpha": 0,
             "hex": "#FFFFFF"
           },
-          "position": 0.42
-        },
-        {
-          "color": {
-            "colorSpace": "srgb",
-            "components": [
-              1,
-              0,
-              0.6039
-            ],
-            "alpha": 0.28,
-            "hex": "#FF009A"
-          },
-          "position": 1
+          "position": 0.7
         }
       ],
-      "$description": "stroke.hairline: glass rims (decorative).",
+      "$description": "light.rim: one-pixel inside edge lit by the key light from above.",
       "$extensions": {
         "fw": {
-          "angle": 135,
-          "android": "Hairline",
-          "css": "--fw-hairline",
-          "ios": "hairline",
+          "angle": 180,
+          "android": "Rim",
+          "css": "--fw-rim",
+          "ios": "rim",
           "highContrast": "strokeControl"
         }
       }
     },
-    "accent": {
+    "brand": {
       "$type": "gradient",
       "$value": [
         {
           "color": {
             "colorSpace": "srgb",
             "components": [
-              1,
-              0,
-              0.6039
+              0.8784,
+              0.0706,
+              0.4314
             ],
-            "alpha": 0.75,
-            "hex": "#FF009A"
+            "hex": "#E0126E"
           },
-          "position": 0
+          "position": 0.45
         },
         {
           "color": {
             "colorSpace": "srgb",
             "components": [
-              0.5451,
-              0.3608,
-              1
+              0.2902,
+              0.0667,
+              0.3765
             ],
-            "alpha": 0.55,
-            "hex": "#8B5CFF"
-          },
-          "position": 0.5
-        },
-        {
-          "color": {
-            "colorSpace": "srgb",
-            "components": [
-              0.1804,
-              0.902,
-              1
-            ],
-            "alpha": 0.65,
-            "hex": "#2EE6FF"
+            "hex": "#4A1160"
           },
           "position": 1
         }
       ],
-      "$description": "stroke.accent: hero card rim, selected segment, focused hero input.",
+      "$description": "brand.gradient: the app-icon gradient's pink and plum (launcher background, emissive sun).",
       "$extensions": {
         "fw": {
           "angle": 135,
-          "android": "Accent",
-          "css": "--fw-accent-rim",
-          "ios": "accent",
-          "highContrast": "strokeControl"
+          "android": "Brand",
+          "css": "--fw-brand-gradient",
+          "ios": "brand"
         }
       }
     },
@@ -1596,10 +2318,10 @@
             "colorSpace": "srgb",
             "components": [
               0.8392,
-              0,
-              0.498
+              0.0,
+              0.4157
             ],
-            "hex": "#D6007F"
+            "hex": "#D6006A"
           },
           "position": 0
         },
@@ -1607,19 +2329,19 @@
           "color": {
             "colorSpace": "srgb",
             "components": [
-              0.6392,
-              0,
-              0.4157
+              0.6588,
+              0.0,
+              0.3529
             ],
-            "hex": "#A3006A"
+            "hex": "#A8005A"
           },
           "position": 1
         }
       ],
-      "$description": "accent.fill: primary button, Swap disc, toggle on, checkbox on.",
+      "$description": "accent.fill: primary button, active toggles (135 degrees, #D6006A to #A8005A, spec item 9).",
       "$extensions": {
         "fw": {
-          "angle": 180,
+          "angle": 135,
           "android": "PrimaryFill",
           "css": "--fw-fill",
           "ios": "primaryFill"
@@ -1660,6 +2382,34 @@
           "unit": "px"
         },
         "$description": "Sheet top corners, dialogs."
+      },
+      "card": {
+        "$type": "dimension",
+        "$value": {
+          "value": 22,
+          "unit": "px"
+        }
+      },
+      "button": {
+        "$type": "dimension",
+        "$value": {
+          "value": 18,
+          "unit": "px"
+        }
+      },
+      "hero": {
+        "$type": "dimension",
+        "$value": {
+          "value": 26,
+          "unit": "px"
+        }
+      },
+      "well": {
+        "$type": "dimension",
+        "$value": {
+          "value": 16,
+          "unit": "px"
+        }
       }
     },
     "chamfer": {
@@ -1764,6 +2514,13 @@
         "$type": "dimension",
         "$value": {
           "value": 48,
+          "unit": "px"
+        }
+      },
+      "gutter": {
+        "$type": "dimension",
+        "$value": {
+          "value": 20,
           "unit": "px"
         }
       }
@@ -1881,6 +2638,137 @@
             "css": "--fw-ease-expand"
           }
         }
+      }
+    },
+    "event": {
+      "$description": "Sun-lit motion (DESIGN-SPEC section 4): every animation reports a real event.",
+      "pressIn": {
+        "$type": "duration",
+        "$value": {
+          "value": 90,
+          "unit": "ms"
+        },
+        "$description": "Control sinks from raised to inset, scale 0.97."
+      },
+      "pressOut": {
+        "$type": "duration",
+        "$value": {
+          "value": 160,
+          "unit": "ms"
+        },
+        "$description": "Spring back after release."
+      },
+      "balanceRoll": {
+        "$type": "duration",
+        "$value": {
+          "value": 450,
+          "unit": "ms"
+        },
+        "$description": "Balance digits roll to the new value; changed part tinted up/down."
+      },
+      "priceFlash": {
+        "$type": "duration",
+        "$value": {
+          "value": 600,
+          "unit": "ms"
+        },
+        "$description": "Row value tint flash on a price change."
+      },
+      "syncTurn": {
+        "$type": "duration",
+        "$value": {
+          "value": 1600,
+          "unit": "ms"
+        },
+        "$description": "One turn of the sync arc while a sync runs."
+      },
+      "syncBloom": {
+        "$type": "duration",
+        "$value": {
+          "value": 500,
+          "unit": "ms"
+        },
+        "$description": "One bloom of the sun glow when a sync finishes."
+      },
+      "syncFail": {
+        "$type": "duration",
+        "$value": {
+          "value": 250,
+          "unit": "ms"
+        },
+        "$description": "Sun dims to 60 % and a warning dot appears."
+      },
+      "listStagger": {
+        "$type": "duration",
+        "$value": {
+          "value": 30,
+          "unit": "ms"
+        },
+        "$description": "Delay between rows on first appearance (at most 8 rows)."
+      },
+      "listRise": {
+        "$type": "duration",
+        "$value": {
+          "value": 220,
+          "unit": "ms"
+        },
+        "$description": "Each row fades in and rises 8 points."
+      },
+      "tabWell": {
+        "$type": "duration",
+        "$value": {
+          "value": 260,
+          "unit": "ms"
+        },
+        "$description": "The inset well slides under the new tab."
+      },
+      "txBreathe": {
+        "$type": "duration",
+        "$value": {
+          "value": 1400,
+          "unit": "ms"
+        },
+        "$description": "Pending status ring breathes amber."
+      },
+      "txSuccess": {
+        "$type": "duration",
+        "$value": {
+          "value": 400,
+          "unit": "ms"
+        },
+        "$description": "Status ring fills and the check draws."
+      },
+      "shake": {
+        "$type": "duration",
+        "$value": {
+          "value": 300,
+          "unit": "ms"
+        },
+        "$description": "Two 6 point shakes: failed transaction or wrong PIN."
+      },
+      "pinDot": {
+        "$type": "duration",
+        "$value": {
+          "value": 120,
+          "unit": "ms"
+        },
+        "$description": "PIN dot fills from the key-light side."
+      },
+      "copied": {
+        "$type": "duration",
+        "$value": {
+          "value": 900,
+          "unit": "ms"
+        },
+        "$description": "Copy chip glows success with Copied."
+      },
+      "reducedCrossfade": {
+        "$type": "duration",
+        "$value": {
+          "value": 150,
+          "unit": "ms"
+        },
+        "$description": "Upper bound for crossfades under reduced motion."
       }
     }
   },

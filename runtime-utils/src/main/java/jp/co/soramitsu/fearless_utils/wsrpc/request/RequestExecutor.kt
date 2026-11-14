@@ -37,7 +37,10 @@ class RequestExecutor(private val executor: ExecutorService = Executors.newSingl
         // No collection monitor is held while interrupting a running action.
         val pending = synchronized(lifecycle) {
             generation++
-            futures.toList()
+            // Not toList(): with one entry it reads the size and then calls iterator().next(), which
+            // throws if the task's done() removed the entry in between; done() takes no monitor.
+            // ArrayList copies through the set's toArray(), which returns only what it finds.
+            ArrayList(futures)
         }
         pending.forEach { it.cancel(true) }
     }

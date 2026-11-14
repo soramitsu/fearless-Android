@@ -13,6 +13,8 @@ import jp.co.soramitsu.common.base.BaseComposeFragment
 
 @AndroidEntryPoint
 class RecoveryCenterFragment : BaseComposeFragment<RecoveryCenterViewModel>() {
+
+    override val secureSurface = true
     override val viewModel: RecoveryCenterViewModel by viewModels()
 
     @OptIn(ExperimentalMaterialApi::class)

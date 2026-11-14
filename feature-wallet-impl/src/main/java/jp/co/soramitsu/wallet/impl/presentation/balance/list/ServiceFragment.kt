@@ -162,6 +162,7 @@ class ServiceFragment : BottomSheetDialogFragment() {
     private fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {
         behavior.state = BottomSheetBehavior.STATE_EXPANDED
         behavior.isDraggable = false
-        behavior.isHideable = false
+        // Material answers system Back from Android 13 and can only collapse a sheet that can't be hidden.
+        behavior.isHideable = true
     }
 }

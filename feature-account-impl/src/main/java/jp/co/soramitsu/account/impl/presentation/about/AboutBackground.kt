@@ -13,10 +13,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.fwPageBackground
 import jp.co.soramitsu.feature_account_impl.R
 
 @Composable
 fun AboutBackground() {
+    if (FwRestyle.isEnabled(FwSurface.Settings)) {
+        // The same page light as every sun-lit screen; the badge above is its sun.
+        Box(Modifier.fillMaxSize().fwPageBackground())
+        return
+    }
     Column(
         modifier = Modifier.fillMaxSize()
     ) {

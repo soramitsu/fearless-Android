@@ -22,6 +22,12 @@ object NativeSendError {
             NativeSendException.Code.REVIEW_REQUIRED, NativeSendException.Code.WALLET_CHANGED, NativeSendException.Code.QUOTE_EXPIRED -> R.string.send_review_changed
             NativeSendException.Code.UNSUPPORTED_ACCOUNT -> R.string.send_unsupported_account
             NativeSendException.Code.STORAGE_UNAVAILABLE -> R.string.send_storage_unavailable
+            NativeSendException.Code.PAYMENT_NOT_SENT -> R.string.send_solana_not_sent
+            NativeSendException.Code.PAYMENT_REFUSED -> R.string.send_solana_refused
+            NativeSendException.Code.PAYMENT_EXPIRED -> R.string.send_solana_expired_not_sent
+            NativeSendException.Code.PAYMENT_UNVERIFIED -> R.string.send_solana_payment_unverified
+            NativeSendException.Code.PRIOR_PAYMENT_EXPIRED -> R.string.send_solana_prior_expired
+            NativeSendException.Code.PRIOR_PAYMENT_UNVERIFIED -> R.string.send_solana_prior_unverified
             else -> R.string.fee_calculation_error
         }
         is jp.co.soramitsu.common.data.storage.pin.WalletPinRecoveryRequiredException -> R.string.pin_recovery_view_only_intro
@@ -40,7 +46,7 @@ object NativeSendError {
         is SolanaPaymentQuoteException -> when (error.code) {
             SolanaPaymentQuoteException.Code.BLOCKHASH_EXPIRED, SolanaPaymentQuoteException.Code.REVIEW_CHANGED -> R.string.send_review_changed
             SolanaPaymentQuoteException.Code.INSUFFICIENT_TOKEN_BALANCE -> R.string.send_insufficient_spendable
-            SolanaPaymentQuoteException.Code.UNSUPPORTED_TOKEN -> R.string.send_unsupported_account
+            SolanaPaymentQuoteException.Code.UNSUPPORTED_TOKEN -> R.string.send_solana_token2022_unsupported
             else -> R.string.fee_calculation_error
         }
         is SolanaAccountPreflightException -> when (error.code) {

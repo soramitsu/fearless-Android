@@ -16,6 +16,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:src="@drawable/ic_checkmark_white_24"
+        android:tint="@color/fw_selected_mark"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

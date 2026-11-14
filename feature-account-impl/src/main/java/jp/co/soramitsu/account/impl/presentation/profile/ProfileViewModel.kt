@@ -171,12 +171,12 @@ class ProfileViewModel @Inject constructor(
         router.openLanguages()
     }
 
-    override fun changePinCodeClicked() {
-        router.openChangePinCode()
+    override fun appearanceClicked() {
+        router.openAppearance()
     }
 
-    fun beaconQrScanned(qrContent: String) {
-        router.openBeacon(qrContent)
+    override fun changePinCodeClicked() {
+        router.openChangePinCode()
     }
 
     override fun currencyClicked() {
@@ -194,10 +194,6 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             selectedFiat.set(item.id)
         }
-    }
-
-    fun onExperimentalClicked() {
-        router.openExperimentalFeatures()
     }
 
     override fun polkaswapDisclaimerClicked() {

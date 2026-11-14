@@ -1,9 +1,5 @@
 //file:noinspection GroovyImplicitNullArgumentCall
-import groovy.json.JsonSlurper
-import com.google.gms.googleservices.GoogleServicesTask
 import java.nio.file.Files
-import java.nio.file.LinkOption
-import java.nio.file.Path
 import java.security.KeyStore
 import java.security.MessageDigest
 import java.security.PrivateKey
@@ -13,14 +9,13 @@ import java.util.Properties
 import java.util.zip.ZipFile
 
 apply plugin: 'com.android.application'
-apply plugin: 'com.google.gms.google-services'
 apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'kotlin-android'
 apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin-parcelize'
 apply plugin: 'org.jetbrains.kotlin.plugin.compose'
-apply plugin: 'com.google.firebase.appdistribution'
 apply from: "../scripts/versions.gradle"
+apply from: "../scripts/secrets.gradle"
 
 def localKeystoreProperties = new Properties()
 def localKeystorePropertiesFile = rootProject.file("local.properties")
@@ -78,9 +73,7 @@ if (unsignedReleaseBuild && !injectedSigningProperties.isEmpty()) {
 }
 
 def expectedUploadCertificateSha256 =
-    "40391092F5B97E782C6528CC571ADF5DBEDFE2D05023BABC7C4E339E584A4A9A"
-def expectedPublicFirebaseSha256 =
-    "3085af682c8c8a166142f7ef867e0c3fa06a6f87436f3a15497f8ae7dac93d2f"
+    "AD6C1D07BE5DFA8C539E8C9B8BD43DC1C6CF79A839828B10B6F953AD57C1BDE8"
 def requestedReleaseCommit = System.getenv("RELEASE_COMMIT")?.trim()
 if (requestedReleaseCommit != null &&
     !(requestedReleaseCommit ==~ /[0-9a-f]{40}/)) {
@@ -98,56 +91,8 @@ def internalAppSharingBundleRequested =
 def internalAppSharingVerificationRequested =
     requestedTaskNames == [":app:verifyInternalAppSharingConfiguration"]
 
-def releaseGoogleServicesFile = file("src/release/google-services.json")
 def iasSourceTreeCommit = null
 def iasSourceTreeTree = null
-def iasGoogleServicesSha256 = null
-
-def sha256Bytes = { byte[] bytes ->
-    MessageDigest.getInstance("SHA-256")
-        .digest(bytes)
-        .collect { String.format("%02x", it & 0xff) }
-        .join()
-}
-
-def requireNoSymlinkComponents = { Path inputPath, String label ->
-    def absolutePath = inputPath.toAbsolutePath().normalize()
-    def cursor = absolutePath.root
-    absolutePath.each { pathPart ->
-        cursor = cursor.resolve(pathPart)
-        if (Files.exists(cursor, LinkOption.NOFOLLOW_LINKS) &&
-            Files.isSymbolicLink(cursor)) {
-            throw new GradleException("${label} must not traverse a symlink.")
-        }
-    }
-}
-
-def requireSingleLinkRegularFile = { Path path, String label, long maximumBytes ->
-    requireNoSymlinkComponents(path, label)
-    if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS) ||
-        Files.isSymbolicLink(path)) {
-        throw new GradleException("${label} must be a regular, non-symlink file.")
-    }
-    def size = Files.size(path)
-    if (size <= 0 || size > maximumBytes) {
-        throw new GradleException("${label} must be between 1 and ${maximumBytes} bytes.")
-    }
-    try {
-        def linkCount = (Files.getAttribute(
-            path,
-            "unix:nlink",
-            LinkOption.NOFOLLOW_LINKS
-        ) as Number).longValue()
-        if (linkCount != 1L) {
-            throw new GradleException("${label} must have exactly one filesystem link.")
-        }
-    } catch (UnsupportedOperationException failure) {
-        throw new GradleException(
-            "${label} requires a filesystem that exposes hard-link counts.",
-            failure
-        )
-    }
-}
 
 def runCheckedCommand = { List<String> command, String label ->
     def process = new ProcessBuilder(command)
@@ -318,62 +263,6 @@ if (internalAppSharingRequested) {
             "IAS pre-build source-tree verification"
         )
     }
-
-    def releasePath = releaseGoogleServicesFile.toPath()
-    requireSingleLinkRegularFile(
-        releasePath,
-        "Release Firebase configuration",
-        65536L
-    )
-    def releaseBytes = Files.readAllBytes(releasePath)
-    iasGoogleServicesSha256 = sha256Bytes(releaseBytes)
-    if (iasGoogleServicesSha256 != expectedPublicFirebaseSha256) {
-        throw new GradleException(
-            "IAS requires the exact checksum-pinned reviewed public Firebase file."
-        )
-    }
-    def releaseFirebaseConfig
-    try {
-        releaseFirebaseConfig = new JsonSlurper().parse(releaseGoogleServicesFile)
-    } catch (Exception failure) {
-        throw new GradleException("Release Firebase configuration is not valid JSON.", failure)
-    }
-    def releaseFirebaseClients = releaseFirebaseConfig?.client
-    def matchingReleaseClients = releaseFirebaseClients instanceof List
-        ? releaseFirebaseClients.findAll { client ->
-            client?.client_info?.android_client_info?.package_name ==
-                "jp.co.soramitsu.fearless"
-        }
-        : []
-    def allApiKeys = releaseFirebaseClients instanceof List
-        ? releaseFirebaseClients.collectMany { client ->
-            client?.api_key instanceof List ? client.api_key : []
-        }
-        : []
-    def matchingClient = matchingReleaseClients.size() == 1
-        ? matchingReleaseClients.first()
-        : null
-    def matchingOauthClients = matchingClient?.oauth_client instanceof List
-        ? matchingClient.oauth_client.findAll { client -> client?.client_type == 3 }
-        : []
-    if (releaseFirebaseConfig?.project_info?.project_id != "fearless-public" ||
-        releaseFirebaseConfig?.project_info?.project_number != "000000000000" ||
-        releaseFirebaseConfig?.project_info?.firebase_url !=
-            "https://fearless-public.firebaseio.com" ||
-        releaseFirebaseConfig?.project_info?.storage_bucket !=
-            "fearless-public.appspot.com" ||
-        matchingReleaseClients.size() != 1 ||
-        matchingClient?.client_info?.mobilesdk_app_id !=
-            "1:000000000000:android:0000000000000000000002" ||
-        matchingOauthClients*.client_id !=
-            ["000000000000-public-1-1.apps.googleusercontent.com"] ||
-        allApiKeys.isEmpty() ||
-        !allApiKeys.every { apiKey -> apiKey?.current_key == "" }) {
-        throw new GradleException(
-            "IAS accepts only the reviewed public-placeholder Firebase configuration."
-        )
-    }
-
 }
 
 androidComponents {
@@ -441,6 +330,9 @@ android {
         versionCode computeVersionCode()
         versionName computeVersionName()
         manifestPlaceholders.releaseCommit = "development"
+        // Google's redirect back from the browser sign-in for Drive backup (scripts/secrets.gradle).
+        manifestPlaceholders.googleDriveOAuthRedirectScheme =
+            googleDriveOAuthRedirectScheme(googleDriveOAuthClientId())
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
@@ -479,14 +371,6 @@ android {
             kotlinOptions {
                 freeCompilerArgs ["-Xdebug"]
             }
-
-            //Init firebase
-            def localReleaseNotes = releaseNotes()
-            def localFirebaseGroup = firebaseGroup()
-            firebaseAppDistribution {
-                releaseNotes = localReleaseNotes
-                groups = localFirebaseGroup
-            }
         }
         release {
             minifyEnabled true
@@ -511,26 +395,12 @@ android {
             matchingFallbacks = ['debug']
             versionNameSuffix '-staging'
             applicationIdSuffix '.staging'
-            //Init firebase
-            def localReleaseNotes = releaseNotes()
-            def localFirebaseGroup = firebaseGroup()
-            firebaseAppDistribution {
-                releaseNotes = localReleaseNotes
-                groups = localFirebaseGroup
-            }
         }
         develop {
             signingConfig signingConfigs.debug
             matchingFallbacks = ['debug']
             versionNameSuffix '-develop'
             applicationIdSuffix '.dev'
-            //Init firebase
-            def localReleaseNotes = releaseNotes()
-            def localFirebaseGroup = firebaseGroup()
-            firebaseAppDistribution {
-              releaseNotes = localReleaseNotes
-              groups = localFirebaseGroup
-            }
         }
         pr {
             debuggable = true
@@ -538,13 +408,6 @@ android {
             matchingFallbacks = ['debug']
             versionNameSuffix '-pr'
             applicationIdSuffix '.dev'
-            //Init firebase
-            def localReleaseNotes = releaseNotes()
-            def localFirebaseGroup = firebaseGroup()
-            firebaseAppDistribution {
-              releaseNotes = localReleaseNotes
-              groups = localFirebaseGroup
-            }
         }
     }
 
@@ -587,8 +450,12 @@ android {
         }
     }
     lint {
-        disable 'Instantiatable'
-        fatal 'CredentialDependency', 'TrustAllX509TrustManager'
+        // CredentialDependency asks for credentials-play-services-auth, the closed-source Google Play
+        // services provider for Credential Manager on Android 13 and older. 4.3.2 ships no Play services:
+        // Google Drive signs in through the browser, and Credential Manager is used only by passkey backup,
+        // which stays compiled off; enabled, it would rely on the platform provider (Android 14+).
+        disable 'Instantiatable', 'CredentialDependency'
+        fatal 'TrustAllX509TrustManager'
         checkReleaseBuilds true
         abortOnError true
     }
@@ -607,65 +474,41 @@ android {
             // Force native libs to be extracted at install time so 4 KB-aligned binaries run on 16 KB page devices.
             useLegacyPackaging true
             excludes += ["**/armeabi/**"]
-            pickFirsts += ["**/libsr25519java.so", "**/libtoolChecker.so", "**/libsodium.so"]
+            // libsr25519java.so comes from :runtime-utils, built from source and already
+            // stripped; package the exact bytes listed in its reproducible-build.json.
+            keepDebugSymbols += ["**/libsr25519java.so"]
         }
     }
 }
 
-def validateIasGoogleServicesTaskInput = { task ->
-    if (!task.hasProperty("googleServicesJsonFiles")) {
+// Google Play services and Firebase are not part of the app (4.3.2): no build of any type may read a
+// Google Services configuration or register its processing task.
+def googleServicesConfigurationFiles = {
+    fileTree(dir: projectDir, includes: ["google-services.json", "src/*/google-services.json"])
+        .files
+        .collect { file -> projectDir.toPath().relativize(file.toPath()).toString() }
+        .sort()
+}
+def requireNoGoogleServicesConfiguration = { String label ->
+    def configurationFiles = googleServicesConfigurationFiles()
+    if (!configurationFiles.isEmpty()) {
         throw new GradleException(
-            "Google Services task does not expose the expected IAS JSON input property."
+            "${label} forbids Google Services configuration files: ${configurationFiles.join(', ')}"
         )
     }
-    def configuredFiles = task.googleServicesJsonFiles.get()
-    if (!(configuredFiles instanceof Collection) || configuredFiles.size() != 1) {
+    def googleServicesTasks = tasks.names.findAll { taskName ->
+        taskName.toLowerCase(Locale.ROOT).contains("googleservices")
+    }.sort()
+    if (!googleServicesTasks.isEmpty()) {
         throw new GradleException(
-            "IAS Google Services processing requires exactly one JSON input."
-        )
-    }
-    def configuredFile = configuredFiles.first() as File
-    def expectedPath = releaseGoogleServicesFile.toPath().toAbsolutePath().normalize()
-    def configuredPath = configuredFile.toPath().toAbsolutePath().normalize()
-    if (configuredPath != expectedPath) {
-        throw new GradleException(
-            "IAS Google Services processing must read app/src/release/google-services.json directly."
-        )
-    }
-    requireSingleLinkRegularFile(
-        configuredPath,
-        "IAS Google Services direct input",
-        65536L
-    )
-    if (sha256Bytes(Files.readAllBytes(configuredPath)) != expectedPublicFirebaseSha256) {
-        throw new GradleException(
-            "IAS Google Services direct input does not match the reviewed public checksum."
+            "${label} forbids Google Services processing tasks: ${googleServicesTasks.join(', ')}"
         )
     }
 }
-
-def iasGoogleServicesTasks = tasks.withType(GoogleServicesTask).matching { task ->
-    task.name == "processInternalAppSharingGoogleServices"
-}
-def boundIasGoogleServicesTask = null
 if (internalAppSharingRequested) {
     gradle.projectsEvaluated {
-        // Realization runs every provider action registered by the Google Services
-        // plugin before this late, final binding is applied.
-        def googleServicesTasks = iasGoogleServicesTasks.toList()
-        if (googleServicesTasks.size() != 1) {
-            throw new GradleException(
-                "IAS requires exactly one typed Google Services processing task."
-            )
-        }
-        boundIasGoogleServicesTask = googleServicesTasks.first()
-        boundIasGoogleServicesTask.googleServicesJsonFiles.set(
-            Collections.singletonList(releaseGoogleServicesFile)
-        )
-        boundIasGoogleServicesTask.googleServicesJsonFiles.finalizeValue()
-        boundIasGoogleServicesTask.doFirst {
-            validateIasGoogleServicesTaskInput(boundIasGoogleServicesTask)
-        }
+        // Every plugin has registered its tasks by now.
+        requireNoGoogleServicesConfiguration("Internal App Sharing")
     }
 
     tasks.matching { task ->
@@ -891,7 +734,7 @@ gradle.taskGraph.whenReady { taskGraph ->
         }
         logger.lifecycle(
             "Internal App Sharing build output is an unsigned quarantine intermediate: " +
-                "release semantics, public-placeholder Firebase, and exact source binding."
+                "release semantics, no Firebase or Google Services input, and exact source binding."
         )
     }
     if (internalAppSharingVerificationRequested &&
@@ -953,19 +796,11 @@ gradle.taskGraph.whenReady { taskGraph ->
 
 tasks.register("verifyInternalAppSharingConfiguration") {
     group = "verification"
-    description = "Verifies the zero-copy, checksum-pinned public Firebase input for IAS."
+    description = "Verifies that IAS builds read no Firebase or Google Services configuration."
     dependsOn(verifyIasDependencyLocks)
 
     doLast {
-        def googleServicesTasks = iasGoogleServicesTasks.toList()
-        if (boundIasGoogleServicesTask == null ||
-            googleServicesTasks.size() != 1 ||
-            !googleServicesTasks.first().is(boundIasGoogleServicesTask)) {
-            throw new GradleException(
-                "IAS verifier did not retain the exact bound Google Services task."
-            )
-        }
-        validateIasGoogleServicesTaskInput(boundIasGoogleServicesTask)
+        requireNoGoogleServicesConfiguration("IAS verification")
 
         def forceFailure =
             providers.gradleProperty("iasVerificationForceFailure").orNull
@@ -976,14 +811,27 @@ tasks.register("verifyInternalAppSharingConfiguration") {
         }
         if (forceFailure == "true") {
             throw new GradleException(
-                "Forced IAS verification failure after direct-input validation."
+                "Forced IAS verification failure after configuration validation."
             )
         }
         logger.lifecycle(
-            "IAS configuration verified with zero-copy public Firebase input; " +
+            "IAS configuration verified without Firebase or Google Services inputs; " +
                 "Gradle receives no final signer and emits only an unsigned quarantine candidate."
         )
     }
+}
+
+// TON phrases, keys, signatures and comment key agreement run on BouncyCastle in runtime-utils
+// (TonMnemonic, TonEd25519). No app path reaches ton-kotlin's Ed25519 code, so its single-maintainer
+// curve library is not packaged. Unit and device test classpaths keep it: ton-kotlin is the reference
+// implementation the TON differential tests compare against.
+configurations.matching { configuration ->
+    configuration.name.endsWith('RuntimeClasspath') &&
+            !configuration.name.contains('UnitTest') &&
+            !configuration.name.contains('AndroidTest')
+}.configureEach {
+    exclude group: 'io.github.andreypfau', module: 'curve25519-kotlin'
+    exclude group: 'io.github.andreypfau', module: 'curve25519-kotlin-jvm'
 }
 
 dependencies {
@@ -1067,8 +915,6 @@ dependencies {
 
     // JNA is added as direct dependency to prevent class duplication from 3rd party libraries
     implementation libs.jna
-    // Exclude JNA from beacon SDK to prevent class duplication - using direct JNA dependency above
-    implementation libs.beacon.android.sdk, withoutJna
 
     kspAndroidTest libs.hilt.compiler
     implementation libs.storiesProgressView
@@ -1078,11 +924,8 @@ dependencies {
 
     implementation project(':core-ui')
     implementation(project(':core-foundation'))
-
-    implementation platform(libs.reownBomDep)
-    // Exclude JNA (and WalletConnect Pay) to prevent duplicate natives and page-size incompatible libs
-    implementation libs.reownCoreDep, withoutJna
-    implementation libs.reownWalletKitDep, withoutJnaAndPay
+    // WalletRootActivity logs through Timber, which the removed Reown SDK used to bring in (4.3.1 shipped 5.0.1).
+    implementation libs.timber
 
     androidTestImplementation libs.runner
     androidTestImplementation libs.rules

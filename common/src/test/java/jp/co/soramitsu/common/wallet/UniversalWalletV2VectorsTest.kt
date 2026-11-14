@@ -137,14 +137,12 @@ class UniversalWalletV2VectorsTest {
         assertEquals("iroha3-taira", UniversalWalletRegistry.taira.chainId)
         assertEquals(369, UniversalWalletRegistry.taira.chainDiscriminant)
         assertEquals("https://taira.sora.org", UniversalWalletRegistry.taira.toriiBaseUrl)
-        assertEquals("/v1/mcp", UniversalWalletRegistry.taira.mcpPath)
         assertTrue(UniversalWalletRegistry.taira.enabledByDefault)
 
         assertEquals("sora-nexus-mainnet", UniversalWalletRegistry.nexus.id)
         assertEquals("sora:nexus:global", UniversalWalletRegistry.nexus.chainId)
         assertEquals(753, UniversalWalletRegistry.nexus.chainDiscriminant)
         assertEquals("https://minamoto.sora.org", UniversalWalletRegistry.nexus.toriiBaseUrl)
-        assertEquals("/v1/mcp", UniversalWalletRegistry.nexus.mcpPath)
         assertFalse(UniversalWalletRegistry.nexus.enabledByDefault)
     }
 

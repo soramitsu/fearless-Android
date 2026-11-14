@@ -30,7 +30,9 @@ import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import jp.co.soramitsu.common.R
+import androidx.compose.runtime.CompositionLocalProvider
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwSecureSurface
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventObserver
@@ -38,6 +40,9 @@ import jp.co.soramitsu.common.utils.EventObserver
 abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
 
     abstract val viewModel: T
+
+    /** Signing and recovery-phrase screens: nothing animates in them beyond press feedback. */
+    protected open val secureSurface: Boolean = false
 
     @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterialApi::class)
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -49,6 +54,7 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 FearlessTheme {
+                    CompositionLocalProvider(LocalFwSecureSurface provides secureSurface) {
                     val scaffoldState = rememberScaffoldState()
                     val scrollState = rememberScrollState()
 
@@ -89,6 +95,7 @@ abstract class BaseComposeFragment<T : BaseViewModel> : Fragment() {
                             }
                         }
                     )
+                    }
                 }
             }
         }

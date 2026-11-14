@@ -1,0 +1,165 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-31",
+  "derivationSpec": "Fearless Universal Wallet V2 with the wallet password as the BIP39 passphrase",
+  "passphraseRule": "The BIP39 passphrase is the password after '///' in the wallet's Substrate derivation path, or, when that path has none, the password after '///' in its Ethereum derivation path. It is NFKD-normalised as BIP39 specifies. Without a password the passphrase is empty and the accounts are the v2 ones in universal-wallet-v2-vectors.json. Paths and derivation are unchanged.",
+  "generator": "fearless-wallet-web scripts/generate-universal-wallet-passphrase-vectors.py (Python standard library only, no client code)",
+  "vectors": [
+    {
+      "id": "import12-trezor",
+      "mnemonic": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about",
+      "wordCount": 12,
+      "passphrase": "TREZOR",
+      "passphraseNfkdUtf8Hex": "5452455a4f52",
+      "expected": {
+        "bitcoin": {
+          "mainnet": {
+            "accountPath": "m/84'/0'/0'",
+            "firstReceivePath": "m/84'/0'/0'/0/0",
+            "accountXpub": "xpub6Crgkie5Rb7wDabkf4Uf6A2qnuERMA3p2QrnmHNQDrsXTaGvz9zugU38Apne8WqrcbSjdLwbhtfHrzWjNCJPVAkkNoQhMfzhBm8rKMA8KxH",
+            "firstReceiveAddress": "bc1qv5rmq0kt9yz3pm36wvzct7p3x6mtgehjul0feu"
+          },
+          "testnet": {
+            "accountPath": "m/84'/1'/0'",
+            "firstReceivePath": "m/84'/1'/0'/0/0",
+            "accountXpub": "xpub6Bfmxm9gb4Hn6hpzXv65FqKHgpecV35y4HoQq54kd8L458V6Pmdut8cukUB4d9byzRYNXwKjJ12ft784BCQBBHTiyJW3E8yskgDSPjJ6Dmd",
+            "firstReceiveAddress": "tb1qfwxzlmn42rh6wu6gt4f0yrfpe4gf0jtwgxagrr"
+          }
+        },
+        "solana": {
+          "derivationPath": "m/44'/501'/0'/0'",
+          "publicKeyHex": "67dd5d619b5b95909578651d3cc3723f19d90cb03ac3c8d64a5ef391b2c2a973",
+          "address": "7zSmbu6gKkb6HB7UDPtHYjwCWuBHU1D4TpNZFm4sndQe"
+        },
+        "ton": {
+          "derivationPath": "m/44'/607'/0'/0'/0'",
+          "walletVersion": "v4r2",
+          "workchain": 0,
+          "publicKeyHex": "2821c8777b7d0867fa4dc4ba73b21e317c43594d8eeb30aaf0d15e1e4544e3c6",
+          "addressBounceable": "EQB3_n4hrlYLTu14vZ5Lq-7Mwjbr9b1R1nShGKGi4gpW-aT8",
+          "addressNonBounceable": "UQB3_n4hrlYLTu14vZ5Lq-7Mwjbr9b1R1nShGKGi4gpW-fk5",
+          "testnetNonBounceable": "0QB3_n4hrlYLTu14vZ5Lq-7Mwjbr9b1R1nShGKGi4gpW-UKz"
+        },
+        "iroha": {
+          "derivationPath": "m/44'/617'/0'/0'",
+          "taira": {
+            "publicKeyHex": "3fdd6c218ddc06097a12625a1312caed9895b5840fb4bc835bffaf6c3bc410d7",
+            "canonicalHex": "0x020001203fdd6c218ddc06097a12625a1312caed9895b5840fb4bc835bffaf6c3bc410d7",
+            "i105": "testu\uff9b1N\u30f0\uff96\uff87g\uff88\uff95\uff7evnCmL\uff99\uff7fMr5\uff88\uff9cohA\uff80M\uff71\uff86st\uff9b\uff88\uff81\uff96x\uff99jm\uff79\uff7eC4YD31",
+            "chainDiscriminant": 369
+          },
+          "nexus": {
+            "publicKeyHex": "3fdd6c218ddc06097a12625a1312caed9895b5840fb4bc835bffaf6c3bc410d7",
+            "canonicalHex": "0x020001203fdd6c218ddc06097a12625a1312caed9895b5840fb4bc835bffaf6c3bc410d7",
+            "i105": "sorau\uff9b1N\u30f0\uff96\uff87g\uff88\uff95\uff7evnCmL\uff99\uff7fMr5\uff88\uff9cohA\uff80M\uff71\uff86st\uff9b\uff88\uff81\uff96x\uff99jm\uff79\uff7eC4YD31",
+            "chainDiscriminant": 753
+          }
+        }
+      }
+    },
+    {
+      "id": "default24-unicode",
+      "mnemonic": "abandon amount liar amount expire adjust cage candy arch gather drum bullet absurd math era live bid rhythm alien crouch range attend journey unaware",
+      "wordCount": 24,
+      "passphrase": "p\u00e4ssw\u00f6rd \uff26\uff37",
+      "passphraseNfkdUtf8Hex": "7061cc887373776fcc887264204657",
+      "expected": {
+        "bitcoin": {
+          "mainnet": {
+            "accountPath": "m/84'/0'/0'",
+            "firstReceivePath": "m/84'/0'/0'/0/0",
+            "accountXpub": "xpub6BiMs1UtQWsMypnDPx1QApzS2qxHUv2KJ9nyGkQ1trcSNaJs78xgmNN39sgaWctsWCGeRmRJZGrcsmXzWLStnhnRSeaYYk4RSNY2fxeufEo",
+            "firstReceiveAddress": "bc1qdgqn9x0yk9mf6xc3xg33n6m4pfjng06aps4fnv"
+          },
+          "testnet": {
+            "accountPath": "m/84'/1'/0'",
+            "firstReceivePath": "m/84'/1'/0'/0/0",
+            "accountXpub": "xpub6CSEseF8mojDZa5y4knp7oERYqUEerVWnnJpiYMbtaSaYvmWpaGxeeUZgRzVUGrG9C8KfJXTTaJe6Aa6Bu6LF5o3mFTfk192pkqj1sg1ZUD",
+            "firstReceiveAddress": "tb1q327evp8k4dtczzngwlnex8rkl3g3mmy8kf956k"
+          }
+        },
+        "solana": {
+          "derivationPath": "m/44'/501'/0'/0'",
+          "publicKeyHex": "b0ba094a465f193045d3ceb6d5230660b6c0a6270812cccc43f9130522a71880",
+          "address": "CtsHbvZPyGjVvkcfEkikV2EFv9v3GNw4HdstLFFjxiST"
+        },
+        "ton": {
+          "derivationPath": "m/44'/607'/0'/0'/0'",
+          "walletVersion": "v4r2",
+          "workchain": 0,
+          "publicKeyHex": "b5c795e8bd182b4ff415a10de5987ca932563112a191edf2c5ecc8a69ca50dee",
+          "addressBounceable": "EQDxZB60M3yzMfP1UESaOBwBBrXpUB_Ra0YbXvQwaE_NaFWw",
+          "addressNonBounceable": "UQDxZB60M3yzMfP1UESaOBwBBrXpUB_Ra0YbXvQwaE_NaAh1",
+          "testnetNonBounceable": "0QDxZB60M3yzMfP1UESaOBwBBrXpUB_Ra0YbXvQwaE_NaLP_"
+        },
+        "iroha": {
+          "derivationPath": "m/44'/617'/0'/0'",
+          "taira": {
+            "publicKeyHex": "05e6d5cbc304bce2b84912fbaf006b64fe9f5f69fdb180e42601cdcc572ffdc9",
+            "canonicalHex": "0x0200012005e6d5cbc304bce2b84912fbaf006b64fe9f5f69fdb180e42601cdcc572ffdc9",
+            "i105": "testu\uff9b1Ng\uff8a\uff7dZ\uff71cX\uff85\uff8ayMPuS\u30f05wA\uff8f\uff78S\uff85PN\uff75\uff66\uff948\uff7f49\uff947\uff91d2Gu7TFTYU",
+            "chainDiscriminant": 369
+          },
+          "nexus": {
+            "publicKeyHex": "05e6d5cbc304bce2b84912fbaf006b64fe9f5f69fdb180e42601cdcc572ffdc9",
+            "canonicalHex": "0x0200012005e6d5cbc304bce2b84912fbaf006b64fe9f5f69fdb180e42601cdcc572ffdc9",
+            "i105": "sorau\uff9b1Ng\uff8a\uff7dZ\uff71cX\uff85\uff8ayMPuS\u30f05wA\uff8f\uff78S\uff85PN\uff75\uff66\uff948\uff7f49\uff947\uff91d2Gu7TFTYU",
+            "chainDiscriminant": 753
+          }
+        }
+      }
+    }
+  ],
+  "passphraseSources": [
+    {
+      "id": "substrate-path-password",
+      "substrateDerivationPath": "//polkadot///TREZOR",
+      "ethereumPathPassword": null,
+      "passphrase": "TREZOR"
+    },
+    {
+      "id": "substrate-password-only",
+      "substrateDerivationPath": "///TREZOR",
+      "ethereumPathPassword": null,
+      "passphrase": "TREZOR"
+    },
+    {
+      "id": "ethereum-path-password",
+      "substrateDerivationPath": "//polkadot",
+      "ethereumPathPassword": "TREZOR",
+      "passphrase": "TREZOR"
+    },
+    {
+      "id": "substrate-password-wins",
+      "substrateDerivationPath": "//polkadot///TREZOR",
+      "ethereumPathPassword": "other",
+      "passphrase": "TREZOR"
+    },
+    {
+      "id": "path-without-password",
+      "substrateDerivationPath": "//polkadot",
+      "ethereumPathPassword": null,
+      "passphrase": ""
+    },
+    {
+      "id": "no-paths",
+      "substrateDerivationPath": "",
+      "ethereumPathPassword": null,
+      "passphrase": ""
+    }
+  ],
+  "negativeCases": [
+    {
+      "id": "password-ignored",
+      "reason": "A password wallet must not resolve to the no-password v2 addresses."
+    },
+    {
+      "id": "passphrase-not-normalised",
+      "reason": "Deriving from the NFC bytes of default24-unicode gives different addresses than NFKD."
+    },
+    {
+      "id": "path-is-not-password",
+      "reason": "A derivation path without ///password leaves the passphrase empty."
+    }
+  ]
+}

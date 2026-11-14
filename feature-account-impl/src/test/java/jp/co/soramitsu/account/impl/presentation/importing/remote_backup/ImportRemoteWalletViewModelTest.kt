@@ -10,6 +10,7 @@ import io.mockk.verify
 import java.io.IOException
 import jp.co.soramitsu.account.api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
+import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
 import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.api.presentation.backup.GoogleBackupIssue
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
@@ -36,6 +37,7 @@ import jp.co.soramitsu.common.R as CommonR
 import jp.co.soramitsu.common.base.models.ErrorDialogState
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.core.crypto.SubstratePasswordRule
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecodingException
 import jp.co.soramitsu.feature_account_impl.R
@@ -87,6 +89,7 @@ class ImportRemoteWalletViewModelTest {
         coEvery { backupService.getBackupAccounts() } returns listOf(appBackup)
         coEvery { backupService.getWebBackupAccounts() } returns emptyList()
         coEvery { backupService.restoringSecretTypes(any()) } returns null
+        coEvery { backupService.restoringSubstratePasswordRule(any()) } returns null
         coEvery { backupService.logout() } returns Unit
         coEvery { interactor.createAccount(any()) } returns Result.success(1L)
         coEvery { interactor.importFromSeed(any(), any(), any(), any(), any(), any(), any()) } returns Result.success(Unit)
@@ -295,6 +298,22 @@ class ImportRemoteWalletViewModelTest {
     }
 
     @Test
+    fun `a phrase backup of an earlier browser extension account restores that account`() = runTest(dispatcher) {
+        coEvery { backupService.importBackupAccount("5App", "pw") } returns phraseBackup
+        coEvery { backupService.restoringSecretTypes(phraseBackup) } returns setOf(BackupAccountType.PASSPHRASE)
+        coEvery { backupService.restoringSubstratePasswordRule(phraseBackup) } returns SubstratePasswordRule.NFC
+        val vm = viewModel()
+
+        importWith(vm, WrappedBackupAccountMeta(appBackup), "pw")
+
+        coVerify(exactly = 1) {
+            interactor.createAccount(
+                match { it is AddAccountPayload.SubstrateOrEvm && it.substratePasswordRule == SubstratePasswordRule.NFC }
+            )
+        }
+    }
+
+    @Test
     fun `import failures are explained by what went wrong`() = runTest(dispatcher) {
         val cases = listOf(
             DecryptionException() to GoogleBackupIssue.WRONG_PASSWORD,
@@ -389,6 +408,45 @@ class ImportRemoteWalletViewModelTest {
 
         coVerify(exactly = 1) { interactor.createAccount(any()) }
         assertTrue(vm.state.value is WalletImportedState)
+    }
+
+    @Test
+    fun `Back on the wallet list leaves the sheet`() = runTest(dispatcher) {
+        val vm = viewModel()
+        runCurrent()
+
+        vm.backClicked()
+
+        verify(exactly = 1) { router.back() }
+    }
+
+    @Test
+    fun `Back on the password page returns to the wallet list`() = runTest(dispatcher) {
+        val vm = viewModel()
+        runCurrent()
+        vm.onWalletSelected(WrappedBackupAccountMeta(appBackup))
+        runCurrent()
+        assertTrue(vm.state.value is EnterBackupPasswordState)
+
+        vm.backClicked()
+        runCurrent()
+
+        assertTrue(vm.state.value is RemoteWalletListState)
+        verify(exactly = 0) { router.back() }
+    }
+
+    @Test
+    fun `Back after an import opens the wallet, not the page before it`() = runTest(dispatcher) {
+        coEvery { backupService.importBackupAccount("5App", "pw") } returns phraseBackup
+        val vm = viewModel()
+        importWith(vm, WrappedBackupAccountMeta(appBackup), "pw")
+        assertTrue(vm.state.value is WalletImportedState)
+
+        vm.backClicked()
+        runCurrent()
+
+        verify(exactly = 1) { router.openMain() }
+        verify(exactly = 0) { router.back() }
     }
 
     private fun TestScope.importWith(vm: ImportRemoteWalletViewModel, wallet: WrappedBackupAccountMeta, password: String) {

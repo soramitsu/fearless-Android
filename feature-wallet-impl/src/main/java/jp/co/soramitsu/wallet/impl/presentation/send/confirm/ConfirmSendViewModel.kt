@@ -5,6 +5,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.UUID
+import javax.inject.Inject
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.AlertViewState
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -15,6 +19,9 @@ import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.base.errors.ValidationWarning
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
+import jp.co.soramitsu.common.feedback.FeedbackCue
+import jp.co.soramitsu.common.feedback.TransferFeedback
+import jp.co.soramitsu.common.feedback.TransferMoments
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.applyFiatRate
@@ -32,6 +39,8 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.models.WithDesired
+import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
+import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.bokoloCashTokenId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedAddressExplorers
@@ -40,6 +49,8 @@ import jp.co.soramitsu.wallet.api.domain.ValidateTransferUseCase
 import jp.co.soramitsu.wallet.api.domain.fromValidationResult
 import jp.co.soramitsu.wallet.api.presentation.mixin.TransferValidityChecks
 import jp.co.soramitsu.wallet.impl.data.mappers.mapAssetToAssetModel
+import jp.co.soramitsu.wallet.impl.data.repository.tranfser.NativeSendException
+import jp.co.soramitsu.wallet.impl.data.repository.tranfser.NativeSendQuoteStore
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
 import jp.co.soramitsu.wallet.impl.domain.interfaces.NotValidTransferStatus
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -52,6 +63,8 @@ import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityLevel
 import jp.co.soramitsu.wallet.impl.domain.model.TransferValidityStatus
 import jp.co.soramitsu.wallet.impl.domain.model.planksFromAmount
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
+import jp.co.soramitsu.wallet.impl.presentation.send.NativeSendError
+import jp.co.soramitsu.wallet.impl.presentation.send.NativeSendFormat
 import jp.co.soramitsu.wallet.impl.presentation.send.TransferDraft
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -60,30 +73,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.take
-import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
-import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
-import jp.co.soramitsu.wallet.impl.presentation.send.NativeSendFormat
-import jp.co.soramitsu.wallet.impl.presentation.send.NativeSendError
-import jp.co.soramitsu.wallet.impl.data.repository.tranfser.NativeSendException
-import jp.co.soramitsu.wallet.impl.data.repository.tranfser.NativeSendQuoteStore
-import java.util.UUID
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.math.BigDecimal
-import java.math.BigInteger
-import javax.inject.Inject
 
 private const val ICON_IN_DP = 24
 val FEE_CORRECTION = BigDecimal("0.01")
@@ -378,6 +381,8 @@ class ConfirmSendViewModel @Inject constructor(
 
     override fun onNextClick() {
         if (!feeReady.value || !submissionState.compareAndSet(SubmissionState.Ready, SubmissionState.Pending)) return
+        // Touch only (brand kit SPEC part 2): the final Send was pressed and accepted for submission.
+        TransferFeedback.cue(FeedbackCue.Commit)
         launch {
             try {
                 val asset = assetFlow.firstOrNull() ?: return@launch
@@ -426,6 +431,7 @@ class ConfirmSendViewModel @Inject constructor(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
+                TransferFeedback.cue(FeedbackCue.Failed)
                 showError(NativeSendError.display(error, resourceManager))
             }
         }.invokeOnCompletion {
@@ -486,6 +492,9 @@ class ConfirmSendViewModel @Inject constructor(
             }
         }
         if (result.isSuccess) {
+            // The network accepted it: the send sound and touch now, the solar ignite on the success screen.
+            TransferMoments.markSent(System.nanoTime() / NANOS_PER_MILLI)
+            TransferFeedback.cue(FeedbackCue.Sent)
             val chain = chainFlow.first()
             router.finishSendFlow()
             if (chain.isUniversalWalletBitcoin() || chain.isUniversalWalletSolana()) {
@@ -495,6 +504,7 @@ class ConfirmSendViewModel @Inject constructor(
         } else {
             val error = result.requireException()
             if (error is CancellationException) throw error
+            TransferFeedback.cue(FeedbackCue.Failed)
             when {
                 error is NotValidTransferStatus -> processInvalidStatus(error.status)
                 error is NativeSendException && error.code == NativeSendException.Code.PAYMENT_PENDING ->
@@ -596,3 +606,5 @@ class ConfirmSendViewModel @Inject constructor(
         }
     }
 }
+
+private const val NANOS_PER_MILLI = 1_000_000L

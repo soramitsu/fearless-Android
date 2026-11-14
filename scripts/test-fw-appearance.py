@@ -11,7 +11,8 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 SURFACES = (
     'RECOVERY', 'PORTFOLIO', 'MANAGE_ASSETS', 'SEND', 'RECEIVE', 'PICKERS',
-    'UNAVAILABLE', 'SIGNING', 'WELCOME', 'APPEARANCE', 'NAVIGATION', 'MNEMONIC', 'STAKING', 'LOADING'
+    'UNAVAILABLE', 'SIGNING', 'WELCOME', 'APPEARANCE', 'NAVIGATION', 'MNEMONIC', 'STAKING', 'LOADING',
+    'PIN', 'ASSET_DETAILS', 'HISTORY', 'SETTINGS'
 )
 FLAGS = tuple('FW_RESTYLE_' + surface for surface in SURFACES)
 GENERATED = ROOT / 'common/build/generated/source/buildConfig/debug/jp/co/soramitsu/common/BuildConfig.java'
@@ -72,7 +73,9 @@ def main():
 
     off = dict.fromkeys(FLAGS, 'false')
     on = dict.fromkeys(FLAGS, 'true')
-    run('default', {}, expected('legacy', off), unit=True)
+    # Shipped defaults (gradle.properties): the sun-lit palette with every surface qualified.
+    shipped = dict(on)
+    run('default', {}, expected('v1', shipped), unit=True)
     run('all-v1', {'FW_PALETTE': 'v1', **on}, expected('v1', on), unit=True)
     run('global-rollback', {'FW_PALETTE': 'legacy', **on}, expected('legacy', on), unit=True)
     for surface in SURFACES:
@@ -84,7 +87,7 @@ def main():
         run('invalid-boolean-' + str(index), {'FW_RESTYLE_RECOVERY': value}, diagnostic='FW_RESTYLE_RECOVERY must be exactly true or false')
     run('unknown-surface', {'FW_RESTYLE_RECOVREY': 'true'}, diagnostic='Unknown appearance flags: FW_RESTYLE_RECOVREY')
     # Restore the default compiled configuration and run the whole common suite.
-    run('final-default', {}, expected('legacy', off), unit=True, full=True)
+    run('final-default', {}, expected('v1', shipped), unit=True, full=True)
 
 
 if __name__ == '__main__':

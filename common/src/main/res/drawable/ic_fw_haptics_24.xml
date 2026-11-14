@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Haptic feedback (Settings): a phone between two short vibration marks. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.8"
+        android:pathData="M9,3.5h6a1.5,1.5 0,0 1,1.5 1.5v14a1.5,1.5 0,0 1,-1.5 1.5h-6a1.5,1.5 0,0 1,-1.5 -1.5v-14a1.5,1.5 0,0 1,1.5 -1.5z" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:pathData="M4.5,8.5v7M2,10.5v3M19.5,8.5v7M22,10.5v3" />
+</vector>

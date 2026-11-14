@@ -1,5 +1,6 @@
 package jp.co.soramitsu.fearless_utils.runtime.metadata
 
+import jp.co.soramitsu.fearless_utils.runtime.definitions.types.Type
 import jp.co.soramitsu.fearless_utils.runtime.metadata.module.Module
 import java.math.BigInteger
 
@@ -17,5 +18,9 @@ class RuntimeMetadata(
 
 class ExtrinsicMetadata(
     val version: BigInteger,
-    val signedExtensions: List<String>
+    val signedExtensions: List<String>,
+    val signedExtensionTypes: Map<String, SignedExtensionTypes> = emptyMap()
 )
+
+/** Portable metadata retains both halves of every signed extension. */
+class SignedExtensionTypes(val extra: Type<*>?, val additional: Type<*>?)

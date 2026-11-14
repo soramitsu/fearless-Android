@@ -23,6 +23,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import jp.co.soramitsu.common.compose.component.FearlessSwitch
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.component.BottomSheetDialog
 import jp.co.soramitsu.common.compose.component.H3
 import jp.co.soramitsu.common.compose.component.H5
@@ -111,17 +114,21 @@ fun FilterItem(state: FilterItemViewState, onSelectClick: (FilterItemViewState) 
     ) {
         H5(text = state.title, color = black2)
         Spacer(modifier = Modifier.weight(1f))
-        val trackColor = if (state.isSelected) colorAccent else black3
-        Switch(
-            colors = switchColors,
-            checked = state.isSelected,
-            onCheckedChange = { onSelectClick(state) },
-            modifier = Modifier
-                .background(color = trackColor, shape = RoundedCornerShape(20.dp))
-                .padding(3.dp)
-                .height(20.dp)
-                .width(35.dp)
-        )
+        if (FwRestyle.isEnabled(FwSurface.Staking)) {
+            FearlessSwitch(isChecked = state.isSelected, onCheckedChange = { onSelectClick(state) })
+        } else {
+            val trackColor = if (state.isSelected) colorAccent else black3
+            Switch(
+                colors = switchColors,
+                checked = state.isSelected,
+                onCheckedChange = { onSelectClick(state) },
+                modifier = Modifier
+                    .background(color = trackColor, shape = RoundedCornerShape(20.dp))
+                    .padding(3.dp)
+                    .height(20.dp)
+                    .width(35.dp)
+            )
+        }
     }
 }
 

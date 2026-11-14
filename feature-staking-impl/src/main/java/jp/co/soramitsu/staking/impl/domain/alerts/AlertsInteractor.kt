@@ -13,6 +13,7 @@ import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.staking.impl.domain.common.isWaiting
 import jp.co.soramitsu.staking.impl.domain.isNominationActive
+import jp.co.soramitsu.staking.impl.domain.lowestActiveStake
 import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.StakingRelaychainScenarioViewModel
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
@@ -106,8 +107,9 @@ class AlertsInteractor(
     private suspend fun produceMinStakeAlert(context: AlertContext) =
         requireState(context.stakingState) { state: StakingState.Stash ->
             with(context) {
-                val minActiveStake = stakingRepository.minimumActiveStake(stakingState.chain.id)
-                    ?: context.exposures.values.minOf { exposure -> exposure.others.minOf { it.value } }
+                // An unknown minimum (its read failing before the exposures are cached) raises no alert, and no crash.
+                val minActiveStake = lowestActiveStake(stakingRepository.minimumActiveStake(stakingState.chain.id), context.exposures.values)
+                    ?: return@with null
 
                 val minimalStakeInPlanks =
                     minActiveStake.coerceAtLeast(stakingRepository.minimumNominatorBond(context.asset.token.configuration))

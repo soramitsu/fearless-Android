@@ -8,6 +8,7 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
@@ -33,6 +34,7 @@ import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.InitializationStep
 import jp.co.soramitsu.app.root.domain.WalletStartupSession
 import jp.co.soramitsu.app.root.navigation.Navigator
+import jp.co.soramitsu.app.root.presentation.launch.LaunchIgniteHost
 import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
 import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseActivity
@@ -41,6 +43,7 @@ import jp.co.soramitsu.common.utils.EventObserver
 import jp.co.soramitsu.common.utils.observe
 import jp.co.soramitsu.common.utils.showToast
 import jp.co.soramitsu.common.utils.updatePadding
+import jp.co.soramitsu.common.view.hideOtherAppsOverlays
 import jp.co.soramitsu.runtime.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -113,7 +116,21 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // super.onCreate() creates the NavHost graph, which handles
+        // getIntent() as a deep link. Keep only the allowlisted entry data so
+        // no extra or URI can open a destination past splash and the PIN.
+        setIntent(
+            intent.toWalletInternalHandoff(
+                context = this,
+                target = WalletRootActivity::class.java
+            )
+        )
         super.onCreate(savedInstanceState)
+        window.hideOtherAppsOverlays()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            // Opening over the startup gate's identical launch art is a cut (the gate also asks for none below 34).
+            overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, 0, 0)
+        }
         if (!contentInitializationAllowed) return
 
         secureStorageRestartRedirector.register()
@@ -122,6 +139,14 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
 
         navigator.attach(navController, this)
         navigatorAttached = true
+
+        // The cold-start Ignite clip and the unlock landing only cover and reveal what the host shows.
+        val mainView = findViewById<View>(R.id.mainView)
+        val hostFragments = (supportFragmentManager.findFragmentById(R.id.navHost) as? NavHostFragment)?.childFragmentManager
+        hostFragments?.let(LaunchIgniteHost::reportScreens)
+        LaunchIgniteHost.landAfterUnlock(navController, hostFragments, mainView)
+        LaunchIgniteHost.attachIfColdStart(this, mainView)
+        window.setBackgroundDrawableResource(jp.co.soramitsu.common.R.color.fw_bg_base)
 
         rootNetworkBar.setOnApplyWindowInsetsListener { view, insets ->
             view.updatePadding(
@@ -289,11 +314,17 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
     }
 
     override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
+        // Listeners, the retained Intent and the restart redirect only ever
+        // see the allowlisted entry data, exactly as in onCreate().
+        val entryIntent = intent.toWalletInternalHandoff(
+            context = this,
+            target = WalletRootActivity::class.java
+        )
+        super.onNewIntent(entryIntent)
         // Keep the Activity's retained Intent aligned with the newest handoff.
         // If secure storage is invalidated later, the restart redirect must
         // forward this payload instead of replaying the original launch Intent.
-        setIntent(intent)
+        setIntent(entryIntent)
         if (!contentInitializationAllowed) return
         if (!WalletStartupSession.isReady()) {
             contentInitializationAllowed = false
@@ -301,7 +332,7 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
             return
         }
 
-        processIntent(intent)
+        processIntent(entryIntent)
     }
 
     @SuppressLint("ClickableViewAccessibility")

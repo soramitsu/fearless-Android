@@ -5,7 +5,7 @@
     android:id="@+id/selectRewardDestinationContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/drawable_background_image"
+    android:background="@drawable/fw_page_background"
     android:backgroundTint="#63000000"
     android:backgroundTintMode="src_atop"
     android:orientation="vertical"

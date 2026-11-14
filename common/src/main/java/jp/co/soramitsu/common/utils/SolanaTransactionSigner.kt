@@ -46,6 +46,13 @@ object SolanaTransactionSigner {
         return parseSerializedTransaction(decodeBase64Transaction(transactionBase64))
     }
 
+    /** The transaction id: its first signature, base58-encoded. */
+    fun firstSignatureBase58(transactionBase64: String): String {
+        val transaction = decodeBase64Transaction(transactionBase64)
+        val parsed = parseSerializedTransaction(transaction)
+        return base58Encode(transaction.copyOfRange(parsed.signaturesOffset, parsed.signaturesOffset + SIGNATURE_BYTES))
+    }
+
     fun signSerializedTransaction(
         mnemonic: String,
         transaction: ByteArray,

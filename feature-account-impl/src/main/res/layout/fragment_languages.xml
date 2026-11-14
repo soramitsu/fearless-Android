@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     android:orientation="vertical"
-    android:background="@drawable/drawable_background_image"
+    android:background="@drawable/fw_page_background"
     android:backgroundTint="#63000000"
     android:backgroundTintMode="src_atop">
 
@@ -20,6 +20,8 @@
         android:id="@+id/languagesList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="112dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         tools:listitem="@layout/item_language" />
 

@@ -19,7 +19,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.backup.GoogleSignInResult
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
-import jp.co.soramitsu.common.utils.isGooglePlayServicesAvailable
+import jp.co.soramitsu.common.utils.canOpenHttpsLinks
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNot
@@ -43,7 +43,7 @@ class BackupWalletDialog : BaseComposeBottomSheetDialogFragment<BackupWalletView
 
     private val isGoogleAvailable: Boolean
         get() {
-            return context?.isGooglePlayServicesAvailable() == true
+            return context?.canOpenHttpsLinks() == true
         }
 
     override val viewModel: BackupWalletViewModel by viewModels()

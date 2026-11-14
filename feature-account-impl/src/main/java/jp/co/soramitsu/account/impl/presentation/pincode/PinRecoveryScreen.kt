@@ -3,6 +3,7 @@ package jp.co.soramitsu.account.impl.presentation.pincode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -25,6 +26,7 @@ import jp.co.soramitsu.account.api.domain.model.ImportMode
 import jp.co.soramitsu.account.impl.presentation.recovery.RecoveryTarget
 import jp.co.soramitsu.common.compose.theme.fw.FwRecoveryAppearance
 import jp.co.soramitsu.common.compose.theme.fw.FwRecoveryButton
+import jp.co.soramitsu.common.compose.theme.fw.FwRecoveryCard
 import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
 import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
@@ -48,7 +50,8 @@ fun PinRecoveryScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(stringResource(R.string.pin_recovery_title), color = if (restyled) c.textPrimary else Color.White,
                 style = MaterialTheme.typography.h5, modifier = Modifier.semantics { heading() })
-            Text(stringResource(R.string.pin_recovery_intro), color = if (restyled) c.textPrimary else Color.White)
+            Text(stringResource(if (state.forgotten) R.string.pin_recovery_forgot_intro else R.string.pin_recovery_intro),
+                color = if (restyled) c.textPrimary else Color.White)
             if (state.loading) CircularProgressIndicator(color = if (restyled) c.textLink else colorAccent)
             if (state.error) {
                 Text(stringResource(R.string.pin_recovery_failed), color = if (restyled) c.textPrimary else Color.White)
@@ -57,31 +60,44 @@ fun PinRecoveryScreen(
                 if (state.strongBiometric) PinRecoveryAction(R.string.pin_recovery_biometric, biometric)
                 Text(stringResource(R.string.pin_recovery_backup_intro), color = if (restyled) c.textPrimary else Color.White)
                 state.choices.forEach { choice ->
-                    Divider(color = if (restyled) c.divider else Color.Gray)
-                    Text(choice.name, color = if (restyled) c.textPrimary else Color.White, style = MaterialTheme.typography.h6)
-                    Text(stringResource(when (val scope = choice.target.scope()) {
-                        WalletSecretScope.Substrate -> R.string.wallet_emergency_kind_substrate
-                        WalletSecretScope.Ethereum -> R.string.wallet_emergency_kind_ethereum
-                        WalletSecretScope.Ton -> R.string.wallet_emergency_kind_ton
-                        is WalletSecretScope.ChainAccount -> R.string.wallet_emergency_kind_network
-                    }), color = if (restyled) c.textPrimary else Color.White)
-                    (choice.target.scope() as? WalletSecretScope.ChainAccount)?.let {
-                        Text("0x${it.accountIdHex}", color = if (restyled) c.textPrimary else Color.White)
-                    }
-                    PinRecoveryAction(R.string.wallet_recovery_use_phrase) { verifyBackup(choice.target, ImportMode.MnemonicPhrase) }
-                    if (choice.target.scope() != WalletSecretScope.Ton) {
-                        PinRecoveryAction(R.string.wallet_recovery_use_seed) { verifyBackup(choice.target, ImportMode.RawSeed) }
-                        PinRecoveryAction(R.string.wallet_recovery_use_json) { verifyBackup(choice.target, ImportMode.Json) }
+                    PinRecoveryGroup(restyled) {
+                        Text(choice.name, color = if (restyled) c.textPrimary else Color.White, style = MaterialTheme.typography.h6)
+                        Text(stringResource(when (val scope = choice.target.scope()) {
+                            WalletSecretScope.Substrate -> R.string.wallet_emergency_kind_substrate
+                            WalletSecretScope.Ethereum -> R.string.wallet_emergency_kind_ethereum
+                            WalletSecretScope.Ton -> R.string.wallet_emergency_kind_ton
+                            is WalletSecretScope.ChainAccount -> R.string.wallet_emergency_kind_network
+                        }), color = if (restyled) c.textPrimary else Color.White)
+                        (choice.target.scope() as? WalletSecretScope.ChainAccount)?.let {
+                            Text("0x${it.accountIdHex}", color = if (restyled) c.textPrimary else Color.White)
+                        }
+                        PinRecoveryAction(R.string.wallet_recovery_use_phrase) { verifyBackup(choice.target, ImportMode.MnemonicPhrase) }
+                        if (choice.target.scope() != WalletSecretScope.Ton) {
+                            PinRecoveryAction(R.string.wallet_recovery_use_seed) { verifyBackup(choice.target, ImportMode.RawSeed) }
+                            PinRecoveryAction(R.string.wallet_recovery_use_json) { verifyBackup(choice.target, ImportMode.Json) }
+                        }
                     }
                 }
                 if (state.choices.isEmpty()) Text(stringResource(R.string.pin_recovery_no_identity), color = if (restyled) c.textPrimary else Color.White)
                 if (state.deviceCredential) {
-                    Divider(color = if (restyled) c.divider else Color.Gray)
-                    Text(stringResource(R.string.pin_recovery_view_only_intro), color = if (restyled) c.textPrimary else Color.White)
-                    PinRecoveryAction(R.string.pin_recovery_view_only, deviceCredential)
+                    PinRecoveryGroup(restyled) {
+                        Text(stringResource(R.string.pin_recovery_view_only_intro), color = if (restyled) c.textPrimary else Color.White)
+                        PinRecoveryAction(R.string.pin_recovery_view_only, deviceCredential)
+                    }
                 }
             }
         }
+    }
+}
+
+/** A flat card when restyled; the legacy page keeps its divider and its plain column. */
+@Composable
+private fun PinRecoveryGroup(restyled: Boolean, content: @Composable ColumnScope.() -> Unit) {
+    if (restyled) {
+        FwRecoveryCard(content = content)
+    } else {
+        Divider(color = Color.Gray)
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp), content = content)
     }
 }
 

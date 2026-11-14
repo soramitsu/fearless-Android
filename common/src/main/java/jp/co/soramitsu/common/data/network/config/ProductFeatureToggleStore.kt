@@ -3,6 +3,7 @@ package jp.co.soramitsu.common.data.network.config
 import javax.inject.Inject
 import javax.inject.Singleton
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSealingSwitch
 
 /**
  * Durable read-only and legacy rollout state, plus current verified new-capability authority.
@@ -13,10 +14,11 @@ import jp.co.soramitsu.common.data.storage.Preferences
  * fresh signed authorization and immutable bundled approval; a new capability token never grants
  * the shipped features below.
  *
- * Polkaswap swaps and liquidity, Demeter farming, Bitcoin send and Solana send ship enabled.
- * Their remote keys are veto-only kill switches: an explicit `false` turns the feature off and is
- * remembered across later fetches that omit the key or fail, until a successful fetch says `true`.
- * A remote `true` never enables anything beyond the compiled default.
+ * Polkaswap swaps and liquidity, Demeter farming, Bitcoin send, Solana send, dApp signing
+ * (Polkadot and EVM over WalletConnect, TON over TON Connect) and wallet-secret sealing ship
+ * enabled. Their remote keys are veto-only kill switches: an explicit `false` turns the feature
+ * off and is remembered across later fetches that omit the key or fail, until a successful fetch
+ * says `true`. A remote `true` never enables anything beyond the compiled default.
  */
 @Singleton
 class ProductFeatureToggleStore @Inject constructor(
@@ -41,7 +43,16 @@ class ProductFeatureToggleStore @Inject constructor(
         rememberVeto(DEMETER_MUTATIONS, config.demeterMutationsEnabled)
         rememberVeto(BITCOIN_SEND, config.bitcoinSendEnabled)
         rememberVeto(SOLANA_SEND, config.solanaSendEnabled)
+        rememberVeto(POLKADOT_DAPP_SIGNING, config.polkadotDappSigningEnabled)
+        rememberVeto(EVM_DAPP_SIGNING, config.evmDappSigningEnabled)
+        rememberVeto(TON_DAPP_SIGNING, config.tonDappSigningEnabled)
+        // The 4.3.2 PIN envelope: a veto stops new sealing only; sealed secrets always open with the PIN.
+        rememberVeto(WalletSecretSealingSwitch.REMOTE_VETO_KEY, config.walletSecretSealingEnabled)
     }
+
+    /** Whether new wallet secrets are sealed under the PIN (compiled flag and remote veto). */
+    val walletSecretSealingEnabled: Boolean
+        get() = WalletSecretSealingSwitch.isEnabled(preferences)
 
     val assetDiscoveryShadowEnabled: Boolean
         get() = preferences.getBoolean(DISCOVERY_SHADOW, true)
@@ -61,6 +72,18 @@ class ProductFeatureToggleStore @Inject constructor(
 
     val solanaSendEnabled: Boolean
         get() = isNotVetoed(SOLANA_SEND)
+
+    /** WalletConnect `polkadot_*` requests: transactions and messages dApps ask Substrate accounts to sign. */
+    val polkadotDappSigningEnabled: Boolean
+        get() = isNotVetoed(POLKADOT_DAPP_SIGNING)
+
+    /** WalletConnect `eth_*` and `personal_sign` requests, including `eth_sendTransaction` broadcasts. */
+    val evmDappSigningEnabled: Boolean
+        get() = isNotVetoed(EVM_DAPP_SIGNING)
+
+    /** TON Connect `sendTransaction` requests and `ton_proof` signatures, from QR connections and the browser. */
+    val tonDappSigningEnabled: Boolean
+        get() = isNotVetoed(TON_DAPP_SIGNING)
 
     val polkamarktMutationsEnabled: Boolean
         get() = mutationAuthorization.permits(MutationCapability.POLKAMARKT)
@@ -90,6 +113,9 @@ class ProductFeatureToggleStore @Inject constructor(
         const val DEMETER_MUTATIONS = "feature.demeter_mutations.v2"
         const val BITCOIN_SEND = "feature.bitcoin_send.v1"
         const val SOLANA_SEND = "feature.solana_send.v1"
+        const val POLKADOT_DAPP_SIGNING = "feature.polkadot_dapp_signing.v1"
+        const val EVM_DAPP_SIGNING = "feature.evm_dapp_signing.v1"
+        const val TON_DAPP_SIGNING = "feature.ton_dapp_signing.v1"
 
         const val POLKAMARKT_MUTATIONS = "feature.polkamarkt_mutations.v1"
         const val XCM_MUTATIONS = "feature.xcm_mutations.v1"
