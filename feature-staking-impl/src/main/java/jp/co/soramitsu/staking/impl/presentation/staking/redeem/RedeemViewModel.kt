@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.redeem
 
+import jp.co.soramitsu.staking.impl.presentation.common.StakingSeal
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -221,12 +222,14 @@ class RedeemViewModel @Inject constructor(
     }
 
     private fun sendTransaction(redeemValidationPayload: RedeemValidationPayload) = launch {
-        val result = redeemInteractor.redeem(accountStakingFlow.first(), redeemValidationPayload.asset) {
-            stakingScenarioInteractor.confirmRevoke(
-                this,
-                candidate = redeemValidationPayload.collatorAddress,
-                stashState = accountStakingFlow.first()
-            )
+        val result = StakingSeal.submit {
+            redeemInteractor.redeem(accountStakingFlow.first(), redeemValidationPayload.asset) {
+                stakingScenarioInteractor.confirmRevoke(
+                    this,
+                    candidate = redeemValidationPayload.collatorAddress,
+                    stashState = accountStakingFlow.first()
+                )
+            }
         }
 
         _showNextProgress.value = false

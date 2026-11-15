@@ -11,6 +11,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +27,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.Dp
@@ -212,15 +215,29 @@ private const val STILL_BROKEN = 0.35f
 
 /**
  * The seal over the screen on ink at 72 % (SPEC v4 part 3, "Where"), for a screen whose own progress is a
- * spinner in its button, and for the debug seam. Shown while [TransferSeal.Record.shownOver] is set.
+ * spinner in its button, and for the debug seam. Shown while [TransferSeal.Record.shownOver] is set and the operation
+ * runs; it leaves the moment the network accepts it (the app's result is never covered; a success screen continues the
+ * figure), and after a definite failure it stays only for `seal.breakMs` while the seal breaks.
  */
 @Composable
 fun FwTransferSealOverlay() {
     val record by TransferSeal.record.collectAsState()
-    if (!record.shownOver || record.readyAtMs == null) return
+    val tokens = FwShikiban.tokens() ?: return
+    val failedAt = record.failedAtMs
+    var breaking by remember(failedAt) {
+        mutableStateOf(failedAt != null && TransferSeal.nowMs() - failedAt < tokens.seal.breakMs)
+    }
+    LaunchedEffect(failedAt) {
+        if (failedAt == null) return@LaunchedEffect
+        val left = tokens.seal.breakMs - (TransferSeal.nowMs() - failedAt)
+        if (left > 0) kotlinx.coroutines.delay(left)
+        breaking = false
+    }
+    if (!fwSealOverlayShown(record, breaking)) return
     Box(
         Modifier
             .fillMaxSize()
+            .testTag(TRANSFER_SEAL_OVERLAY_TAG)
             .background(LocalFwColors.current.brandInk.copy(alpha = OVERLAY_INK)),
         contentAlignment = Alignment.Center
     ) {
@@ -228,7 +245,18 @@ fun FwTransferSealOverlay() {
     }
 }
 
+/** Whether the overlay seal shows: an operation drawn over the screen, not yet accepted, and not past its break. */
+fun fwSealOverlayShown(record: TransferSeal.Record, breaking: Boolean): Boolean = when {
+    !record.shownOver || record.readyAtMs == null -> false
+    record.acceptedAtMs != null -> false
+    record.failedAtMs != null -> breaking
+    else -> true
+}
+
 private const val OVERLAY_INK = 0.72f
+
+/** Test tag of the seal drawn over the screen. */
+const val TRANSFER_SEAL_OVERLAY_TAG = "transfer_seal_overlay"
 
 /**
  * A failed transfer's seal breaking over the screen for `seal.breakMs` after the loader has gone (SPEC v4 part 3,

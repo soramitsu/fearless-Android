@@ -15,7 +15,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.ExperimentalMaterialApi
@@ -36,7 +35,6 @@ import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.compose.component.MainToolbar
 import jp.co.soramitsu.common.compose.component.MenuIconItem
-import jp.co.soramitsu.common.compose.theme.fw.FwTransferSealOverlay
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.feedback.FeedbackCue
 import jp.co.soramitsu.common.feedback.TransferFeedback
@@ -129,11 +127,8 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         val state by viewModel.state.collectAsState()
         val arrivalPulse by viewModel.arrivalPulse.collectAsState()
 
-        Box {
-            WalletScreenWithRefresh(state, viewModel, arrivalPulse)
-            // Shown only while the debug seam drives the seal (never in a release build).
-            if (BuildConfig.DEBUG) FwTransferSealOverlay()
-        }
+        // The debug seal seam draws through the activity's TransferSealOverlayHost.
+        WalletScreenWithRefresh(state, viewModel, arrivalPulse)
     }
 
     @OptIn(ExperimentalFoundationApi::class)

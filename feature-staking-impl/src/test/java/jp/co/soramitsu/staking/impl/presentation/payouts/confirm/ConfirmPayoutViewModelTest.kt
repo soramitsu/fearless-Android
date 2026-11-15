@@ -147,4 +147,19 @@ class ConfirmPayoutViewModelTest {
         assertEquals(false, vm.showNextProgress.value)
         verifyNoInteractions(extrinsics)
     }
+
+    @Test fun `a review refused before signing clears the seal instead of breaking it`() {
+        jp.co.soramitsu.common.feedback.TransferSeal.clear()
+        val vm = confirmation(selected = chain(AssetHubStaking.KUSAMA))
+        dispatcher.scheduler.runCurrent()
+        vm.submitClicked()
+        val deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10)
+        while (vm.errorLiveData.value == null && System.nanoTime() < deadline) {
+            dispatcher.scheduler.runCurrent()
+            Thread.sleep(1)
+        }
+        assertEquals(PayoutInteractor.STALE_REVIEW, vm.errorLiveData.value?.peekContent())
+        // Nothing was signed: no broken seal over the screen, and nothing left to draw.
+        assertEquals(jp.co.soramitsu.common.feedback.TransferSeal.Stage.Idle, jp.co.soramitsu.common.feedback.TransferSeal.record.value.stage)
+    }
 }

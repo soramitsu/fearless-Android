@@ -93,10 +93,15 @@ object TransferSeal {
      * Runs one submission (the moment it is handed to signing) and reports its stages: `ready` before, `accepted` with
      * everything this caller cannot tell apart on success. On failure [definiteFailure] decides whether the operation
      * certainly did not happen (the seal breaks) or its fate is unknown (the seal is cleared, never broken). A
-     * cancelled submission clears it. The result is returned unchanged and at once.
+     * cancelled submission clears it. The result is returned unchanged and at once. [shownOver] draws the seal over the
+     * whole screen on ink ([TransferSealOverlayHost]) for a screen whose own progress is a spinner in its button.
      */
-    suspend fun <T> track(definiteFailure: (Throwable) -> Boolean = { true }, submit: suspend () -> Result<T>): Result<T> {
-        ready(nowMs())
+    suspend fun <T> track(
+        definiteFailure: (Throwable) -> Boolean = { true },
+        shownOver: Boolean = false,
+        submit: suspend () -> Result<T>
+    ): Result<T> {
+        ready(nowMs(), shownOver)
         val result = try {
             submit()
         } catch (error: Throwable) {

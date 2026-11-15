@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.payouts.confirm
 
+import jp.co.soramitsu.staking.impl.presentation.common.StakingSeal
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -173,7 +174,7 @@ class ConfirmPayoutViewModel @Inject constructor(
     }
 
     private fun sendTransaction(payload: MakePayoutPayload) = launch {
-        val result = payoutInteractor.makePayouts(payload)
+        val result = StakingSeal.payout { payoutInteractor.makePayouts(payload) }
 
         _showNextProgress.value = false
 

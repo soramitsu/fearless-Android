@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.unbond.select
 
+import jp.co.soramitsu.staking.impl.presentation.common.StakingSeal
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -296,12 +297,14 @@ class SelectUnbondViewModel @Inject constructor(
             attempt.requireCurrent()
             val amountInPlanks = valid.asset.token.planksFromAmount(valid.amount)
             val execution = currentCoroutineContext().job
-            val result = unbondInteractor.unbond(valid.stash, valid.asset.metaId, attempt::isCurrent,
-                { intent -> attempt.authorize(intent, execution) }) {
-                attempt.requireCurrent()
-                stakingScenarioInteractor.stakeLess(this, amountInPlanks, valid.stash,
-                    valid.asset.bondedInPlanks, valid.collatorAddress, attempt::isCurrent)
-                attempt.requireCurrent()
+            val result = StakingSeal.unbond(attempt::isCurrent) {
+                unbondInteractor.unbond(valid.stash, valid.asset.metaId, attempt::isCurrent,
+                    { intent -> attempt.authorize(intent, execution) }) {
+                    attempt.requireCurrent()
+                    stakingScenarioInteractor.stakeLess(this, amountInPlanks, valid.stash,
+                        valid.asset.bondedInPlanks, valid.collatorAddress, attempt::isCurrent)
+                    attempt.requireCurrent()
+                }
             }
             (result.exceptionOrNull() as? CancellationException)?.let { throw it }
             if (attempt.isCurrent()) {

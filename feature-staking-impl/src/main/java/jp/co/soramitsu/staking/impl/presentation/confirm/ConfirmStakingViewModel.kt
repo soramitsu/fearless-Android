@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.confirm
 
+import jp.co.soramitsu.staking.impl.presentation.common.StakingSeal
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
@@ -298,7 +299,7 @@ class ConfirmStakingViewModel @Inject constructor(
 
     private fun sendTransaction(setupStakingPayload: SetupStakingPayload) = launch {
         val setupResult = when (currentProcessState) {
-            is SetupStakingProcess.ReadyToSubmit.Stash -> {
+            is SetupStakingProcess.ReadyToSubmit.Stash -> StakingSeal.submit {
                 setupStakingInteractor.setupStaking(
                     controllerAddress = setupStakingPayload.controllerAddress,
                     validatorAccountIds = currentProcessState.payload.blockProducers.map(Validator::accountIdHex),
@@ -316,7 +317,7 @@ class ConfirmStakingViewModel @Inject constructor(
                     else -> 0
                 }
                 val accountAddress = (scenarioInteractor.stakingStateFlow().first() as StakingState.Parachain).accountAddress
-                setupStakingInteractor.setupStaking(collator, token.planksFromAmount(amount), delegationCount, accountAddress)
+                StakingSeal.submit { setupStakingInteractor.setupStaking(collator, token.planksFromAmount(amount), delegationCount, accountAddress) }
             }
         }
 

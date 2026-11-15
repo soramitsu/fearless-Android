@@ -1,5 +1,6 @@
 package jp.co.soramitsu.app.root.presentation
 
+import jp.co.soramitsu.common.compose.theme.fw.TransferSealOverlayHost
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
@@ -146,6 +147,8 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
         hostFragments?.let(LaunchIgniteHost::reportScreens)
         LaunchIgniteHost.landAfterUnlock(this, navController, hostFragments, mainView)
         LaunchIgniteHost.attachIfColdStart(this, mainView)
+        // The seal over the screen for confirmations whose own progress is a spinner (brand kit SPEC v4 part 3).
+        TransferSealOverlayHost.install(this)
         window.setBackgroundDrawableResource(jp.co.soramitsu.common.R.color.fw_bg_base)
 
         rootNetworkBar.setOnApplyWindowInsetsListener { view, insets ->
