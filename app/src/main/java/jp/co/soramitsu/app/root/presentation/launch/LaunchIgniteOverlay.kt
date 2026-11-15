@@ -329,7 +329,7 @@ internal class LaunchIgniteOverlay(
         canvas.drawColor(ink)
         super.dispatchDraw(canvas)
         painter.drawCorona(canvas, fx, fy, radius, side, tokens.coronaStrength(elapsed), w, h)
-        painter.drawGates(canvas, u, fx, fy, side)
+        painter.drawGates(canvas, u, fx, fy, side, hypot(max(fx, w - fx), max(fy, h - fy)))
         painter.punchOpening(canvas, fx, fy, radius)
         canvas.restoreToCount(layer)
     }
