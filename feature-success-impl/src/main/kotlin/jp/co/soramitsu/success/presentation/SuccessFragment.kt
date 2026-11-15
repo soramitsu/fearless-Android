@@ -19,6 +19,7 @@ import jp.co.soramitsu.account.api.presentation.actions.ExternalViewCallback
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.feedback.TransferMoments
+import jp.co.soramitsu.common.feedback.TransferSeal
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.feature_success_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -52,9 +53,13 @@ class SuccessFragment : BaseComposeBottomSheetDialogFragment<SuccessViewModel>()
     // The solar ignite marks a transfer the network just accepted; other operations keep the plain mark.
     private var ignite = false
 
+    // The seal the send screen drew (brand kit SPEC v4 part 3): the ignite here continues from the stage reached.
+    private var seal: TransferSeal.Record? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ignite = savedInstanceState == null && TransferMoments.consumeRecentSend(System.nanoTime() / NANOS_PER_MILLI)
+        seal = if (ignite) TransferSeal.recentAccepted(TransferSeal.nowMs()) else null
     }
 
     @Composable
@@ -63,7 +68,8 @@ class SuccessFragment : BaseComposeBottomSheetDialogFragment<SuccessViewModel>()
         SuccessContent(
             state = state,
             callback = viewModel,
-            ignite = ignite
+            ignite = ignite,
+            seal = seal
         )
     }
 

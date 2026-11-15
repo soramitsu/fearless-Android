@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import jp.co.soramitsu.common.launch.launchTier
 import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
@@ -14,6 +15,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.ExperimentalMaterialApi
@@ -34,6 +36,7 @@ import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
 import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.compose.component.MainToolbar
 import jp.co.soramitsu.common.compose.component.MenuIconItem
+import jp.co.soramitsu.common.compose.theme.fw.FwTransferSealOverlay
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.feedback.FeedbackCue
 import jp.co.soramitsu.common.feedback.TransferFeedback
@@ -51,6 +54,8 @@ import kotlinx.coroutines.launch
 
 private const val DEBUG_FEEDBACK_ARRIVAL = "FEEDBACK_ARRIVAL"
 private const val DEBUG_FEEDBACK_SENT = "FEEDBACK_SENT"
+private const val DEBUG_SEAL = "SEAL"
+private const val DEBUG_SEAL_STAGE = "stage"
 
 @AndroidEntryPoint
 class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
@@ -86,12 +91,17 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
 
     /**
      * Debug builds only: lets a device walk show the arrival effect and the send success ignite
-     * without real funds (`am broadcast -a <package>.debug.FEEDBACK_ARRIVAL` or `.FEEDBACK_SENT`).
+     * without real funds (`am broadcast -a <package>.debug.FEEDBACK_ARRIVAL` or `.FEEDBACK_SENT`), and
+     * drive the seal's stages over the wallet (`.SEAL --es stage ready|signed|sent|accepted|failed|clear`).
      */
     private fun registerFeedbackSimulator() {
         if (feedbackSimulator != null) return
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action?.endsWith(DEBUG_SEAL) == true) {
+                    viewModel.debugSeal(intent.getStringExtra(DEBUG_SEAL_STAGE).orEmpty())
+                    return
+                }
                 viewModel.debugSimulateFeedback(sent = intent?.action?.endsWith(DEBUG_FEEDBACK_SENT) == true)
             }
         }
@@ -99,6 +109,7 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         val filter = IntentFilter().apply {
             addAction("$packageName.debug.$DEBUG_FEEDBACK_ARRIVAL")
             addAction("$packageName.debug.$DEBUG_FEEDBACK_SENT")
+            addAction("$packageName.debug.$DEBUG_SEAL")
         }
         ContextCompat.registerReceiver(requireContext(), receiver, filter, ContextCompat.RECEIVER_EXPORTED)
         feedbackSimulator = receiver
@@ -118,7 +129,11 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         val state by viewModel.state.collectAsState()
         val arrivalPulse by viewModel.arrivalPulse.collectAsState()
 
-        WalletScreenWithRefresh(state, viewModel, arrivalPulse)
+        Box {
+            WalletScreenWithRefresh(state, viewModel, arrivalPulse)
+            // Shown only while the debug seam drives the seal (never in a release build).
+            if (BuildConfig.DEBUG) FwTransferSealOverlay()
+        }
     }
 
     @OptIn(ExperimentalFoundationApi::class)
@@ -131,7 +146,8 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
         } else {
             Modifier
         }
-        Column(modifier = toolbarModifier) {
+        // The header flies with the tab bar as launch tier 2 (brand kit SPEC v4 part 1, "Tiers").
+        Column(modifier = toolbarModifier.launchTier(2)) {
             MainToolbar(
                 state = toolbarState,
                 menuItems = listOf(

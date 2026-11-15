@@ -59,6 +59,45 @@ error; with Hydration zeroed and out of background sync, the sweep found it agai
 connection (the next sweep read Hydration over it in 0.3 s). The base build did not hit the hand-over race in its one
 device run; the window depends on timing, which the test fixes.
 
+## Shikiban: depth, instruments and sacred geometry — 15 November 2026
+
+The owner asked on 15 November 2026 for cooler, informative animations, a 3D zoom at startup and a high-tech DeFi look
+that keeps the Yatagarasu, ancient-futurist feel, with sacred geometry guiding the composition. The shared contract is
+the brand kit's SPEC section "Shikiban" (kit v4, manifest `19675ac7…4cd7`, pinned in `scripts/generate-brand-assets.py`,
+which copies `tokens/shikiban.json` to `common/src/main/res/raw/fw_shikiban.json`); branch `claude/shikiban-motion` on
+`release/consolidated-20261110`. UI only: keys, signing, storage, networking and chain logic are unchanged; the send
+flow and the balance loaders are only observed. No new user-visible words and no new library.
+
+- **Tokens and maths** (`common/.../shikiban/Shikiban.kt`): the kit's numbers read from the bundled file and its
+  formulas (depth law, gates, iris, tiers, landing, dial, seal, loader, rim) as plain functions, checked against the
+  kit's sampled keyframes (`ShikibanTest`).
+- **Launch flight** (SPEC part 1) replaces v3's zoom at the clip's dive: six gates about the dive's focus over the clip,
+  the mirror opening a round hole through the overlay (offscreen layer, DST_OUT), the corona, and the first screen's
+  tiers flying up through it (`LaunchFlightStage`; wallet home: balance card, round actions, header and tab bar,
+  segment controls, list; PIN: lockup, keypad, the rest). `launchArrive` 1000 ms into the flight; a tap plays the rest
+  2.5 times faster; the overlay stops drawing and releases the player once the opening has cleared the view and is
+  removed, with every transform cleared, when the flight ends. The later unlock landing brings the wallet's tiers from
+  `flight.landingFrom[k]` to 1 (510 ms, `easing.settle`, 45 ms apart) from the wallet's first composed frame. Hold,
+  skip, the clip-drop fallback, the splash hand-off, PIN and biometrics are unchanged. Reduced motion and the app's own
+  Reduced effects choice show no clip, no flight and no landing.
+- **Sync dial and heaven plate** (part 2): an 18 dp dial beside the status words under the balance. It counts real
+  scan events of the balance loaders (`NetworkScanStateStore`) since the sync began (app start, refresh, wallet or
+  network-filter change): networks started, answered and given up. While any is outstanding the count shows in cyan
+  ("9 / 14") in place of "Loading balance…", which stays the accessible text; the hero's tick ring turns 14 times
+  faster and the geometry brightens by half again.
+- **Seal** (part 3): the send confirmation's full-screen loader shows the transfer's stages on the solar geometry. The
+  screen can tell only the press and the network's acceptance apart, so `ready` draws first and `signed`, `sent` and
+  `accepted` draw together on acceptance; the success screen continues the same figure from the stage reached
+  (`TransferSeal`). A failure breaks the seal while the app's own error appears as before. Debug builds can drive the
+  stages over the wallet (`am broadcast -a <package>.debug.SEAL --es stage ready|signed|sent|accepted|failed|clear`).
+- **Loader** (part 4): the restyled full-page loader and the send screen's fee estimate show the three-comet mirror
+  loader. The wallet's pull-to-refresh keeps Material's indicator (not drawn by the app).
+- **Composition marks** (part 6): corner brackets, yamato ticks and the asanoha lattice at 5 % on the balance card,
+  drawn once; a 220 dp band of light crosses it every 9 s above the text (Full effects tier only).
+- **Value tick** (part 5): on the wallet home a row's amount and fiat value come in from 6 dp below or above and a
+  price-up or price-down line sweeps under them when they change; the total gains the line only.
+- **Not done:** dialog arrival (the app draws no dialogs of its own; its sheets and alerts are platform windows).
+
 ## Ignite launch, feel and sound — 13 November 2026
 
 The owner asked on 13 November 2026: "make the yatagarasu ignite animation the launching splash animation and zoom into

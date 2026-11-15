@@ -42,23 +42,10 @@ data class LaunchTimeline(
     }
 }
 
-/** The hand-off from the clip to the screen underneath (brand kit SPEC, "Launch, feel and sound", part 1). */
+/** The hand-off from the clip to the screen underneath (brand kit SPEC, "Launch, feel and sound", part 1; v4 part 1). */
 object LaunchHandOff {
-    /** The screen underneath starts to arrive here: scale [CONTENT_FROM_SCALE] and clear, to its own size and opaque. */
-    const val STARTS_AT_MS = 2550
-    const val CONTENT_MS = 550L
-    const val CONTENT_FROM_SCALE = 1.18f
-
-    /** The clip's layer leaves from here: it grows to [OVERLAY_TO_SCALE] and fades out. */
-    const val OVERLAY_LEAVES_AT_MS = 2700
-    const val OVERLAY_MS = 450L
-    const val OVERLAY_TO_SCALE = 1.6f
-
-    /** The `launchArrive` haptic. */
-    const val HAPTIC_AT_MS = 2600
-
-    /** A tap anywhere jumps to the zoom at once. */
-    const val SKIP_MS = 300L
+    /** The `launchArrive` haptic plays this far into the flight (SPEC v4 part 1, "Touch"). */
+    const val FLIGHT_ARRIVE_MS = 1000
 
     /** A clip that cannot load, or stalls for this long, is dropped with a plain fade. */
     const val STALL_MS = 1000L
@@ -75,10 +62,6 @@ object LaunchHandOff {
      * long it goes anyway, so a host that never reaches a screen cannot stay covered.
      */
     const val COVER_LIMIT_MS = 10_000L
-
-    /** The wallet appearing after a later unlock: from this scale, fading in. */
-    const val LANDING_FROM_SCALE = 1.06f
-    const val LANDING_MS = 350L
 }
 
 /**
@@ -104,4 +87,37 @@ fun launchClipPlacement(
     val left = (viewWidth / 2f - focusX * width).coerceIn(viewWidth - width, 0f)
     val top = (viewHeight / 2f - focusY * height).coerceIn(viewHeight - height, 0f)
     return floatArrayOf(width / viewWidth, height / viewHeight, left, top, left + focusX * width, top + focusY * height)
+}
+
+/**
+ * The launch flight's own clock: milliseconds into the flight at a real time, `durationMs` long. A tap
+ * plays the rest of it at `durationMs / skipMs` (2.5 times) the speed, from where it is, so it never jumps.
+ */
+class LaunchFlightClock(
+    private val durationMs: Int,
+    private val skipMs: Int,
+    startedAtMs: Long,
+    skipped: Boolean,
+    /** Debug walks only: plays the flight this many times slower, so a loaded emulator's recording keeps its frames. */
+    private val slowdown: Float = 1f
+) {
+    private var anchorRealMs = startedAtMs
+    private var anchorFlightMs = 0f
+    private val skipRate = durationMs.toFloat() / skipMs / slowdown
+    private var rate = if (skipped) skipRate else 1f / slowdown
+
+    val skipped: Boolean get() = rate == skipRate
+
+    /** Plays the rest at the skip speed. */
+    fun skip(nowMs: Long) {
+        if (skipped) return
+        anchorFlightMs = elapsed(nowMs)
+        anchorRealMs = nowMs
+        rate = skipRate
+    }
+
+    /** Milliseconds into the flight, 0..durationMs. */
+    fun elapsed(nowMs: Long): Float = (anchorFlightMs + (nowMs - anchorRealMs).coerceAtLeast(0L) * rate).coerceIn(0f, durationMs.toFloat())
+
+    fun finished(nowMs: Long): Boolean = elapsed(nowMs) >= durationMs
 }

@@ -1,5 +1,11 @@
 package jp.co.soramitsu.wallet.impl.presentation.send.confirm
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import jp.co.soramitsu.common.compose.theme.fw.FwSealBreakOverlay
+import jp.co.soramitsu.common.compose.theme.fw.FwTransferSeal
+import jp.co.soramitsu.common.feedback.TransferSeal
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -85,9 +91,14 @@ fun ConfirmSendContent(
     callback: ConfirmSendScreenInterface
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+    val seal by TransferSeal.record.collectAsState()
+    // The seal takes the full-screen loader's place (brand kit SPEC v4 part 3), 176 dp; a failure breaks it
+    // over the screen while the app's own error appears, exactly as before.
+    Box(Modifier.fillMaxSize()) {
     FullScreenLoading(
         isLoading = state.isLoading,
-        contentAlignment = Alignment.BottomStart
+        contentAlignment = Alignment.BottomStart,
+        indicator = if (seal.readyAtMs != null) ({ FwTransferSeal(seal) }) else null
     ) {
         BottomSheetScreen {
             Box(Modifier.fillMaxWidth()) {
@@ -173,6 +184,8 @@ fun ConfirmSendContent(
                 }
             }
         }
+    }
+    FwSealBreakOverlay(seal)
     }
 }
 

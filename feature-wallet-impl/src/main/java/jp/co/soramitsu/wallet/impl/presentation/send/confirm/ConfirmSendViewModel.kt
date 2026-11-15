@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.send.confirm
 
+import jp.co.soramitsu.common.feedback.TransferSeal
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -383,6 +384,9 @@ class ConfirmSendViewModel @Inject constructor(
         if (!feeReady.value || !submissionState.compareAndSet(SubmissionState.Ready, SubmissionState.Pending)) return
         // Touch only (brand kit SPEC part 2): the final Send was pressed and accepted for submission.
         TransferFeedback.cue(FeedbackCue.Commit)
+        // The seal (SPEC v4 part 3): ready. This screen cannot tell signing from submission, so those
+        // stages light together with the network's acceptance.
+        TransferSeal.ready(TransferSeal.nowMs())
         launch {
             try {
                 val asset = assetFlow.firstOrNull() ?: return@launch
@@ -431,10 +435,13 @@ class ConfirmSendViewModel @Inject constructor(
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
+                TransferSeal.failed(TransferSeal.nowMs())
                 TransferFeedback.cue(FeedbackCue.Failed)
                 showError(NativeSendError.display(error, resourceManager))
             }
         }.invokeOnCompletion {
+            // Stopped before a result (a validation asked first): the seal has nothing to show.
+            TransferSeal.cancelIfPending()
             submissionState.compareAndSet(SubmissionState.Pending, SubmissionState.Ready)
         }
     }
@@ -492,7 +499,8 @@ class ConfirmSendViewModel @Inject constructor(
             }
         }
         if (result.isSuccess) {
-            // The network accepted it: the send sound and touch now, the solar ignite on the success screen.
+            // The network accepted it: the seal closes, the send sound and touch now, the ignite continues on the success screen.
+            TransferSeal.accepted(TransferSeal.nowMs())
             TransferMoments.markSent(System.nanoTime() / NANOS_PER_MILLI)
             TransferFeedback.cue(FeedbackCue.Sent)
             val chain = chainFlow.first()
@@ -504,6 +512,7 @@ class ConfirmSendViewModel @Inject constructor(
         } else {
             val error = result.requireException()
             if (error is CancellationException) throw error
+            TransferSeal.failed(TransferSeal.nowMs())
             TransferFeedback.cue(FeedbackCue.Failed)
             when {
                 error is NotValidTransferStatus -> processInvalidStatus(error.status)

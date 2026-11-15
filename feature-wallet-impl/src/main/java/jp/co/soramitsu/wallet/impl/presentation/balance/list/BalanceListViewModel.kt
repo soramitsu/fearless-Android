@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import jp.co.soramitsu.common.feedback.TransferSeal
 import android.net.Uri
 import android.util.Log
 import android.widget.LinearLayout
@@ -821,13 +822,68 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Debug builds only (a device walk without real funds): drives the seal's stages over the wallet
+     * (brand kit SPEC v4 part 3). `accepted` also opens the success screen, as a real acceptance does,
+     * so the figure can be seen continuing there. Nothing is signed or sent.
+     */
+    fun debugSeal(stage: String) {
+        val now = TransferSeal.nowMs()
+        when (stage) {
+            "ready" -> TransferSeal.ready(now, shownOver = true)
+            "signed" -> TransferSeal.signed(now)
+            "sent" -> TransferSeal.sent(now)
+            "accepted" -> {
+                TransferSeal.accepted(now)
+                TransferMoments.markSent(System.nanoTime() / NANOS_PER_MILLI)
+                TransferFeedback.cue(FeedbackCue.Sent)
+                TransferSeal.set(TransferSeal.record.value.copy(shownOver = false))
+                router.openOperationSuccess(null, null)
+            }
+            "failed" -> {
+                TransferSeal.failed(now)
+                TransferFeedback.cue(FeedbackCue.Failed)
+            }
+            "clear" -> TransferSeal.clear()
+        }
+    }
+
     private fun defaultChainAssetListSort() = compareBy<Asset> { it.isTestNet }
         .thenBy { it.chainId.defaultChainSort() }
         .thenBy { it.chainName }
 
     val state = MutableStateFlow(WalletState.default)
 
+    /** When the current sync began (SPEC v4 part 2): the app's start, then each refresh, wallet or network-filter change. */
+    private val syncEpochMillis = MutableStateFlow(processStartWallMillis())
+
     private fun subscribeScreenState() {
+        var syncWalletId: Long? = null
+        var syncFilter: ChainId? = null
+        var syncFilterSeen = false
+        combine(
+            networkScanStateStore.states,
+            syncEpochMillis,
+            currentMetaAccountFlow.map { it.id }.distinctUntilChanged(),
+            selectedChainId
+        ) { scans, epoch, walletId, chainFilter ->
+            // A wallet or network-filter change after the first starts a new sync.
+            val walletChanged = syncWalletId != null && syncWalletId != walletId
+            val filterChanged = syncFilterSeen && syncFilter != chainFilter
+            syncWalletId = walletId
+            syncFilter = chainFilter
+            syncFilterSeen = true
+            if (walletChanged || filterChanged) {
+                val now = System.currentTimeMillis()
+                syncEpochMillis.value = now
+                walletSyncCounts(scans, walletId, chainFilter, now)
+            } else {
+                walletSyncCounts(scans, walletId, chainFilter, epoch)
+            }
+        }.distinctUntilChanged().onEach {
+            state.value = state.value.copy(syncCounts = it)
+        }.launchIn(viewModelScope)
+
         assetTypeState.onEach {
             state.value = state.value.copy(assetsState = it)
         }.launchIn(viewModelScope)
@@ -991,6 +1047,7 @@ class BalanceListViewModel @Inject constructor(
     fun onUniversalPasswordNoticeClosed(metaId: Long) = universalPasswordNotice.dismiss(metaId)
 
     override fun onRefresh() {
+        syncEpochMillis.value = System.currentTimeMillis()
         sync()
         viewModelScope.launch {
             BalanceUpdateTrigger.invoke()

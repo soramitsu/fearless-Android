@@ -3,6 +3,7 @@ package jp.co.soramitsu.app.root.presentation.launch
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.ApplicationInfo
+import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.media.AudioAttributes
@@ -13,16 +14,21 @@ import android.view.Choreographer
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
-import android.view.animation.AccelerateInterpolator
-import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import androidx.core.content.ContextCompat
 import java.io.File
+import kotlin.math.hypot
+import kotlin.math.max
+import kotlin.math.min
 import jp.co.soramitsu.app.R
+import jp.co.soramitsu.common.launch.LaunchFlightClock
+import jp.co.soramitsu.common.launch.LaunchFlightStage
 import jp.co.soramitsu.common.launch.LaunchHandOff
 import jp.co.soramitsu.common.launch.LaunchIgniteDirector
 import jp.co.soramitsu.common.launch.LaunchTimeline
 import jp.co.soramitsu.common.launch.launchClipPlacement
+import jp.co.soramitsu.common.shikiban.Shikiban
+import jp.co.soramitsu.common.shikiban.ShikibanFlightPainter
 
 /**
  * The cold-start Ignite clip (brand kit SPEC, "Launch, feel and sound", part 1) over the wallet
@@ -33,11 +39,19 @@ import jp.co.soramitsu.common.launch.launchClipPlacement
  *
  * Layers: brand ink, the clip on a TextureView (platform MediaPlayer, no extra library), and the
  * launch art (the same drawable the startup gate shows) which crossfades away as the clip starts.
+ *
+ * The launch flight (SPEC v4 part 1) replaces v3's zoom: from the clip's dive the shikiban gates are
+ * drawn over the clip about the dive's focus, the mirror opens a round hole through this overlay (an
+ * offscreen layer and a DST_OUT circle), the corona gathers round its rim, and the first screen's
+ * tiers ([LaunchFlightStage]) fly up through it. Once the opening has cleared the view the overlay
+ * stops drawing and releases the player; when the flight ends it is removed and every transform is
+ * cleared.
  */
 @SuppressLint("ViewConstructor")
 internal class LaunchIgniteOverlay(
     context: Context,
     timeline: LaunchTimeline,
+    private val tokens: Shikiban,
     private val content: View,
     private val isReady: () -> Boolean,
     private val onArrive: () -> Unit,
@@ -45,8 +59,13 @@ internal class LaunchIgniteOverlay(
 ) : FrameLayout(context), TextureView.SurfaceTextureListener, Choreographer.FrameCallback {
 
     private val createdAtMs = SystemClock.uptimeMillis()
-    private val director = LaunchIgniteDirector(timeline, createdAtMs)
     private val debuggable = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+
+    // Debug builds only, for a walk on a loaded emulator (`run-as <package> touch cache/<name>`): a patient clip
+    // start (10 s instead of 1 s) and a flight played ten times slower so a slow recording keeps its frames.
+    private val patient = debuggable && File(context.cacheDir, DEBUG_PATIENT).exists()
+    private val slowdown = if (debuggable && File(context.cacheDir, DEBUG_SLOW_FLIGHT).exists()) DEBUG_SLOWDOWN else 1f
+    private val director = LaunchIgniteDirector(timeline, createdAtMs, if (patient) DEBUG_PATIENT_STALL_MS else LaunchHandOff.STALL_MS)
     private val focusX = timeline.focusX
     private val focusY = timeline.focusY
     private val video = TextureView(context)
@@ -59,17 +78,25 @@ internal class LaunchIgniteOverlay(
     private var focusPx = floatArrayOf(0f, 0f)
     private var finished = false
     private var frameCallbackPosted = false
+    private val ink = ContextCompat.getColor(context, jp.co.soramitsu.common.R.color.fw_bg_base)
+    private val painter = ShikibanFlightPainter(tokens, resources.displayMetrics.density)
+    private var clock: LaunchFlightClock? = null
+    private var flightElapsedMs = 0f
+    private var tiered = false
+    private var arrived = false
+    private var openingCleared = false
+    private val windowLocation = IntArray(2)
 
     init {
-        setBackgroundColor(ContextCompat.getColor(context, jp.co.soramitsu.common.R.color.fw_bg_base))
+        setBackgroundColor(ink)
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
         addView(video, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
         art.background = ContextCompat.getDrawable(context, R.drawable.fw_window_background)
         addView(art, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
         video.surfaceTextureListener = this
-        // A tap anywhere skips to the zoom. While the overlay leaves, touches pass to the screen beneath.
+        // A tap anywhere starts the flight, or speeds it up. Once the opening clears, touches pass to the screen beneath.
         setOnClickListener { run(director.onTap(SystemClock.uptimeMillis(), isReady())) }
-        // The screen underneath waits, invisible, to be revealed by the zoom.
+        // The screen underneath waits, invisible, to be revealed by the flight.
         content.alpha = 0f
     }
 
@@ -98,6 +125,11 @@ internal class LaunchIgniteOverlay(
     override fun doFrame(frameTimeNanos: Long) {
         frameCallbackPosted = false
         if (finished) return
+        if (clock != null) {
+            stepFlight(SystemClock.uptimeMillis())
+            postFrame()
+            return
+        }
         val position = if (prepared) runCatching { player?.currentPosition ?: 0 }.getOrDefault(0) else 0
         run(director.onFrame(position, SystemClock.uptimeMillis(), isReady()))
         postFrame()
@@ -177,10 +209,11 @@ internal class LaunchIgniteOverlay(
             when (command) {
                 LaunchIgniteDirector.Command.Play -> play()
                 LaunchIgniteDirector.Command.Pause -> runCatching { player?.pause() }
-                LaunchIgniteDirector.Command.Arrive -> postDelayed({ onArrive() }, ARRIVE_AFTER_HAND_OFF_MS)
                 LaunchIgniteDirector.Command.RevealClip -> revealClip()
                 is LaunchIgniteDirector.Command.Cover -> cover(command.reason)
-                is LaunchIgniteDirector.Command.HandOff -> handOff(command)
+                is LaunchIgniteDirector.Command.Flight -> startFlight(command.skipped)
+                LaunchIgniteDirector.Command.SkipFlight -> clock?.skip(SystemClock.uptimeMillis())
+                is LaunchIgniteDirector.Command.PlainFade -> plainFade(command.overlayMs)
             }
         }
     }
@@ -215,46 +248,127 @@ internal class LaunchIgniteOverlay(
         art.animate().alpha(0f).setDuration(ART_CROSSFADE_MS).start()
     }
 
-    private fun handOff(command: LaunchIgniteDirector.Command.HandOff) {
-        log(if (command.contentMs > 0L) "dive into the screen after ${sinceAttach()} ms" else "launch art fades to the ready screen after ${sinceAttach()} ms")
+    /**
+     * The flight starts (SPEC v4 part 1). A screen that declares tiers keeps its background still and its tiers fly;
+     * a screen that declares none flies as one piece at tier 0.
+     */
+    private fun startFlight(skipped: Boolean) {
+        if (clock != null || finished) return
+        val now = SystemClock.uptimeMillis()
+        log("flight starts after ${sinceAttach()} ms${if (skipped) " (skipped)" else ""}")
+        clock = LaunchFlightClock(tokens.flight.durationMs, tokens.flight.skipMs, now, skipped, slowdown)
+        // The opening is cut through an offscreen layer that holds the ink, the clip and the gates.
+        background = null
+        setWillNotDraw(false)
+        tiered = LaunchFlightStage.declared > 0
+        val (fx, fy) = focus().let { it[0] to it[1] }
+        getLocationInWindow(windowLocation)
+        if (tiered) {
+            LaunchFlightStage.begin(windowLocation[0] + fx, windowLocation[1] + fy, { tokens.tierScale(it, 0f) }, { 0f })
+            content.alpha = 1f
+        } else {
+            val contentAt = IntArray(2).also(content::getLocationInWindow)
+            content.pivotX = windowLocation[0] + fx - contentAt[0]
+            content.pivotY = windowLocation[1] + fy - contentAt[1]
+            content.scaleX = tokens.tierScale(0, 0f)
+            content.scaleY = tokens.tierScale(0, 0f)
+            content.alpha = 0f
+        }
+        stepFlight(now)
+        postFrame()
+    }
+
+    private fun stepFlight(nowMs: Long) {
+        val flight = clock ?: return
+        val elapsed = flight.elapsed(nowMs)
+        flightElapsedMs = elapsed
+        val u = elapsed / tokens.flight.durationMs
+        if (!arrived && elapsed >= LaunchHandOff.FLIGHT_ARRIVE_MS) {
+            arrived = true
+            onArrive()
+        }
+        if (tiered) {
+            LaunchFlightStage.apply({ tokens.tierScale(it, u) }, { tokens.tierAlpha(it, elapsed) })
+        } else {
+            val scale = tokens.tierScale(0, u)
+            content.scaleX = scale
+            content.scaleY = scale
+            content.alpha = tokens.tierAlpha(0, elapsed)
+        }
+        if (!openingCleared) {
+            val (fx, fy) = focus().let { it[0] to it[1] }
+            val far = hypot(max(fx, width - fx), max(fy, height - fy))
+            if (width > 0 && tokens.irisRadius(elapsed, min(width, height).toFloat()) >= far) {
+                // The opening has cleared the view: nothing of the overlay is left to see.
+                openingCleared = true
+                log("opening cleared after ${sinceAttach()} ms (flight ${elapsed.toInt()} ms)")
+                isClickable = false
+                setOnClickListener(null)
+                visibility = INVISIBLE
+                releasePlayer()
+            } else {
+                invalidate()
+            }
+        }
+        if (flight.finished(nowMs)) finish()
+    }
+
+    override fun dispatchDraw(canvas: Canvas) {
+        if (clock == null) {
+            super.dispatchDraw(canvas)
+            return
+        }
+        val w = width
+        val h = height
+        val elapsed = flightElapsedMs
+        val u = elapsed / tokens.flight.durationMs
+        val (fx, fy) = focus().let { it[0] to it[1] }
+        val side = min(w, h).toFloat()
+        val radius = tokens.irisRadius(elapsed, side)
+        val layer = canvas.saveLayer(0f, 0f, w.toFloat(), h.toFloat(), null)
+        canvas.drawColor(ink)
+        super.dispatchDraw(canvas)
+        painter.drawCorona(canvas, fx, fy, radius, side, tokens.coronaStrength(elapsed), w, h)
+        painter.drawGates(canvas, u, fx, fy, side)
+        painter.punchOpening(canvas, fx, fy, radius)
+        canvas.restoreToCount(layer)
+    }
+
+    /** A dropped clip (or a tap before the screen was ready): the overlay fades to the screen, already drawn. */
+    private fun plainFade(overlayMs: Long) {
+        log("launch art fades to the ready screen after ${sinceAttach()} ms")
         isClickable = false
         setOnClickListener(null)
-        isClickable = false
-        val (fx, fy) = focus().let { it[0] to it[1] }
-        content.pivotX = fx
-        content.pivotY = fy
-        if (command.contentMs <= 0L) {
-            content.animate().cancel()
-            content.alpha = 1f
-            content.scaleX = 1f
-            content.scaleY = 1f
-        } else {
-            content.scaleX = command.contentFromScale
-            content.scaleY = command.contentFromScale
-            content.alpha = 0f
-            content.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(command.contentMs)
-                .setInterpolator(DecelerateInterpolator(DECELERATION)).start()
-        }
-        pivotX = fx
-        pivotY = fy
-        animate().alpha(0f).scaleX(command.overlayToScale).scaleY(command.overlayToScale)
-            .setStartDelay(command.overlayDelayMs).setDuration(command.overlayMs)
-            .setInterpolator(AccelerateInterpolator())
-            .withEndAction { finish() }
-            .start()
+        content.animate().cancel()
+        content.alpha = 1f
+        animate().alpha(0f).setDuration(overlayMs).withEndAction { finish() }.start()
     }
 
     private fun finish() {
         if (finished) return
         finished = true
         director.onGone()
+        endTransforms()
+        (parent as? android.view.ViewGroup)?.removeView(this)
+        release()
+        onFinished()
+    }
+
+    /** Every tier at rest and no scale or pivot left on the screen underneath. */
+    private fun endTransforms() {
+        if (tiered) LaunchFlightStage.end()
         content.animate().cancel()
         content.alpha = 1f
         content.scaleX = 1f
         content.scaleY = 1f
-        (parent as? android.view.ViewGroup)?.removeView(this)
-        release()
-        onFinished()
+        content.clearPivot()
+    }
+
+    private fun releasePlayer() {
+        player?.let { runCatching { it.release() } }
+        player = null
+        surface?.release()
+        surface = null
     }
 
     private fun release() {
@@ -262,25 +376,30 @@ internal class LaunchIgniteOverlay(
             Choreographer.getInstance().removeFrameCallback(this)
             frameCallbackPosted = false
         }
-        player?.let { runCatching { it.release() } }
-        player = null
-        surface?.release()
-        surface = null
+        releasePlayer()
         if (!finished) {
-            // Detached without a hand-off (the host went away): never leave the screen hidden.
-            content.alpha = 1f
-            content.scaleX = 1f
-            content.scaleY = 1f
+            // Detached without a hand-off (the host went away): never leave the screen hidden or scaled.
+            finished = true
+            endTransforms()
         }
     }
 
     private companion object {
-        /** The `launchArrive` haptic lands at 2.6 s, 50 ms after the hand-off starts at 2.55 s. */
-        const val ARRIVE_AFTER_HAND_OFF_MS = (LaunchHandOff.HAPTIC_AT_MS - LaunchHandOff.STARTS_AT_MS).toLong()
         const val ART_CROSSFADE_MS = 300L
         const val ART_COVER_MS = 150L
         const val TAG = "FwLaunch"
         const val DEBUG_SKIP_CLIP = "fw_launch_skip_clip"
-        const val DECELERATION = 1.6f
+        const val DEBUG_PATIENT = "fw_launch_patient"
+        const val DEBUG_PATIENT_STALL_MS = 10_000L
+        const val DEBUG_SLOW_FLIGHT = "fw_launch_slow_flight"
+        const val DEBUG_SLOWDOWN = 10f
+    }
+}
+
+/** Back to the default pivot (the view's centre), as if none had been set. */
+internal fun View.clearPivot() {
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) resetPivot() else {
+        pivotX = width / 2f
+        pivotY = height / 2f
     }
 }

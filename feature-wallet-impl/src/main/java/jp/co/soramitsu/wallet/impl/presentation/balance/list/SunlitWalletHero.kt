@@ -1,5 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import jp.co.soramitsu.common.compose.theme.fw.fwValueTick
+import jp.co.soramitsu.common.launch.launchTier
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +31,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -45,6 +49,10 @@ import jp.co.soramitsu.common.compose.theme.fw.FwCopyChip
 import jp.co.soramitsu.common.compose.theme.fw.FwCountUpText
 import jp.co.soramitsu.common.compose.theme.fw.FwRoundAction
 import jp.co.soramitsu.common.compose.theme.fw.FwShape
+import jp.co.soramitsu.common.compose.theme.fw.FwShikiban
+import jp.co.soramitsu.common.compose.theme.fw.FwSyncDial
+import jp.co.soramitsu.common.compose.theme.fw.fwCompositionMarks
+import jp.co.soramitsu.common.compose.theme.fw.rememberFwHeavenBoost
 import jp.co.soramitsu.common.compose.theme.fw.FwSolarGeometry
 import jp.co.soramitsu.common.compose.theme.fw.FwSunBadge
 import jp.co.soramitsu.common.compose.theme.fw.FwSyncPhase
@@ -58,13 +66,20 @@ import jp.co.soramitsu.common.compose.theme.fw.rememberFwTickTurn
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.feature_wallet_impl.R
 
-/** What the hero sun reports, from state the wallet already has: no new polling. */
-internal fun walletSyncState(state: WalletState): FwSyncState = when {
-    state.assetsState is WalletAssetsState.NetworkIssue -> FwSyncState(FwSyncPhase.Failed)
-    state.assetsState is WalletAssetsState.Assets && state.assetsState.assets is AssetsLoadingState.Loading ->
-        FwSyncState(FwSyncPhase.Running)
-    state.hasNetworkIssues -> FwSyncState(FwSyncPhase.Failed)
-    else -> FwSyncState(FwSyncPhase.Done)
+/**
+ * What the hero sun and the sync dial report, from state the wallet already has: no new polling. The
+ * wallet is syncing while its assets load or while a network it started to read has not answered yet.
+ */
+internal fun walletSyncState(state: WalletState): FwSyncState {
+    val counts = state.syncCounts
+    val phase = when {
+        state.assetsState is WalletAssetsState.NetworkIssue -> FwSyncPhase.Failed
+        state.assetsState is WalletAssetsState.Assets && state.assetsState.assets is AssetsLoadingState.Loading -> FwSyncPhase.Running
+        state.hasNetworkIssues -> FwSyncPhase.Failed
+        counts.outstanding > 0 -> FwSyncPhase.Running
+        else -> FwSyncPhase.Done
+    }
+    return FwSyncState(phase, done = counts.done, failed = counts.failed, total = counts.total)
 }
 
 /** Shortened address for the copy chip: first and last characters, the full value is copied. */
@@ -118,7 +133,10 @@ fun SunlitWalletHero(
             badgeInCardState = card.localPositionOf(badge, Offset(half, badge.size.height / 2f)) to half
         }
     }
-    val tickTurn = rememberFwTickTurn(geometry)
+    val syncing = sync.phase == FwSyncPhase.Running
+    val heaven = rememberFwHeavenBoost(syncing)
+    val tickTurn = rememberFwTickTurn(geometry, heaven)
+    val shikiban = FwShikiban.tokens()
     val pulse = rememberFwArrivalPulse(arrivalPulse)
     val textGap = with(density) { 4.dp.toPx() }
     val badgeInCard: () -> Pair<Offset, Float>? = { badgeInCardState }
@@ -134,6 +152,7 @@ fun SunlitWalletHero(
         FwCard(
             modifier = Modifier
                 .fillMaxWidth()
+                .launchTier(0)
                 .testTag("wallet_hero"),
             shape = FwShape.Hero,
             sunRim = 0.45f,
@@ -147,7 +166,9 @@ fun SunlitWalletHero(
                         updateBadge()
                     }
                     .fwSkyHero(fx, c, sky, geometry, badge = badgeInCard,
-                        textTop = { badgeInCard()?.let { it.first.y + it.second + textGap } }, tickTurn = tickTurn, pulse = pulse)
+                        textTop = { badgeInCard()?.let { it.first.y + it.second + textGap } }, tickTurn = tickTurn, pulse = pulse,
+                        heaven = heaven)
+                    .fwCompositionMarks(fx, shikiban, textTop = { badgeInCard()?.let { it.first.y + it.second + textGap } })
             ) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 20.dp),
@@ -181,6 +202,8 @@ fun SunlitWalletHero(
                         .clickableWithNoIndication(onBalanceClick)
                 ) {
                     FwCountUpText(
+                        // The total keeps its count-up and gains the value tick's line only (SPEC v4 part 5).
+                        modifier = Modifier.fwValueTick(state.transferableBalance, lineOnly = true),
                         text = state.transferableBalance ?: "—",
                         style = MaterialTheme.customTypography.header1.copy(
                             fontSize = if (compact) 30.sp else 38.sp,
@@ -221,9 +244,34 @@ fun SunlitWalletHero(
                     Text(it, style = MaterialTheme.customTypography.body2, color = c.textTertiary,
                         textAlign = TextAlign.Center, modifier = Modifier.padding(top = 2.dp).testTag("balance_caption"))
                 }
-                syncLine?.let {
-                    Text(it, style = MaterialTheme.customTypography.body2, color = if (sync.phase == FwSyncPhase.Failed) c.warning else c.textTertiary,
-                        textAlign = TextAlign.Center, modifier = Modifier.padding(top = 4.dp).testTag("wallet_sync_status"))
+                // The sync dial (SPEC v4 part 2) beside the status words: while networks answer, the count in
+                // tabular figures and cyan stands in for "Loading balance…", which stays the accessible text.
+                val counting = sync.phase == FwSyncPhase.Running && sync.total > 0
+                val shown = if (counting) "${sync.done} / ${sync.total}" else syncLine
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        .testTag("wallet_sync_status")
+                        .clearAndSetSemantics {
+                            val spoken = if (counting && syncLine != null) "$syncLine ${sync.done} / ${sync.total}" else syncLine
+                            spoken?.let { contentDescription = it }
+                        }
+                ) {
+                    FwSyncDial(sync, modifier = Modifier.testTag("wallet_sync_dial"))
+                    shown?.let {
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            it,
+                            style = MaterialTheme.customTypography.body2.copy(fontFeatureSettings = "tnum"),
+                            color = when {
+                                counting -> c.priceUp
+                                sync.phase == FwSyncPhase.Failed -> c.warning
+                                else -> c.textTertiary
+                            },
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
                 if (state.address.isNotEmpty()) {
                     Spacer(Modifier.height(12.dp))
@@ -238,7 +286,7 @@ fun SunlitWalletHero(
         }
         Spacer(Modifier.height(18.dp))
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+            modifier = Modifier.fillMaxWidth().launchTier(1).padding(horizontal = 4.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.Top
         ) {

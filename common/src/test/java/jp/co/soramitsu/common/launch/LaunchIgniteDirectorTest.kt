@@ -27,11 +27,7 @@ class LaunchIgniteDirectorTest {
         }
 
     private fun assertPlainHandOff(commands: List<Command>) {
-        val handOff = commands.single() as Command.HandOff
-        assertEquals(1f, handOff.contentFromScale)
-        assertEquals(0L, handOff.contentMs)
-        assertEquals(1f, handOff.overlayToScale)
-        assertEquals(LaunchHandOff.PLAIN_FADE_MS, handOff.overlayMs)
+        assertEquals(listOf(Command.PlainFade(LaunchHandOff.PLAIN_FADE_MS)), commands)
     }
 
     @Test
@@ -57,16 +53,12 @@ class LaunchIgniteDirectorTest {
     }
 
     @Test
-    fun shouldPlayThroughWithoutHolding_whenTheScreenIsAlreadyReady() {
+    fun shouldStartTheFlightAtTheDive_whenTheScreenIsAlreadyReady() {
         val director = playing(preparedAt = 100, firstFrameAt = 150)
         assertTrue(director.onFrame(1000, 1100, ready = true).isEmpty())
         assertTrue(director.onFrame(1990, 2090, ready = true).isEmpty())
-        val handOff = director.onFrame(2560, 2660, ready = true)
-        val command = handOff[0] as Command.HandOff
-        assertEquals(LaunchHandOff.CONTENT_FROM_SCALE, command.contentFromScale)
-        assertEquals(LaunchHandOff.CONTENT_MS, command.contentMs)
-        assertEquals(140L, command.overlayDelayMs)
-        assertEquals(Command.Arrive, handOff[1])
+        // SPEC v4 part 1: the flight starts at the clip's zoomStartSeconds (2.0 s), replacing v3's 2.55 s zoom.
+        assertEquals(listOf(Command.Flight(skipped = false)), director.onFrame(2010, 2110, ready = true))
         assertEquals(LaunchIgniteDirector.Phase.Leaving, director.phase)
         assertTrue(director.onFrame(2700, 2800, ready = true).isEmpty())
     }
@@ -78,8 +70,9 @@ class LaunchIgniteDirectorTest {
         assertEquals(listOf(Command.Pause), director.onFrame(1970, 1970, ready = false))
         assertTrue(director.onFrame(1970, 3000, ready = false).isEmpty())
         assertEquals(listOf(Command.Play), director.onFrame(1970, 3500, ready = true))
-        assertTrue(director.onFrame(2010, 3540, ready = false).isEmpty())
-        assertTrue(director.onFrame(2600, 4100, ready = false).first() is Command.HandOff)
+        // The flight starts as soon as the released clip reaches its dive (SPEC v4 part 1: "or whenever the hold releases").
+        assertEquals(listOf(Command.Flight(skipped = false)), director.onFrame(2010, 3540, ready = false))
+        assertTrue(director.onFrame(2040, 4100, ready = false).isEmpty())
     }
 
     @Test
@@ -91,14 +84,38 @@ class LaunchIgniteDirectorTest {
     }
 
     @Test
-    fun shouldSkipToTheZoom_whenTappedOverAReadyScreen() {
+    fun shouldStartTheFlightSkipped_whenTappedBeforeIt_overAReadyScreen() {
         val director = playing()
-        val commands = director.onTap(500, ready = true)
-        val handOff = commands[0] as Command.HandOff
-        assertEquals(LaunchHandOff.SKIP_MS, handOff.contentMs)
-        assertEquals(0L, handOff.overlayDelayMs)
-        assertEquals(Command.Arrive, commands[1])
+        assertEquals(listOf(Command.Flight(skipped = true)), director.onTap(500, ready = true))
+        // Already at the skip speed: a second tap changes nothing.
         assertTrue(director.onTap(600, ready = true).isEmpty())
+        assertTrue(director.onFrame(2100, 700, ready = true).isEmpty())
+    }
+
+    @Test
+    fun shouldSpeedUpTheRestOfTheFlight_whenTappedDuringIt() {
+        val director = playing()
+        assertEquals(listOf(Command.Flight(skipped = false)), director.onFrame(2000, 2000, ready = true))
+        assertEquals(listOf(Command.SkipFlight), director.onTap(2300, ready = true))
+        assertTrue(director.onTap(2400, ready = true).isEmpty())
+    }
+
+    @Test
+    fun shouldPlayTheFlightOnItsOwnClock_andTheSkipAtTwoAndAHalfTimes() {
+        val clock = LaunchFlightClock(durationMs = 1270, skipMs = 510, startedAtMs = 10_000, skipped = false)
+        assertEquals(0f, clock.elapsed(9_000), 0f)
+        assertEquals(500f, clock.elapsed(10_500), 0f)
+        clock.skip(10_500)
+        // The rest (770 ms of flight) plays at 1270 / 510 the speed: no jump at the tap.
+        assertEquals(500f, clock.elapsed(10_500), 1e-3f)
+        assertEquals(500f + 100f * 1270f / 510f, clock.elapsed(10_600), 1e-2f)
+        assertTrue(clock.finished(10_500 + 310))
+        assertEquals(1270f, clock.elapsed(20_000), 0f)
+        val skipped = LaunchFlightClock(1270, 510, 0, skipped = true)
+        assertTrue(skipped.skipped)
+        assertTrue(!skipped.finished(509) && skipped.finished(510))
+        // The launchArrive touch lands 1000 ms into the flight (SPEC v4 part 1, "Touch").
+        assertEquals(1000, LaunchHandOff.FLIGHT_ARRIVE_MS)
     }
 
     @Test
@@ -173,6 +190,18 @@ class LaunchIgniteDirectorTest {
         assertFalse(LaunchLanding.ready.value)
         LaunchLanding.screenReady()
         assertTrue(LaunchLanding.ready.value)
+    }
+
+    @Test
+    fun shouldShowNoFlight_underReducedMotionOrReducedEffects() {
+        val full = jp.co.soramitsu.common.compose.theme.fw.FwEffects(jp.co.soramitsu.common.compose.theme.fw.FwTier.Full, highContrast = false, reduceMotion = false)
+        assertTrue(launchMotionAllowed(animatorsEnabled = true, effects = full))
+        assertFalse(launchMotionAllowed(animatorsEnabled = false, effects = full))
+        assertFalse(launchMotionAllowed(true, full.copy(reduceMotion = true)))
+        assertFalse(launchMotionAllowed(true, full.copy(tier = jp.co.soramitsu.common.compose.theme.fw.FwTier.Reduced)))
+        // High contrast alone selects the Reduced paint tier but keeps the launch, as in kit v3.
+        assertTrue(launchMotionAllowed(true, full.copy(tier = jp.co.soramitsu.common.compose.theme.fw.FwTier.Reduced, highContrast = true)))
+        assertTrue(launchMotionAllowed(true, full.copy(tier = jp.co.soramitsu.common.compose.theme.fw.FwTier.Lite)))
     }
 
     @Test

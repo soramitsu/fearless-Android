@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.compose.component
 
+import jp.co.soramitsu.common.compose.theme.fw.fwValueTick
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -162,6 +163,7 @@ fun AssetListItem(
                                 modifier = Modifier
                                     .padding(vertical = 4.dp)
                                     .padding(start = 4.dp)
+                                    .fwValueTick(balance, enabled = !state.isHidden)
                                     .testTag("AssetListItem_${state.assetSymbol}_transferable")
                             )
                         }
@@ -224,6 +226,7 @@ fun AssetListItem(
                                 .wrapContentWidth()
                                 .alpha(0.64f)
                                 .padding(start = 4.dp)
+                                .fwValueTick(balanceFiat, enabled = !state.isHidden)
                                 .testTag("AssetListItem_${state.assetSymbol}_transferable_fiat")
                         )
                     }

@@ -144,7 +144,7 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
         val mainView = findViewById<View>(R.id.mainView)
         val hostFragments = (supportFragmentManager.findFragmentById(R.id.navHost) as? NavHostFragment)?.childFragmentManager
         hostFragments?.let(LaunchIgniteHost::reportScreens)
-        LaunchIgniteHost.landAfterUnlock(navController, hostFragments, mainView)
+        LaunchIgniteHost.landAfterUnlock(this, navController, hostFragments, mainView)
         LaunchIgniteHost.attachIfColdStart(this, mainView)
         window.setBackgroundDrawableResource(jp.co.soramitsu.common.R.color.fw_bg_base)
 

@@ -1,5 +1,6 @@
 package jp.co.soramitsu.app.root.presentation.main
 
+import jp.co.soramitsu.common.launch.LaunchFlightStage
 import android.os.Bundle
 import android.view.View
 import androidx.activity.OnBackPressedCallback
@@ -98,6 +99,9 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
         }
 
         configurePolkaswapNavigationAction(binding.bottomNavigationViewWithFab, binding.fabMain, binding.bottomNavContent)
+        // The tab bar flies with the header as launch tier 2 (brand kit SPEC v4 part 1, "Tiers").
+        LaunchFlightStage.registerView(binding.bottomNavigationViewWithFab, TAB_BAR_TIER, LaunchFlightStage.MAIN_GROUP)
+        LaunchFlightStage.registerView(binding.fabMain, TAB_BAR_TIER, LaunchFlightStage.MAIN_GROUP)
 
         if (!restoringViewState) {
             arguments?.getString(ARG_POLKAMARKT_MARKET_ID)?.let { marketId ->
@@ -127,3 +131,5 @@ class MainFragment : BaseFragment<MainViewModel>(R.layout.fragment_main) {
         )
     }
 }
+
+private const val TAB_BAR_TIER = 2

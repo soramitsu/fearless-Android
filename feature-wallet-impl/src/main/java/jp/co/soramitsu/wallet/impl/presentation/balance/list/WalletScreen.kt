@@ -1,5 +1,8 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwValueTicks
+import androidx.compose.runtime.CompositionLocalProvider
+import jp.co.soramitsu.common.launch.launchTier
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -7,6 +10,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -165,6 +169,7 @@ fun WalletScreen(
             }
 
             MarginVertical(margin = 16.dp)
+            Column(Modifier.launchTier(SEGMENT_TIER)) {
             when {
                 viewOnly -> BannerWalletRecovery(onClick = callback::onWalletRecoveryClick, viewOnly = true)
                 data.isRecoveryRequired -> BannerWalletRecovery(onClick = callback::onWalletRecoveryClick)
@@ -193,6 +198,7 @@ fun WalletScreen(
                     stacked = largeText
                 )
             }
+            }
 
         }
     }
@@ -200,7 +206,7 @@ fun WalletScreen(
     Column(modifier = (if (sunlit) Modifier.fwTopFade() else Modifier).padding(horizontal = if (sunlit) 20.dp else 16.dp)) {
         when {
             // The NFT grid scrolls on its own: above it the page keeps only the switch back to currencies.
-            sunlit && data.assetsState is WalletAssetsState.NftAssets -> if (data.showCurrenciesOrNftSelector) {
+            sunlit && data.assetsState is WalletAssetsState.NftAssets -> if (data.showCurrenciesOrNftSelector) Column(Modifier.launchTier(SEGMENT_TIER)) {
                 MarginVertical(margin = 8.dp)
                 MultiToggleButton(
                     state = data.multiToggleButtonState,
@@ -211,7 +217,7 @@ fun WalletScreen(
             !scrollHeaderWithAssets && !(scrollingHeader && data.assetsState is WalletAssetsState.NetworkIssue) -> walletHeader()
         }
         when (data.assetsState) {
-            is WalletAssetsState.NftAssets -> {
+            is WalletAssetsState.NftAssets -> Box(Modifier.launchTier(LIST_TIER)) {
                 NFTScreen(collectionsScreen = data.assetsState.collectionScreenModel)
             }
 
@@ -220,12 +226,14 @@ fun WalletScreen(
                 val header: @Composable () -> Unit = {
                     if (scrollHeaderWithAssets) walletHeader()
                     if (loaded != null && loaded.selectedNetwork == null) {
-                        MultiToggleButton(MultiToggleButtonState(loaded.portfolioUi.lens, PortfolioLens.entries),
-                            callback::onPortfolioLensChanged, stacked = largeText)
+                        Box(Modifier.launchTier(SEGMENT_TIER)) {
+                            MultiToggleButton(MultiToggleButtonState(loaded.portfolioUi.lens, PortfolioLens.entries),
+                                callback::onPortfolioLensChanged, stacked = largeText)
+                        }
                         MarginVertical(8.dp)
                     }
                     if (loaded != null && !loaded.portfolioUi.valueNoticeAcknowledged) {
-                        BackgroundCornered {
+                        BackgroundCornered(Modifier.launchTier(LIST_TIER)) {
                             Column(Modifier.padding(12.dp)) {
                                 B2(text = stringResource(R.string.portfolio_value_notice), color = white64)
                                 GrayButton(stringResource(R.string.common_got_it), modifier = Modifier.fillMaxWidth(),
@@ -235,7 +243,7 @@ fun WalletScreen(
                         MarginVertical(8.dp)
                     }
                     val hiddenFundedNoticeCount = loaded?.hiddenFundedNoticeCount ?: 0
-                    if (hiddenFundedNoticeCount > 0) {
+                    if (hiddenFundedNoticeCount > 0) Box(Modifier.launchTier(LIST_TIER)) {
                         HiddenFundsNotice(
                             count = hiddenFundedNoticeCount,
                             stacked = largeText,
@@ -272,10 +280,10 @@ fun WalletScreen(
                 if (scrollingHeader) {
                     Column(Modifier.verticalScroll(rememberScrollState())) {
                         walletHeader()
-                        NetworkIssue(data.assetsState.retryButtonLoading, callback::onRetry)
+                        Box(Modifier.launchTier(LIST_TIER)) { NetworkIssue(data.assetsState.retryButtonLoading, callback::onRetry) }
                     }
                 } else {
-                    NetworkIssue(data.assetsState.retryButtonLoading, callback::onRetry)
+                    Box(Modifier.launchTier(LIST_TIER)) { NetworkIssue(data.assetsState.retryButtonLoading, callback::onRetry) }
                 }
             }
         }
@@ -316,7 +324,10 @@ fun WalletScreenWithRefresh(
         // The aurora drifts behind the wallet home (brand kit SPEC part 3); reduced effects leave the page as it was.
         modifier = if (sunlit) Modifier.fwAurora(LocalFwEffects.current, LocalFwColors.current) else Modifier
     ) {
-        WalletScreen(data, callback, arrivalPulse)
+        // Values on the wallet home tick when they change (brand kit SPEC v4 part 5).
+        CompositionLocalProvider(LocalFwValueTicks provides sunlit) {
+            WalletScreen(data, callback, arrivalPulse)
+        }
     }
 }
 
@@ -526,3 +537,9 @@ private fun PreviewWalletScreen() {
         }
     }
 }
+
+/** The wallet home's tabs and segment controls fly as launch tier 3 (brand kit SPEC v4 part 1, "Tiers"). */
+private const val SEGMENT_TIER = 3
+
+/** The list and everything under the segment controls fly as launch tier 4. */
+private const val LIST_TIER = 4

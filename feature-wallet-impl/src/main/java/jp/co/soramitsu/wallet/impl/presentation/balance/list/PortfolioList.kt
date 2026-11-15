@@ -1,5 +1,7 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import jp.co.soramitsu.common.compose.theme.fw.fwValueTick
+import jp.co.soramitsu.common.launch.launchTier
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -81,10 +83,10 @@ fun PortfolioList(
         contentPadding = PaddingValues(top = 8.dp, bottom = 80.dp)) {
         item(key = "portfolio-header") { header() }
         if (data.assets.isEmpty() && data.portfolioItems.none { it == PortfolioListItem.EmptyWallet }) {
-            item(key = "portfolio-empty") { EmptyAssetsContent(data.allAssetsHidden) }
+            item(key = "portfolio-empty") { Box(Modifier.launchTier(LIST_TIER)) { EmptyAssetsContent(data.allAssetsHidden) } }
         }
         itemsIndexed(data.portfolioItems, key = { _, it -> it.key }) { index, item ->
-            Box(if (sunlit) Modifier.fwStaggerIn(stagger, index) else Modifier) {
+            Box((if (sunlit) Modifier.fwStaggerIn(stagger, index) else Modifier).launchTier(LIST_TIER)) {
             when (item) {
                 is PortfolioListItem.AssetRow -> Column(Modifier.padding(start = if (item.nested) 12.dp else 0.dp)) {
                     if (data.portfolioUi.lens == PortfolioLens.ByToken || data.selectedNetwork != null) {
@@ -109,7 +111,7 @@ fun PortfolioList(
             }
             }
         }
-        item(key = "portfolio-footer") { footer() }
+        item(key = "portfolio-footer") { Box(Modifier.launchTier(LIST_TIER)) { footer() } }
     }
     action?.let { selected ->
         val hide = selected.second == ActionItemType.HIDE
@@ -242,9 +244,11 @@ private fun SunlitTokenGroup(
                     if (group.hiddenCount > 0) B2(text = stringResource(R.string.portfolio_group_hidden, group.hiddenCount), color = c.textTertiary)
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    FwRollingText(text = fiat, style = MaterialTheme.customTypography.header5, roll = false)
-                    B2(text = group.total?.let { "${it.formatCrypto()} ${group.symbol}" }
-                        ?: stringResource(R.string.portfolio_balance_unavailable), color = c.textSecondary)
+                    FwRollingText(text = fiat, style = MaterialTheme.customTypography.header5, roll = false,
+                        modifier = Modifier.fwValueTick(fiat))
+                    val amount = group.total?.let { "${it.formatCrypto()} ${group.symbol}" }
+                    B2(text = amount ?: stringResource(R.string.portfolio_balance_unavailable), color = c.textSecondary,
+                        modifier = Modifier.fwValueTick(amount))
                 }
                 Spacer(Modifier.width(6.dp))
                 Icon(painterResource(if (group.expanded) R.drawable.ic_chevron_up_white else R.drawable.ic_chevron_down_white),
@@ -281,3 +285,6 @@ private fun SunlitRowAction(label: String, onClick: () -> Unit, modifier: Modifi
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp))
     }
 }
+
+/** The wallet home's list flies as launch tier 4 (brand kit SPEC v4 part 1, "Tiers"). */
+private const val LIST_TIER = 4

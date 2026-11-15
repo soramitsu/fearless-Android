@@ -1,5 +1,6 @@
 package jp.co.soramitsu.account.impl.presentation.pincode.view
 
+import jp.co.soramitsu.common.launch.LaunchFlightStage
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.StateListAnimator
@@ -119,7 +120,12 @@ class PinCodeView @JvmOverloads constructor(
             addView(logo, 0, LayoutParams((widthDp * density).toInt(), (widthDp / FwLockup.ASPECT * density).toInt() + 2 * margin).apply {
                 gravity = Gravity.CENTER_HORIZONTAL
             })
+            LaunchFlightStage.registerView(logo, MARK_TIER)
         }
+        // Launch tiers (brand kit SPEC v4 part 1): the mark, then the keypad, then the title and dots.
+        LaunchFlightStage.registerView(binding.pinCodeTitleTv, REST_TIER)
+        LaunchFlightStage.registerView(binding.dotsProgressView, REST_TIER)
+        (binding.btn1.parent?.parent as? View)?.let { LaunchFlightStage.registerView(it, CONTROL_TIER) }
         binding.pinCodeTitleTv.setTextColor(colors.textPrimary.toArgb())
         binding.pinCodeTitleTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
         // The title has no text appearance of its own, so it would otherwise fall back to the system font.
@@ -234,3 +240,7 @@ class PinCodeView @JvmOverloads constructor(
         const val ROOMY_KEY_DP = 74
     }
 }
+
+private const val MARK_TIER = 0
+private const val CONTROL_TIER = 1
+private const val REST_TIER = 2

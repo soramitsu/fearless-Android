@@ -86,9 +86,14 @@ class WalletLoadingMotionInstrumentedTest {
         val expectedStill = reduceMotion && arguments.getString("loadingExpectStill", "true") == "true"
         for ((tag, images) in frames) {
             val equal = images.drop(1).all { images.first().sameAs(it) }
+            // The mirror loader (brand kit SPEC v4 part 4) under reduced motion: its comets stand still and
+            // light in turn every 720 ms, so its frames may differ without anything moving. Only the
+            // ordinary-motion check (frames must differ) applies to it.
+            val lightsInTurn = tag == "progress" && reduceMotion
             results.put(JSONObject().put("component", tag).put("reduceMotion", reduceMotion)
-                .put("frames", images.size).put("allPixelsEqual", equal).put("expectedStill", expectedStill))
-            if (equal != expectedStill) failures += "$tag: allPixelsEqual=$equal expectedStill=$expectedStill"
+                .put("frames", images.size).put("allPixelsEqual", equal).put("expectedStill", expectedStill)
+                .put("lightsInTurn", lightsInTurn))
+            if (!lightsInTurn && equal != expectedStill) failures += "$tag: allPixelsEqual=$equal expectedStill=$expectedStill"
         }
         File(dir, "frames-$reduceMotion.json").writeText(results.toString(2))
         assertTrue(failures.joinToString("; "), failures.isEmpty())

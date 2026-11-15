@@ -1,5 +1,6 @@
 package jp.co.soramitsu.account.impl.presentation.pincode
 
+import jp.co.soramitsu.common.launch.LaunchFlightStage
 import jp.co.soramitsu.account.impl.presentation.pincode.PinBiometricPromptGate.Kind as Prompt
 import android.os.Bundle
 import android.os.Build
@@ -140,6 +141,9 @@ class PincodeFragment : BaseFragment<PinCodeViewModel>() {
             binding.forgotPin.setTextColor(FwStandardOrHighContrast(context).textLink.toArgb())
         }
         binding.forgotPin.setOnClickListener { viewModel.forgotPin() }
+        // Launch tier 2, "the rest" (brand kit SPEC v4 part 1); the mark and the keypad declare themselves.
+        LaunchFlightStage.registerView(binding.toolbar, 2)
+        LaunchFlightStage.registerView(binding.forgotPin, 2)
     }
 
     override fun subscribe(viewModel: PinCodeViewModel) {

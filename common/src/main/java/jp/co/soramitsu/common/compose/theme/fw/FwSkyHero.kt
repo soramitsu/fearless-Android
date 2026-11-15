@@ -8,6 +8,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.drawBehind
@@ -114,7 +115,8 @@ fun Modifier.fwSkyHero(
     badge: () -> Pair<Offset, Float>?,
     textTop: () -> Float?,
     tickTurn: State<Float>,
-    pulse: State<Float>
+    pulse: State<Float>,
+    heaven: State<Float>? = null
 ): Modifier = if (fx.paintReduced) this else drawBehind {
     val (center, badgeRadius) = badge() ?: return@drawBehind
     val textStart = textTop() ?: (center.y + badgeRadius)
@@ -131,11 +133,13 @@ fun Modifier.fwSkyHero(
     // Under the scrim: the figure glows round the badge and fades out before the text starts.
     if (geometry != null) {
         val radius = badgeRadius * GEOMETRY_TO_BADGE
+        // The heaven plate (SPEC v4 part 2): while syncing the geometry brightens by half again.
+        val lift = 1f + FW_HEAVEN_SYNC_BRIGHTEN * (heaven?.value ?: 0f)
         drawFwSolarGeometry(geometry, center, radius, progress = 1f, alpha = 1f, tickTurn = tickTurn.value) { group ->
             when (group) {
-                "ring" -> 0.95f
-                "hexagram" -> 0.45f
-                else -> 0.22f
+                "ring" -> (0.95f * lift).coerceAtMost(1f)
+                "hexagram" -> 0.45f * lift
+                else -> 0.22f * lift
             }
         }
     }
@@ -156,12 +160,13 @@ fun Modifier.fwSkyHero(
 const val GEOMETRY_TO_BADGE = 1.44f
 
 /**
- * The tick ring's slow turn (kit `ticks.turnsPerSecond`), stepped ten times a second so the page
- * is not redrawn every frame for a movement of a degree a second. Still under reduced motion and
- * while the screen is not resumed.
+ * The tick ring's slow turn (kit `ticks.turnsPerSecond`), stepped five times a second so the page
+ * is not redrawn every frame for a movement of a degree a second. While syncing ([heaven] above 0,
+ * SPEC v4 part 2, "The heaven plate") it turns up to 14 times faster and steps every frame. Still
+ * under reduced motion and while the screen is not resumed.
  */
 @Composable
-fun rememberFwTickTurn(geometry: FwSolarGeometry?): State<Float> {
+fun rememberFwTickTurn(geometry: FwSolarGeometry?, heaven: State<Float>? = null): State<Float> {
     val turn = remember { mutableFloatStateOf(0f) }
     val moving = fwMotion.mode(FwMotionKind.SyncSweep) == FwMotionMode.Full
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -169,11 +174,13 @@ fun rememberFwTickTurn(geometry: FwSolarGeometry?): State<Float> {
         val rate = geometry?.ticks?.turnsPerSecond ?: return@LaunchedEffect
         if (!moving) return@LaunchedEffect
         lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            val start = System.nanoTime()
-            val base = turn.floatValue
+            var last = System.nanoTime()
             while (true) {
-                turn.floatValue = base + rate * ((System.nanoTime() - start) / 1e9f)
-                delay(TICK_STEP_MS)
+                val boost = heaven?.value ?: 0f
+                val now = System.nanoTime()
+                turn.floatValue += rate * (1f + (FW_HEAVEN_SYNC_RATE - 1f) * boost) * ((now - last) / 1e9f)
+                last = now
+                if (boost > 0.001f) withFrameNanos { } else delay(TICK_STEP_MS)
             }
         }
     }

@@ -51,9 +51,19 @@ import jp.co.soramitsu.common.R
 
 enum class FwSyncPhase { Idle, Running, Done, Failed }
 
-/** What the hero sun reports: whether the wallet is syncing (and how far), synced, or failing. */
+/**
+ * What the hero sun reports: whether the wallet is syncing (and how far), synced, or failing; and for the
+ * sync dial (brand kit SPEC v4 part 2) how many networks have answered ([done]) or given up ([failed]) of
+ * the [total] started since the sync began. All zero when the app knows only busy or idle.
+ */
 @Immutable
-data class FwSyncState(val phase: FwSyncPhase, val progress: Float? = null)
+data class FwSyncState(
+    val phase: FwSyncPhase,
+    val progress: Float? = null,
+    val done: Int = 0,
+    val failed: Int = 0,
+    val total: Int = 0
+)
 
 /** Bloom of the sun glow after a sync finishes: brightness and scale over t in 0..1 (0.35 is the peak). */
 internal fun fwBloom(t: Float): Pair<Float, Float> {

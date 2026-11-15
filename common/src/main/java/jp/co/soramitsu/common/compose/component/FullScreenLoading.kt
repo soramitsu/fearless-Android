@@ -31,6 +31,7 @@ import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
 fun FullScreenLoading(
     isLoading: Boolean,
     contentAlignment: Alignment = Alignment.TopStart,
+    indicator: (@Composable () -> Unit)? = null,
     BlurredContent: @Composable () -> Unit
 ) {
     val restyled = FwRestyle.isEnabled(FwSurface.Loading)
@@ -71,7 +72,7 @@ fun FullScreenLoading(
                     .fillMaxSize()
                     .background(if (restyled) LocalFwColors.current.scrim.copy(alpha = 0.8f) else black50)
             )
-            FearlessProgress(modifier = Modifier.align(Alignment.Center))
+            Box(Modifier.align(Alignment.Center)) { indicator?.invoke() ?: FearlessProgress() }
         }
     }
 }

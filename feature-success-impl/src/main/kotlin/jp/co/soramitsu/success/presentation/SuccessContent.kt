@@ -39,6 +39,8 @@ import jp.co.soramitsu.common.compose.theme.backgroundBlurColor
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.fw.FwSolarIgnite
+import jp.co.soramitsu.common.compose.theme.fw.FwTransferSeal
+import jp.co.soramitsu.common.feedback.TransferSeal
 import jp.co.soramitsu.common.compose.theme.greenText
 import jp.co.soramitsu.common.compose.theme.white
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -71,7 +73,8 @@ interface SuccessScreenInterface {
 fun SuccessContent(
     state: SuccessViewState,
     callback: SuccessScreenInterface,
-    ignite: Boolean = false
+    ignite: Boolean = false,
+    seal: TransferSeal.Record? = null
 ) {
     BottomSheetScreen {
         Box(Modifier.fillMaxWidth()) {
@@ -98,7 +101,9 @@ fun SuccessContent(
                 MarginVertical(margin = 20.dp)
                 Box(Modifier.align(Alignment.CenterHorizontally), contentAlignment = Alignment.Center) {
                     // A sent transfer: the solar geometry draws itself round the mark (brand kit SPEC part 2).
-                    if (ignite) FwSolarIgnite(Modifier.size(SOLAR_IGNITE_SIZE).testTag("success_solar_ignite"), startDelayMillis = SHEET_RISE_MS)
+                    // After the seal (SPEC v4 part 3) the figure is the same one, continuing from the stage it reached.
+                    if (ignite && seal != null) FwTransferSeal(seal, Modifier.testTag("success_solar_ignite"), size = SOLAR_IGNITE_SIZE)
+                    else if (ignite) FwSolarIgnite(Modifier.size(SOLAR_IGNITE_SIZE).testTag("success_solar_ignite"), startDelayMillis = SHEET_RISE_MS)
                     GradientIcon(
                         iconRes = R.drawable.ic_fearless_logo,
                         color = colorAccentDark

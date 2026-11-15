@@ -1,26 +1,17 @@
 package jp.co.soramitsu.common.compose.component
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.fillMaxWidth
+import jp.co.soramitsu.common.compose.theme.fw.FwMirrorLoader
 import androidx.compose.material.Text
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.clearAndSetSemantics
 import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
 import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
-import jp.co.soramitsu.common.compose.theme.fw.FwMotionKind
-import jp.co.soramitsu.common.compose.theme.fw.FwMotionMode
-import jp.co.soramitsu.common.compose.theme.fw.fwMotion
 import jp.co.soramitsu.common.compose.theme.fw.FwTextRole
 import jp.co.soramitsu.common.compose.theme.fw.fwTextStyle
 import androidx.compose.foundation.border
@@ -47,28 +38,17 @@ import jp.co.soramitsu.common.compose.theme.white08
 fun FearlessProgress(modifier: Modifier = Modifier) {
     if (FwRestyle.isEnabled(FwSurface.Loading)) {
         val c = LocalFwColors.current
-        val still = fwMotion.mode(FwMotionKind.SyncSweep) != FwMotionMode.Full
-        Row(
-            modifier = modifier.widthIn(max = 280.dp).fillMaxWidth()
+        // The mirror loader (brand kit SPEC v4 part 4): three comets on the mirror's rim, 96 dp, over the
+        // app's own words. Under reduced motion the comets stand still and light in turn.
+        Column(
+            modifier = modifier.widthIn(max = 280.dp)
                 .background(c.surfaceRaised, RoundedCornerShape(16.dp))
                 .semantics(mergeDescendants = true) { progressBarRangeInfo = ProgressBarRangeInfo.Indeterminate }
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 24.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (still) {
-                Canvas(Modifier.size(48.dp).padding(4.dp)) {
-                    drawArc(c.strokeStrong, 0f, 360f, false, style = Stroke(4.dp.toPx()))
-                    drawArc(c.textLink, -90f, 100f, false, style = Stroke(4.dp.toPx(), cap = StrokeCap.Round))
-                }
-            } else {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(48.dp).padding(4.dp).clearAndSetSemantics {},
-                    color = c.textLink,
-                    strokeWidth = 4.dp
-                )
-            }
-            Spacer(Modifier.width(12.dp))
-            Text(stringResource(R.string.fw_loading_in_progress), modifier = Modifier.weight(1f),
+            FwMirrorLoader(Modifier.size(96.dp))
+            Text(stringResource(R.string.fw_loading_in_progress),
                 color = c.textPrimary, style = fwTextStyle(FwTextRole.BodyM))
         }
         return
