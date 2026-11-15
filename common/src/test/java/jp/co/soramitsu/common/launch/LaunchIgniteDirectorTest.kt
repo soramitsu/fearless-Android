@@ -76,6 +76,17 @@ class LaunchIgniteDirectorTest {
     }
 
     @Test
+    fun shouldStillHold_whenABusyDeviceReportsAPositionPastTheHold() {
+        val director = playing()
+        // The first report after 1.9 s is already into the dive: the clip waits there rather than fly over a screen
+        // that is not ready.
+        assertEquals(listOf(Command.Pause), director.onFrame(2300, 2300, ready = false))
+        assertTrue(director.onFrame(2300, 2800, ready = false).isEmpty())
+        assertEquals(listOf(Command.Play), director.onFrame(2300, 3000, ready = true))
+        assertEquals(listOf(Command.Flight(skipped = false)), director.onFrame(2340, 3040, ready = true))
+    }
+
+    @Test
     fun shouldLeaveTheHold_whenTheScreenNeverArrives() {
         val director = playing()
         assertEquals(listOf(Command.Pause), director.onFrame(1980, 2000, ready = false))

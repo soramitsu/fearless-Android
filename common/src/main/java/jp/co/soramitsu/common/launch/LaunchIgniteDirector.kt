@@ -125,8 +125,10 @@ class LaunchIgniteDirector(
         } else if (nowMs - lastAdvanceAtMs >= stallMs) {
             return cover(DropReason.Stalled, nowMs)
         }
-        // Before the dive: wait on the hold frame while the screen underneath is not there yet.
-        if (!ready && !pastHold && positionMs >= timeline.holdMs - HOLD_LEAD_MS && positionMs < timeline.zoomStartMs + HOLD_WINDOW_MS) {
+        // Before the dive: wait on the hold frame while the screen underneath is not there yet. A busy device can
+        // report a position already past the hold; the clip still waits there, so the flight never starts over a
+        // screen that is not ready (v4: the flight starts "whenever the hold releases").
+        if (!ready && !pastHold && positionMs >= timeline.holdMs - HOLD_LEAD_MS) {
             pastHold = true
             phase = Phase.Holding
             holdingSinceMs = nowMs
@@ -185,8 +187,5 @@ class LaunchIgniteDirector(
     private companion object {
         /** Pause this long before the hold time, so the frame held is not already into the dive. */
         const val HOLD_LEAD_MS = 34
-
-        /** A position report can skip past the hold time by a frame or two; it may still pause this far in. */
-        const val HOLD_WINDOW_MS = 100
     }
 }
