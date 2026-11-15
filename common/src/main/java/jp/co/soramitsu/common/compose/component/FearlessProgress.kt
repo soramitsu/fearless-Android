@@ -1,7 +1,10 @@
 package jp.co.soramitsu.common.compose.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import jp.co.soramitsu.common.compose.theme.fw.FwMirrorLoader
 import androidx.compose.material.Text
@@ -38,17 +41,18 @@ import jp.co.soramitsu.common.compose.theme.white08
 fun FearlessProgress(modifier: Modifier = Modifier) {
     if (FwRestyle.isEnabled(FwSurface.Loading)) {
         val c = LocalFwColors.current
-        // The mirror loader (brand kit SPEC v4 part 4): three comets on the mirror's rim, 96 dp, over the
-        // app's own words. Under reduced motion the comets stand still and light in turn.
-        Column(
-            modifier = modifier.widthIn(max = 280.dp)
+        // The mirror loader (brand kit SPEC v4 part 4) beside the app's own words. It is 64 dp rather than the kit's
+        // 96 so the card still fits the 120 dp hosts the app already gives this loader (Manage Assets).
+        Row(
+            modifier = modifier.widthIn(max = 280.dp).fillMaxWidth()
                 .background(c.surfaceRaised, RoundedCornerShape(16.dp))
                 .semantics(mergeDescendants = true) { progressBarRangeInfo = ProgressBarRangeInfo.Indeterminate }
-                .padding(horizontal = 24.dp, vertical = 12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            FwMirrorLoader(Modifier.size(96.dp))
-            Text(stringResource(R.string.fw_loading_in_progress),
+            FwMirrorLoader(Modifier.size(LOADER_DP.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.fw_loading_in_progress), modifier = Modifier.weight(1f),
                 color = c.textPrimary, style = fwTextStyle(FwTextRole.BodyM))
         }
         return
@@ -90,3 +94,5 @@ private fun FearlessProgressPreview() {
         FearlessProgress()
     }
 }
+
+private const val LOADER_DP = 64

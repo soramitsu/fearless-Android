@@ -116,7 +116,9 @@ class ShikibanInstrumentsInstrumentedTest {
         compose.mainClock.advanceTimeBy(100)
         val broken = capture("seal", "seal-broken")
         val ember = countColour(broken) { r, g, b -> r > 60 && r > g * 2 && r * 2 > b * 3 }
-        val gold = countColour(broken) { r, g, b -> r > 200 && g > 160 && b > 80 }
+        // Gold #FFD58A has a green channel near 213 and blue under 145; ember strokes adding up where they cross
+        // (#FF5A4D twice) reach green 180 with blue over 150, so they are not counted.
+        val gold = countColour(broken) { r, g, b -> r > 220 && g > 190 && b in 60..145 }
         assertTrue("a broken seal is ember ($ember)", ember > 0)
         assertEquals("a broken seal has no gold", 0, gold)
     }

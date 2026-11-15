@@ -88,10 +88,13 @@ flow and the balance loaders are only observed. No new user-visible words and no
 - **Seal** (part 3): the send confirmation's full-screen loader shows the transfer's stages on the solar geometry. The
   screen can tell only the press and the network's acceptance apart, so `ready` draws first and `signed`, `sent` and
   `accepted` draw together on acceptance; the success screen continues the same figure from the stage reached
-  (`TransferSeal`). A failure breaks the seal while the app's own error appears as before. Debug builds can drive the
+  (`TransferSeal`). A failure breaks the seal while the app's own error appears as before. The send confirmation is a
+  secure surface (press feedback only), so there the seal shows the stages reached without drawing or comets; it moves
+  over the wallet (debug seam) and on the success screen. Debug builds can drive the
   stages over the wallet (`am broadcast -a <package>.debug.SEAL --es stage ready|signed|sent|accepted|failed|clear`).
-- **Loader** (part 4): the restyled full-page loader and the send screen's fee estimate show the three-comet mirror
-  loader. The wallet's pull-to-refresh keeps Material's indicator (not drawn by the app).
+- **Loader** (part 4): the restyled full-page loader (64 dp, so it still fits the 120 dp hosts the app gives it) and the
+  send screen's fee estimate (24 dp) show the three-comet mirror loader. The wallet's pull-to-refresh keeps Material's
+  indicator (not drawn by the app).
 - **Composition marks** (part 6): corner brackets, yamato ticks and the asanoha lattice at 5 % on the balance card,
   drawn once; a 220 dp band of light crosses it every 9 s above the text (Full effects tier only).
 - **Value tick** (part 5): on the wallet home a row's amount and fiat value come in from 6 dp below or above and a

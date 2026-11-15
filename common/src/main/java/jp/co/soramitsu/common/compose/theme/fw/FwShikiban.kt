@@ -204,11 +204,13 @@ private const val HEAVEN_OUT_MS = 720
 fun FwMirrorLoader(modifier: Modifier = Modifier, progress: Float? = null) {
     val tokens = FwShikiban.tokens() ?: return
     val moves = fwShikibanMoves
+    // Signing and recovery-phrase hosts allow press feedback only: there the comets stand still and do not take turns.
+    val secure = LocalFwSecureSurface.current
     val seconds = rememberFwSeconds(running = moves && progress == null)
     val turnIndex = remember { mutableFloatStateOf(0f) }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
-    LaunchedEffect(moves, progress == null, lifecycle) {
-        if (moves || progress != null) return@LaunchedEffect
+    LaunchedEffect(moves, secure, progress == null, lifecycle) {
+        if (moves || secure || progress != null) return@LaunchedEffect
         lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
             while (true) {
                 delay(tokens.durationsMs[STILL_STEP_INDEX].toLong())
