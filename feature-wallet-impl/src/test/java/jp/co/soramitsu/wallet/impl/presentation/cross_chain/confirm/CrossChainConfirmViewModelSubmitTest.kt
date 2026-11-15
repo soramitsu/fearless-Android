@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm
 
+import jp.co.soramitsu.common.feedback.TransferSeal
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.SavedStateHandle
 import io.mockk.coEvery
@@ -62,6 +63,9 @@ class CrossChainConfirmViewModelSubmitTest {
 
     @get:Rule
     val mainCoroutineRule = MainCoroutineRule()
+
+    @org.junit.After
+    fun clearSeal() = TransferSeal.clear()
 
     private class Harness(
         val viewModel: CrossChainConfirmViewModel,
@@ -288,6 +292,55 @@ class CrossChainConfirmViewModelSubmitTest {
 
         assertEquals("the second explicit attempt reaches validation again", 2, harness.validations.get())
         assertEquals(0, harness.submissions.get())
+    }
+
+    // The seal (brand kit SPEC v4 part 3): which real event of a cross-chain transfer lights which stage.
+
+    @Test
+    fun `the seal lights ready at submission and the rest together with the hash, before the success screen`() = runTest {
+        var readyAtSubmit: TransferSeal.Stage? = null
+        val harness = harness(submissionResult = Result.success("0xabc"), onSubmit = { readyAtSubmit = TransferSeal.record.value.stage })
+        harness.viewModel.onNextClick()
+        settle(harness) { TransferSeal.record.value.stage == TransferSeal.Stage.Accepted }
+        assertEquals(TransferSeal.Stage.Ready, readyAtSubmit)
+        val record = TransferSeal.record.value
+        assertEquals(record.acceptedAtMs, record.signedAtMs)
+        assertEquals(record.acceptedAtMs, record.sentAtMs)
+        settle(harness) { runCatching { verify { harness.router.openOperationSuccess("0xabc", "origin") } }.isSuccess }
+    }
+
+    @Test
+    fun `a failure with nothing retained breaks the seal beside the error`() = runTest {
+        val harness = harness(submissionResult = Result.failure(IllegalStateException("socket closed")))
+        harness.viewModel.onNextClick()
+        settle(harness) { TransferSeal.record.value.stage == TransferSeal.Stage.Failed }
+    }
+
+    @Test
+    fun `an ambiguous failure clears the seal instead of breaking it`() = runTest {
+        var kept: CrossChainSubmissionJournal.Submission? = null
+        val harness = harness(
+            submissionResult = Result.failure(IllegalStateException("socket closed")),
+            pending = { kept },
+            outcome = { CrossChainSubmissionReconciler.Outcome.Unsettled(THIS_TRANSFER, BigInteger.valueOf(1_065)) },
+            onSubmit = { kept = THIS_TRANSFER }
+        )
+        harness.viewModel.onNextClick()
+        settle(harness) { harness.viewModel.state.value.pendingMessage == text(R.string.cross_chain_pending_message) }
+        assertEquals(TransferSeal.Stage.Idle, TransferSeal.record.value.stage)
+    }
+
+    @Test
+    fun `a validation that stops the transfer lights nothing`() = runTest {
+        val harness = harness(
+            submissionResult = Result.success("0xabc"),
+            validationResult = Result.failure(IllegalStateException("destination runtime unavailable"))
+        )
+        harness.viewModel.onNextClick()
+        settle(harness) { harness.validations.get() >= 1 }
+        Thread.sleep(100)
+        advanceUntilIdle()
+        assertEquals(TransferSeal.Stage.Idle, TransferSeal.record.value.stage)
     }
 
     /** Submission hops to a real thread (Dispatchers.Default); the validation delay is virtual. */

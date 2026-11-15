@@ -232,13 +232,14 @@ private const val OVERLAY_INK = 0.72f
 
 /**
  * A failed transfer's seal breaking over the screen for `seal.breakMs` after the loader has gone (SPEC v4 part 3,
- * "Failure"). It takes no touches; the app's own error appears exactly as before. Nothing under reduced motion.
+ * "Failure"). It takes no touches; the app's own error appears exactly as before. Where nothing may move (reduced
+ * motion, secure surfaces) the figure shows ember and still for that time.
  */
 @Composable
-fun FwSealBreakOverlay(record: TransferSeal.Record) {
+fun FwSealBreakOverlay(record: TransferSeal.Record, modifier: Modifier = Modifier.fillMaxSize()) {
     val failedAt = record.failedAtMs ?: return
     val tokens = FwShikiban.tokens() ?: return
-    if (!fwShikibanMoves) return
+    // Still (reduced motion, secure surfaces): the broken figure shows for the same time without falling.
     val visible = remember(failedAt) { androidx.compose.runtime.mutableStateOf(TransferSeal.nowMs() - failedAt < tokens.seal.breakMs) }
     LaunchedEffect(failedAt) {
         val left = tokens.seal.breakMs - (TransferSeal.nowMs() - failedAt)
@@ -246,5 +247,47 @@ fun FwSealBreakOverlay(record: TransferSeal.Record) {
         visible.value = false
     }
     if (!visible.value) return
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { FwTransferSeal(record) }
+    // On the screen's own scrim colour, so the moment reads as the loader's last frame and no text is cut by the disc.
+    Box(modifier.background(LocalFwColors.current.scrim.copy(alpha = BREAK_SCRIM)), contentAlignment = Alignment.Center) { FwSealOnInk(record) }
 }
+
+/**
+ * The seal on a round ink backdrop, as a modal loader: it takes the place of the screen's own (opaque) loader card,
+ * so its strokes never cross the text of a confirmation behind it, even where the screen's scrim does not reach.
+ */
+@Composable
+fun FwSealOnInk(record: TransferSeal.Record) {
+    Box(
+        Modifier
+            .size(SEAL_BACKDROP)
+            .background(LocalFwColors.current.brandInk.copy(alpha = SEAL_BACKDROP_INK), androidx.compose.foundation.shape.CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        FwTransferSeal(record)
+    }
+}
+
+private val SEAL_BACKDROP = 196.dp
+
+/** The same strength as the full-screen loader's scrim (FullScreenLoading, restyled). */
+private const val BREAK_SCRIM = 0.8f
+private const val SEAL_BACKDROP_INK = 0.92f
+
+/**
+ * The seal over a confirmation on the loader's scrim, for a screen whose own scrim cannot cover it (the shared
+ * confirmation scrolls, so its full-screen scrim has no height there): text behind is dimmed, never crossed.
+ */
+@Composable
+fun FwSealLoadingOverlay(record: TransferSeal.Record, modifier: Modifier) {
+    if (record.readyAtMs == null) return
+    Box(modifier.background(LocalFwColors.current.scrim.copy(alpha = BREAK_SCRIM)), contentAlignment = Alignment.Center) {
+        FwSealOnInk(record)
+    }
+}
+
+/**
+ * The loader of a confirmation screen while a submission runs (SPEC v4 part 3, "Where"): the seal for the current
+ * record, or null (the screen's own loader) when no submission has reported `ready`.
+ */
+fun fwSealIndicator(record: TransferSeal.Record): (@Composable () -> Unit)? =
+    if (record.readyAtMs != null) ({ FwSealOnInk(record) }) else null

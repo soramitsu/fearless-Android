@@ -51,4 +51,5 @@ dependencies {
     implementation(projects.featureAccountApi)
 
     testImplementation(projects.testShared)
+    testImplementation(libs.arch.core.testing)
 }

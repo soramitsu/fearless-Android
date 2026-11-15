@@ -81,6 +81,35 @@ object TransferSeal {
         mutable.value = Record()
     }
 
+    /**
+     * For the success screen: the record of an operation the network accepted within [windowMs], taken once (a later
+     * success screen of another operation draws no seal from it).
+     */
+    @Synchronized
+    fun consumeRecentAccepted(nowMs: Long, windowMs: Long = TransferMoments.DEFAULT_WINDOW_MS): Record? =
+        recentAccepted(nowMs, windowMs)?.also { mutable.value = Record() }
+
+    /**
+     * Runs one submission (the moment it is handed to signing) and reports its stages: `ready` before, `accepted` with
+     * everything this caller cannot tell apart on success. On failure [definiteFailure] decides whether the operation
+     * certainly did not happen (the seal breaks) or its fate is unknown (the seal is cleared, never broken). A
+     * cancelled submission clears it. The result is returned unchanged and at once.
+     */
+    suspend fun <T> track(definiteFailure: (Throwable) -> Boolean = { true }, submit: suspend () -> Result<T>): Result<T> {
+        ready(nowMs())
+        val result = try {
+            submit()
+        } catch (error: Throwable) {
+            cancelIfPending()
+            throw error
+        }
+        result.fold(
+            onSuccess = { accepted(nowMs()) },
+            onFailure = { if (it !is kotlinx.coroutines.CancellationException && definiteFailure(it)) failed(nowMs()) else cancelIfPending() }
+        )
+        return result
+    }
+
     /** The accepted transfer's record if it was accepted within [windowMs], for the success screen. */
     fun recentAccepted(nowMs: Long, windowMs: Long = TransferMoments.DEFAULT_WINDOW_MS): Record? =
         mutable.value.takeIf { it.acceptedAtMs != null && nowMs - it.acceptedAtMs in 0..windowMs }

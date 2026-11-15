@@ -102,6 +102,43 @@ class TransferSealTest {
     }
 
     @Test
+    fun shouldTrackASubmission_readyWhileItRuns_acceptedTogetherOnSuccess_andReturnTheResultAsIs() = kotlinx.coroutines.runBlocking {
+        var stageWhileRunning: TransferSeal.Stage? = null
+        val result = TransferSeal.track { stageWhileRunning = TransferSeal.record.value.stage; Result.success("0xhash") }
+        assertEquals(TransferSeal.Stage.Ready, stageWhileRunning)
+        assertEquals(Result.success("0xhash"), result)
+        val record = TransferSeal.record.value
+        assertEquals(TransferSeal.Stage.Accepted, record.stage)
+        assertEquals(record.acceptedAtMs, record.signedAtMs)
+        assertEquals(record.acceptedAtMs, record.sentAtMs)
+    }
+
+    @Test
+    fun shouldBreakOnlyOnADefiniteFailure_andClearOnAnUnknownOrCancelledOne() = kotlinx.coroutines.runBlocking {
+        val refused = IllegalStateException("refused")
+        assertEquals(Result.failure<String>(refused), TransferSeal.track<String> { Result.failure(refused) })
+        assertEquals(TransferSeal.Stage.Failed, TransferSeal.record.value.stage)
+        TransferSeal.track<String>(definiteFailure = { false }) { Result.failure(refused) }
+        assertEquals(TransferSeal.Stage.Idle, TransferSeal.record.value.stage)
+        TransferSeal.track<String> { Result.failure(kotlinx.coroutines.CancellationException("gone")) }
+        assertEquals(TransferSeal.Stage.Idle, TransferSeal.record.value.stage)
+        val thrown = runCatching { TransferSeal.track<String> { throw IllegalArgumentException("threw") } }
+        assertTrue(thrown.isFailure)
+        assertEquals(TransferSeal.Stage.Idle, TransferSeal.record.value.stage)
+    }
+
+    @Test
+    fun shouldHandTheAcceptedSealToOneSuccessScreenOnly() {
+        TransferSeal.ready(0)
+        TransferSeal.accepted(10)
+        assertEquals(10L, TransferSeal.consumeRecentAccepted(20)?.acceptedAtMs)
+        assertNull(TransferSeal.consumeRecentAccepted(30))
+        TransferSeal.ready(0)
+        TransferSeal.failed(10)
+        assertNull(TransferSeal.consumeRecentAccepted(20))
+    }
+
+    @Test
     fun shouldReadTheDirectionOfADisplayedValue() {
         assertEquals(BigDecimal("1234.56"), fwDisplayedNumber("1,234.56 DOT"))
         assertEquals(BigDecimal("0.0861901"), fwDisplayedNumber("$0.0861901"))

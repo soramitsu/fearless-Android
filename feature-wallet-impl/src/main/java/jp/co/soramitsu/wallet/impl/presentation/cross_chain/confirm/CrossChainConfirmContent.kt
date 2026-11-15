@@ -1,5 +1,11 @@
 package jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import jp.co.soramitsu.common.compose.theme.fw.FwSealBreakOverlay
+import jp.co.soramitsu.common.compose.theme.fw.fwSealIndicator
+import jp.co.soramitsu.common.feedback.TransferSeal
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -87,9 +93,14 @@ fun CrossChainConfirmContent(
     callback: CrossChainConfirmScreenInterface
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+    // The seal takes the loader's place while the transfer is submitted (brand kit SPEC v4 part 3); a definite
+    // failure breaks it over the screen while the app's own error appears.
+    val seal by TransferSeal.record.collectAsState()
+    Box(Modifier.fillMaxSize()) {
     FullScreenLoading(
         isLoading = state.isLoading,
-        contentAlignment = Alignment.BottomStart
+        contentAlignment = Alignment.BottomStart,
+        indicator = fwSealIndicator(seal)
     ) {
         BottomSheetScreen {
             Column(Modifier.fillMaxSize()) {
@@ -179,6 +190,8 @@ fun CrossChainConfirmContent(
                 }
             }
         }
+    }
+    FwSealBreakOverlay(seal)
     }
 }
 

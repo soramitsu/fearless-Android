@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm
 
+import jp.co.soramitsu.common.feedback.TransferSeal
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -281,6 +282,8 @@ class CrossChainConfirmViewModel @Inject constructor(
     }.stateIn(this, SharingStarted.Eagerly, CrossChainConfirmViewState.default)
 
     init {
+        // A seal left by an earlier operation never shows on this screen's loader.
+        TransferSeal.clear()
         // Settle an earlier transfer first: claim the in-flight flag so that a tap cannot submit meanwhile.
         if (transferSubmittingFlow.compareAndSet(expect = false, update = true)) {
             launch {
@@ -562,7 +565,11 @@ class CrossChainConfirmViewModel @Inject constructor(
         val originAsset = originAssetFlow.value ?: return
         val token = originAsset.token.configuration
 
-        val result = withContext(Dispatchers.Default) {
+        // The seal (brand kit SPEC v4 part 3): this screen knows the hand-over and the network's answer only, so
+        // `ready` lights now and the rest together with the hash. A failure breaks the seal only when nothing was
+        // retained (nothing can have been sent); a retained, unsettled transfer or a validity check clears it.
+        TransferSeal.ready(TransferSeal.nowMs())
+        val result = try { withContext(Dispatchers.Default) {
             if (transferDraft.isReviewedBridge) {
                 reviewedBridgeInteractor.submit(
                     walletId = transferDraft.metaAccountId,
@@ -578,8 +585,12 @@ class CrossChainConfirmViewModel @Inject constructor(
             } else {
                 xcmInteractor.performCrossChainTransfer(createTransfer(token), transferDraft.metaAccountId)
             }
+        } } catch (error: Throwable) {
+            TransferSeal.cancelIfPending()
+            throw error
         }
         if (result.isSuccess) {
+            TransferSeal.accepted(TransferSeal.nowMs())
             val operationHash = result.getOrNull()
             router.finishSendFlow()
             router.openOperationSuccess(operationHash, token.chainId)
@@ -587,10 +598,14 @@ class CrossChainConfirmViewModel @Inject constructor(
             val error = result.requireException()
 
             if (error is NotValidTransferStatus) {
+                TransferSeal.cancelIfPending()
                 processInvalidStatus(error.status)
             } else if (!loadPending()) {
                 // Nothing was retained, so nothing was sent: the user may try again.
+                TransferSeal.failed(TransferSeal.nowMs())
                 showError(error)
+            } else {
+                TransferSeal.cancelIfPending()
             }
             // Otherwise the retained transfer may have reached the network: it is shown as unsettled instead.
         }

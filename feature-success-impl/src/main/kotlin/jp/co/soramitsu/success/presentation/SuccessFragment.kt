@@ -59,7 +59,8 @@ class SuccessFragment : BaseComposeBottomSheetDialogFragment<SuccessViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         ignite = savedInstanceState == null && TransferMoments.consumeRecentSend(System.nanoTime() / NANOS_PER_MILLI)
-        seal = if (ignite) TransferSeal.recentAccepted(TransferSeal.nowMs()) else null
+        // Any operation drawn with the seal (send, cross-chain, swap, staking confirmations) continues here; taken once.
+        seal = if (savedInstanceState == null) TransferSeal.consumeRecentAccepted(TransferSeal.nowMs()) else null
     }
 
     @Composable

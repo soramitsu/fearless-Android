@@ -90,7 +90,11 @@ flow and the balance loaders are only observed. No new user-visible words and no
   `accepted` draw together on acceptance; the success screen continues the same figure from the stage reached
   (`TransferSeal`). A failure breaks the seal while the app's own error appears as before. The send confirmation is a
   secure surface (press feedback only), so there the seal shows the stages reached without drawing or comets; it moves
-  over the wallet (debug seam) and on the success screen. Debug builds can drive the
+  over the wallet (debug seam) and on the success screen. The same seal now runs on the cross-chain confirmation, the
+  Polkaswap swap preview and the shared staking confirmation (pool create/edit/bond more/claim/redeem/unbond and pool
+  validator selection): `ready` at the hand-over, the rest with the hash, a break on a definite failure (cross-chain: only
+  when nothing was retained), and the success screen continues the figure. The relay-chain staking confirmations and
+  joining a pool each have their own path and are not done yet. Debug builds can drive the
   stages over the wallet (`am broadcast -a <package>.debug.SEAL --es stage ready|signed|sent|accepted|failed|clear`).
 - **Loader** (part 4): the restyled full-page loader (64 dp, so it still fits the 120 dp hosts the app gives it) and the
   send screen's fee estimate (24 dp) show the three-comet mirror loader. The wallet's pull-to-refresh keeps Material's
