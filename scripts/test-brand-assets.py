@@ -18,9 +18,9 @@ SPEC.loader.exec_module(GENERATOR)
 ANDROID = "{http://schemas.android.com/apk/res/android}"
 SVG = "{http://www.w3.org/2000/svg}"
 KIT = ROOT / "brand/yatagarasu"
-# The approved kit (design package r3), kit v3 of 2026-11-13: its manifest.json. Kit v3 adds the launch clip, the transfer
-# sounds, the haptic patterns, the solar geometry and the sky card; every file of kit v2 (70771ec2…048b) is unchanged.
-APPROVED_KIT_MANIFEST = "e49da29bbf91dc96d2afe3772b5ec50acc23bc28ff4af500aff0ff7f631ddb84"
+# The approved kit (design package r3), kit v4 of 2026-11-15: its manifest.json. Kit v4 adds the shikiban tokens and still;
+# every file of kit v3 (e49da29b…db84: launch clip, transfer sounds, haptics, solar geometry, sky card) is unchanged.
+APPROVED_KIT_MANIFEST = "19675ac743881b28bcae83a24f3ee15702c5a8af2b7a5d901c858848c4d74cd7"
 RETIRED = [
     "brand/sun-disc",
     "common/src/main/res/drawable/fw_brand_wings.xml",
@@ -96,7 +96,7 @@ class BrandAssetsTests(unittest.TestCase):
 
     def test_committed_outputs_are_what_the_generator_writes(self):
         outputs = json.loads((KIT / "android-assets.json").read_text())["outputs"]
-        self.assertEqual(61, len(outputs))
+        self.assertEqual(62, len(outputs))
         for relative, digest in outputs.items():
             self.assertEqual(digest, sha256(ROOT / relative), relative)
         for name, destination, (width, height), recolour, viewport_width in GENERATOR.VECTORS:

@@ -1,8 +1,8 @@
 {
   "format": "fearless.android.brand-assets",
-  "version": 3,
+  "version": 4,
   "kit": "fearless-yatagarasu-brand-kit",
-  "kitManifestSha256": "e49da29bbf91dc96d2afe3772b5ec50acc23bc28ff4af500aff0ff7f631ddb84",
+  "kitManifestSha256": "19675ac743881b28bcae83a24f3ee15702c5a8af2b7a5d901c858848c4d74cd7",
   "inputs": {
     "masters/fearless-crest.svg": "0dddb03fc97971d0c9226e6ed052565dfe52e75681b1df99f5b3c356f75bede5",
     "masters/fearless-crest-small.svg": "e5fdf61cbe6300ff4242c603d273b316b9866d770897cbf31cdc8aeec32a5910",
@@ -34,7 +34,8 @@
     "audio/receive.m4a": "ac85389cbf68db5a1c4e75ae685c6b26e7dfefc132e38eb17215189924678811",
     "tokens/haptics.json": "4e0a0189294975f09b749115a6132d31408bf0f01f2a3cd80d21a2b55b05b426",
     "tokens/solar-geometry.json": "0e544952f4cd25efc4483a3ef0e8b43c3e570aa7fb98b69ecee725c9aaa29648",
-    "png/sky/sky-card.webp": "4e8418b6c898579cdd2e105ec12caf6c20f7e71b6c4c328937a7139992323474"
+    "png/sky/sky-card.webp": "4e8418b6c898579cdd2e105ec12caf6c20f7e71b6c4c328937a7139992323474",
+    "tokens/shikiban.json": "6949daff2d3d4deef0a77712b3830ceaf0487560613ba2c5b623ca873f97a455"
   },
   "outputs": {
     "app/src/debug/res/drawable/ic_launcher_background.xml": "622b57682fcef6b1ac7da7be7e28d56a62f8a55a1f249a2a879d74b17d96a93d",
@@ -93,6 +94,7 @@
     "common/src/main/res/raw/fw_haptics.json": "4e0a0189294975f09b749115a6132d31408bf0f01f2a3cd80d21a2b55b05b426",
     "common/src/main/res/raw/fw_receive.m4a": "ac85389cbf68db5a1c4e75ae685c6b26e7dfefc132e38eb17215189924678811",
     "common/src/main/res/raw/fw_send.m4a": "f1fb4969c2e4bdd8eeb93352ae10d6e39c884b297e44ffb7122c7f5ed4b8e8be",
+    "common/src/main/res/raw/fw_shikiban.json": "6949daff2d3d4deef0a77712b3830ceaf0487560613ba2c5b623ca873f97a455",
     "common/src/main/res/raw/fw_solar_geometry.json": "0e544952f4cd25efc4483a3ef0e8b43c3e570aa7fb98b69ecee725c9aaa29648",
     "feature-onboarding-impl/src/main/res/drawable-nodpi/fw_welcome_poster.webp": "d15dc23aabf7972e807816d80fe9419eb3e3a8e46db4541656d3bc201f7a3eed",
     "feature-onboarding-impl/src/main/res/raw/fw_welcome_caw.mp4": "48ae947b681e9e801f09211779bbb9973234d3a79101b53a61b4939d77dbca1f",

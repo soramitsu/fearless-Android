@@ -28,10 +28,10 @@ SVG = "http://www.w3.org/2000/svg"
 ET.register_namespace("android", ANDROID)
 ET.register_namespace("aapt", AAPT)
 
-# SHA-256 of the kit's manifest.json (fearless-yatagarasu-brand-kit, design package r3, kit v3 of 2026-11-13: the launch
-# clip, the transfer sounds, the haptic patterns, the solar geometry and the sky card were added; every file of kit v2
-# 70771ec2…048b is byte-identical in it).
-KIT_MANIFEST_SHA256 = "e49da29bbf91dc96d2afe3772b5ec50acc23bc28ff4af500aff0ff7f631ddb84"
+# SHA-256 of the kit's manifest.json (fearless-yatagarasu-brand-kit, design package r3, kit v4 of 2026-11-15: the
+# shikiban tokens and still were added; every file of kit v3 e49da29b…db84, which added the launch clip, the transfer
+# sounds, the haptic patterns, the solar geometry and the sky card, is byte-identical in it).
+KIT_MANIFEST_SHA256 = "19675ac743881b28bcae83a24f3ee15702c5a8af2b7a5d901c858848c4d74cd7"
 # Every kit file the app consumes, at its kit path; the in-repo copy keeps the same path under COPY.
 PINS = {
     "masters/fearless-crest.svg": "0dddb03fc97971d0c9226e6ed052565dfe52e75681b1df99f5b3c356f75bede5",
@@ -66,6 +66,8 @@ PINS = {
     "tokens/haptics.json": "4e0a0189294975f09b749115a6132d31408bf0f01f2a3cd80d21a2b55b05b426",
     "tokens/solar-geometry.json": "0e544952f4cd25efc4483a3ef0e8b43c3e570aa7fb98b69ecee725c9aaa29648",
     "png/sky/sky-card.webp": "4e8418b6c898579cdd2e105ec12caf6c20f7e71b6c4c328937a7139992323474",
+    # Kit v4 (2026-11-15): shikiban, the launch flight and the instruments (dial, seal, loader, lattice).
+    "tokens/shikiban.json": "6949daff2d3d4deef0a77712b3830ceaf0487560613ba2c5b623ca873f97a455",
 }
 COPY = "brand/yatagarasu"
 # Brand colours this app takes from the kit's tokens/colors.json (design/fw.tokens.json carries them).
@@ -278,13 +280,15 @@ COPIES += [
     ("tokens/solar-geometry.json", "common/src/main/res/raw/fw_solar_geometry.json"),
     # Wallet home: the sunset sky behind the balance.
     ("png/sky/sky-card.webp", "common/src/main/res/drawable-nodpi/fw_sky_card.webp"),
+    # Shikiban: every number of the launch flight, the sync dial, the seal, the loader and the lattice.
+    ("tokens/shikiban.json", "common/src/main/res/raw/fw_shikiban.json"),
 ]
 
 
 def refresh_from_kit(root, kit):
     manifest_bytes = (kit / "manifest.json").read_bytes()
     if sha256(manifest_bytes) != KIT_MANIFEST_SHA256:
-        raise ValueError("The kit's manifest.json is not the pinned kit (v3)")
+        raise ValueError("The kit's manifest.json is not the pinned kit (v4)")
     listed = {entry["path"]: entry["sha256"] for entry in json.loads(manifest_bytes)["files"]}
     for name, digest in PINS.items():
         if listed.get(name) != digest:
@@ -336,7 +340,7 @@ def main():
         write(destination, sources[name])
     manifest = {
         "format": "fearless.android.brand-assets",
-        "version": 3,
+        "version": 4,
         "kit": "fearless-yatagarasu-brand-kit",
         "kitManifestSha256": KIT_MANIFEST_SHA256,
         "inputs": PINS,

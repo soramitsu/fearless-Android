@@ -4,7 +4,9 @@ The owner approved the Yatagarasu brand on 2026-11-10: the three-legged crow cre
 animated crow with its eagle-and-crow call. It replaces the winged-sun badge. The shared kit
 (`fearless-yatagarasu-brand-kit`, generated from the design package `design/yatagarasu-20261110`, package r3) is not
 committed anywhere; its `manifest.json` has SHA-256
-`e49da29bbf91dc96d2afe3772b5ec50acc23bc28ff4af500aff0ff7f631ddb84` (kit v3, 2026-11-13). Kit v3 adds the launch clip, the
+`19675ac743881b28bcae83a24f3ee15702c5a8af2b7a5d901c858848c4d74cd7` (kit v4, 2026-11-15). Kit v4 adds `tokens/shikiban.json`
+(the launch flight, the sync dial, the seal, the loader and the lattice); every file of kit v3 (`e49da29b…db84`) is
+byte-identical in it. Kit v3 added the launch clip, the
 two transfer sounds, the haptic patterns, the solar geometry and the sky card for the owner's 2026-11-13 request ("make the
 yatagarasu ignite animation the launching splash animation and zoom into the wallet … tactile feedback and sound effects
 when sending/receiving tokens"); every file of kit v2 (`70771ec2…048b`, regenerated 2026-11-10 12:16) is byte-identical
@@ -38,6 +40,7 @@ python3 scripts/test-brand-assets.py
 | `audio/send.m4a`, `audio/receive.m4a` | `raw/fw_send`, `raw/fw_receive` (`common`): the transfer sounds |
 | `tokens/haptics.json` | `raw/fw_haptics` (`common`): the haptic patterns timed to those sounds |
 | `tokens/solar-geometry.json` | `raw/fw_solar_geometry` (`common`): the solar geometry drawn on a sent transfer and around the balance |
+| `tokens/shikiban.json` | `raw/fw_shikiban.json` (`common`): every number of the shikiban layer (launch flight, sync dial, seal, loader, lattice) |
 | `png/sky/sky-card.webp` | `drawable-nodpi/fw_sky_card` (`common`): the sunset sky behind the wallet balance |
 
 The Play listing icon (`png/android/play-store-512.png`) is not in this repository, because no listing assets are; it is
