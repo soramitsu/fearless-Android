@@ -47,7 +47,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import jp.co.soramitsu.common.shikiban.Shikiban
 import kotlin.math.max
 import kotlin.math.sqrt
-import kotlinx.coroutines.delay
 
 /**
  * The shikiban instruments in Compose (brand kit SPEC v4 parts 2, 4 and 6): the sync dial, the mirror
@@ -198,33 +197,22 @@ private const val HEAVEN_OUT_MS = 720
 /**
  * Three comets (the crow's three legs) circling the mirror's rim, a third of a turn apart; the rim and
  * an inner circle rest under them. With a known [progress] the rim fills clockwise from 12 o'clock
- * instead. Reduced motion: the comets stand still and fade in turn, one every 720 ms.
+ * instead. Under reduced motion, Calm, Reduced effects or on a secure surface the comets stand still.
+ * (The kit lets them fade in turn there; the app's motion rule, that looping motion is still under
+ * reduced motion, keeps them unchanged.)
  */
 @Composable
 fun FwMirrorLoader(modifier: Modifier = Modifier, progress: Float? = null) {
     val tokens = FwShikiban.tokens() ?: return
     val moves = fwShikibanMoves
-    // Signing and recovery-phrase hosts allow press feedback only: there the comets stand still and do not take turns.
-    val secure = LocalFwSecureSurface.current
     val seconds = rememberFwSeconds(running = moves && progress == null)
-    val turnIndex = remember { mutableFloatStateOf(0f) }
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    LaunchedEffect(moves, secure, progress == null, lifecycle) {
-        if (moves || secure || progress != null) return@LaunchedEffect
-        lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            while (true) {
-                delay(tokens.durationsMs[STILL_STEP_INDEX].toLong())
-                turnIndex.floatValue = (turnIndex.floatValue + 1f).mod(tokens.loader.comets.toFloat())
-            }
-        }
-    }
     Canvas(modifier.clearAndSetSemantics { }) {
-        drawMirrorLoader(tokens, size.minDimension * LOADER_RADIUS, seconds.value, progress, if (moves) null else turnIndex.floatValue.toInt())
+        drawMirrorLoader(tokens, size.minDimension * LOADER_RADIUS, if (moves) seconds.value else 0f, progress)
     }
 }
 
-/** The rim, its inner circle, and either the comets or the filled share. [stillComet] lights one standing comet. */
-internal fun DrawScope.drawMirrorLoader(tokens: Shikiban, r: Float, seconds: Float, progress: Float?, stillComet: Int? = null) {
+/** The rim, its inner circle, and either the comets or the filled share. */
+internal fun DrawScope.drawMirrorLoader(tokens: Shikiban, r: Float, seconds: Float, progress: Float?) {
     val c = center
     val width = max(1.25f, r * 0.045f)
     val core = Color(tokens.colors.core)
@@ -239,9 +227,8 @@ internal fun DrawScope.drawMirrorLoader(tokens: Shikiban, r: Float, seconds: Flo
         glowStroke(rimSpan(tokens, c, r, 0f, max(0.001f, progress.coerceIn(0f, 1f)), 64), width * 1.4f, 1f, core, glow, 5f)
         return
     }
-    val comets = tokens.loaderComets(if (stillComet != null) 0f else seconds)
-    comets.forEachIndexed { index, (head, tail) ->
-        val fade = if (stillComet == null) 1f else if (index == stillComet) 1f else 0.25f
+    tokens.loaderComets(seconds).forEach { (head, tail) ->
+        val fade = 1f
         for (i in 0 until TAIL_STEPS) {
             val a = head - (head - tail) * i / TAIL_STEPS
             val b = head - (head - tail) * (i + 1) / TAIL_STEPS
@@ -256,8 +243,6 @@ private const val LOADER_RADIUS = 0.36f
 private const val TAIL_STEPS = 8
 private const val MIRROR_INNER = 0.94f
 
-/** 720 ms: the reduced-motion loader lights its comets in turn on this step of the ladder. */
-private const val STILL_STEP_INDEX = 6
 
 private fun rimPath(tokens: Shikiban, c: Offset, r: Float): Path = Path().apply {
     tokens.mirror.rim.forEachIndexed { index, arc ->
