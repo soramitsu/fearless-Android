@@ -375,7 +375,21 @@ def unitTestTaskPaths = [
         ':core-xcm:testDebugUnitTest',
         ':runtime-utils:testDebugUnitTest',
         ':runtime-websocket:test',
-        ':runtime:testDebugUnitTest'
+        ':runtime:testDebugUnitTest',
+        // Modules whose first unit tests came with the 2026-11 coverage campaign.
+        ':core-foundation:testDebugUnitTest',
+        ':core-networking:testDebugUnitTest',
+        ':core-ui:testDebugUnitTest',
+        ':feature-crowdloan-api:testDebugUnitTest',
+        ':feature-liquiditypools-api:testDebugUnitTest',
+        ':feature-nft-api:testDebugUnitTest',
+        ':feature-onboarding-api:testDebugUnitTest',
+        ':feature-polkaswap-api:testDebugUnitTest',
+        ':feature-splash:testDebugUnitTest',
+        ':feature-staking-api:testDebugUnitTest',
+        ':feature-success-impl:testDebugUnitTest',
+        ':feature-walletconnect-api:testDebugUnitTest',
+        ':runtime-permission:testDebugUnitTest'
 ]
 // These pure-JVM tests require an explicitly materialized, checksum-pinned
 // upstream archive. They are intentionally outside runTest because runTest's
