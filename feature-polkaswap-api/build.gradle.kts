@@ -34,6 +34,8 @@ dependencies {
     implementation("javax.inject:javax.inject:1")
 
     implementation(project(":core-networking"))
+
+    testImplementation(projects.testShared)
 }
 
 

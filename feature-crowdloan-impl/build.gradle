@@ -67,6 +67,7 @@ dependencies {
 
     testImplementation libs.junit
     testImplementation libs.mockito.inline
+    testImplementation project(':test-shared')
 
     compileOnly project(':runtime-websocket')
 
