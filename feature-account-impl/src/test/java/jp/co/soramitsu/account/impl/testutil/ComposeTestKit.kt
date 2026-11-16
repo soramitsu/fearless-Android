@@ -25,11 +25,10 @@ fun SemanticsNodeInteraction.tap(): SemanticsNodeInteraction {
     return performClick()
 }
 
-/** Matches nodes that show no text, editable text or content description (icon-only targets). */
+/** Matches icon-only targets, including icons labelled for accessibility. */
 fun hasNoText(): SemanticsMatcher = SemanticsMatcher("has no text") { node ->
     node.config.getOrNull(SemanticsProperties.Text).isNullOrEmpty() &&
-        node.config.getOrNull(SemanticsProperties.EditableText) == null &&
-        node.config.getOrNull(SemanticsProperties.ContentDescription).isNullOrEmpty()
+        node.config.getOrNull(SemanticsProperties.EditableText) == null
 }
 
 /** Clickable icon-only targets in tree order, for example a toolbar's back arrow followed by field icons. */
