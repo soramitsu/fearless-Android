@@ -42,4 +42,10 @@ tasks.withType(Test).configureEach {
     systemProperty 'robolectric.dependency.dir', robolectricDependencyDir.get().asFile.absolutePath
     // Robolectric sandboxes share one JVM per test task; keep its framework classes and the module's own in memory.
     maxHeapSize = maxHeapSize ?: '2g'
+    // With Android resources included, a module without unit tests (core-chain, feature-polkamarkt-api,
+    // feature-success-api) still hands generated classes to its test task, which Gradle 9 then fails for finding no
+    // tests. Only such modules opt out; a module with tests still fails if none are discovered.
+    if (!project.file('src/test').exists()) {
+        failOnNoDiscoveredTests.set(false)
+    }
 }
