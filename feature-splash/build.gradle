@@ -50,6 +50,7 @@ dependencies {
 
     testImplementation libs.junit
     testImplementation libs.mockito.inline
+    testImplementation project(':test-shared')
     implementation libs.converter.gson
 
     implementation libs.coroutines.core
