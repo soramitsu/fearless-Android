@@ -17,20 +17,23 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.test.core.app.ApplicationProvider
 import io.mockk.mockk
 import io.mockk.verify
-import java.math.BigDecimal
-import java.time.Duration
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.feature_polkaswap_impl.R
 import jp.co.soramitsu.polkaswap.api.models.Market
 import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.shadows.ShadowSystemClock
+import java.math.BigDecimal
+import java.time.Duration
 
 @RunWith(RobolectricTestRunner::class)
 class SwapTokensContentTest {
@@ -140,5 +143,22 @@ class SwapTokensContentTest {
         compose.onNodeWithText("Minimum received").assertDoesNotExist()
         compose.onNodeWithContentDescription(context.getString(R.string.ux_swap_settings)).assertExists()
         verify(exactly = 0) { callbacks.onPreviewClick() }
+    }
+
+    @Test fun fragmentBundleNamesTheNetworkAndBothAssets() {
+        val bundle = SwapTokensFragment.getBundle("sora", "xor", null)
+
+        assertEquals("sora", bundle.getString(SwapTokensFragment.KEY_SELECTED_CHAIN_ID))
+        assertEquals("xor", bundle.getString(SwapTokensFragment.KEY_SELECTED_ASSET_FROM_ID))
+        assertTrue(bundle.containsKey(SwapTokensFragment.KEY_SELECTED_ASSET_TO_ID))
+        assertNull(bundle.getString(SwapTokensFragment.KEY_SELECTED_ASSET_TO_ID))
+    }
+
+    @Test fun previewFixtureRendersBothAmountFields() {
+        compose.setContent { SwapTokensContentPreview() }
+
+        compose.onNodeWithText("From title").assertIsDisplayed()
+        compose.onNodeWithText("To title").assertIsDisplayed()
+        compose.onNodeWithText(context.getString(R.string.polkaswap_disclaimer_message)).assertIsDisplayed()
     }
 }

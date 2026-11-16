@@ -10,8 +10,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
@@ -47,6 +45,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.math.BigDecimal
+import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SwapTokensViewModelTest {
