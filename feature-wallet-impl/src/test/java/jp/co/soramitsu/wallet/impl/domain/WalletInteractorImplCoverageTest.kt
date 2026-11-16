@@ -141,19 +141,19 @@ class WalletInteractorImplCoverageTest {
     @Test
     fun `a chain sync succeeds once the runtime is ready`() = runTest {
         val provider = mockk<RuntimeProvider> { coEvery { get() } returns mockk() }
-        coEvery { chainRegistry.setupChain(polkadot) } just Runs
+        retriedConnectionRunsTheRetry()
         coEvery { chainRegistry.awaitRuntimeProvider(POLKADOT_ID) } returns provider
 
         val result = interactor(StandardTestDispatcher(testScheduler)).retryChainSync(POLKADOT_ID)
 
         assertTrue(result.isSuccess)
-        coVerify(exactly = 1) { chainRegistry.setupChain(polkadot) }
+        coVerify(exactly = 1) { chainRegistry.withRetriedConnection<Any?>(polkadot, any()) }
     }
 
     @Test
     fun `a chain sync fails when the runtime does not arrive within its timeout`() = runTest {
         val provider = mockk<RuntimeProvider> { coEvery { get() } coAnswers { awaitCancellation() } }
-        coEvery { chainRegistry.setupChain(polkadot) } just Runs
+        retriedConnectionRunsTheRetry()
         coEvery { chainRegistry.awaitRuntimeProvider(POLKADOT_ID) } returns provider
 
         val result = interactor(StandardTestDispatcher(testScheduler)).retryChainSync(POLKADOT_ID)
@@ -194,6 +194,13 @@ class WalletInteractorImplCoverageTest {
 
         assertEquals(ChainSelectorViewStateWithFilters.Filter.All, interactor.observeSelectedAccountChainSelectFilter().first())
         assertEquals(AssetSorting.FiatBalance, interactor.observeAssetSorting().first())
+    }
+
+    // The registry runs the retry on the chain's connection (RetryChainSyncConnectionTest covers what it disconnects).
+    private fun retriedConnectionRunsTheRetry() {
+        coEvery { chainRegistry.withRetriedConnection<Any?>(polkadot, any()) } coAnswers {
+            secondArg<suspend () -> Any?>().invoke()
+        }
     }
 
     private fun interactor(context: CoroutineContext = Dispatchers.Unconfined) = WalletInteractorImpl(

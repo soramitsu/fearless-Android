@@ -2,6 +2,50 @@
 
 # Status Summary
 
+## Unbond confirmation: fee revoked with its review (B36) — 16 November 2026
+
+The intermittent `UnbondReviewAndQuoteTest` failure had a production cause: the unbond confirmation screen projected its
+balance, fiat amount and fee status on `Dispatchers.Default`, so after a source change the "review changed" dialog
+could appear while the fee row still showed its earlier state (null in the test). 6af2d5304 (29 October) made the test
+wait for the late fee. The projections now run on Main in the same turn as the review change, and the test again checks
+the fee right after the dialog. Loop counts (JUnitCore loop in the test JVM): the pre-6af2d5304 assertion failed in 118
+of 300 runs on the previous code, and in none of 600 after the fix; the test as committed passed 400 of 400.
+Validation, signing and submission are unchanged.
+
+## Remove liquidity: minimum outputs rounded to each asset's decimals — 16 November 2026
+
+`LiquidityRemovePresenter` sent `amount × 0.995` as each minimum output, with up to three more decimals than the asset
+has, and `PoolsRepositoryImpl.validateRemoveLiquidity` converts each minimum with `exactPositivePlanks`, which refuses a
+value finer than the asset ("Minimum … output exceeds the canonical asset precision"). Any withdrawal whose amount
+used the asset's last decimals therefore failed before signing. Each minimum is now rounded down to its asset's
+precision before the confirm screen, as `validateAddLiquidity` already does for deposits.
+
+This changes what is submitted: `output_a_min`/`output_b_min` of `PoolXYK.withdraw_liquidity` are now
+`floor(amount × 0.995)` in planks, at most one plank below the exact product, so the slippage bound is never tighter
+than 0.5 % and never looser by more than one plank. Amounts, the withdrawn pool tokens and the repository's checks
+(precision, positive, fresh reserves, fresh position) are unchanged. Test: `LiquidityRemoveMinimumOutputPrecisionTest`
+(a 6-decimal target next to 18-decimal XOR); both cases failed before with "… exceeds the canonical asset precision".
+
+## Automatic balances: Receive watch, Retry and the cross-chain reader — 16 November 2026
+
+Follow-ups to the 13 November balance work (`ac449228a`), on `claude/android-followups-20261116`:
+
+- **A first deposit on a network outside background sync now shows as it arrives when the user asked to receive
+  there.** The Receive screen asks the registry to watch the network it shows (`ChainRegistry.watchForDeposits`):
+  the network joins background sync, so its balance subscription runs, while the screen is open and for 30 minutes
+  after it closes or moves to another network. A deposit stored meanwhile makes the network funded and background
+  sync keeps it; without one the network leaves the selection and is disconnected like any other. Deposits nobody
+  announced through Receive still wait for the daily sweep or a pull-to-refresh (`docs/roadmap.md`).
+- **"Retry" on a network issue no longer leaves a connection nobody owns.** It sets the network up again through the
+  registry (`ChainRegistry.withRetriedConnection`): a network background sync keeps stays connected as before; any
+  other is disconnected once the retry has its answer, and a selection change during the retry cannot strand it.
+- **The cross-chain balance reader reads like discovery** (`withDiscoveryConnection`): a bridge origin outside
+  background sync is connected for the read only. Cross-chain transfers stay compiled off in releases.
+
+Tests: `ChainRegistryDiscoveryLeaseTest` (retry and watch rules), `RetryChainSyncConnectionTest` and
+`ReviewedBridgeBalanceReaderConnectionTest` (a real registry over mocked pools), `ReceiveSnapshotTest`. No signing,
+key or extrinsic code changed.
+
 ## SORA pools and swap bugs found by the coverage campaign, fixed — 16 November 2026
 
 Branch `claude/android-bugfix-batch2-20261116` (from `9cc061b3d`, batch 1): one commit per bug, each with a JVM test

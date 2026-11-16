@@ -42,8 +42,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -80,7 +82,8 @@ data class ChainService(
  * Historical crowdloan flags are deliberately absent and cannot activate a network.
  *
  * [chainIdsNeedingSync] are the chains holding an explicitly shown or a funded asset, so every
- * balance the portfolio shows or reports keeps a live subscription. A ranked testnet is not popular:
+ * balance the portfolio shows or reports keeps a live subscription, and the chains a user is
+ * receiving on (ChainRegistry.watchForDeposits). A ranked testnet is not popular:
  * it syncs through such an asset, or because a live feature offers it (Westend is a staking network).
  */
 internal fun selectChainsForBackgroundSync(
@@ -159,8 +162,13 @@ class ChainRegistry @Inject constructor(
         .distinctUntilChanged()
         .shareIn(scope, SharingStarted.Eagerly, replay = 1)
 
+    // Chains a user is receiving on and how many watches hold each (see watchForDeposits).
+    private val depositWatches = mutableMapOf<ChainId, Int>()
+    private val depositWatchedChainIds = MutableStateFlow<Set<ChainId>>(emptySet())
+
     private val chainIdsNeedingSyncFlow = assetsCache.observeChainIdsNeedingSync()
         .onStart { emit(emptySet()) }
+        .combine(depositWatchedChainIds) { needingSync, watched -> needingSync + watched }
 
     // Determines chains that should be actively synced based on popularity, shown or funded assets,
     // and presence of staking or identity requirements.
@@ -185,7 +193,7 @@ class ChainRegistry @Inject constructor(
     // The chains the latest background-sync selection keeps; null until the first selection.
     private val selectedChainIds = MutableStateFlow<Set<ChainId>?>(null)
 
-    // Guarded by [ownership].
+    // Discovery reads and retries in progress, by chain. Guarded by [ownership].
     private val discoveryLeases = mutableMapOf<ChainId, DiscoveryLease>()
 
     private val setupLocks = ConcurrentHashMap<ChainId, Mutex>()
@@ -288,13 +296,26 @@ class ChainRegistry @Inject constructor(
      * when the read ends, unless the selection took it over meanwhile, as it does once the read
      * stores a funded balance. While the read runs, a selection change cannot disconnect the chain.
      */
-    suspend fun <T> withDiscoveryConnection(chain: Chain, block: suspend () -> T): T {
+    suspend fun <T> withDiscoveryConnection(chain: Chain, block: suspend () -> T): T =
+        withLeasedConnection(chain, reconnect = false, block)
+
+    /**
+     * Sets [chain] up again for a user's retry and runs [block] while it is connected. A chain the
+     * selection keeps stays connected, as before. Any other chain is held like a discovery read:
+     * disconnected when [block] ends unless the selection took it over meanwhile, so a retry never
+     * leaves a connection nobody owns.
+     */
+    suspend fun <T> withRetriedConnection(chain: Chain, block: suspend () -> T): T =
+        withLeasedConnection(chain, reconnect = true, block)
+
+    private suspend fun <T> withLeasedConnection(chain: Chain, reconnect: Boolean, block: suspend () -> T): T {
         val lease = ownership.withLock {
             discoveryLeases.getOrPut(chain.id) { DiscoveryLease() }.also { it.holders++ }
         }
         try {
-            if (selectedChainIds.value?.contains(chain.id) != true && !checkChainSyncedUp(chain)) {
-                ownership.withLock { lease.stopOnRelease = true }
+            val selected = selectedChainIds.value?.contains(chain.id) == true
+            if (reconnect || (!selected && !checkChainSyncedUp(chain))) {
+                if (!selected) ownership.withLock { lease.stopOnRelease = true }
                 setupChain(chain)
             }
             return block()
@@ -311,6 +332,34 @@ class ChainRegistry @Inject constructor(
                 }
             }
         }
+    }
+
+    /**
+     * Keeps [chainId] in background sync while the caller waits here (the Receive screen shows the
+     * network's address) and for [lingerMillis] after, so a first deposit on a network background
+     * sync does not otherwise keep is stored as it arrives, not at the next discovery sweep. A stored
+     * deposit makes the network funded, and background sync keeps it; without one the network leaves
+     * the selection when the watch ends and is disconnected like any network the selection drops.
+     */
+    suspend fun watchForDeposits(chainId: ChainId, lingerMillis: Long = DEPOSIT_WATCH_LINGER_MILLIS): Nothing {
+        changeDepositWatch(chainId, delta = 1)
+        try {
+            awaitCancellation()
+        } finally {
+            scope.launch {
+                try {
+                    delay(lingerMillis)
+                } finally {
+                    changeDepositWatch(chainId, delta = -1)
+                }
+            }
+        }
+    }
+
+    private fun changeDepositWatch(chainId: ChainId, delta: Int) = synchronized(depositWatches) {
+        val count = depositWatches.getOrDefault(chainId, 0) + delta
+        if (count > 0) depositWatches[chainId] = count else depositWatches.remove(chainId)
+        depositWatchedChainIds.value = depositWatches.keys.toSet()
     }
 
     /** Waits at most [timeoutMillis] for background sync to keep [chainId]; true once it does. */
@@ -437,5 +486,10 @@ class ChainRegistry @Inject constructor(
             runtimeProvider = awaitRuntimeProvider(chainId),
             connection = getConnection(chainId)
         )
+    }
+
+    companion object {
+        /** How long a network stays in background sync after the screen that showed its address closes. */
+        const val DEPOSIT_WATCH_LINGER_MILLIS = 30L * 60L * 1_000L
     }
 }

@@ -700,9 +700,12 @@ class WalletInteractorImpl(
     override suspend fun retryChainSync(chainId: ChainId): Result<Unit> {
         return withContext(coroutineContext) {
             val chain = chainsRepository.getChain(chainId)
-            chainRegistry.setupChain(chain)
-            val runtime = withTimeoutOrNull(15_000L) {
-                chainRegistry.awaitRuntimeProvider(chainId).get()
+            // The registry owns the connection: a network background sync does not keep is
+            // disconnected again once the retry has its answer.
+            val runtime = chainRegistry.withRetriedConnection(chain) {
+                withTimeoutOrNull(15_000L) {
+                    chainRegistry.awaitRuntimeProvider(chainId).get()
+                }
             }
             BalanceUpdateTrigger.invoke(chainId)
             if (runtime == null) {

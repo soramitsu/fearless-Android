@@ -24,6 +24,12 @@ import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSubscriptionPool
 import jp.co.soramitsu.runtime.multiNetwork.runtime.RuntimeSyncService
 import jp.co.soramitsu.runtime.multiNetwork.tokengroups.PortfolioVisibility
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -69,7 +75,10 @@ class ChainRegistryDiscoveryLeaseTest {
         }
     }
 
-    private class Fixture(chainIdsNeedingSync: Set<String> = emptySet()) : AutoCloseable {
+    private class Fixture(
+        chainIdsNeedingSync: Set<String> = emptySet(),
+        dispatcher: CoroutineDispatcher = Dispatchers.Unconfined
+    ) : AutoCloseable {
         private val androidLog = mockStatic(Log::class.java)
         private val ranked = joined("a", rank = 1)
         private val unranked = joined("b", rank = null)
@@ -95,7 +104,7 @@ class ChainRegistryDiscoveryLeaseTest {
             registry = ChainRegistry(
                 providers, connection, subscriptions, dao, mock(ChainSyncService::class.java), sync,
                 mock(NetworkStateService::class.java), mock(EthereumConnectionPool::class.java), assets,
-                ChainsRepository(dao), configurators, mock(PortfolioVisibility::class.java), Dispatchers.Unconfined
+                ChainsRepository(dao), configurators, mock(PortfolioVisibility::class.java), dispatcher
             )
         }
 
@@ -105,6 +114,8 @@ class ChainRegistryDiscoveryLeaseTest {
             verify(subscriptions, times(1)).removeSubscription(chainId)
             verify(sync, times(1)).unregisterChain(chainId)
         }
+
+        fun syncedIds() = registry.syncedChains.value.map(Chain::id)
 
         fun verifyNeverStopped(chainId: String) {
             verify(connection, never()).removeConnection(chainId)
@@ -256,5 +267,116 @@ class ChainRegistryDiscoveryLeaseTest {
             assertFalse(f.registry.awaitBackgroundSync("b", timeoutMillis = 50))
             assertTrue(f.registry.awaitBackgroundSync("a", timeoutMillis = 50))
         }
+    }
+
+    @Test
+    fun `retry of a chain outside background sync sets it up for the retry and disconnects it after`() = runBlocking<Unit> {
+        Fixture().use { f ->
+            f.registry.syncUp()
+
+            f.registry.withRetriedConnection(f.unrankedChain) {
+                assertEquals(listOf("a", "b"), f.environment.configured)
+                f.verifyNeverStopped("b")
+            }
+
+            f.verifyStopped("b")
+        }
+    }
+
+    @Test
+    fun `retry of a chain in background sync sets it up again and leaves it connected`() = runBlocking<Unit> {
+        Fixture().use { f ->
+            f.registry.syncUp()
+
+            f.registry.withRetriedConnection(f.rankedChain) { }
+
+            assertEquals(listOf("a", "a"), f.environment.configured)
+            f.verifyNeverStopped("a")
+        }
+    }
+
+    @Test
+    fun `chain the selection drops during a retry is disconnected only when the retry ends`() = runBlocking<Unit> {
+        Fixture(chainIdsNeedingSync = setOf("b")).use { f ->
+            f.registry.syncUp()
+
+            f.registry.withRetriedConnection(f.unrankedChain) {
+                f.needing.value = emptySet()
+                assertEquals(listOf("a"), f.syncedIds())
+                f.verifyNeverStopped("b")
+            }
+
+            f.verifyStopped("b")
+            assertEquals(listOf("a", "b", "b"), f.environment.configured)
+        }
+    }
+
+    @Test
+    fun `network shown for receiving is synced while watched and for the linger after`() = runTest {
+        Fixture(dispatcher = UnconfinedTestDispatcher(testScheduler)).use { f ->
+            f.registry.syncUp()
+
+            val watch = launch { f.registry.watchForDeposits("b", lingerMillis = LINGER) }
+            runCurrent()
+            assertEquals(listOf("a", "b"), f.syncedIds())
+            assertEquals(listOf("a", "b"), f.environment.configured)
+
+            watch.cancel()
+            advanceTimeBy(LINGER - 1)
+            runCurrent()
+            assertEquals(listOf("a", "b"), f.syncedIds())
+            f.verifyNeverStopped("b")
+
+            advanceTimeBy(2)
+            runCurrent()
+            assertEquals(listOf("a"), f.syncedIds())
+            f.verifyStopped("b")
+            f.registry.scope.cancel()
+        }
+    }
+
+    @Test
+    fun `deposit stored during the watch keeps the network after the watch ends`() = runTest {
+        Fixture(dispatcher = UnconfinedTestDispatcher(testScheduler)).use { f ->
+            f.registry.syncUp()
+
+            val watch = launch { f.registry.watchForDeposits("b", lingerMillis = LINGER) }
+            runCurrent()
+            // The balance subscription stores the deposit: the network now holds funds.
+            f.needing.value = setOf("b")
+            watch.cancel()
+            advanceTimeBy(LINGER + 1)
+            runCurrent()
+
+            assertEquals(listOf("a", "b"), f.syncedIds())
+            f.verifyNeverStopped("b")
+            f.registry.scope.cancel()
+        }
+    }
+
+    @Test
+    fun `network watched by two screens leaves background sync only after both watches end`() = runTest {
+        Fixture(dispatcher = UnconfinedTestDispatcher(testScheduler)).use { f ->
+            f.registry.syncUp()
+
+            val first = launch { f.registry.watchForDeposits("b", lingerMillis = LINGER) }
+            val second = launch { f.registry.watchForDeposits("b", lingerMillis = LINGER) }
+            runCurrent()
+            first.cancel()
+            advanceTimeBy(LINGER + 1)
+            runCurrent()
+            assertEquals(listOf("a", "b"), f.syncedIds())
+
+            second.cancel()
+            advanceTimeBy(LINGER + 1)
+            runCurrent()
+            assertEquals(listOf("a"), f.syncedIds())
+            f.verifyStopped("b")
+            f.registry.scope.cancel()
+        }
+    }
+
+    private companion object {
+        const val LINGER = 60_000L
     }
 }

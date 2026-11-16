@@ -59,6 +59,7 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.runtime.di.REMOTE_STORAGE_SOURCE
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.needsRegistryConnection
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainSyncService
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.TonSyncDataRepository
@@ -486,10 +487,17 @@ class WalletFeatureModule {
     @Singleton
     fun provideReviewedBridgeBalanceReader(
         balanceLoaderProvider: BalanceLoader.Provider,
-        walletInteractor: WalletInteractor
+        walletInteractor: WalletInteractor,
+        chainRegistry: ChainRegistry
     ): ReviewedBridgeBalanceReader = ReviewedBridgeBalanceReader { origin, transferAsset, feeAsset, accountId ->
         val selected = walletInteractor.getSelectedMetaAccount()
-        val updates = balanceLoaderProvider.invoke(origin).loadBalance(setOf(selected))
+        val loader = balanceLoaderProvider.invoke(origin)
+        // Read like discovery: a network background sync does not keep is connected for this read only.
+        val updates = if (origin.needsRegistryConnection()) {
+            chainRegistry.withDiscoveryConnection(origin) { loader.loadBalance(setOf(selected)) }
+        } else {
+            loader.loadBalance(setOf(selected))
+        }
 
         fun transferable(assetId: String): BigInteger {
             val matches = updates.filter {
