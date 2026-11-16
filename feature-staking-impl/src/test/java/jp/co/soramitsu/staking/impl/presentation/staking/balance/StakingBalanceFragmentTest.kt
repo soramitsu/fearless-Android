@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -27,6 +28,11 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(application = HiltHostApplication::class)
 class StakingBalanceFragmentTest {
+    @After
+    fun closeHost() {
+        HiltFragmentHarness.closeHosts()
+    }
+
     private val vm = mockk<StakingBalanceViewModel>(relaxed = true)
     private val pending = MutableLiveData(false)
     private val blockStake = MutableLiveData(false)

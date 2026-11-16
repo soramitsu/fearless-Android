@@ -13,6 +13,7 @@ import jp.co.soramitsu.staking.impl.presentation.HiltHostApplication
 import kotlinx.coroutines.flow.MutableSharedFlow
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -22,6 +23,11 @@ import org.robolectric.shadows.ShadowSystemClock
 @RunWith(RobolectricTestRunner::class)
 @Config(application = HiltHostApplication::class)
 class ConfirmStakingFragmentTest {
+    @After
+    fun closeHost() {
+        HiltFragmentHarness.closeHosts()
+    }
+
 
     @Before
     fun clock() {

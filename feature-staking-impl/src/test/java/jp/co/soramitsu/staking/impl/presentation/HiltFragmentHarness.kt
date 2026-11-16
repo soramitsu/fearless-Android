@@ -20,6 +20,7 @@ import java.lang.reflect.Proxy
 import javax.inject.Provider
 import org.robolectric.Robolectric
 import org.robolectric.Shadows.shadowOf
+import org.robolectric.android.controller.ActivityController
 
 /**
  * Hosts `@AndroidEntryPoint` fragments in plain Robolectric tests. The fake Hilt components hand each fragment the
@@ -40,6 +41,16 @@ object HiltFragmentHarness {
 
     private var viewModels: Map<Class<*>, ViewModel> = emptyMap()
     private var injector: (Fragment) -> Unit = {}
+    private val hosts = mutableListOf<ActivityController<HiltHostActivity>>()
+
+    /** Completes the host lifecycle so window recomposers and fragment collectors are cancelled. */
+    fun closeHosts() {
+        hosts.reversed().forEach { it.pause().stop().destroy() }
+        hosts.clear()
+        viewModels = emptyMap()
+        injector = {}
+        shadowOf(Looper.getMainLooper()).idle()
+    }
 
     private fun proxy(interfaces: List<Class<*>>, handler: (Method, Array<Any?>) -> Any?): Any =
         Proxy.newProxyInstance(
@@ -144,7 +155,9 @@ object HiltFragmentHarness {
         @Suppress("UNCHECKED_CAST")
         injector = { inject(it as F) }
         arguments?.let { fragment.arguments = it }
-        val activity = Robolectric.buildActivity(HiltHostActivity::class.java).setup().get()
+        val controller = Robolectric.buildActivity(HiltHostActivity::class.java).setup()
+        hosts.add(controller)
+        val activity = controller.get()
         activity.supportFragmentManager.beginTransaction().add(android.R.id.content, fragment).commitNow()
         shadowOf(Looper.getMainLooper()).idle()
         return activity
