@@ -2,12 +2,10 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
 import jp.co.soramitsu.common.launch.launchTier
 import android.Manifest
-import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -30,8 +28,7 @@ import coil.ImageLoader
 import com.journeyapps.barcodescanner.ScanOptions
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
-import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
-import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
+import jp.co.soramitsu.common.openPlayMarketPage
 import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.compose.component.MainToolbar
 import jp.co.soramitsu.common.compose.component.MenuIconItem
@@ -229,11 +226,7 @@ class BalanceListFragment : BaseComposeFragment<BalanceListViewModel>() {
     }
 
     private fun openPlayMarket() {
-        try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_MARKET_APP_URI)))
-        } catch (e: ActivityNotFoundException) {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_MARKET_BROWSER_URI)))
-        }
+        requireContext().openPlayMarketPage()
     }
 
     private fun requestCameraPermission() {

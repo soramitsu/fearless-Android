@@ -58,7 +58,12 @@ class PinCodeViewModel @Inject constructor(
         val error: Boolean = false,
         /** Started from "Forgot PIN?" for a readable PIN, not for an unreadable one. */
         val forgotten: Boolean = false
-    )
+    ) {
+        companion object {
+            /** Hidden under the PIN pad and idle: a loading state there kept an invisible spinner animating. */
+            val HIDDEN = RecoveryState(visible = false, loading = false)
+        }
+    }
 
     val biometricPromptGate = PinBiometricPromptGate()
     val pinCodeAction = savedStateHandle.get<PinCodeAction>(PincodeFragment.KEY_PINCODE_ACTION)!!
@@ -85,7 +90,7 @@ class PinCodeViewModel @Inject constructor(
      * biometric unlock act only from a known state. Visible from the start, every cold start flashed "Your stored PIN
      * cannot be read". An unreadable PIN still opens the recovery prompt as soon as that is known.
      */
-    val recoveryState = MutableLiveData(RecoveryState(visible = false))
+    val recoveryState = MutableLiveData(RecoveryState.HIDDEN)
     /** "Forgot PIN?" shows on the unlock screen while it asks for a readable PIN. */
     private val _forgotPinVisible = MutableLiveData(false)
     val forgotPinVisible: LiveData<Boolean> = _forgotPinVisible
@@ -122,7 +127,7 @@ class PinCodeViewModel @Inject constructor(
                     }
                     PinHealth.HEALTHY -> {
                         currentState = ScreenState.Checking
-                        recoveryState.value = RecoveryState(visible = false)
+                        recoveryState.value = RecoveryState.HIDDEN
                         _forgotPinVisible.value = biometricAllowed
                         _showFingerPrintEvent.value = Event(canUseBiometricUnlock())
                         if (biometricAllowed && biometricVault.wasInvalidated()) {
@@ -369,7 +374,7 @@ class PinCodeViewModel @Inject constructor(
     private fun showPinCreation() {
         currentState = ScreenState.Creating
         _forgotPinVisible.value = false
-        recoveryState.value = RecoveryState(visible = false)
+        recoveryState.value = RecoveryState.HIDDEN
         _resetInputEvent.value = Event(resourceManager.getString(R.string.pincode_create_top_title))
         _homeButtonVisibilityLiveData.value = pinCodeAction.toolbarConfiguration.backVisible
     }

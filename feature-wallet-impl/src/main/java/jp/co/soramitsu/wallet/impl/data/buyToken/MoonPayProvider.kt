@@ -52,6 +52,10 @@ private val MOONPAY_COLOR = Regex("^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$")
  * Builds the unsigned hosted-widget URL. Supplying walletAddress requires a
  * backend-generated signature, so the client intentionally leaves it for the
  * user to enter in MoonPay instead of embedding a server secret in the APK.
+ *
+ * The redirect is an https page or exactly the wallet's own registered
+ * [ExternalProvider.REDIRECT_URL_BASE] link, which brings the user back to
+ * the app after a purchase.
  */
 internal fun createMoonPayPurchaseLink(
     host: String,
@@ -69,7 +73,7 @@ internal fun createMoonPayPurchaseLink(
     }
     require(MOONPAY_COLOR.matches(color)) { "Invalid MoonPay color" }
     require(
-        redirectUrl.startsWith("https://") &&
+        (redirectUrl.startsWith("https://") || redirectUrl == ExternalProvider.REDIRECT_URL_BASE) &&
             redirectUrl.length <= 2048 &&
             !redirectUrl.hasControlCharacters()
     ) { "Invalid MoonPay redirect URL" }

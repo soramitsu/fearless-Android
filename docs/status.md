@@ -2,6 +2,54 @@
 
 # Status Summary
 
+## SORA pools and swap bugs found by the coverage campaign, fixed — 16 November 2026
+
+Branch `claude/android-bugfix-batch2-20261116` (from `9cc061b3d`, batch 1): one commit per bug, each with a JVM test
+that failed before its fix. Amounts are tested with a 6-decimal target asset next to 18-decimal XOR.
+
+- Demeter farming: Deposit/Withdraw with an empty, "." or zero amount crashed the app; they now show "Enter a positive
+  amount" and submit nothing.
+- Pool details: "null%" APY for pools without a strategic-bonus yield (now empty); the pooled target amount was valued
+  at the base token's price.
+- Pool reserves: `getBasicPools`/`updateBasicPools` converted target reserves with the base asset's precision, so a
+  non-18-decimal target's reserve was off by 10^(18 - decimals) and the two cache refreshes disagreed.
+- Add liquidity: the empty-reserve check tested the target reserve twice, so a pool with no base reserve priced the
+  counterpart amount at zero.
+- Remove liquidity: with part of a position farmed, the withdrawable target amount was rounded to the base token's
+  18 decimals instead of the target's.
+- Pool list: rows rebuilt by a search, or built after the yields arrived, kept a loading APY for good; rows and yields
+  now come from one combined flow, and a pool without a yield shows no APY.
+- Swap: a pair with no route showed nothing (untitled `PathUnavailableException`); a quote or fee estimate that threw
+  ended its flow, so later amounts got no quote or fee.
+- Slippage slider: one step too many (2.0 % read 1.980198 %).
+
+No signing, key or extrinsic-building code changed. Evidence: `build/reports/android-bugfix-batch2-20261116/` in the
+workspace.
+
+## Bugs found by the coverage campaign, fixed — 16 November 2026
+
+Branch `claude/android-bugfix-batch-20261116` (from `fc9dc707b`): one commit per bug, each with a JVM test that
+failed before its fix.
+
+- Countdown timers (`Timer` composable) overflowed the stack when they reached zero: `onFinish()` called itself.
+- `percentageToFraction()` lost digits (12.5 % → 0.1); no screen used it yet.
+- Update prompts (wallet list, asset search, network accounts, startup version check) closed the app on a device
+  with neither the Play Store nor a browser; `Context.openPlayMarketPage()` now opens nothing there.
+- Staking: "Change your validators" never showed on paged-exposure chains (ByteArray `in`); Ternoa estimates threw
+  `NumberFormatException` with no validators or payout history; pool screens never showed on-chain identity names
+  (looked up by SS58 instead of hex id); validator/collator filter "Apply" could wait forever on its own cache entry.
+- Wallet: every MoonPay purchase failed on the app's own `fearless://buy-success` redirect; the network picker's
+  sort was discarded; later history pages ignored the active filters; cached swaps lost their module; a cancelled
+  Google backup lookup was shown as a backup error.
+- `RpcCalls.extrinsicStatusFlow()` threw before listening (no unsubscribe method for
+  `author_submitAndWatchExtrinsic`); nothing calls that path today.
+- The hidden PIN recovery panel kept an indeterminate spinner animating under the PIN pad.
+- Previews only: AccountInfo and join-pool previews passed a `Painter` to Coil.
+
+Not changed: `BottomNavigationBar` (its layer-list icon fails in `painterResource`) is used by no screen, only its own
+preview; TON `.ton` recipient names never reach `TonTransferService`, because send validation accepts only raw and
+user-friendly addresses. Evidence: `build/reports/android-bugfix-batch-20261116/` in the workspace.
+
 ## One line again: 4.3.5 (237) inside the consolidated branch — 16 November 2026
 
 `release/consolidated-20261110` (PR #1279) now merges `codex/android-branded-4.3.5` (`d857e0ca7`), the source of

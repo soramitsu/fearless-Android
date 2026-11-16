@@ -9,6 +9,7 @@ import jp.co.soramitsu.liquiditypools.domain.interfaces.PoolsInteractor
 import jp.co.soramitsu.liquiditypools.domain.model.CommonPoolData
 import jp.co.soramitsu.liquiditypools.domain.model.isFilterMatch
 import jp.co.soramitsu.liquiditypools.impl.presentation.CoroutinesStore
+import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.BasicPoolListItemState
 import jp.co.soramitsu.liquiditypools.impl.presentation.toListItemState
 import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
@@ -60,7 +61,10 @@ class PoolListPresenter @Inject constructor(
         }
     }
 
-    private val poolsStates = combine(
+    // Strategic-bonus yields by pool: absent until read, null for a pool without one.
+    private val yieldsFlow = MutableStateFlow<Map<StringPair, Double?>>(emptyMap())
+
+    private val rowsFlow = combine(
             pools,
             enteredAssetQueryFlow
         ) { pools, query ->
@@ -90,6 +94,11 @@ class PoolListPresenter @Inject constructor(
             }
         }
 
+    // Rows and yields meet here, so rows rebuilt by a search, or built after the yields arrived, show them too.
+    private val poolsStates = rowsFlow.combine(yieldsFlow) { rows, yields ->
+        rows.map { row -> row.withYield(yields) }
+    }
+
     private val stateFlow = MutableStateFlow(PoolListState())
 
     fun createScreenStateFlow(coroutineScope: CoroutineScope): StateFlow<PoolListState> {
@@ -107,32 +116,20 @@ class PoolListPresenter @Inject constructor(
         }.launchIn(coroutineScope)
 
         pools.onEach { commonPoolData: List<CommonPoolData> ->
-            val apyMap = coroutineScope.async {
-                commonPoolData.mapNotNull { pool ->
-                    val baseTokenId = pool.basic.baseToken.currencyId ?: return@mapNotNull null
-                    val targetTokenId = pool.basic.targetToken?.currencyId ?: return@mapNotNull null
-                    val id = StringPair(baseTokenId, targetTokenId)
-                    val sbApy = poolsInteractor.getSbApy(pool.basic.reserveAccount)
-                    id to sbApy
-                }.toMap()
-            }
-            apyMap.join()
-            stateFlow.update { prevState ->
-                val newPools = prevState.pools.map { pool ->
-                    apyMap.await()[pool.ids]?.let { sbApy ->
-                        pool.copy(
-                            apy = LoadingState.Loaded(
-                                sbApy.let { apy ->
-                            "%s%%".format(apy.toBigDecimal().formatCrypto())
-                        }
-                            )
-                        )
-                    } ?: pool
-                }
-
-                prevState.copy(pools = newPools)
-            }
+            val yields = commonPoolData.mapNotNull { pool ->
+                val baseTokenId = pool.basic.baseToken.currencyId ?: return@mapNotNull null
+                val targetTokenId = pool.basic.targetToken?.currencyId ?: return@mapNotNull null
+                StringPair(baseTokenId, targetTokenId) to poolsInteractor.getSbApy(pool.basic.reserveAccount)
+            }.toMap()
+            yieldsFlow.update { it + yields }
         }.launchIn(coroutineScope)
+    }
+
+    private fun BasicPoolListItemState.withYield(yields: Map<StringPair, Double?>): BasicPoolListItemState {
+        if (ids !in yields) return this
+        // A pool without a strategic-bonus yield shows no APY instead of loading for good.
+        val apy = yields[ids]?.let { LoadingState.Loaded("%s%%".format(it.toBigDecimal().formatCrypto())) }
+        return copy(apy = apy)
     }
 
     override fun onPoolClicked(pair: StringPair) {

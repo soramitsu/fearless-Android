@@ -122,14 +122,7 @@ class TransactionHistoryProvider(
         operationsObserveJob = observeOperationsFirstPage(asset).onEach { page ->
             nextCursor = page.nextCursor
             val filtersApplied = historyFiltersProvider.currentFilters()
-            val filteredPageItems = page.items.filter {
-                when (it.type) {
-                    is Operation.Type.Extrinsic -> filtersApplied.contains(TransactionFilter.EXTRINSIC)
-                    is Operation.Type.Reward -> filtersApplied.contains(TransactionFilter.REWARD)
-                    is Operation.Type.Swap -> filtersApplied.contains(TransactionFilter.EXTRINSIC)
-                    is Operation.Type.Transfer -> filtersApplied.contains(TransactionFilter.TRANSFER)
-                }
-            }
+            val filteredPageItems = page.items.filter { it.matchesHistoryFilters(filtersApplied) }
 
             if (filteredPageItems.isEmpty()) {
                 _state.emit(explorerOnlyMessage?.let { TransactionHistoryUi.State.Empty(it, explorerOnly = true) }
@@ -255,8 +248,10 @@ class TransactionHistoryProvider(
                 }
                 currentData.putAll(it.items.associateBy(Operation::id))
                 val ecosystem = walletInteractor.getChain(assetPayload.chainId).ecosystem
+                // currentData keeps every loaded operation for the details screen; the list shows the filtered ones.
+                val filtersApplied = historyFiltersProvider.currentFilters()
                 _state.emit(TransactionHistoryUi.State.Data(transformData(
-                    currentData.values,
+                    currentData.values.filter { operation -> operation.matchesHistoryFilters(filtersApplied) },
                     ecosystem
                 )))
             }
@@ -298,6 +293,14 @@ class TransactionHistoryProvider(
                 listOf(header) + transactions
             }.flatten()
     }
+}
+
+/** Whether the history list shows [this] operation under [filters]; swaps are listed with the extrinsics. */
+internal fun Operation.matchesHistoryFilters(filters: Set<TransactionFilter>): Boolean = when (type) {
+    is Operation.Type.Extrinsic -> filters.contains(TransactionFilter.EXTRINSIC)
+    is Operation.Type.Reward -> filters.contains(TransactionFilter.REWARD)
+    is Operation.Type.Swap -> filters.contains(TransactionFilter.EXTRINSIC)
+    is Operation.Type.Transfer -> filters.contains(TransactionFilter.TRANSFER)
 }
 
 /**

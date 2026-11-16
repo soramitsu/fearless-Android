@@ -53,13 +53,15 @@ class PoolDetailsPresenter @Inject constructor(
     private fun subscribeState(coroutineScope: CoroutineScope) {
         screenArgsFlow.flatMapLatest { args ->
             observePoolDetails(args.ids).onEach { pool ->
-                val token = walletInteractor.getToken(pool.basic.baseToken)
-                stateFlow.value = pool.mapToState(token)
+                val baseToken = walletInteractor.getToken(pool.basic.baseToken)
+                val targetToken = pool.basic.targetToken?.let { walletInteractor.getToken(it) }
+                stateFlow.value = pool.mapToState(baseToken, targetToken)
             }
         }.onEach {
             val apy = poolsInteractor.getSbApy(it.basic.reserveAccount)
             stateFlow.update { prevState ->
-                prevState.copy(apy = "${apy?.toBigDecimal()?.formatPercent()}%")
+                // No strategic-bonus yield: an empty value, as on the add-liquidity screen, not "null%".
+                prevState.copy(apy = apy?.toBigDecimal()?.formatPercent()?.let { percent -> "$percent%" }.orEmpty())
             }
         }.launchIn(coroutineScope)
     }
@@ -109,16 +111,16 @@ class PoolDetailsPresenter @Inject constructor(
     }
 }
 
-private fun CommonPoolData.mapToState(token: Token): PoolDetailsState {
-    val tvl = basic.getTvl(token.fiatRate)
+private fun CommonPoolData.mapToState(baseToken: Token, targetToken: Token?): PoolDetailsState {
+    val tvl = basic.getTvl(baseToken.fiatRate)
     return PoolDetailsState(
         assetBase = basic.baseToken,
         assetTarget = basic.targetToken,
         pooledBaseAmount = user?.basePooled?.formatCrypto(basic.baseToken.symbol).orEmpty(),
-        pooledBaseFiat = user?.basePooled?.applyFiatRate(token.fiatRate)?.formatFiat(token.fiatSymbol).orEmpty(),
+        pooledBaseFiat = user?.basePooled?.applyFiatRate(baseToken.fiatRate)?.formatFiat(baseToken.fiatSymbol).orEmpty(),
         pooledTargetAmount = user?.targetPooled?.formatCrypto(basic.targetToken?.symbol).orEmpty(),
-        pooledTargetFiat = user?.targetPooled?.applyFiatRate(token.fiatRate)?.formatFiat(token.fiatSymbol).orEmpty(),
-        tvl = tvl?.formatFiat(token.fiatSymbol),
+        pooledTargetFiat = user?.targetPooled?.applyFiatRate(targetToken?.fiatRate)?.formatFiat(targetToken?.fiatSymbol).orEmpty(),
+        tvl = tvl?.formatFiat(baseToken.fiatSymbol),
         apy = null
     )
 }

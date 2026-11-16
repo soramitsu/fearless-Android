@@ -1,9 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.searchAssets
 
 import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
-import android.content.ActivityNotFoundException
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import androidx.compose.foundation.Image
@@ -21,8 +18,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
-import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
-import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
+import jp.co.soramitsu.common.openPlayMarketPage
 import jp.co.soramitsu.common.base.BaseComposeFragment
 import jp.co.soramitsu.common.utils.hideKeyboard
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
@@ -80,10 +76,6 @@ class SearchAssetsFragment : BaseComposeFragment<SearchAssetsViewModel>() {
     }
 
     private fun openPlayMarket() {
-        try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_MARKET_APP_URI)))
-        } catch (e: ActivityNotFoundException) {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_MARKET_BROWSER_URI)))
-        }
+        requireContext().openPlayMarketPage()
     }
 }

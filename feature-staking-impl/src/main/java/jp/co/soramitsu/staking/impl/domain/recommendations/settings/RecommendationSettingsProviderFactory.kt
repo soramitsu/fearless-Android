@@ -6,7 +6,9 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.staking.api.data.StakingSharedState
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
 
-private const val SETTINGS_PROVIDER_KEY = "SETTINGS_PROVIDER_KEY"
+// One entry per staking type: a shared entry handed a relay chain provider to a parachain caller and back.
+private const val PARACHAIN_SETTINGS_PROVIDER_KEY = "PARACHAIN_SETTINGS_PROVIDER_KEY"
+private const val RELAYCHAIN_SETTINGS_PROVIDER_KEY = "RELAYCHAIN_SETTINGS_PROVIDER_KEY"
 
 class RecommendationSettingsProviderFactory(
     private val computationalCache: ComputationalCache,
@@ -14,18 +16,17 @@ class RecommendationSettingsProviderFactory(
     private val sharedState: StakingSharedState
 ) {
 
+    // Not cached itself: the typed providers are, and a computation awaiting its own cache entry never completes.
     suspend fun create(lifecycle: Lifecycle, stakingType: Asset.StakingType): RecommendationSettingsProvider<*> {
-        return computationalCache.useCache(SETTINGS_PROVIDER_KEY, lifecycle) {
-            return@useCache when (stakingType) {
-                Asset.StakingType.PARACHAIN -> createParachain(lifecycle)
-                Asset.StakingType.RELAYCHAIN -> createRelayChain(lifecycle)
-                else -> error("Unsupported staking type")
-            }
+        return when (stakingType) {
+            Asset.StakingType.PARACHAIN -> createParachain(lifecycle)
+            Asset.StakingType.RELAYCHAIN -> createRelayChain(lifecycle)
+            else -> error("Unsupported staking type")
         }
     }
 
     suspend fun createParachain(lifecycle: Lifecycle): RecommendationSettingsProvider.Parachain {
-        return computationalCache.useCache(SETTINGS_PROVIDER_KEY, lifecycle) {
+        return computationalCache.useCache(PARACHAIN_SETTINGS_PROVIDER_KEY, lifecycle) {
             val chainId = sharedState.chainId()
             return@useCache RecommendationSettingsProvider.Parachain(
                 maxTopDelegationPerCandidate = stakingConstantsRepository.maxTopDelegationsPerCandidate(chainId),
@@ -35,7 +36,7 @@ class RecommendationSettingsProviderFactory(
     }
 
     suspend fun createRelayChain(lifecycle: Lifecycle): RecommendationSettingsProvider.RelayChain {
-        return computationalCache.useCache(SETTINGS_PROVIDER_KEY, lifecycle) {
+        return computationalCache.useCache(RELAYCHAIN_SETTINGS_PROVIDER_KEY, lifecycle) {
             val chainId = sharedState.chainId()
             return@useCache RecommendationSettingsProvider.RelayChain(
                 maximumRewardedNominators = stakingConstantsRepository.maxRewardedNominatorPerValidator(chainId),

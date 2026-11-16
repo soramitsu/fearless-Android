@@ -15,6 +15,8 @@ import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilter
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.kusamaChainId
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.polkadotChainId
 import jp.co.soramitsu.runtime.multiNetwork.tokengroups.*
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -133,6 +135,18 @@ class ChainSelectViewModelTest {
         assertEquals("1984", shared.assetId)
     }
 
+    @Test fun `network list shows Polkadot and Kusama first, then the rest by name`() {
+        knownChains.value = listOf(
+            chain("zeta", listOf(asset("z", "ZET"))),
+            chain(kusamaChainId, listOf(asset("ksm", "KSM")), chainName = "Kusama"),
+            chain("alpha", listOf(asset("a", "ALP"))),
+            chain(polkadotChainId, listOf(asset("dot", "DOT")), chainName = "Polkadot")
+        )
+        val vm = viewModel(assetMode = false)
+        await { vm.state.value.chains?.size == 4 }
+        assertEquals(listOf(polkadotChainId, kusamaChainId, "alpha", "zeta"), vm.state.value.chains!!.map { it.id })
+    }
+
     private fun viewModel(assetMode: Boolean): ChainSelectViewModel {
         every { chains.getChainsFlow() } returns knownChains
         every { accounts.selectedMetaAccountFlow() } returns flowOf(meta)
@@ -158,9 +172,9 @@ class ChainSelectViewModelTest {
         every { id } returns assetId
         every { symbol } returns assetSymbol
     }
-    private fun chain(chainId: String, chainAssets: List<Asset>): Chain = mockk(relaxed = true) {
+    private fun chain(chainId: String, chainAssets: List<Asset>, chainName: String = chainId): Chain = mockk(relaxed = true) {
         every { id } returns chainId
-        every { name } returns chainId
+        every { name } returns chainName
         every { ecosystem } returns Ecosystem.Substrate
         every { assets } returns chainAssets
         every { assetsById } returns chainAssets.associateBy { it.id }

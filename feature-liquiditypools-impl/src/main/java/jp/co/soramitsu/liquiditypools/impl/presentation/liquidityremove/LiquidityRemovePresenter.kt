@@ -196,7 +196,8 @@ class LiquidityRemovePresenter @Inject constructor(
                                     targetPooled = PolkaswapFormulas.calculateAmountByPercentage(
                                         poolDataLocal.user.targetPooled,
                                         usablePercent,
-                                        poolDataLocal.basic.baseToken.precision,
+                                        poolDataLocal.basic.targetToken?.precision
+                                            ?: poolDataLocal.basic.baseToken.precision,
                                     ),
                                     poolProvidersBalance = PolkaswapFormulas.calculateAmountByPercentage(
                                         poolDataLocal.user.poolProvidersBalance,

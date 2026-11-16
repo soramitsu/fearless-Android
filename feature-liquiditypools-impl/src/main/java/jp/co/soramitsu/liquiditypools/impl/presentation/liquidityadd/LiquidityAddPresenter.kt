@@ -333,7 +333,7 @@ class LiquidityAddPresenter @Inject constructor(
             val reservesFirst = liquidity?.basic?.baseReserves.orZero()
             val reservesSecond = liquidity?.basic?.targetReserves.orZero()
 
-            if (reservesSecond.isZero() || reservesSecond.isZero()) {
+            if (reservesFirst.isZero() || reservesSecond.isZero()) {
                 targetAmount
             } else {
                 PolkaswapFormulas.calculateAddLiquidityAmount(

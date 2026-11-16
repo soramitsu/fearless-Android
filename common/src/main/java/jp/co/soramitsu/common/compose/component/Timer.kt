@@ -49,7 +49,7 @@ fun Timer(
         val completion = TimerCompletion {
             currentOnFinish.value?.invoke()
         }
-        val newTimer = Timer(
+        val newTimer = CountdownTextTimer(
             millis,
             deltaTime,
             hideZeroTimer,
@@ -80,16 +80,20 @@ internal class TimerCompletion(private val callback: () -> Unit) {
     }
 }
 
-private class Timer(
+internal class CountdownTextTimer(
     millis: Long,
     deltaTime: Long,
     private val hideZeroTimer: Boolean,
     private val extraMessage: String?,
     private val resources: Resources,
     private val textUpdate: (String) -> Unit,
-    private val onFinish: () -> Unit
+    onFinish: () -> Unit
 ) :
     CountDownTimer(millis - deltaTime, 1000) {
+    // Named apart from CountDownTimer.onFinish(): inside this class a call to onFinish() is the override itself, so
+    // calling the callback by that name recursed until the stack overflowed.
+    private val finishCallback = onFinish
+
     @SuppressLint("SetTextI18n")
     override fun onTick(millisUntilFinished: Long) {
         val days = millisUntilFinished.toDuration(DurationUnit.MILLISECONDS).toInt(DurationUnit.DAYS)
@@ -106,6 +110,6 @@ private class Timer(
     override fun onFinish() {
         textUpdate(if (hideZeroTimer) "" else 0L.formatTime())
         cancel()
-        onFinish()
+        finishCallback()
     }
 }

@@ -11,7 +11,8 @@ import java.util.concurrent.TimeUnit
 private val PERCENTAGE_MULTIPLIER = 100.toBigDecimal()
 
 fun BigDecimal.fractionToPercentage() = this * PERCENTAGE_MULTIPLIER
-fun BigDecimal.percentageToFraction() = this / PERCENTAGE_MULTIPLIER
+/** Exact: 12.5 (%) is 0.125. Dividing kept the percentage's scale, so 12.5 became 0.1 and 5 became 0. */
+fun BigDecimal.percentageToFraction(): BigDecimal = movePointLeft(2)
 
 val BigDecimal.isNonNegative: Boolean
     get() = signum() >= 0

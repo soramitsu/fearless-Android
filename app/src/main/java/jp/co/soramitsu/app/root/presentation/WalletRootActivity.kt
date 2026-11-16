@@ -2,13 +2,11 @@ package jp.co.soramitsu.app.root.presentation
 
 import jp.co.soramitsu.common.compose.theme.fw.TransferSealOverlayHost
 import android.annotation.SuppressLint
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
@@ -36,8 +34,7 @@ import jp.co.soramitsu.app.root.domain.InitializationStep
 import jp.co.soramitsu.app.root.domain.WalletStartupSession
 import jp.co.soramitsu.app.root.navigation.Navigator
 import jp.co.soramitsu.app.root.presentation.launch.LaunchIgniteHost
-import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
-import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
+import jp.co.soramitsu.common.openPlayMarketPage
 import jp.co.soramitsu.common.base.BaseActivity
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageHealth
 import jp.co.soramitsu.common.utils.EventObserver
@@ -380,7 +377,7 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
         viewModel.openPlayMarket.observe(
             this,
             EventObserver {
-                openPlayMarket()
+                openPlayMarketPage()
             }
         )
         viewModel.closeApp.observe(
@@ -403,14 +400,6 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
 
     private fun showNoInternetConnectionAlert(initializationStep: InitializationStep) {
         createStartupConnectionAlert(this, initializationStep, viewModel::retryLoadConfigClicked).show()
-    }
-
-    private fun openPlayMarket() {
-        try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_MARKET_APP_URI)))
-        } catch (e: ActivityNotFoundException) {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_MARKET_BROWSER_URI)))
-        }
     }
 
     private fun showBadConnectionView() {

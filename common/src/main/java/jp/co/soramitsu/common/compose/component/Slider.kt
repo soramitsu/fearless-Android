@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customColors
+import kotlin.math.roundToInt
 
 @Composable
 fun Slider(
@@ -22,7 +23,7 @@ fun Slider(
         value = value,
         onValueChange = onValueChange,
         valueRange = valueRange,
-        steps = ((valueRange.endInclusive - valueRange.start) / step).toInt(),
+        steps = sliderSteps(valueRange, step),
         colors = SliderDefaults.colors(
             inactiveTickColor = Color.Transparent,
             inactiveTrackColor = MaterialTheme.customColors.white08,
@@ -32,6 +33,14 @@ fun Slider(
         )
     )
 }
+
+/**
+ * The `steps` argument of the Material slider for positions every [step] across [valueRange]. Material counts
+ * only the stops between the two ends, so N gaps of [step] take N - 1 steps; the gap count is rounded because
+ * float division can land just below or above a whole number (10f / 0.1f).
+ */
+internal fun sliderSteps(valueRange: ClosedFloatingPointRange<Float>, step: Float): Int =
+    (((valueRange.endInclusive - valueRange.start) / step).roundToInt() - 1).coerceAtLeast(0)
 
 @Preview
 @Composable
