@@ -35,6 +35,21 @@ class SessionProposalContentTest {
     }
 
     @Test
+    @OptIn(androidx.compose.runtime.InternalComposeApi::class)
+    fun rendersSessionProposalPreviewWithReadableContent() {
+        val preview = Class.forName("jp.co.soramitsu.walletconnect.impl.presentation.sessionproposal.SessionProposalContentKt")
+            .getDeclaredMethod("SessionProposalPreview", androidx.compose.runtime.Composer::class.java, Int::class.javaPrimitiveType)
+        preview.isAccessible = true
+        compose.setContent {
+            FearlessAppTheme {
+                preview.invoke(null, androidx.compose.runtime.currentComposer, 0)
+            }
+        }
+        compose.onNodeWithText("app.example.org").assertExists()
+        compose.onNodeWithText("This site could not be verified. Continue only if you trust it.").assertExists()
+    }
+
+    @Test
     fun proposalShowsOriginPermissionsAndForwardsNetworkAndWalletChoices() {
         val wallet = WalletNameItemViewState(1, "Signing wallet", R.drawable.ic_wallet, true)
         val state = SessionProposalViewState.default.copy(

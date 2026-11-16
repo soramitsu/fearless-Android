@@ -36,6 +36,21 @@ class TonConnectionDetailsContentTest {
     }
 
     @Test
+    @OptIn(androidx.compose.runtime.InternalComposeApi::class)
+    fun rendersTonConnectionDetailsPreviewWithReadableContent() {
+        val preview = Class.forName("jp.co.soramitsu.tonconnect.impl.presentation.tonconnectiondetails.TonConnectionDetailsContentKt")
+            .getDeclaredMethod("TonConnectionDetailsPreview", androidx.compose.runtime.Composer::class.java, Int::class.javaPrimitiveType)
+        preview.isAccessible = true
+        compose.setContent {
+            FearlessAppTheme {
+                preview.invoke(null, androidx.compose.runtime.currentComposer, 0)
+            }
+        }
+        compose.onNodeWithText("blueprint").assertExists()
+        compose.onNodeWithText("Telegram mainnet").assertExists()
+    }
+
+    @Test
     fun proposalShowsDappNetworkAndWalletAndForwardsDecisions() {
         val wallet = WalletNameItemViewState(1, "My TON wallet", R.drawable.ic_wallet, true)
         val state = TonConnectionDetailsViewState.default.copy(

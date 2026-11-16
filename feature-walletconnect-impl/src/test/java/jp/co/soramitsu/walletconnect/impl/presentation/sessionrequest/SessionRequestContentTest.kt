@@ -32,6 +32,20 @@ class SessionRequestContentTest {
     }
 
     @Test
+    @OptIn(androidx.compose.runtime.InternalComposeApi::class)
+    fun rendersSessionRequestPreviewWithReadableContent() {
+        val preview = Class.forName("jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest.SessionRequestContentKt")
+            .getDeclaredMethod("SessionRequestPreview", androidx.compose.runtime.Composer::class.java, Int::class.javaPrimitiveType)
+        preview.isAccessible = true
+        compose.setContent {
+            FearlessAppTheme {
+                preview.invoke(null, androidx.compose.runtime.currentComposer, 0)
+            }
+        }
+        compose.onNodeWithText("Message").assertExists()
+    }
+
+    @Test
     fun requestShowsWalletMessageOriginAndDispatchesPreview() {
         val state = SessionRequestViewState.default.copy(
             connectionUrl = "https://verified.example",

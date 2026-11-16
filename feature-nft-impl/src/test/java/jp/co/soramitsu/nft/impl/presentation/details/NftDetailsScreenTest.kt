@@ -29,6 +29,21 @@ class NftDetailsScreenTest {
     }
 
     @Test
+    @OptIn(androidx.compose.runtime.InternalComposeApi::class)
+    fun rendersNftCollectionScreenPreviewWithReadableContent() {
+        val preview = Class.forName("jp.co.soramitsu.nft.impl.presentation.details.DetailsScreenKt")
+            .getDeclaredMethod("NftCollectionScreenPreview", androidx.compose.runtime.Composer::class.java, Int::class.javaPrimitiveType)
+        preview.isAccessible = true
+        compose.setContent {
+            FearlessAppTheme {
+                preview.invoke(null, androidx.compose.runtime.currentComposer, 0)
+            }
+        }
+        compose.onNodeWithText("Polygon").assertExists()
+        compose.onNodeWithText("ERC1155").assertExists()
+    }
+
+    @Test
     fun ownedTokenShowsDetailsAndDispatchesActions() {
         val state = NftDetailsScreenState(
             isTokenUserOwned = true,

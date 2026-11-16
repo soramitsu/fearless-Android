@@ -39,6 +39,20 @@ class ChainChooseContentTest {
     }
 
     @Test
+    @OptIn(androidx.compose.runtime.InternalComposeApi::class)
+    fun rendersSelectChainScreenPreviewWithReadableContent() {
+        val preview = Class.forName("jp.co.soramitsu.walletconnect.impl.presentation.chainschooser.ChainChooseContentKt")
+            .getDeclaredMethod("SelectChainScreenPreview", androidx.compose.runtime.Composer::class.java, Int::class.javaPrimitiveType)
+        preview.isAccessible = true
+        compose.setContent {
+            FearlessAppTheme {
+                preview.invoke(null, androidx.compose.runtime.currentComposer, 0)
+            }
+        }
+        compose.onNodeWithText("Kusama").assertExists()
+    }
+
+    @Test
     fun legacyChooserDisplaysSelectionAndForwardsActions() {
         show(ChainSelectScreenViewState(listOf(ethereum, polygon)), restyle = false)
         assertSelectionAndActions()

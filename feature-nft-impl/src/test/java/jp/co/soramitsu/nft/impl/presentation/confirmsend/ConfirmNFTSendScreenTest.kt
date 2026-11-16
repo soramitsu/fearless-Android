@@ -35,6 +35,22 @@ class ConfirmNFTSendScreenTest {
     }
 
     @Test
+    @OptIn(androidx.compose.runtime.InternalComposeApi::class)
+    fun rendersConfirmSendPreviewWithReadableContent() {
+        val preview = Class.forName("jp.co.soramitsu.nft.impl.presentation.confirmsend.ConfirmNFTSendScreenKt")
+            .getDeclaredMethod("ConfirmSendPreview", androidx.compose.runtime.Composer::class.java, Int::class.javaPrimitiveType)
+        preview.isAccessible = true
+        compose.setContent {
+            FearlessAppTheme {
+                preview.invoke(null, androidx.compose.runtime.currentComposer, 0)
+            }
+        }
+        compose.onNodeWithText("My Awesome Wallet").assertExists()
+        compose.onNodeWithText("Bird1 #1").assertExists()
+        compose.onNodeWithText("Continue").assertExists()
+    }
+
+    @Test
     fun loadedConfirmationDisplaysTransferAndDispatchesConfirm() {
         val state = ConfirmNFTSendScreenState(
             thumbnailImageModel = Loadable.ReadyToRender(ImageModel.ResId(R.drawable.drawable_fearless_bird)),

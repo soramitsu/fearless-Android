@@ -22,6 +22,21 @@ class RawDataContentTest {
     @get:Rule val compose = createComposeRule()
 
     @Test
+    @OptIn(androidx.compose.runtime.InternalComposeApi::class)
+    fun rendersRawDataPreviewWithReadableContent() {
+        val preview = Class.forName("jp.co.soramitsu.walletconnect.impl.presentation.transactionrawdata.RawDataContentKt")
+            .getDeclaredMethod("RawDataPreview", androidx.compose.runtime.Composer::class.java, Int::class.javaPrimitiveType)
+        preview.isAccessible = true
+        compose.setContent {
+            FearlessAppTheme {
+                preview.invoke(null, androidx.compose.runtime.currentComposer, 0)
+            }
+        }
+        compose.onNodeWithText("Transaction raw data").assertExists()
+        compose.onNodeWithText("Lorem ipsum", substring = true, ignoreCase = true).assertExists()
+    }
+
+    @Test
     fun rawTransactionIsReadOnlyAndCloseDispatches() {
         val callback = mock<RawDataScreenInterface>()
         val raw = "{\"method\":\"personal_sign\",\"id\":7}"

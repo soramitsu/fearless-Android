@@ -37,6 +37,36 @@ class TonSignRequestFlowTest {
     }
 
     @Test
+    @OptIn(androidx.compose.runtime.InternalComposeApi::class)
+    fun rendersTonSignRequestPreviewWithReadableContent() {
+        val preview = Class.forName("jp.co.soramitsu.tonconnect.impl.presentation.tonsignrequest.TonSignRequestContentKt")
+            .getDeclaredMethod("TonSignRequestPreview", androidx.compose.runtime.Composer::class.java, Int::class.javaPrimitiveType)
+        preview.isAccessible = true
+        compose.setContent {
+            FearlessAppTheme {
+                preview.invoke(null, androidx.compose.runtime.currentComposer, 0)
+            }
+        }
+        compose.onNodeWithText("Message").assertExists()
+        compose.onNodeWithText("some_url_to_dapp").assertExists()
+    }
+
+    @Test
+    @OptIn(androidx.compose.runtime.InternalComposeApi::class)
+    fun rendersTonSignPreviewPreviewWithReadableContent() {
+        val preview = Class.forName("jp.co.soramitsu.tonconnect.impl.presentation.tonsignrequest.TonSignPreviewContentKt")
+            .getDeclaredMethod("TonSignPreviewPreview", androidx.compose.runtime.Composer::class.java, Int::class.javaPrimitiveType)
+        preview.isAccessible = true
+        compose.setContent {
+            FearlessAppTheme {
+                preview.invoke(null, androidx.compose.runtime.currentComposer, 0)
+            }
+        }
+        compose.onNodeWithText("React App").assertExists()
+        compose.onNodeWithText("Ethereum Goerli").assertExists()
+    }
+
+    @Test
     fun requestTransitionsToDecodedPreviewAndDispatchesActions() {
         val state = mutableStateOf<TonSignRequestFlowState?>(
             TonSignRequestViewState.default.copy(

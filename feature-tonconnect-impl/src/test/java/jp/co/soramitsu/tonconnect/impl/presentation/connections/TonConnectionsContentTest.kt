@@ -28,6 +28,20 @@ class TonConnectionsContentTest {
     }
 
     @Test
+    @OptIn(androidx.compose.runtime.InternalComposeApi::class)
+    fun rendersTonConnectionsPreviewWithReadableContent() {
+        val preview = Class.forName("jp.co.soramitsu.tonconnect.impl.presentation.connections.TonConnectionsContentKt")
+            .getDeclaredMethod("TonConnectionsPreview", androidx.compose.runtime.Composer::class.java, Int::class.javaPrimitiveType)
+        preview.isAccessible = true
+        compose.setContent {
+            FearlessAppTheme {
+                preview.invoke(null, androidx.compose.runtime.currentComposer, 0)
+            }
+        }
+        compose.onNodeWithText("Kusama").assertExists()
+    }
+
+    @Test
     fun listDisplaysDappsAndReturnsSelectedConnection() {
         val first = DappModel("1", listOf("-239"), "Swap", "https://swap.example", null, null, null, 1)
         val second = first.copy(identifier = "2", name = "Gallery", icon = "")

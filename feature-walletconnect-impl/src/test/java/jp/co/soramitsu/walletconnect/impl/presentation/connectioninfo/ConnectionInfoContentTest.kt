@@ -31,6 +31,21 @@ class ConnectionInfoContentTest {
     }
 
     @Test
+    @OptIn(androidx.compose.runtime.InternalComposeApi::class)
+    fun rendersWalletConnectPreviewWithReadableContent() {
+        val preview = Class.forName("jp.co.soramitsu.walletconnect.impl.presentation.connectioninfo.ConnectionInfoContentKt")
+            .getDeclaredMethod("WalletConnectPreview", androidx.compose.runtime.Composer::class.java, Int::class.javaPrimitiveType)
+        preview.isAccessible = true
+        compose.setContent {
+            FearlessAppTheme {
+                preview.invoke(null, androidx.compose.runtime.currentComposer, 0)
+            }
+        }
+        compose.onNodeWithText("Dapp Name").assertExists()
+        compose.onNodeWithText("Tue, Aug 23, 2023").assertExists()
+    }
+
+    @Test
     fun connectionShowsPermissionsWalletAndExpiryAndAllowsDisconnect() {
         val state = ConnectInfoViewState(
             InfoItemViewState("Bird Swap", "swap.example"),

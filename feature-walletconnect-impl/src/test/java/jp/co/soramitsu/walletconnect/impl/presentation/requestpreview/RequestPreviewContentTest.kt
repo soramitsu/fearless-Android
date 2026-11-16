@@ -38,6 +38,21 @@ class RequestPreviewContentTest {
     }
 
     @Test
+    @OptIn(androidx.compose.runtime.InternalComposeApi::class)
+    fun rendersRequestPreviewPreviewWithReadableContent() {
+        val preview = Class.forName("jp.co.soramitsu.walletconnect.impl.presentation.requestpreview.RequestPreviewContentKt")
+            .getDeclaredMethod("RequestPreviewPreview", androidx.compose.runtime.Composer::class.java, Int::class.javaPrimitiveType)
+        preview.isAccessible = true
+        compose.setContent {
+            FearlessAppTheme {
+                preview.invoke(null, androidx.compose.runtime.currentComposer, 0)
+            }
+        }
+        compose.onNodeWithText("React App").assertExists()
+        compose.onNodeWithText("Ethereum Goerli").assertExists()
+    }
+
+    @Test
     fun decodedRequestShowsSummaryAndAllowsSigning() {
         val state = RequestPreviewViewState.default.copy(
             method = "eth_sendTransaction",

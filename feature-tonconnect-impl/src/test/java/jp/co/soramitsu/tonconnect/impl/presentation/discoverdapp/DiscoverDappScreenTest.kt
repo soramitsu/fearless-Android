@@ -1,10 +1,12 @@
 package jp.co.soramitsu.tonconnect.impl.presentation.discoverdapp
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.longClick
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -27,6 +29,63 @@ class DiscoverDappScreenTest {
     @get:Rule val compose = createComposeRule()
     private val callback = mock<DiscoverDappScreenInterface>()
     private val app = dapp("swap", "Bird Swap", "Exchange tokens")
+
+    @Test
+    @OptIn(androidx.compose.runtime.InternalComposeApi::class)
+    fun rendersSeeAllPreviewWithReadableContent() {
+        val preview = Class.forName("jp.co.soramitsu.tonconnect.impl.presentation.discoverdapp.SeeAllDappsScreenKt")
+            .getDeclaredMethod("SeeAllPreview", androidx.compose.runtime.Composer::class.java, Int::class.javaPrimitiveType)
+        preview.isAccessible = true
+        compose.setContent {
+            FearlessAppTheme {
+                preview.invoke(null, androidx.compose.runtime.currentComposer, 0)
+            }
+        }
+        compose.onAllNodesWithText("DeDust").assertCountEquals(3)
+    }
+
+    @Test
+    @OptIn(androidx.compose.runtime.InternalComposeApi::class)
+    fun rendersPreviewDappsGroupWithReadableContent() {
+        val preview = Class.forName("jp.co.soramitsu.tonconnect.impl.presentation.discoverdapp.DiscoverDappScreenKt")
+            .getDeclaredMethod("PreviewDappsGroup", androidx.compose.runtime.Composer::class.java, Int::class.javaPrimitiveType)
+        preview.isAccessible = true
+        compose.setContent {
+            FearlessAppTheme {
+                preview.invoke(null, androidx.compose.runtime.currentComposer, 0)
+            }
+        }
+        compose.onNodeWithText("Header").assertExists()
+        compose.onNodeWithText("FW dapp example").assertExists()
+    }
+
+    @Test
+    @OptIn(androidx.compose.runtime.InternalComposeApi::class)
+    fun rendersPreviewDiscoverDappScreenWithReadableContent() {
+        val preview = Class.forName("jp.co.soramitsu.tonconnect.impl.presentation.discoverdapp.DiscoverDappScreenKt")
+            .getDeclaredMethod("PreviewDiscoverDappScreen", androidx.compose.runtime.Composer::class.java, Int::class.javaPrimitiveType)
+        preview.isAccessible = true
+        compose.setContent {
+            FearlessAppTheme {
+                preview.invoke(null, androidx.compose.runtime.currentComposer, 0)
+            }
+        }
+        compose.onNodeWithText("Connected").assertExists()
+    }
+
+    @Test
+    @OptIn(androidx.compose.runtime.InternalComposeApi::class)
+    fun rendersBannerDAppPreviewWithReadableContent() {
+        val preview = Class.forName("jp.co.soramitsu.tonconnect.impl.presentation.discoverdapp.BannerDAppKt")
+            .getDeclaredMethod("BannerDAppPreview", androidx.compose.runtime.Composer::class.java, Int::class.javaPrimitiveType)
+        preview.isAccessible = true
+        compose.setContent {
+            FearlessAppTheme {
+                preview.invoke(null, androidx.compose.runtime.currentComposer, 0)
+            }
+        }
+        compose.onNodeWithText("dApp name").assertExists()
+    }
 
     @Test
     fun connectedEmptyListShowsExplanationAndAllowsDiscoverSelection() {

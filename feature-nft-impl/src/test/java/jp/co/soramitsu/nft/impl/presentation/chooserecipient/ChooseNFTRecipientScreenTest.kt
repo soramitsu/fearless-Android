@@ -18,7 +18,6 @@ import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTR
 import jp.co.soramitsu.nft.impl.presentation.chooserecipient.contract.ChooseNFTRecipientScreenState
 import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
 import kotlinx.coroutines.flow.MutableStateFlow
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -40,20 +39,27 @@ class ChooseNFTRecipientScreenTest {
         )
     )
 
-    @Before
-    fun showRecipientScreen() {
-        ShadowSystemClock.advanceBy(Duration.ofSeconds(10))
+    @Test
+    @OptIn(androidx.compose.runtime.InternalComposeApi::class)
+    fun rendersSendSetupPreviewWithReadableContent() {
+        val preview = Class.forName("jp.co.soramitsu.nft.impl.presentation.chooserecipient.ChooseNFTRecipientScreenKt")
+            .getDeclaredMethod("SendSetupPreview", androidx.compose.runtime.Composer::class.java, Int::class.javaPrimitiveType)
+        preview.isAccessible = true
+        // The default fee state shows an endless shimmer, so drive the frame clock by hand.
+        compose.mainClock.autoAdvance = false
         compose.setContent {
             FearlessAppTheme {
-                NavHost(rememberNavController(), NFTNavGraphRoute.ChooseNFTRecipientScreen.routeName) {
-                    ChooseNFTRecipientNavComposable(state, callback)
-                }
+                preview.invoke(null, androidx.compose.runtime.currentComposer, 0)
             }
         }
+        compose.mainClock.advanceTimeBy(1_000)
+        compose.onNodeWithText("Continue").assertExists()
+        compose.onNodeWithText("Send to").assertExists()
     }
 
     @Test
     fun recipientSourcesAndPreviewReachCallbacks() {
+        showRecipientScreen()
         compose.onNodeWithText("0.01 ETH").assertIsDisplayed()
         compose.onNodeWithText("Paste").performClick()
         verify(callback).onPasteClick()
@@ -73,14 +79,27 @@ class ChooseNFTRecipientScreenTest {
 
     @Test
     fun addressEditsReachCallback() {
+        showRecipientScreen()
         compose.onNode(hasSetTextAction()).performTextInput("0x1234")
         verify(callback).onAddressInput("0x1234")
     }
 
     @Test
     fun disabledPreviewCannotAdvance() {
+        showRecipientScreen()
         compose.runOnIdle { state.value = state.value.copy(buttonState = ButtonViewState("Preview transfer", false)) }
         compose.onNodeWithText("Preview transfer").assertIsNotEnabled().performClick()
         verifyNoInteractions(callback)
+    }
+
+    private fun showRecipientScreen() {
+        ShadowSystemClock.advanceBy(Duration.ofSeconds(10))
+        compose.setContent {
+            FearlessAppTheme {
+                NavHost(rememberNavController(), NFTNavGraphRoute.ChooseNFTRecipientScreen.routeName) {
+                    ChooseNFTRecipientNavComposable(state, callback)
+                }
+            }
+        }
     }
 }

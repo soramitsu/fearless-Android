@@ -30,6 +30,21 @@ class TonConnectionInfoContentTest {
     }
 
     @Test
+    @OptIn(androidx.compose.runtime.InternalComposeApi::class)
+    fun rendersTonConnectionInfoPreviewWithReadableContent() {
+        val preview = Class.forName("jp.co.soramitsu.tonconnect.impl.presentation.connectioninfo.TonConnectionInfoContentKt")
+            .getDeclaredMethod("TonConnectionInfoPreview", androidx.compose.runtime.Composer::class.java, Int::class.javaPrimitiveType)
+        preview.isAccessible = true
+        compose.setContent {
+            FearlessAppTheme {
+                preview.invoke(null, androidx.compose.runtime.currentComposer, 0)
+            }
+        }
+        compose.onNodeWithText("blueprint").assertExists()
+        compose.onNodeWithText("Telegram mainnet").assertExists()
+    }
+
+    @Test
     fun connectionDetailsDisplayBoundWalletAndAllowDisconnect() {
         val state = TonConnectionInfoViewState(
             DappModel("client", listOf("-239"), "Bird Swap", "https://swap.example", null, null, null, 1),

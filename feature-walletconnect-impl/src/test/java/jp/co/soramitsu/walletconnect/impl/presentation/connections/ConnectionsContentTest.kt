@@ -27,6 +27,21 @@ class ConnectionsContentTest {
     }
 
     @Test
+    @OptIn(androidx.compose.runtime.InternalComposeApi::class)
+    fun rendersSelectChainScreenPreviewWithReadableContent() {
+        val preview = Class.forName("jp.co.soramitsu.walletconnect.impl.presentation.connections.ConnectionsContentKt")
+            .getDeclaredMethod("SelectChainScreenPreview", androidx.compose.runtime.Composer::class.java, Int::class.javaPrimitiveType)
+        preview.isAccessible = true
+        compose.setContent {
+            FearlessAppTheme {
+                preview.invoke(null, androidx.compose.runtime.currentComposer, 0)
+            }
+        }
+        compose.onNodeWithText("Create new connection").assertIsDisplayed()
+        compose.onNodeWithText("Kusama").assertDoesNotExist()
+    }
+
+    @Test
     fun listDisplaysSessionsAndReturnsSelectedConnection() {
         val first = SessionItemState("1", "Swap", "https://swap.example", null)
         val second = first.copy(topic = "2", title = "Gallery", imageUrl = "")
