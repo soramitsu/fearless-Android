@@ -13,6 +13,7 @@ import jp.co.soramitsu.fearless_utils.runtime.metadata.hash.FrameMetadataV15
 import jp.co.soramitsu.fearless_utils.runtime.metadata.moduleOrNull
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersion
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
@@ -46,7 +47,8 @@ class LiveMetadataHashValidateTest {
         LiveChain("polkadot collectives", "https://polkadot-collectives-rpc.polkadot.io"),
         LiveChain("hydration", "https://rpc.hydradx.cloud"),
         LiveChain("astar", "https://rpc.astar.network"),
-        // Listed in MetadataHashExemptions: built without a hash, they refuse Mode::Enabled.
+        // Listed in MetadataHashExemptions, so the app signs with Mode::Disabled. Spec 26 was built without a hash and
+        // refused Mode::Enabled; spec 27 (seen 13 November 2026) accepts this app's hash, see the assertion below.
         LiveChain("pendulum", "https://rpc-pendulum.prd.pendulumchain.tech", exempt = true)
     )
 
@@ -63,8 +65,22 @@ class LiveMetadataHashValidateTest {
             chain to result
         }
         results.forEach { (chain, result) ->
-            val expected = if (chain.exempt) "enabled=$UNKNOWN_CANNOT_LOOKUP disabled=$INVALID_PAYMENT" else "enabled=$INVALID_PAYMENT"
-            assertEquals(chain.name, expected, result.substringBefore(" spec"))
+            val outcome = result.substringBefore(" spec")
+            if (chain.exempt) {
+                // The app signs an exempt network with Mode::Disabled, which must stay accepted. Mode::Enabled is
+                // refused while the runtime has no hash; a runtime built with one must accept this app's hash, never
+                // answer BadProof. Then the exemption is no longer needed and can be lifted in a reviewed change.
+                val accepted = setOf(
+                    "enabled=$UNKNOWN_CANNOT_LOOKUP disabled=$INVALID_PAYMENT",
+                    "enabled=$INVALID_PAYMENT disabled=$INVALID_PAYMENT"
+                )
+                assertTrue("${chain.name}: $outcome", outcome in accepted)
+                if (outcome.startsWith("enabled=$INVALID_PAYMENT")) {
+                    println("${chain.name}: the runtime now accepts Mode::Enabled; its MetadataHashExemptions entry can be lifted")
+                }
+            } else {
+                assertEquals(chain.name, "enabled=$INVALID_PAYMENT", outcome)
+            }
         }
     }
 

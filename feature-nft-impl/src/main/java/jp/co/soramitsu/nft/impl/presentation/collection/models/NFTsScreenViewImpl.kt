@@ -68,7 +68,9 @@ internal sealed interface ScreenModel {
                         add(SectionHeader(firstToken))
                     }
 
-                    tokens.map { token ->
+                    // The grid keys a tile by its token id, and a repeated key closes the app. A provider page can
+                    // list one token twice, so each id gets one tile.
+                    tokens.distinctBy { it.tokenId }.map { token ->
                         ItemModel(
                             token = token,
                             screenLayout = ScreenLayout.Grid,

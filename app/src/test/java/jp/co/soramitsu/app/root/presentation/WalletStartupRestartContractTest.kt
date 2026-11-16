@@ -75,7 +75,7 @@ class WalletStartupRestartContractTest {
         assertTrue(teardown.contains("processLifecycleObserverRegistered"))
         assertTrue(teardown.contains("unregisterNetworkCallback()"))
         assertTrue(teardown.contains("navigatorAttached"))
-        assertTrue(teardown.contains("navigator.detach()"))
+        assertTrue(teardown.contains("navigator.detach(this)"))
 
         val newIntent = source.substringAfter(
             "override fun onNewIntent(intent: Intent)"

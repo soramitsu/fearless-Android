@@ -258,8 +258,16 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         savedEndpointAccess.revokeAll()
     }
 
-    fun detach() {
+    /**
+     * [host] is going away. Private endpoint access is revoked whichever host it is. The navigation is cleared only
+     * while [host] still owns it: a newer host can attach before an older one is destroyed (a second root over a
+     * startup or recovery screen, a finished task cleared late), and clearing then left the visible screen without
+     * navigation, so its next tap closed the app (229: Welcome > Import, `getCurrentBackStackEntryFlow`).
+     */
+    fun detach(host: AppCompatActivity) {
         revokeSavedEndpointAccess()
+        if (savedEndpointUnlock?.host === host) savedEndpointUnlock = null
+        if (activity !== host) return
         savedEndpointUnlock = null
         navController?.removeOnDestinationChangedListener(dappRouteListener)
         dappRoutesReady.value = false
@@ -1170,7 +1178,8 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
     }
 
     override fun getCurrentBackStackEntryFlow(): Flow<NavBackStackEntry> {
-        return requireNotNull(activeAuthenticatedController()).currentBackStackEntryFlow
+        // Without a host there is no stack to follow; an empty flow, not a crash.
+        return activeAuthenticatedController()?.currentBackStackEntryFlow ?: emptyFlow()
     }
 
     override fun openSelectChainAsset(chainId: ChainId) {

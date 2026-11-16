@@ -322,14 +322,14 @@ class ImportAccountViewModel @Inject constructor(
     }
 
     fun systemCallResultReceived(requestCode: Int, intent: Intent) {
-        val selectedSource = _selectedSourceTypeLiveData.value
+        val selectedSource = _selectedSourceTypeLiveData.value as? FileRequester ?: return
+        // No file was asked for on this screen (another result, or the screen was rebuilt after the system
+        // closed the app), or the picker returned no file: both were `!!` crashes in 229.
+        val currentRequestCode = selectedSource.chooseJsonFileEvent.value?.peekContent() ?: return
+        val uri = intent.data ?: return
 
-        if (selectedSource is FileRequester) {
-            val currentRequestCode = selectedSource.chooseJsonFileEvent.value!!.peekContent()
-
-            if (requestCode == currentRequestCode) {
-                selectedSource.fileChosen(intent.data!!)
-            }
+        if (requestCode == currentRequestCode) {
+            selectedSource.fileChosen(uri)
         }
     }
 

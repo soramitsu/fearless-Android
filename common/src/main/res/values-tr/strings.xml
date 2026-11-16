@@ -713,8 +713,8 @@
   <string name="pincode_title_create">PIN kodunuzu ayarlayın.</string>
   <string name="pincode_touch_fingerprint_scanner">Parmak izi tarayıcısına dokunun</string>
   <plurals name="plus_others_template">
-    <item quantity="one">+ %i diğer</item>
-    <item quantity="other">+ %i diğerleri</item>
+    <item quantity="one">+ %d diğer</item>
+    <item quantity="other">+ %d diğerleri</item>
   </plurals>
   <string name="polkaswap_btn_reset_to_default">Varsayılana sıfırla</string>
   <string name="polkaswap_confirmation_swap_stub">Takas</string>

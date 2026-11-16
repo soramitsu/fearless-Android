@@ -234,8 +234,8 @@
   <string name="common_got_it">Mengerti</string>
   <string name="common_history">Riwayat</string>
   <string name="common_host">Tuan rumah</string>
-  <plurals name="common_hours_format" formatted="false">
-    <item quantity="other">ONE %d Jam\nOTHER %d Jam</item>
+  <plurals name="common_hours_format">
+    <item quantity="other">%d jam</item>
   </plurals>
   <string name="common_import_wallet">Impor dompet</string>
   <string name="common_important">Penting</string>
