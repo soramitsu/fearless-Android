@@ -14,6 +14,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
+import org.robolectric.android.controller.ActivityController
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowLooper
@@ -29,11 +30,17 @@ class ServiceFragmentRobolectricTest {
     }
 
     @get:Rule
-    val compose = createEmptyComposeRule()
+    val compose = createEmptyComposeRule().apply { mainClock.autoAdvance = false }
+
+    private var activityController: ActivityController<FragmentActivity>? = null
 
     @After
     fun tearDown() {
+        val activity = activityController?.get()
+        (activity?.supportFragmentManager?.findFragmentByTag("service") as? ServiceFragment)?.dismissNow()
+        activityController?.pause()?.stop()?.destroy()
         ChainsStateTracker.state.value = emptyMap()
+        ShadowLooper.idleMainLooper()
     }
 
     @Test
@@ -49,7 +56,7 @@ class ServiceFragmentRobolectricTest {
         ChainsStateTracker.state.value = states.associateBy { it.chain.id }
         val activity = Robolectric.buildActivity(FragmentActivity::class.java).also {
             it.get().setTheme(jp.co.soramitsu.common.R.style.Theme_Soramitsu_Fearless)
-        }.setup().get()
+        }.also { activityController = it }.setup().get()
 
         ServiceFragment().show(activity.supportFragmentManager, "service")
         activity.supportFragmentManager.executePendingTransactions()

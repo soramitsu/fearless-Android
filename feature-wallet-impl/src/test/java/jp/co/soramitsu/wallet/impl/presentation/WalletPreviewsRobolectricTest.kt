@@ -5,7 +5,6 @@ import androidx.compose.runtime.currentComposer
 import androidx.compose.runtime.reflect.getDeclaredComposableMethod
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.junit4.createComposeRule
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -28,7 +27,7 @@ class WalletPreviewsRobolectricTest(
     }
 
     @get:Rule
-    val compose = createComposeRule()
+    val compose = createWalletComposeRule()
 
     @Test
     fun previewRendersVisibleText() {

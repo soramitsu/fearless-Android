@@ -5,7 +5,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
@@ -48,7 +47,7 @@ class SmallWalletSheetsRobolectricTest {
     }
 
     @get:Rule
-    val compose = createComposeRule()
+    val compose = createWalletComposeRule()
 
     private val calls = mutableListOf<String>()
 
@@ -189,11 +188,11 @@ class SmallWalletSheetsRobolectricTest {
         }
 
         cases.forEachIndexed { i, (_, message) ->
-            index = i
+            compose.runOnIdle { index = i }
             compose.waitForIdle()
             compose.onNodeWithText(string(message)).assertIsDisplayed()
         }
-        index = 3
+        compose.runOnIdle { index = 3 }
         compose.waitForIdle()
         assertEquals(0, compose.onAllNodes(hasText(string(R.string.send_check_status))).fetchSemanticsNodes().size)
     }

@@ -14,6 +14,10 @@ private class WalletComposeTestRule(
     private val delegate: ComposeContentTestRule
 ) : ComposeContentTestRule by delegate {
 
+    init {
+        delegate.mainClock.autoAdvance = false
+    }
+
     override fun setContent(content: @Composable () -> Unit) {
         delegate.mainClock.autoAdvance = false
         delegate.setContent(content)
