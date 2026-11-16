@@ -8,6 +8,13 @@ import jp.co.soramitsu.androidfoundation.format.StringPair
 import jp.co.soramitsu.common.compose.models.TextModel
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.feature_liquiditypools_impl.R
+import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsState
+import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddState
+import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityaddconfirm.LiquidityAddConfirmState
+import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremove.LiquidityRemoveState
+import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityremoveconfirm.LiquidityRemoveConfirmState
+import jp.co.soramitsu.liquiditypools.impl.presentation.pooldetails.PoolDetailsState
+import jp.co.soramitsu.liquiditypools.impl.presentation.poollist.PoolListState
 import jp.co.soramitsu.liquiditypools.impl.presentation.allpools.AllPoolsPresenter
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd.LiquidityAddPresenter
 import jp.co.soramitsu.liquiditypools.impl.presentation.liquidityaddconfirm.LiquidityAddConfirmPresenter
@@ -22,6 +29,7 @@ import jp.co.soramitsu.liquiditypools.navigation.NavAction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -44,6 +52,23 @@ class PoolsFlowViewModelTest {
     private val remove = mockk<LiquidityRemovePresenter>(relaxed = true)
     private val removeConfirm = mockk<LiquidityRemoveConfirmPresenter>(relaxed = true)
     private val store = mockk<CoroutinesStore> { every { uiScope } returns CoroutineScope(Dispatchers.Unconfined) }
+    private val allPoolsState = MutableStateFlow(AllPoolsState())
+    private val poolListState = MutableStateFlow(PoolListState())
+    private val detailsState = MutableStateFlow(PoolDetailsState())
+    private val addState = MutableStateFlow(LiquidityAddState())
+    private val removeState = MutableStateFlow(LiquidityRemoveState())
+    private val addConfirmState = MutableStateFlow(LiquidityAddConfirmState())
+    private val removeConfirmState = MutableStateFlow(LiquidityRemoveConfirmState())
+
+    init {
+        every { allPools.createScreenStateFlow(any()) } returns allPoolsState
+        every { poolList.createScreenStateFlow(any()) } returns poolListState
+        every { details.createScreenStateFlow(any()) } returns detailsState
+        every { add.createScreenStateFlow(any()) } returns addState
+        every { remove.createScreenStateFlow(any()) } returns removeState
+        every { addConfirm.createScreenStateFlow(any()) } returns addConfirmState
+        every { removeConfirm.createScreenStateFlow(any()) } returns removeConfirmState
+    }
 
     private val viewModel = PoolsFlowViewModel(
         allPools, poolList, details, add, addConfirm, remove, removeConfirm, store, router, poolsRouter
@@ -60,6 +85,21 @@ class PoolsFlowViewModelTest {
         assertEquals("LiquidityAddScreens", viewModel.navGraphRoutesFlow.value.routeName)
         assertEquals(listOf<NavAction>(NavAction.BackPressed), viewModel.navGraphActionsFlow.replayCache)
         assertTrue(viewModel.toolbarStateFlow.value is LoadingState.Loading)
+    }
+
+    @Test
+    fun `screen states are the ones each presenter builds in the flow scope`() {
+        val states = listOf(
+            viewModel.allPoolsScreenState,
+            viewModel.poolListScreenState,
+            viewModel.poolDetailsScreenState,
+            viewModel.liquidityAddScreenState,
+            viewModel.liquidityRemoveScreenState,
+            viewModel.liquidityAddConfirmState,
+            viewModel.liquidityRemoveConfirmState
+        )
+
+        assertEquals(listOf(allPoolsState, poolListState, detailsState, addState, removeState, addConfirmState, removeConfirmState), states)
     }
 
     @Test

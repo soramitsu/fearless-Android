@@ -124,6 +124,16 @@ class DemeterFarmingViewModelTest {
         assertEquals("Claims paused", viewModel.state.value.claimCapabilityReason)
         assertEquals("Claims paused", viewModel.state.value.message)
         coVerify(exactly = 0) { interactor.claimRewards(any(), any()) }
+
+        coEvery { interactor.mutationCapabilityReason(soraMainChainId, DemeterMutationAction.Deposit) } returns "Deposits paused"
+        coEvery { interactor.mutationCapabilityReason(soraMainChainId, DemeterMutationAction.Withdraw) } returns "Withdrawals paused"
+        viewModel.deposit(highYield, "1")
+        viewModel.withdraw(position, "1")
+        advanceUntilIdle()
+
+        assertEquals("Deposits paused", viewModel.state.value.depositCapabilityReason)
+        assertEquals("Withdrawals paused", viewModel.state.value.withdrawCapabilityReason)
+        coVerify(exactly = 0) { interactor.deposit(any(), any(), any()) }
     }
 
     @Test

@@ -4,7 +4,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
 import io.mockk.verify
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.Account
@@ -46,7 +45,10 @@ class DemeterFarmingRepositoryImplTest {
     private val builder = mockk<ExtrinsicBuilder>(relaxed = true)
     private var submitted = 0
     private val extrinsicService = mockk<ExtrinsicService> {
-        coEvery { estimateFee(any(), any<ByteArray>(), any(), any(), any(), any()) } returns BigInteger.TEN
+        coEvery { estimateFee(any(), any<ByteArray>(), any(), any(), any(), any()) } coAnswers {
+            arg<suspend ExtrinsicBuilder.() -> Unit>(5).invoke(builder)
+            BigInteger.TEN
+        }
         coEvery { submitExtrinsic(any(), any(), any(), any(), any(), any()) } coAnswers {
             submitted++
             arg<suspend ExtrinsicBuilder.() -> Unit>(5).invoke(builder)
@@ -160,6 +162,18 @@ class DemeterFarmingRepositoryImplTest {
     }
 
     @Test
+    fun `farms of unknown assets are skipped and an unweighted reward token emits nothing`() = runBlocking {
+        farms(farm(), farm(base = UNKNOWN_ID), farm(pool = UNKNOWN_ID))
+        rewardTokens(farmsMultiplier = BigInteger.ZERO)
+
+        val farm = repository.getAvailablePools(soraMainChainId).single()
+
+        assertEquals(valToken, farm.tokenTarget.token.configuration)
+        assertEquals(0.0, farm.apr, 0.0)
+        assertTrue(BigDecimal("120").compareTo(farm.tvl) == 0)
+    }
+
+    @Test
     fun `staking farms are valued by their pooled tokens`() = runBlocking {
         val staking = object : DemeterFarmingRepositoryImpl(
             node.chainRegistry, bulkRetriever, accountRepository, walletRepository, poolsRepository,
@@ -226,13 +240,16 @@ class DemeterFarmingRepositoryImplTest {
         val result = repository.deposit(soraMainChainId, basicPool(), BigDecimal("1.5"))
 
         assertEquals(TX_HASH, result.getOrThrow())
-        val args = slot<Map<String, Any?>>()
-        verify { builder.call(PALLET, "deposit", capture(args)) }
-        assertEquals(code(XOR_ID), args.captured["base_asset"])
-        assertEquals(code(VAL_ID), args.captured["pool_asset"])
-        assertEquals(code(PSWAP_ID), args.captured["reward_asset"])
-        assertEquals(true, args.captured["is_farm"])
-        assertEquals(BigInteger("1500000000000000000"), args.captured["pooled_tokens"])
+        // The fee is estimated on exactly the call that is then submitted.
+        val calls = mutableListOf<Map<String, Any?>>()
+        verify(exactly = 2) { builder.call(PALLET, "deposit", capture(calls)) }
+        assertEquals(calls[0], calls[1])
+        val args = calls.last()
+        assertEquals(code(XOR_ID), args["base_asset"])
+        assertEquals(code(VAL_ID), args["pool_asset"])
+        assertEquals(code(PSWAP_ID), args["reward_asset"])
+        assertEquals(true, args["is_farm"])
+        assertEquals(BigInteger("1500000000000000000"), args["pooled_tokens"])
         // Reward tokens are only read for the available-farm cache, which the submitted deposit invalidated.
         repository.getAvailablePools(soraMainChainId)
         coVerify(exactly = 2) { bulkRetriever.retrieveAllKeys(node.socket, SoraRuntime.prefix(PALLET, "TokenInfos"), any()) }
@@ -254,9 +271,9 @@ class DemeterFarmingRepositoryImplTest {
         authorize(xor, valToken, pswap)
 
         assertEquals(TX_HASH, repository.withdraw(soraMainChainId, farmedPool(), BigDecimal("5")).getOrThrow())
-        val args = slot<Map<String, Any?>>()
-        verify { builder.call(PALLET, "withdraw", capture(args)) }
-        assertEquals(BigInteger("5000000000000000000"), args.captured["pooled_tokens"])
+        val calls = mutableListOf<Map<String, Any?>>()
+        verify(exactly = 2) { builder.call(PALLET, "withdraw", capture(calls)) }
+        assertEquals(listOf(BigInteger("5000000000000000000"), BigInteger("5000000000000000000")), calls.map { it["pooled_tokens"] })
 
         val tooMuch = repository.withdraw(soraMainChainId, farmedPool(), BigDecimal("6"))
         assertEquals("Demeter position balance is insufficient for this withdrawal", tooMuch.exceptionOrNull()?.message)
@@ -321,11 +338,13 @@ class DemeterFarmingRepositoryImplTest {
     private fun farm(
         reward: String = PSWAP_ID,
         isFarm: Boolean = true,
-        isRemoved: Boolean = false
-    ) = reward to SoraRuntime.struct(
+        isRemoved: Boolean = false,
+        base: String = XOR_ID,
+        pool: String = VAL_ID
+    ) = (pool to reward) to SoraRuntime.struct(
         SoraRuntime.vecElement(PALLET, "Pools"),
         mapOf(
-            "baseAsset" to code(XOR_ID),
+            "baseAsset" to code(base),
             "multiplier" to BigInteger.ONE,
             "depositFee" to BigInteger("40000000000000000"),
             "isCore" to true,
@@ -337,21 +356,21 @@ class DemeterFarmingRepositoryImplTest {
         )
     )
 
-    private fun farms(vararg farms: Pair<String, Any>) {
+    private fun farms(vararg farms: Pair<Pair<String, String>, Any>) {
         bulkValues[SoraRuntime.prefix(PALLET, "Pools")] = farms.groupBy({ it.first }, { it.second })
-            .map { (reward, structs) ->
-                SoraRuntime.key(PALLET, "Pools", code(VAL_ID), code(reward)) to
+            .map { (key, structs) ->
+                SoraRuntime.key(PALLET, "Pools", code(key.first), code(key.second)) to
                     SoraRuntime.encodeValue(PALLET, "Pools", structs)
             }
             .toMap()
     }
 
-    private fun rewardTokens() {
+    private fun rewardTokens(farmsMultiplier: BigInteger = BigInteger.TWO) {
         val type = SoraRuntime.valueType(PALLET, "TokenInfos")
         val info = SoraRuntime.struct(
             type,
             mapOf(
-                "farmsTotalMultiplier" to BigInteger.TWO,
+                "farmsTotalMultiplier" to farmsMultiplier,
                 "stakingTotalMultiplier" to BigInteger.valueOf(4),
                 "tokenPerBlock" to BigInteger.TEN.pow(18),
                 "farmsAllocation" to BigInteger("600000000000000000"),

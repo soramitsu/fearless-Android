@@ -189,6 +189,22 @@ class LiquidityRemovePresenterTest {
     }
 
     @Test
+    fun `a pool without an account position offers nothing to withdraw`() = runTest {
+        coEvery { pools.getPoolData(XOR_ID, VAL_ID) } returns flowOf(pool.copy(user = null))
+        val (presenter, state) = presenter()
+
+        presenter.onRemoveBaseAmountChange(BigDecimal("50"))
+        settle()
+        presenter.onRemoveReviewClick()
+        settle()
+
+        assertAmount("0", state.value.baseAmountInputViewState.tokenAmount)
+        assertFalse(state.value.buttonEnabled)
+        verify(exactly = 0) { router.openRemoveLiquidityConfirmScreen(any(), any(), any(), any(), any(), any()) }
+        verify(exactly = 0) { router.openErrorsScreen(any(), any()) }
+    }
+
+    @Test
     fun `focus and information callbacks update the screen and router`() = runTest {
         val (presenter, state) = presenter()
 

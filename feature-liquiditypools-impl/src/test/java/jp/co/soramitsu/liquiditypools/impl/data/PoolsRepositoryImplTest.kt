@@ -293,12 +293,13 @@ class PoolsRepositoryImplTest {
     @Test
     fun `account pools refresh stores every pool position in one transaction`() = runBlocking {
         poolStorage(XOR_ID, VAL_ID)
+        poolStorage(XOR_ID, UNKNOWN_ID)
         node.keys[key(POOL_XYK, "AccountPools", USER_ACCOUNT)] = listOf(
             key(POOL_XYK, "AccountPools", USER_ACCOUNT, code(XOR_ID)),
             key(POOL_XYK, "AccountPools", USER_ACCOUNT, code(UNKNOWN_ID))
         )
         node.storage[key(POOL_XYK, "AccountPools", USER_ACCOUNT, code(XOR_ID))] =
-            encodeValue(POOL_XYK, "AccountPools", listOf(code(VAL_ID), code(PSWAP_ID)))
+            encodeValue(POOL_XYK, "AccountPools", listOf(code(VAL_ID), code(PSWAP_ID), code(UNKNOWN_ID)))
         node.storage[key(POOL_XYK, "AccountPools", USER_ACCOUNT, code(UNKNOWN_ID))] =
             encodeValue(POOL_XYK, "AccountPools", listOf(code(VAL_ID)))
         mockkStatic("androidx.room.RoomDatabaseKt")
@@ -313,7 +314,7 @@ class PoolsRepositoryImplTest {
         repository.updateAccountPools(soraMainChainId, USER_ADDRESS)
 
         coVerify { poolDao.clearTable(USER_ADDRESS) }
-        // XOR-PSWAP has no reserves on the node and the unknown base asset is not a chain asset.
+        // XOR-PSWAP has no reserves on the node; the unknown base and target assets are not chain assets.
         val stored = basic.captured.single()
         assertEquals(XOR_ID, stored.tokenIdBase)
         assertEquals(VAL_ID, stored.tokenIdTarget)

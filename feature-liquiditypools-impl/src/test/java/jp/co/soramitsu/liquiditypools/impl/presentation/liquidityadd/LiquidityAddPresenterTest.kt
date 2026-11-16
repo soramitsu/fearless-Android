@@ -1,6 +1,7 @@
 package jp.co.soramitsu.liquiditypools.impl.presentation.liquidityadd
 
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -109,6 +110,17 @@ class LiquidityAddPresenterTest {
         assertEquals(FEE.formatCryptoDetail("XOR"), value.feeInfo.feeAmount)
         assertEquals(BigDecimal("0.02").formatFiat("$"), value.feeInfo.feeAmountFiat)
         assertFalse("nothing entered yet", value.buttonEnabled)
+    }
+
+    @Test
+    fun `re-opening the same pool keeps the loaded balances`() = runTest {
+        val (_, state) = presenter()
+
+        routes.tryEmit(LiquidityPoolsNavGraphRoute.LiquidityAddScreen(StringPair(XOR_ID, VAL_ID)))
+        settle()
+
+        assertEquals("VAL", state.value.targetAmountInputViewState.tokenName)
+        coVerify(exactly = 1) { wallet.getCurrentAssetOrNull(soraMainChainId, "val") }
     }
 
     @Test
