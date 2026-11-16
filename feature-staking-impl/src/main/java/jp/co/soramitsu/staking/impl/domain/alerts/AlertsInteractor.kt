@@ -74,8 +74,13 @@ class AlertsInteractor(
                     context.stakingState.chain.id,
                     nominatorState.accountId
                 )?.targets.orEmpty()
+                // Account ids are compared by content: ByteArray `in` compares references and never matched.
+                val electedIds = context.exposures.keys.mapTo(mutableSetOf()) { it.fromHex().toHexString() }
+                val noneElected = myValidators.isNotEmpty() && myValidators.none { it.toHexString() in electedIds }
+                val isWaiting = nominatorState.nominations.isWaiting(context.activeEra)
 
-                return@requireState if (context.exposures.any { it.key.fromHex() in myValidators }) Alert.ChangeValidators else null
+                // "None of your validators have been elected": waiting nominations show the next-era alert instead.
+                return@requireState if (noneElected && !isWaiting) Alert.ChangeValidators else null
             }
 
             val allValidatorsAreOversubscribed = if (context.maxNominators == null) {
