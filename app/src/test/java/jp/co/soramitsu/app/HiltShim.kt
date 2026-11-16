@@ -1,5 +1,6 @@
 package jp.co.soramitsu.app
 
+import android.Manifest
 import android.app.Application
 import android.os.Bundle
 import android.os.Looper
@@ -7,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.components.ActivityComponent
+import dagger.hilt.android.flags.FragmentGetContextFix
 import dagger.hilt.android.components.ActivityRetainedComponent
 import dagger.hilt.android.components.FragmentComponent
 import dagger.hilt.android.components.ViewModelComponent
@@ -77,9 +79,15 @@ object HiltShim {
     }
 
     val singletonComponent: Any by lazy {
-        component(managerType("ActivityRetainedComponentBuilderEntryPoint")) { name, _ ->
-            if (name == "retainedComponentBuilder") builder(ActivityRetainedComponentBuilder::class.java) { retainedComponent() }
-            else unsupported(name)
+        component(
+            managerType("ActivityRetainedComponentBuilderEntryPoint"),
+            FragmentGetContextFix.FragmentGetContextFixEntryPoint::class.java
+        ) { name, _ ->
+            when (name) {
+                "retainedComponentBuilder" -> builder(ActivityRetainedComponentBuilder::class.java) { retainedComponent() }
+                "getDisableFragmentGetContextFix" -> emptySet<Boolean>()
+                else -> unsupported(name)
+            }
         }
     }
 
@@ -195,6 +203,12 @@ object HiltShim {
 /** Application whose singleton component is [HiltShim]: Hilt activities and fragments resolve their shim components. */
 class HiltShimApplication : Application(), GeneratedComponentManager<Any> {
     override fun generatedComponent(): Any = HiltShim.singletonComponent
+
+    override fun onCreate() {
+        super.onCreate()
+        // Declared in the app manifest; wallet windows hide other apps' overlays as soon as they are created.
+        shadowOf(this).grantPermissions(Manifest.permission.HIDE_OVERLAY_WINDOWS)
+    }
 }
 
 /** A Hilt-compatible host for `@AndroidEntryPoint` fragments under test. */
