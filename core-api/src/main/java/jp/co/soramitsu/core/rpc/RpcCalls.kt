@@ -114,8 +114,10 @@ class RpcCalls(
     )
 
     fun extrinsicStatusFlow(chainId: String, extrinsic: String): Flow<SubscriptionChange> {
+        // Named explicitly: the default subscribe* -> unsubscribe* rule rejects author_submitAndWatchExtrinsic.
         return chainRegistry.getConnection(chainId).socketService.subscriptionFlow(
-            SubmitAndWatchExtrinsicRequest(extrinsic)
+            SubmitAndWatchExtrinsicRequest(extrinsic),
+            unsubscribeMethod = UNWATCH_EXTRINSIC_METHOD
         )
     }
 }
@@ -132,6 +134,8 @@ private data class RpcRuntimeIdentityResponse(
     val specVersion: Int? = null,
     val transactionVersion: Int? = null
 )
+
+private const val UNWATCH_EXTRINSIC_METHOD = "author_unwatchExtrinsic"
 
 private class AccountNextIndexRequest(accountAddress: String) : RuntimeRequest(
     method = "system_accountNextIndex",
