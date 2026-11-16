@@ -12,6 +12,9 @@ import io.mockk.slot
 import io.mockk.verify
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.feature_polkaswap_impl.R
+import jp.co.soramitsu.polkaswap.api.domain.InsufficientLiquidityException
+import jp.co.soramitsu.polkaswap.api.domain.PathUnavailableException
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
 import jp.co.soramitsu.polkaswap.api.domain.models.SwapDetails
 import jp.co.soramitsu.polkaswap.api.models.Market
@@ -234,5 +237,119 @@ class SwapTokensViewModelTest {
         assertFalse(vm.state.value.hasReadDisclaimer)
         vm.onBackClick(); vm.onPoolsClick(); vm.onDisclaimerClick()
         verify { router.back(); router.openPools(); router.openPolkaswapDisclaimerFromSwapTokensFragment() }
+    }
+
+    @Test fun unreadDisclaimerIsOpenedBeforeSwapping() = runTest(dispatcher) {
+        every { interactor.hasReadDisclaimer } returns false
+
+        model(withAssets = true); runCurrent()
+
+        verify(exactly = 1) { router.openPolkaswapDisclaimerFromSwapTokensFragment() }
+    }
+
+    @Test fun pairWithoutARouteRequestsNoQuote() = runTest(dispatcher) {
+        coEvery { interactor.getAvailableDexesForPair(any(), any(), any()) } returns emptyList()
+
+        runCurrent(); enterFromAmount()
+
+        coVerify(exactly = 0) { interactor.fetchAvailableSources(any(), any(), any()) }
+        coVerify(exactly = 0) { interactor.calcDetails(any(), any(), any(), any(), any(), any(), any()) }
+        assertNull(vm.state.value.swapDetailsViewState)
+    }
+
+    @Test fun marketsTheRouteDoesNotOfferAreNotQuoted() = runTest(dispatcher) {
+        every { interactor.availableMarkets } returns mutableMapOf(0 to listOf(Market.SMART))
+        runCurrent(); enterFromAmount()
+
+        settings.emit(TransactionSettingsModel(Market.XYK, 0.5)); runCurrent()
+
+        coVerify(exactly = 0) { interactor.calcDetails(any(), any(), any(), any(), any(), any(), Market.XYK) }
+        assertNull(vm.state.value.swapDetailsViewState)
+    }
+
+    @Test fun unavailableSelectedMarketFallsBackToSmartWhenTheRouteChanges() = runTest(dispatcher) {
+        runCurrent()
+        settings.emit(TransactionSettingsModel(Market.XYK, 0.5)); runCurrent()
+        assertEquals(Market.XYK, vm.state.value.selectedMarket)
+        coEvery { interactor.fetchAvailableSources(any(), any(), any()) } returns setOf(Market.SMART, Market.TBC)
+
+        vm.onChangeTokensClick(); runCurrent()
+
+        assertEquals(Market.SMART, vm.state.value.selectedMarket)
+    }
+
+    @Test fun exactOutputPreviewCarriesTheTargetAmountAndSoldLimit() = runTest(dispatcher) {
+        runCurrent()
+        vm.onToAmountFocusChange(true); runCurrent()
+        vm.onToAmountChange(BigDecimal("3")); runCurrent()
+        val parcel = slot<SwapDetailsParcelModel>()
+        every { router.openSwapPreviewForResult(any(), capture(parcel)) } returns previewResult
+
+        vm.onPreviewClick(); runCurrent()
+
+        assertEquals(WithDesired.OUTPUT, parcel.captured.desired)
+        assertEquals(BigInteger("300"), parcel.captured.amount)
+        assertEquals(BigInteger("700"), parcel.captured.minMax)
+    }
+
+    @Test fun minimumReceivedTooltipNeedsADirection() = runTest(dispatcher) {
+        runCurrent()
+        vm.minMaxToolTopClick()
+        assertNull(vm.showTooltipEvent.value)
+
+        enterFromAmount()
+        vm.minMaxToolTopClick()
+
+        assertEquals(
+            "string:${R.string.polkaswap_minimum_received_title}" to "string:${R.string.polkaswap_minimum_received_info}",
+            vm.showTooltipEvent.value?.peekContent()
+        )
+    }
+
+    @Test fun failingAssetLookupIsReported() = runTest(dispatcher) {
+        coEvery { interactor.getAsset("gone") } throws IllegalStateException("asset is gone")
+        runCurrent()
+
+        vm.onFromTokenSelect(); runCurrent()
+        assetSelection.emit("gone"); runCurrent()
+
+        assertEquals("asset is gone", vm.errorLiveData.value?.peekContent())
+    }
+
+    @Test fun missingTargetAssetOpensTheTargetPicker() = runTest(dispatcher) {
+        val handle = SavedStateHandle(
+            mapOf(SwapTokensFragment.KEY_SELECTED_CHAIN_ID to "sora", SwapTokensFragment.KEY_SELECTED_ASSET_FROM_ID to "xor")
+        )
+        val onlySource = SwapTokensViewModel(resources, interactor, router, quickInputs, handle).also { models += it }
+        runCurrent()
+
+        onlySource.marketAlertConfirmed()
+
+        verify { router.openSelectAsset("sora", null, "xor", AssetSelectPurpose.SWAP_TO) }
+    }
+
+    @Test fun quoteFailuresAreExplained() = runTest(dispatcher) {
+        coEvery { interactor.calcDetails(any(), any(), any(), any(), any(), any(), any()) } returns
+            Result.failure(InsufficientLiquidityException())
+        runCurrent(); enterFromAmount()
+        assertEquals(
+            "string:${R.string.common_error_general_title}" to "string:${R.string.polkaswap_insufficient_liqudity}",
+            vm.errorWithTitleLiveData.value?.peekContent()
+        )
+
+        coEvery { interactor.calcDetails(any(), any(), any(), any(), any(), any(), any()) } returns Result.failure(PathUnavailableException())
+        vm.onFromAmountChange(BigDecimal("3")); runCurrent()
+        assertEquals(
+            "string:${R.string.common_error_general_title}" to "string:${R.string.polkaswap_path_unavailable_message}",
+            vm.errorWithTitleLiveData.value?.peekContent()
+        )
+    }
+
+    @Test fun quoteErrorsThrownByTheInteractorAreShown() = runTest(dispatcher) {
+        coEvery { interactor.calcDetails(any(), any(), any(), any(), any(), any(), any()) } throws IllegalStateException("quote node is down")
+
+        runCurrent(); enterFromAmount()
+
+        assertEquals("quote node is down", vm.errorLiveData.value?.peekContent())
     }
 }

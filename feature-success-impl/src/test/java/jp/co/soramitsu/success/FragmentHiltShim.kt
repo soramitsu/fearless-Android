@@ -48,11 +48,23 @@ object FragmentHiltShim {
     /** Starts a host activity; [reset] destroys it, so no composition outlives its test. */
     fun launchHost(): ShimHostActivity = Robolectric.buildActivity(ShimHostActivity::class.java).setup().also { hosts += it }.get()
 
+    /**
+     * Destroys the hosts and drains the main looper. Robolectric drops queued main-looper work between tests, and a
+     * dropped Compose UI dispatch would leave every later Compose test of this JVM waiting for idleness.
+     */
     fun reset() {
         viewModels.clear()
         hosts.forEach { controller -> runCatching { controller.pause().stop().destroy() } }
         hosts.clear()
+        repeat(DRAIN_ROUNDS) {
+            shadowOf(Looper.getMainLooper()).idle()
+            Thread.sleep(DRAIN_PAUSE_MS)
+        }
+        shadowOf(Looper.getMainLooper()).idle()
     }
+
+    private const val DRAIN_ROUNDS = 5
+    private const val DRAIN_PAUSE_MS = 20L
 
     /** The application component: Hilt fragments only read the getContext() fix flag from it. */
     val applicationComponent: Any by lazy {

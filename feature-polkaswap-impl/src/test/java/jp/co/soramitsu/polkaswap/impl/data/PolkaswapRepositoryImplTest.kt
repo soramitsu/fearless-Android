@@ -6,6 +6,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.network.config.AvailableDexId
@@ -21,6 +22,7 @@ import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.core.runtime.models.responses.QuoteResponse
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
 import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadata
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.RuntimeRequest
@@ -309,6 +311,62 @@ class PolkaswapRepositoryImplTest {
             Result.failure(IllegalStateException("1010: Invalid Transaction"))
 
         assertEquals("1010: Invalid Transaction", swap().exceptionOrNull()?.message)
+    }
+
+    private suspend fun swapBetween(inputId: String, outputId: String) =
+        repository.swap(soraMainChainId, 0, inputId, outputId, BigInteger.valueOf(100), BigInteger.valueOf(90), "Disabled", emptyList(), WithDesired.INPUT)
+
+    @Test fun feeEstimateAndSubmissionBuildTheSameLiquidityProxySwap() = runTest {
+        prepareSwap(SocketStateMachine.State.Disconnected)
+        val estimated = slot<suspend ExtrinsicBuilder.() -> Unit>()
+        val submitted = slot<suspend ExtrinsicBuilder.() -> Unit>()
+        coEvery { extrinsicService.estimateFee(chain, any(), any(), any(), any(), capture(estimated)) } returns BigInteger.TEN
+        coEvery { extrinsicService.submitExtrinsic(chain, any(), any(), any(), any(), capture(submitted)) } returns Result.success("0xhash")
+
+        swap().getOrThrow()
+
+        val builder = mockk<ExtrinsicBuilder>(relaxed = true)
+        estimated.captured.invoke(builder)
+        submitted.captured.invoke(builder)
+        verify(exactly = 2) { builder.call("LiquidityProxy", "swap", match { it["dex_id"] == BigInteger.ZERO }) }
+    }
+
+    @Test fun reviewFeeEstimateBuildsTheSwapCall() = runTest {
+        val estimated = slot<suspend ExtrinsicBuilder.() -> Unit>()
+        coEvery { accountRepository.getSelectedMetaAccount() } returns metaAccount()
+        coEvery { extrinsicService.estimateFee(chain, accountId, any(), any(), any(), capture(estimated)) } returns BigInteger.ONE
+
+        repository.estimateSwapFee(soraMainChainId, 3, INPUT_ID, OUTPUT_ID, BigInteger.TEN, BigInteger.ONE, "Disabled", emptyList(), WithDesired.OUTPUT)
+
+        val builder = mockk<ExtrinsicBuilder>(relaxed = true)
+        estimated.captured.invoke(builder)
+        verify { builder.call("LiquidityProxy", "swap", match { it["dex_id"] == BigInteger.valueOf(3) }) }
+    }
+
+    @Test fun blankOrUnregisteredAssetsAreRefused() = runTest {
+        prepareSwap(SocketStateMachine.State.Disconnected)
+
+        assertEquals("Swap assets must have exact registered currency ids", swapBetween(" ", OUTPUT_ID).exceptionOrNull()?.message)
+        assertEquals("Output currency id is not uniquely registered on SORA", swapBetween(INPUT_ID, "0x09").exceptionOrNull()?.message)
+        coVerify(exactly = 0) { extrinsicService.submitExtrinsic(any(), any(), any(), any(), any(), any()) }
+    }
+
+    @Test fun unreadableBalancesAreRefused() = runTest {
+        prepareSwap(SocketStateMachine.State.Disconnected)
+        coEvery { walletRepository.getAsset(META_ID, any(), input, null) } returns null
+        assertEquals("Input asset balance is unavailable", swap().exceptionOrNull()?.message)
+
+        prepareSwap(SocketStateMachine.State.Disconnected)
+        coEvery { walletRepository.getAsset(META_ID, any(), xor, null) } returns null
+        assertEquals("XOR fee balance is unavailable", swap().exceptionOrNull()?.message)
+        coVerify(exactly = 0) { extrinsicService.submitExtrinsic(any(), any(), any(), any(), any(), any()) }
+    }
+
+    @Test fun connectionToAnotherChainIsRefused() = runTest {
+        prepareSwap(SocketStateMachine.State.Disconnected)
+        every { connection.chain } returns mockk<Chain> { every { id } returns "another-chain" }
+
+        assertEquals("Resolved SORA connection identity does not match the request", swap().exceptionOrNull()?.message)
     }
 
     private companion object {

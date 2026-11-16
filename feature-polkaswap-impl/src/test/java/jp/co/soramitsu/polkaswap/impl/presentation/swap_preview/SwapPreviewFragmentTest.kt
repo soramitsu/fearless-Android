@@ -3,7 +3,9 @@ package jp.co.soramitsu.polkaswap.impl.presentation.swap_preview
 import android.app.Activity
 import android.content.Context
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
 import io.mockk.mockk
 import io.mockk.verify
@@ -47,7 +49,7 @@ class SwapPreviewFragmentTest {
         TransferSeal.clear()
     }
 
-    @Test fun previewShowsTheQuoteFromItsArgumentsAndBackCancels() {
+    @Test fun previewShowsTheQuoteFromItsArgumentsAndTheArrowCancelsOnce() {
         FragmentHiltShim.viewModel(SwapPreviewViewModel::class) { handle -> SwapPreviewViewModel(router, mockk(), handle) }
         val host = launchHost()
         val fragment = SwapPreviewFragment().apply { arguments = SwapPreviewFragment.getBundle(details, parcel) }
@@ -57,9 +59,23 @@ class SwapPreviewFragmentTest {
         compose.onNodeWithText("7.5 VAL").assertExists()
         compose.onNodeWithText(context.getString(R.string.common_confirm)).assertExists()
 
+        compose.onNodeWithContentDescription(context.getString(R.string.ux_back)).performClick()
+        host.onBackPressedDispatcher.onBackPressed()
+
+        // The arrow closes the preview once; a following system Back does not answer twice.
+        verify(exactly = 1) { router.backWithResult(SwapPreviewFragment.KEY_SWAP_DETAILS_RESULT to Activity.RESULT_CANCELED) }
+        assertTrue(fragment.viewModel.isClosing)
+    }
+
+    @Test fun systemBackCancelsThePreview() {
+        FragmentHiltShim.viewModel(SwapPreviewViewModel::class) { handle -> SwapPreviewViewModel(router, mockk(), handle) }
+        val host = launchHost()
+        val fragment = SwapPreviewFragment().apply { arguments = SwapPreviewFragment.getBundle(details, parcel) }
+        host.supportFragmentManager.beginTransaction().add(android.R.id.content, fragment).commitNow()
+        idleMainUntil { fragment.view != null }
+
         host.onBackPressedDispatcher.onBackPressed()
 
         verify(exactly = 1) { router.backWithResult(SwapPreviewFragment.KEY_SWAP_DETAILS_RESULT to Activity.RESULT_CANCELED) }
-        assertTrue(fragment.viewModel.isClosing)
     }
 }

@@ -161,4 +161,20 @@ class SwapTokensContentTest {
         compose.onNodeWithText("To title").assertIsDisplayed()
         compose.onNodeWithText(context.getString(R.string.polkaswap_disclaimer_message)).assertIsDisplayed()
     }
+
+    @Test fun swappingDirectionMovesFocusToTheOtherAmount() {
+        val fromFocused = base.copy(fromAmountInputViewState = base.fromAmountInputViewState.copy(isFocused = true))
+        val state = mutableStateOf(fromFocused)
+        compose.setContent { FearlessAppTheme { SwapTokensContent(state.value, callbacks, Modifier.fillMaxSize()) } }
+
+        compose.onNodeWithContentDescription(context.getString(R.string.ux_swap_direction)).performClick()
+        compose.runOnIdle { verify { callbacks.onToAmountFocusChange(true) } }
+
+        compose.runOnIdle {
+            state.value = base.copy(toAmountInputViewState = base.toAmountInputViewState.copy(isFocused = true))
+        }
+        compose.onNodeWithContentDescription(context.getString(R.string.ux_swap_direction)).performClick()
+        compose.runOnIdle { verify { callbacks.onFromAmountFocusChange(true) } }
+        verify(exactly = 2) { callbacks.onChangeTokensClick() }
+    }
 }
