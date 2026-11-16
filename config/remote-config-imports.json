@@ -56,7 +56,7 @@
       "commit": "ca1c2655ff541ae5942d820423962d34fd29d7f9",
       "sourcePath": "chains/v13/chains.json",
       "upstreamSha256": "79a583f08f71139a31e00c825c746891cef50c04aa81318aaa492807757b9cec",
-      "ownedSha256": "042fe5fdf3e53a0a011d830ddfe6262670af784126bb7da69f0f189863bb2f51"
+      "ownedSha256": "18491e5290129d10785b613f6de94ac143e716870588688bdbb3342d2fbb89c0"
     },
     {
       "path": "production/fiat/fiats.json",
@@ -4344,7 +4344,7 @@
       "commit": "f2ed4ccf1d3a6376b60ebd69d823a3f7748ddc4b",
       "sourcePath": "chains/v13/chains_dev_prod.json",
       "upstreamSha256": "8c7f01cd1ee0866df13ac3faa1315007361c96ce067cc062aea2d6e48ccc3235",
-      "ownedSha256": "d1f7e4b17e4f00676090359baa648f57d7d98423459e2a2ec664f68d8b76da8b"
+      "ownedSha256": "dc315126c103e4bfeec9708f8c4e235886b490b585a8274f600189f76b95cf53"
     },
     {
       "path": "development/fiat/fiats.json",
@@ -5175,6 +5175,7 @@
     "Remove history and staking indexers that cannot answer: *.squid.tachi.soramitsu.co.jp (lame delegation), SubQuery hosted projects (HTTP 404), Subsquid gs-main squids (HTTP 404), Klaytnscope Baobab (NXDOMAIN); affected networks show history as unsupported.",
     "Remove nodes without DNS or with a certificate for another host, discontinued BlockPI public endpoints, Blast API, a personal QuickNode endpoint at its daily limit and Avail endpoints that now require auth; Kaia Kairos uses public-en-kairos.node.kaia.io, Atleta Olympia uses the standard TLS port of its host, and the development lists' Sepolia, BNB Smart Chain Testnet and Polygon use PublicNode (each checked with eth_chainId).",
     "remote-config/production/chains/v13/chains.json, remote-config/development/chains/v13/chains_dev_prod.json and remote-config/development/chains/v13/chains_dev.json: mark the native DOT of Polkadot AssetHub and the native KSM of Kusama AssetHub with \"staking\": \"assetHub\", which turns on 4.3.1's Asset Hub staking and nomination pools. Builds before 4.3.1 map that unknown value to unsupported and read no pool option on these networks, so they keep staking off there; deleting the value turns 4.3.1's Hub staking off again. No staking indexer is added: on 2026-10-30 the Polkadot (squid.subsquid.io fearless-polkadot v3) and Kusama (fearless-kusama-2 v4) squids followed the relays only, with no reward newer than 2025-11-04 (era 8671) and 2025-10-07 (era 8560), so 4.3.1 reads pending Hub payouts on chain and shows no reward history there.",
-    "remote-config/remote-config-manifest.json (2026-11-07): an Ed25519-signed list of every configuration file under remote-config/ (all but images) with its SHA-256, sequence 1, key id 292d0fd4c8376d1f (config/remote-config-signing-key.json). 4.3.2+ apps use a fetched file only when the newest signed manifest lists it; it is not an import and has no provenance entry. Re-sign it after every configuration change (scripts/sign-remote-config.py sign, docs/security/remote-config-signing.md)."
+    "remote-config/remote-config-manifest.json (2026-11-07): an Ed25519-signed list of every configuration file under remote-config/ (all but images) with its SHA-256, sequence 1, key id 292d0fd4c8376d1f (config/remote-config-signing-key.json). 4.3.2+ apps use a fetched file only when the newest signed manifest lists it; it is not an import and has no provenance entry. Re-sign it after every configuration change (scripts/sign-remote-config.py sign, docs/security/remote-config-signing.md).",
+    "remote-config/production/chains/v13/chains.json and remote-config/development/chains/v13/chains_dev_prod.json (2026-11-16): give Liberland a second node, wss://liberland-rpc.n.dwellir.com (\"Dwellir node\", after wss://mainnet.liberland.org), the n.dwellir.com host that returned the network's genesis 0x6bd89e052d67a45bb60a9a23e8581053d5e0d619f15cb9865946937e690c42d6 on 2026-11-16, not syncing, with 10 peers and a WebSocket upgrade. Liberland's only node refused connections on 9 November. Only Liberland's node list changes."
   ]
 }
