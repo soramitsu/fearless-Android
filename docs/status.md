@@ -2,6 +2,27 @@
 
 # Status Summary
 
+## The wallet home is one searchable token list — 16 November 2026
+
+Branch `claude/android-wallet-one-list-20261116` (from `ab3fad03f`), the Android port of the web one list (Chrome
+4.2.9) onto the sun-lit, branded home. UI and presentation only.
+
+- The By token / By network switch is gone. A search field ("Search tokens and networks") is always above the list: it
+  matches token symbol, token name and network name, and narrows exact (network, asset) holdings before they are
+  grouped, so a group's total counts only the networks that matched.
+- Under it, network chips: All networks, a Popular or Favorites group while one filters the list (it reopens the full
+  network list), every network the wallet holds something on (largest trusted value first; a selected network that
+  holds nothing keeps its chip), and More networks. A chip is the header's network filter, saved per wallet; picking it
+  again shows every network. A wallet held to one network (TON-only) gets no chips, like the header.
+- Zero balances stay behind their toggle until a search finds them; then they are listed without the toggle. Hidden
+  assets stay out of the list, and the totals and "what the total leaves out" stay wallet-wide.
+- A search that finds nothing on a chosen network offers "Search all networks" (the words are kept).
+- A wallet that kept By network sees "All your assets in one list" once; closing it makes the token list its own.
+  Manage assets no longer groups by network either.
+- Tests: `PortfolioDiscoveryTest`, builder, preferences, `BalanceListViewModelTests`, Manage assets, row-key collision
+  test with search, Robolectric `WalletOneListRobolectricTest` and `WalletOneListScreenshotTest` (PNG captures).
+  Evidence: `build/reports/android-wallet-one-list-20261116/` in the workspace.
+
 ## SORA pools and swap bugs found by the coverage campaign, fixed — 16 November 2026
 
 Branch `claude/android-bugfix-batch2-20261116` (from `9cc061b3d`, batch 1): one commit per bug, each with a JVM test

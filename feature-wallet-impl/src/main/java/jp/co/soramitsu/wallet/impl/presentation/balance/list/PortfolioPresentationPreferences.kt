@@ -33,9 +33,11 @@ class PortfolioPresentationPreferences @Inject constructor(
         observeLens(metaId), observeSet(expandedGroupsKey(metaId)), observeSet(collapsedNetworksKey(metaId)),
         observeSet(expandedZeroGroupsKey(metaId)), observeString(zeroSummaryKey(metaId)), observeString(VALUE_NOTICE_KEY)
     ) { values ->
+        // The home is one token list; a saved By network only asks for the one-time note until it is dismissed.
         @Suppress("UNCHECKED_CAST")
-        PortfolioUiState(values[0] as PortfolioLens, values[1] as Set<String>, values[2] as Set<String>,
-            values[3] as Set<String>, values[4] == "true", values[5] == "true")
+        PortfolioUiState(PortfolioLens.ByToken, values[1] as Set<String>, values[2] as Set<String>,
+            values[3] as Set<String>, values[4] == "true", values[5] == "true",
+            showOneListNotice = values[0] == PortfolioLens.ByNetwork)
     }
 
     fun toggleGroup(metaId: Long, id: String) = toggle(expandedGroupsKey(metaId), id)

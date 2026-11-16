@@ -77,6 +77,9 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.list.PortfolioPresentati
 import jp.co.soramitsu.wallet.impl.presentation.bundledPortfolioVisibility
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.WalletAssetsState
+import jp.co.soramitsu.wallet.impl.presentation.balance.list.isNetworkSelectionAllowed
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonMainnetChainId
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -860,21 +863,168 @@ class BalanceListViewModelTests {
     }
 
     @Test
-    fun `portfolio lens is saved only for the displayed wallet and restored when the wallet changes`() = runTest {
+    fun `one-list note shows once for a wallet that kept By network, and closing it is per wallet`() = runTest {
         val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
         val chains = listOf(portfolioChain(POLKADOT_CHAIN_ID, rank = 8, dot))
         val rows = listOf(portfolioRow(dot, free = BigInteger.TEN, enabled = null))
+        val preferences = PortfolioPresentationPreferences(portfolioPreferencesStore)
         val byNetwork = jp.co.soramitsu.wallet.impl.presentation.balance.list.PortfolioLens.ByNetwork
         val byToken = jp.co.soramitsu.wallet.impl.presentation.balance.list.PortfolioLens.ByToken
-        assertEquals(byToken, loadedPortfolio(chains, rows).portfolioUi.lens)
-        portfolioViewModel.onPortfolioLensChanged(byNetwork)
+        preferences.setLens(WALLET_ID, byNetwork)
+
+        val kept = loadedPortfolio(chains, rows)
+        assertTrue(kept.portfolioUi.showOneListNotice)
+        assertEquals("the list is the token list all the same", byToken, kept.portfolioUi.lens)
+        assertTrue(kept.portfolioItems.none { it is PortfolioListItem.NetworkHeader })
+        assertFalse(loadedPortfolio(chains, rows, walletId = WALLET_ID + 1).portfolioUi.showOneListNotice)
+        portfolioViewModel.onPortfolioLayoutNoticeDismiss()
         advanceUntilIdle()
-        assertEquals(byNetwork, loadedPortfolio(chains, rows).portfolioUi.lens)
+        assertTrue("another wallet's Got it leaves this wallet's note", loadedPortfolio(chains, rows).portfolioUi.showOneListNotice)
+
+        portfolioViewModel.onPortfolioLayoutNoticeDismiss()
+        advanceUntilIdle()
+        assertFalse(loadedPortfolio(chains, rows).portfolioUi.showOneListNotice)
+        assertEquals(byToken, preferences.observeLens(WALLET_ID).first())
+    }
+
+    @Test
+    fun `home search narrows rows by symbol, name and network and lists the zero balances it finds`() = runTest {
+        val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
+        val ksm = portfolioAsset(KSM_ASSET_ID, "KSM", KUSAMA_CHAIN_ID, isUtility = true, priceId = "kusama")
+        val hidden = portfolioAsset("hidden-token", "HID", POLKADOT_CHAIN_ID, priceId = "hidden")
+        val chains = listOf(portfolioChain(POLKADOT_CHAIN_ID, rank = 8, dot, hidden), portfolioChain(KUSAMA_CHAIN_ID, rank = 9, ksm))
+        val rows = listOf(
+            portfolioRow(dot, free = BigInteger.TEN, enabled = null, rate = "5"),
+            portfolioRow(ksm, free = BigInteger.ZERO, enabled = null),
+            portfolioRow(hidden, free = BigInteger.valueOf(3), enabled = false, rate = "1")
+        )
+        val all = loadedPortfolio(chains, rows)
+        assertEquals("", all.searchQuery)
+        assertTrue("the zero balance waits behind its toggle", all.portfolioItems.any { it is PortfolioListItem.ZeroSummary })
+        assertEquals(listOf(DOT_ASSET_ID), all.portfolioItems.filterIsInstance<PortfolioListItem.AssetRow>().map { it.asset.state.chainAssetId })
+
+        fun searched(query: String): AssetsLoadingState.Loaded {
+            portfolioViewModel.onPortfolioSearch(query)
+            advanceUntilIdle()
+            return (portfolioViewModel.state.value.assetsState as WalletAssetsState.Assets).assets as AssetsLoadingState.Loaded
+        }
+
+        val bySymbol = searched("ksm")
+        assertEquals("ksm", bySymbol.searchQuery)
+        assertEquals(listOf(KSM_ASSET_ID), bySymbol.assets.map { it.chainAssetId })
+        assertEquals(listOf(KSM_ASSET_ID), bySymbol.portfolioItems.filterIsInstance<PortfolioListItem.AssetRow>().map { it.asset.state.chainAssetId })
+        assertTrue("a search lists zero balances without a toggle", bySymbol.portfolioItems.none { it is PortfolioListItem.ZeroSummary })
+        assertEquals(listOf(DOT_ASSET_ID), searched(" Dot ").assets.map { it.chainAssetId })
+        assertEquals("network name", listOf(KSM_ASSET_ID), searched(KUSAMA_CHAIN_ID.take(12)).assets.map { it.chainAssetId })
+        assertEquals("a hidden asset stays hidden", 0, searched("hid").assets.size)
+        val nothing = searched("missing")
+        assertTrue(nothing.assets.isEmpty())
+        assertTrue("never called an empty wallet", nothing.portfolioItems.isEmpty())
+        assertEquals("the totals and exclusions stay wallet-wide", 1, nothing.exclusions.hiddenFundedCount)
+        assertEquals(2, searched("  ").assets.size)
+    }
+
+    @Test
+    fun `network chips list funded networks and set the wallet's saved network filter`() = runTest {
+        every { walletRouter.openSelectChain(any(), isFilteringEnabled = true) } just runs
+        coEvery { walletInteractor.saveChainSelectFilter(any(), any()) } just runs
+        val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
+        val ksm = portfolioAsset(KSM_ASSET_ID, "KSM", KUSAMA_CHAIN_ID, isUtility = true, priceId = "kusama")
+        val token = portfolioAsset("token-utility", "TKN", TOKEN_CHAIN_ID, isUtility = true, priceId = "token")
+        val chains = listOf(
+            portfolioChain(POLKADOT_CHAIN_ID, rank = 8, dot),
+            portfolioChain(KUSAMA_CHAIN_ID, rank = 9, ksm),
+            portfolioChain(TOKEN_CHAIN_ID, rank = null, token)
+        )
+        val rows = listOf(
+            portfolioRow(dot, free = BigInteger.TEN, enabled = null, rate = "5"),
+            portfolioRow(ksm, free = BigInteger.ONE, enabled = null, rate = "100"),
+            portfolioRow(token, free = BigInteger.ZERO, enabled = true)
+        )
+        val loaded = loadedPortfolio(chains, rows)
+        assertEquals(listOf(KUSAMA_CHAIN_ID, POLKADOT_CHAIN_ID), loaded.networkOptions.map { it.id })
+        assertEquals(KUSAMA_CHAIN_ID, loaded.networkOptions.first().name)
+        assertTrue(loaded.networkFilterAvailable)
+        assertNull(loaded.networkGroup)
+        assertFalse(loaded.isNetworkFiltered)
+
+        portfolioViewModel.onPortfolioSearch("dot")
+        portfolioViewModel.onPortfolioNetworkSelect(POLKADOT_CHAIN_ID)
+        advanceUntilIdle()
+        coVerify { walletInteractor.saveChainSelectFilter(WALLET_ID, "All") }
+        verify { walletInteractor.saveChainId(WALLET_ID, POLKADOT_CHAIN_ID) }
+        val filtered = (portfolioViewModel.state.value.assetsState as WalletAssetsState.Assets).assets as AssetsLoadingState.Loaded
+        assertEquals(POLKADOT_CHAIN_ID, filtered.selectedNetwork)
+        assertEquals("the search is kept", "dot", filtered.searchQuery)
+        assertEquals(listOf(DOT_ASSET_ID), filtered.assets.map { it.chainAssetId })
+        assertEquals("chips stay wallet-wide", listOf(KUSAMA_CHAIN_ID, POLKADOT_CHAIN_ID), filtered.networkOptions.map { it.id })
+
+        portfolioViewModel.onPortfolioNetworkSelect(POLKADOT_CHAIN_ID)
+        advanceUntilIdle()
+        verify { walletInteractor.saveChainId(WALLET_ID, null) }
+        assertNull(((portfolioViewModel.state.value.assetsState as WalletAssetsState.Assets).assets as AssetsLoadingState.Loaded).selectedNetwork)
+
+        portfolioViewModel.onPortfolioMoreNetworks()
+        verify { walletRouter.openSelectChain(null, isFilteringEnabled = true) }
+    }
+
+    @Test
+    fun `a selected network that holds nothing keeps its chip and a group keeps its own`() = runTest {
+        val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
+        val token = portfolioAsset("token-utility", "TKN", TOKEN_CHAIN_ID, isUtility = true, priceId = "token")
+        val chains = listOf(portfolioChain(POLKADOT_CHAIN_ID, rank = 8, dot), portfolioChain(TOKEN_CHAIN_ID, rank = null, token))
+        val rows = listOf(portfolioRow(dot, free = BigInteger.TEN, enabled = null, rate = "5"), portfolioRow(token, free = BigInteger.ZERO, enabled = null))
+
+        val onEmpty = loadedPortfolio(chains, rows, selectedChainId = TOKEN_CHAIN_ID)
+        assertEquals(listOf(TOKEN_CHAIN_ID, POLKADOT_CHAIN_ID), onEmpty.networkOptions.map { it.id })
+        assertTrue(onEmpty.isNetworkFiltered)
+        assertNull("a network replaces any group", onEmpty.networkGroup)
+
+        every { walletInteractor.observeSelectedAccountChainSelectFilter() } returns flowOf(ChainSelectorViewStateWithFilters.Filter.Favorite)
+        val favourites = loadedPortfolio(chains, rows)
+        assertEquals(ChainSelectorViewStateWithFilters.Filter.Favorite, favourites.networkGroup)
+        assertTrue(favourites.isNetworkFiltered)
+        assertEquals(listOf(POLKADOT_CHAIN_ID), favourites.networkOptions.map { it.id })
+    }
+
+    @Test
+    fun `chips follow the header's rule and stay off where the wallet is held to one network`() {
+        assertTrue(isNetworkSelectionAllowed(null, 2))
+        assertTrue(isNetworkSelectionAllowed(POLKADOT_CHAIN_ID, 1))
+        assertFalse(isNetworkSelectionAllowed(null, 1))
+        assertFalse(isNetworkSelectionAllowed(tonMainnetChainId, 5))
+    }
+
+    @Test
+    fun `the home search starts empty for another wallet`() = runTest {
+        val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
+        val chains = listOf(portfolioChain(POLKADOT_CHAIN_ID, rank = 8, dot))
         val other = WALLET_ID + 1
-        assertEquals(byToken, loadedPortfolio(chains, rows, walletId = other).portfolioUi.lens)
-        portfolioViewModel.onPortfolioLensChanged(byToken)
+        val light = MutableStateFlow(createLightMetaAccount(WALLET_ID))
+        val meta = MutableStateFlow(createMetaAccount(WALLET_ID))
+        val assets = MutableStateFlow(WALLET_ID to listOf(portfolioRow(dot, free = BigInteger.TEN, enabled = null)))
+        every { walletInteractor.assetsFlowAndAccount() } returns assets
+        every { chainInteractor.getChainsFlow() } returns flowOf(chains)
+        coEvery { chainInteractor.getChainAssets() } returns chains.flatMap { it.assets }
+        every { walletInteractor.selectedMetaAccountFlow() } returns meta
+        every { walletInteractor.selectedLightMetaAccountFlow() } returns light
+        every { accountInteractor.selectedLightMetaAccountFlow() } returns light
+        coEvery { walletInteractor.getSavedChainId(any()) } returns null
+        every { walletRouter.chainSelectorPayloadFlow } returns emptyFlow()
+        val viewModel = createViewModel(networkScanStateStore)
         advanceUntilIdle()
-        assertEquals(byNetwork, loadedPortfolio(chains, rows).portfolioUi.lens)
+        fun loaded() = (viewModel.state.value.assetsState as WalletAssetsState.Assets).assets as? AssetsLoadingState.Loaded
+
+        viewModel.onPortfolioSearch("missing")
+        advanceUntilIdle()
+        assertEquals("missing", loaded()?.searchQuery)
+
+        light.value = createLightMetaAccount(other)
+        meta.value = createMetaAccount(other)
+        assets.value = other to listOf(portfolioRow(dot, free = BigInteger.TEN, enabled = null))
+        advanceUntilIdle()
+        assertEquals("", loaded()?.searchQuery)
+        assertEquals(listOf(DOT_ASSET_ID), loaded()?.assets?.map { it.chainAssetId })
     }
 
     private fun kotlinx.coroutines.test.TestScope.loadedPortfolio(

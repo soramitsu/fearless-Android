@@ -51,7 +51,7 @@ import jp.co.soramitsu.wallet.impl.presentation.common.EmptyAssetsContent
 import jp.co.soramitsu.wallet.impl.presentation.common.PortfolioNetworkHeader
 import jp.co.soramitsu.wallet.impl.presentation.common.SwipeableAssetListItem
 
-/** Wallet-only rows; search and exact-asset screens keep their existing flat list. */
+/** Wallet-only rows of the one token list; the search and exact-asset screens keep their existing flat list. */
 @OptIn(androidx.compose.material.ExperimentalMaterialApi::class)
 @Composable
 fun PortfolioList(
@@ -83,15 +83,18 @@ fun PortfolioList(
         contentPadding = PaddingValues(top = 8.dp, bottom = 80.dp)) {
         item(key = "portfolio-header") { header() }
         if (data.assets.isEmpty() && data.portfolioItems.none { it == PortfolioListItem.EmptyWallet }) {
-            item(key = "portfolio-empty") { Box(Modifier.launchTier(LIST_TIER)) { EmptyAssetsContent(data.allAssetsHidden) } }
+            item(key = "portfolio-empty") {
+                Box(Modifier.launchTier(LIST_TIER)) {
+                    if (data.searchQuery.isNotBlank()) PortfolioSearchEmpty(data, callback) else EmptyAssetsContent(data.allAssetsHidden)
+                }
+            }
         }
         itemsIndexed(data.portfolioItems, key = { _, it -> it.key }) { index, item ->
             Box((if (sunlit) Modifier.fwStaggerIn(stagger, index) else Modifier).launchTier(LIST_TIER)) {
             when (item) {
                 is PortfolioListItem.AssetRow -> Column(Modifier.padding(start = if (item.nested) 12.dp else 0.dp)) {
-                    if (data.portfolioUi.lens == PortfolioLens.ByToken || data.selectedNetwork != null) {
-                        B2(text = item.asset.state.assetChainName, color = white64, modifier = Modifier.padding(start = 12.dp, top = 4.dp))
-                    }
+                    // One token list: every row names its network.
+                    B2(text = item.asset.state.assetChainName, color = white64, modifier = Modifier.padding(start = 12.dp, top = 4.dp))
                     if (item.asset.state.isDetected) jp.co.soramitsu.wallet.impl.presentation.common.DetectedAssetReviewItem(item.asset.state, callback)
                     else SwipeableAssetListItem(item.asset.state, isHideVisible, callback::assetClicked, callback::actionItemClicked)
                 }

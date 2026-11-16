@@ -157,6 +157,13 @@ import kotlinx.coroutines.withContext
 
 private const val CURRENT_ICON_SIZE = 40
 
+/**
+ * The header's network button and the home's network chips change the filter unless the wallet is held
+ * to one network: a TON-only wallet, or a catalog of one network with nothing selected.
+ */
+internal fun isNetworkSelectionAllowed(selectedChainId: ChainId?, chainCount: Int): Boolean =
+    !((selectedChainId == null && chainCount == 1) || selectedChainId == tonMainnetChainId)
+
 internal fun forcedPortfolioChainId(
     isPendulumMode: Boolean,
     supportedEcosystems: Set<WalletEcosystem>
@@ -299,9 +306,13 @@ class BalanceListViewModel @Inject constructor(
     private val selectedChainId = MutableStateFlow<ChainId?>(null)
     private val allowSelectChain = MutableStateFlow(false)
 
+    // The home search (one list, web 4.2.9 parity); another wallet starts with an empty one.
+    private val portfolioSearch = MutableStateFlow("")
+    private var portfolioSearchWalletId: Long? = null
+
     private val selectedChainItemFlow =
         combine(selectedChainId, chainsFlow) { selectedChainId, chains ->
-            allowSelectChain.value = !((selectedChainId == null && chains.size == 1) || selectedChainId == tonMainnetChainId)
+            allowSelectChain.value = isNetworkSelectionAllowed(selectedChainId, chains.size)
             selectedPortfolioChainItem(selectedChainId, chains)
         }
 
@@ -468,6 +479,18 @@ class BalanceListViewModel @Inject constructor(
             hasTrustedPrice = portfolioVisibility::hasTrustedPrice
         )
 
+        val portfolioAssets = networkOrderedItems.zip(assetStates).map { (raw, state) ->
+            PortfolioAsset(state, raw.total, raw.fiatAmount, raw.token.fiatSymbol, raw.chain?.rank)
+        }
+        val availableAssets = PortfolioGroupMembers.includeUnfunded(
+            holdings = (accountingItems + hiddenItems).map { raw ->
+                PortfolioAsset(raw.toAssetState(unavailableText = resourceManager.getString(R.string.portfolio_balance_unavailable)).copy(networkAccountLabel = raw.chain?.let(currentMetaAccount::address)?.shortenAddress()),
+                    raw.total, raw.fiatAmount, raw.token.fiatSymbol, raw.chain?.rank)
+            }, chains = chains, groups = tokenGroupRegistry.resolve(chains),
+            hasAccount = { chain -> currentMetaAccount.accountId(chain)?.let { !it.contentEquals(emptyAccountIdValue) } == true },
+            accountLabel = { chain -> currentMetaAccount.address(chain)?.shortenAddress() }
+        )
+
         AssetsLoadingState.Loaded(
             assetStates,
             allAssetsHidden = areAllPortfolioAssetsHidden(scopedAssets.map { it.asset.enabled }),
@@ -477,17 +500,15 @@ class BalanceListViewModel @Inject constructor(
             ),
             walletId = walletId,
             selectedNetwork = selectedChainId,
-            portfolioAssets = networkOrderedItems.zip(assetStates).map { (raw, state) ->
-                PortfolioAsset(state, raw.total, raw.fiatAmount, raw.token.fiatSymbol, raw.chain?.rank)
-            },
-            availableAssets = PortfolioGroupMembers.includeUnfunded(
-                holdings = (accountingItems + hiddenItems).map { raw ->
-                    PortfolioAsset(raw.toAssetState(unavailableText = resourceManager.getString(R.string.portfolio_balance_unavailable)).copy(networkAccountLabel = raw.chain?.let(currentMetaAccount::address)?.shortenAddress()),
-                        raw.total, raw.fiatAmount, raw.token.fiatSymbol, raw.chain?.rank)
-                }, chains = chains, groups = tokenGroupRegistry.resolve(chains),
-                hasAccount = { chain -> currentMetaAccount.accountId(chain)?.let { !it.contentEquals(emptyAccountIdValue) } == true },
-                accountLabel = { chain -> currentMetaAccount.address(chain)?.shortenAddress() }
+            portfolioAssets = portfolioAssets,
+            availableAssets = availableAssets,
+            // Chips: every network the wallet holds something on (whatever the filter), the selected one kept.
+            networkOptions = PortfolioDiscovery.networks(
+                availableAssets + portfolioAssets,
+                selectedChainId?.let { id -> chainsById[id]?.let { PortfolioNetworkOption(id, it.name) } }
             ),
+            networkGroup = filter.takeIf { selectedChainId == null && it != ChainSelectorViewStateWithFilters.Filter.All },
+            networkFilterAvailable = isNetworkSelectionAllowed(selectedChainId, chains.size),
             walletHasPositiveBalance = accountingItems.any {
                 it.total?.signum() == 1 && it.metadataTrust == AssetMetadataTrust.Verified
             },
@@ -547,13 +568,22 @@ class BalanceListViewModel @Inject constructor(
     private val portfolioUiFlow = currentMetaAccountFlow.map { it.id }.distinctUntilChanged()
         .flatMapLatest { id -> portfolioPreferences.observeUi(id).map { id to it } }
 
-    private val assetStates = combine(freshAssetStates, portfolioUiFlow, tokenGroupRegistry.observeResolvedGroups()) { state, preference, groups ->
+    private val assetStates = combine(
+        freshAssetStates, portfolioUiFlow, tokenGroupRegistry.observeResolvedGroups(), portfolioSearch
+    ) { state, preference, groups, query ->
         if (state !is AssetsLoadingState.Loaded || state.walletId != preference.first) return@combine AssetsLoadingState.Loading()
         val states = state.assets.associateBy { it.rowKey }
+        // Search narrows exact holdings before they are grouped; zero balances it finds are listed (builder).
+        val searching = query.isNotBlank()
         val visible = state.portfolioAssets.map { it.copy(state = states[it.key] ?: it.state) }
-        state.with(portfolioItems = PortfolioListBuilder.build(visible, state.availableAssets.filter { it.state.isHidden },
-            groups, preference.second, state.selectedNetwork, state.walletHasPositiveBalance, state.walletHasUnknownBalance),
-            portfolioUi = preference.second, tokenGroups = groups)
+            .filter { PortfolioDiscovery.matches(it, query) }
+        state.with(
+            assets = if (searching) visible.map { it.state } else state.assets,
+            portfolioItems = PortfolioListBuilder.build(visible, state.availableAssets.filter { it.state.isHidden },
+                groups, preference.second, state.selectedNetwork, state.walletHasPositiveBalance, state.walletHasUnknownBalance,
+                searching),
+            portfolioUi = preference.second, tokenGroups = groups, searchQuery = query
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AssetsLoadingState.Loading())
 
     @OptIn(FlowPreview::class)
@@ -893,6 +923,10 @@ class BalanceListViewModel @Inject constructor(
         }.launchIn(viewModelScope)
 
         currentWalletRecoveryStateFlow.distinctUntilChanged().onEach { (metaAccount, isRecoveryRequired) ->
+            if (portfolioSearchWalletId != metaAccount.id) {
+                portfolioSearch.value = ""
+                portfolioSearchWalletId = metaAccount.id
+            }
             val showCurrenciesOrNftSelector =
                 metaAccount.supportedEcosystems().contains(WalletEcosystem.Ethereum) || metaAccount.supportedEcosystems()
                     .contains(WalletEcosystem.Substrate)
@@ -1064,8 +1098,29 @@ class BalanceListViewModel @Inject constructor(
         }
     }
 
-    override fun onPortfolioLensChanged(lens: PortfolioLens) {
-        currentPortfolio()?.walletId?.let { portfolioPreferences.setLens(it, lens) }
+    /** Closing the one-list note makes the token list this wallet's own: the note is not shown again. */
+    override fun onPortfolioLayoutNoticeDismiss() {
+        currentPortfolio()?.walletId?.let { portfolioPreferences.setLens(it, PortfolioLens.ByToken) }
+    }
+
+    override fun onPortfolioSearch(query: String) {
+        portfolioSearch.value = query
+    }
+
+    override fun onPortfolioMoreNetworks() = openSelectChain()
+
+    /**
+     * A chip is the header's network filter, saved per wallet: it replaces a Popular or Favorite group, and
+     * picking the selected network again (or All networks) shows every network. The search is kept.
+     */
+    override fun onPortfolioNetworkSelect(chainId: String?) {
+        val walletId = currentPortfolio()?.walletId ?: return
+        val next = PortfolioDiscovery.toggleNetwork(selectedChainId.value, chainId)
+        launch {
+            interactor.saveChainSelectFilter(walletId, ChainSelectorViewStateWithFilters.Filter.All.name)
+            interactor.saveChainId(walletId, next)
+            if (interactor.getSelectedMetaAccount().id == walletId) selectedChainId.value = next
+        }
     }
     override fun onPortfolioGroupToggle(id: String) { currentPortfolio()?.walletId?.let { portfolioPreferences.toggleGroup(it, id) } }
     override fun onPortfolioNetworkToggle(id: String) { currentPortfolio()?.walletId?.let { portfolioPreferences.toggleNetwork(it, id) } }
