@@ -39,7 +39,7 @@ import org.robolectric.shadows.ShadowSystemClock
 @Config(application = Application::class)
 class MainHubScreenTest {
     private val compose = createComposeRule()
-    @get:Rule val rules: RuleChain = RuleChain.outerRule(object : ExternalResource() {
+    @get:Rule val rules: RuleChain = RuleChain.outerRule(GlobalSnapshotApplyRule()).around(object : ExternalResource() {
         override fun before() {
             val app = ApplicationProvider.getApplicationContext<Application>()
             shadowOf(app.packageManager).addActivityIfNotPresent(ComponentName(app, ComponentActivity::class.java))

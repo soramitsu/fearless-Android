@@ -2,6 +2,7 @@ package jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -47,6 +48,7 @@ import jp.co.soramitsu.wallet.impl.presentation.cross_chain.CrossChainTransferDr
 import jp.co.soramitsu.xcm.ReviewedBridgeQuote
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.job
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -74,8 +76,24 @@ class CrossChainConfirmViewModelCoverageTest {
     @get:Rule
     val mainCoroutineRule = MainCoroutineRule()
 
+    private val viewModels = mutableListOf<CrossChainConfirmViewModel>()
+
+    /**
+     * Submissions finish on Dispatchers.Default and then resume on Main. Cancel each view model and let that work end
+     * while the test Main dispatcher is still installed; resumed after the rule resets Main, it was an uncaught
+     * exception that failed the next coroutine test of the module.
+     */
     @After
-    fun clearSeal() = TransferSeal.clear()
+    fun tearDown() {
+        val jobs = viewModels.map { it.viewModelScope.coroutineContext.job }
+        jobs.forEach { it.cancel() }
+        val deadline = System.currentTimeMillis() + DRAIN_TIMEOUT_MS
+        while (jobs.any { !it.isCompleted } && System.currentTimeMillis() < deadline) {
+            mainCoroutineRule.dispatcher.scheduler.advanceUntilIdle()
+            Thread.sleep(DRAIN_POLL_MS)
+        }
+        TransferSeal.clear()
+    }
 
     private class Harness(
         val viewModel: CrossChainConfirmViewModel,
@@ -443,6 +461,7 @@ class CrossChainConfirmViewModelCoverageTest {
             accountInteractor = accountInteractor,
             crossChainSubmissions = submissions
         )
+        viewModels += viewModel
         advanceUntilIdle() // let the eager stateIn flows publish their values
 
         return Harness(
@@ -576,6 +595,8 @@ class CrossChainConfirmViewModelCoverageTest {
         const val SENDER = "15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5"
         /** validateExistentialDeposit(amount, asset, chain, recipient, sender, fee, confirmedValidations, destinationFee). */
         const val CONFIRMED_VALIDATIONS_ARG = 6
+        const val DRAIN_TIMEOUT_MS = 5_000L
+        const val DRAIN_POLL_MS = 10L
         val SCOPE = CrossChainSubmissionJournal.Scope(1L, "11".repeat(32), "01".repeat(32))
 
         fun text(id: Int) = "res:$id"

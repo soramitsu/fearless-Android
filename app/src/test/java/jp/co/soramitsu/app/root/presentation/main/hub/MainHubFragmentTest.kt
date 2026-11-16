@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.flowOf
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
+import org.junit.rules.RuleChain
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito.mock
@@ -48,7 +49,8 @@ import jp.co.soramitsu.core.models.Asset as ChainAsset
 @RunWith(RobolectricTestRunner::class)
 @Config(application = HiltShimApplication::class)
 class MainHubFragmentTest {
-    @get:Rule val compose = createEmptyComposeRule()
+    private val compose = createEmptyComposeRule()
+    @get:Rule val rules: RuleChain = RuleChain.outerRule(GlobalSnapshotApplyRule()).around(compose)
     private val walletRouter = mockk<WalletRouter>(relaxed = true)
     private val stakingChain = mockk<Chain>(relaxed = true) {
         every { id } returns "polkadot"

@@ -3,6 +3,7 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.detail
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.viewModelScope
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -43,6 +44,7 @@ import jp.co.soramitsu.wallet.impl.presentation.send.NativeSendRecoveryUiState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.detail.TransferDetailsState
 import jp.co.soramitsu.wallet.impl.presentation.transaction.filter.HistoryFiltersProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.job
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import org.junit.After
@@ -93,7 +95,23 @@ class BalanceDetailInteractionTest {
         coEvery { peek(any(), any()) } returns null
     }
 
-    @After fun dispose() { store.clear(); main.dispatcher.scheduler.runCurrent() }
+    private val models = mutableListOf<BalanceDetailViewModel>()
+
+    /**
+     * Clearing the store cancels each view model; its work on Dispatchers.Default then resumes on Main. Let it end while
+     * the test Main dispatcher is installed: resumed after the rule resets Main, it is an uncaught exception that fails
+     * the module's next coroutine test.
+     */
+    @After fun dispose() {
+        val jobs = models.map { it.viewModelScope.coroutineContext.job }
+        store.clear()
+        val deadline = System.currentTimeMillis() + 5_000
+        do {
+            main.dispatcher.scheduler.runCurrent()
+            if (jobs.all { it.isCompleted }) break
+            Thread.sleep(10)
+        } while (System.currentTimeMillis() < deadline)
+    }
 
     @Test fun balanceAndToolbarReflectTheFundedAsset() {
         val vm = model()
@@ -287,7 +305,7 @@ class BalanceDetailInteractionTest {
             HistoryFiltersProvider(), SavedStateHandle(mapOf(KEY_ASSET_PAYLOAD to payload)), resources, clipboard,
             mockk(relaxed = true), currentAddress, mockk(relaxed = true), mockk(relaxed = true),
             ProductFeatureToggleStore(InMemoryPreferences(), mockk(relaxed = true)),
-            SendPausePolicy({ true }, { true }, { error("No paused networks") }), recovery).also { store.put("detail", it) }
+            SendPausePolicy({ true }, { true }, { error("No paused networks") }), recovery).also { store.put("detail", it); models += it }
     }
 
     private fun await(condition: () -> Boolean) {

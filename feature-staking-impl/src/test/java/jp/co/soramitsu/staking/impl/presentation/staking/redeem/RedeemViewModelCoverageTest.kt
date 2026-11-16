@@ -196,13 +196,15 @@ class RedeemViewModelCoverageTest {
 
     @Test
     fun feeIsEstimatedForTheRevokeCall() {
-        viewModel(collator = "collator")
+        // A hex collator id, as the payload carries in the app: a non-hex fixture made the balance refresh throw on a
+        // background thread and leak into the next coroutine test of the module.
+        viewModel(collator = COLLATOR_HEX)
 
         val fee = runBlocking { feeConstructor.captured.invoke(fiatToken) }
         assertEquals(BigInteger.TEN, fee)
         coVerify { redeem.estimateFee(stash, any()) }
         runBlocking { estimateForm.captured.invoke(builder) }
-        coVerify { scenario.confirmRevoke(builder, "collator", stash) }
+        coVerify { scenario.confirmRevoke(builder, COLLATOR_HEX, stash) }
     }
 
     @Test

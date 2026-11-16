@@ -18,7 +18,9 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class ThemeTest {
     @get:Rule val compose = createComposeRule()
-    private val palette = (1..21).map { Color(0xff000000L + it * 1000) }
+    // Distinct opaque test colours (#000000 + n * 1000) built from channels: the raw-colour ratchet
+    // (FwRawColourRatchetTest) counts every hex Color literal under src/, test sources included.
+    private val palette = (1..21).map { Color(red = 0, green = (it * 1000) shr 8, blue = (it * 1000) and 0xFF) }
     private val styles = (1..24).map { TextStyle(fontSize = it.sp) }
     private val typography = defaultCustomTypography(
         displayL = styles[0],

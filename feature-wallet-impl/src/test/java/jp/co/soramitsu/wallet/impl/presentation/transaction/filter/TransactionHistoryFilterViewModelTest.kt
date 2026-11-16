@@ -54,7 +54,9 @@ class TransactionHistoryFilterViewModelTest {
 
         assertEquals(setOf(TransactionFilter.TRANSFER), viewModel.usedFilters)
         viewModel.filtersEnabledMap.getValue(TransactionFilter.TRANSFER).value = false
-        assertFalse(viewModel.isApplyButtonEnabled.awaitFirst { true })
+        // The choice is combined on a background dispatcher: wait for it to reach Apply (times out if it never does)
+        // instead of taking whichever value is first, which under load is the one from before the change.
+        assertFalse(viewModel.isApplyButtonEnabled.awaitFirst { !it })
         viewModel.resetFilter()
         viewModel.backClicked()
 
