@@ -2,6 +2,30 @@
 
 # Status Summary
 
+## Bugs found by the coverage campaign, fixed — 16 November 2026
+
+Branch `claude/android-bugfix-batch-20261116` (from `fc9dc707b`): one commit per bug, each with a JVM test that
+failed before its fix.
+
+- Countdown timers (`Timer` composable) overflowed the stack when they reached zero: `onFinish()` called itself.
+- `percentageToFraction()` lost digits (12.5 % → 0.1); no screen used it yet.
+- Update prompts (wallet list, asset search, network accounts, startup version check) closed the app on a device
+  with neither the Play Store nor a browser; `Context.openPlayMarketPage()` now opens nothing there.
+- Staking: "Change your validators" never showed on paged-exposure chains (ByteArray `in`); Ternoa estimates threw
+  `NumberFormatException` with no validators or payout history; pool screens never showed on-chain identity names
+  (looked up by SS58 instead of hex id); validator/collator filter "Apply" could wait forever on its own cache entry.
+- Wallet: every MoonPay purchase failed on the app's own `fearless://buy-success` redirect; the network picker's
+  sort was discarded; later history pages ignored the active filters; cached swaps lost their module; a cancelled
+  Google backup lookup was shown as a backup error.
+- `RpcCalls.extrinsicStatusFlow()` threw before listening (no unsubscribe method for
+  `author_submitAndWatchExtrinsic`); nothing calls that path today.
+- The hidden PIN recovery panel kept an indeterminate spinner animating under the PIN pad.
+- Previews only: AccountInfo and join-pool previews passed a `Painter` to Coil.
+
+Not changed: `BottomNavigationBar` (its layer-list icon fails in `painterResource`) is used by no screen, only its own
+preview; TON `.ton` recipient names never reach `TonTransferService`, because send validation accepts only raw and
+user-friendly addresses. Evidence: `build/reports/android-bugfix-batch-20261116/` in the workspace.
+
 ## One line again: 4.3.5 (237) inside the consolidated branch — 16 November 2026
 
 `release/consolidated-20261110` (PR #1279) now merges `codex/android-branded-4.3.5` (`d857e0ca7`), the source of

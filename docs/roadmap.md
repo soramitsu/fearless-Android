@@ -2,6 +2,13 @@
 
 # Roadmap & Technical Debt
 
+## Coverage-campaign bugs: open items — 16 November 2026
+
+- **`BottomNavigationBar`** is unused (only its preview renders it) and its Polkaswap icon is a layer-list that
+  `painterResource` rejects; remove it or give it vector icons before any screen adopts it.
+- **`.ton` names in sends** are refused by recipient validation; if DNS names are ever accepted, `TonTransferService`
+  must resolve them before `MsgAddressInt.parse`.
+
 ## Automatic balances: open items — 13 November 2026
 
 Described in `docs/status.md`. Not done:
