@@ -126,7 +126,8 @@ fun mapOperationToOperationLocalDb(
             time = time,
             chainId = operation.chainAsset.chainId,
             chainAssetId = operation.chainAsset.id,
-            module = extrinsicOrNull()?.module,
+            // Swaps keep their module too; the read side already restores it for SWAP rows.
+            module = extrinsicOrNull()?.module ?: swapOrNull()?.module,
             call = extrinsicOrNull()?.call,
             amount = type.operationAmount,
             fee = type.operationFee,
