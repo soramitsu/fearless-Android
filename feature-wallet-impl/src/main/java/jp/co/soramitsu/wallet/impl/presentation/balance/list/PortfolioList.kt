@@ -114,7 +114,9 @@ fun PortfolioList(
             }
             }
         }
-        item(key = "portfolio-footer") { Box(Modifier.launchTier(LIST_TIER)) { footer() } }
+        // A Column, not a Box: the footer is several parts (what the total leaves out, Manage assets, the banners),
+        // and a Box drew them on top of each other.
+        item(key = "portfolio-footer") { Column(Modifier.launchTier(LIST_TIER)) { footer() } }
     }
     action?.let { selected ->
         val hide = selected.second == ActionItemType.HIDE

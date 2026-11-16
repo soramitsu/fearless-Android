@@ -174,6 +174,19 @@ class WalletOneListRobolectricTest {
         assertEquals(listOf("networkSelect:assethub", "moreNetworks", "moreNetworks"), callback.calls)
     }
 
+    @Test
+    fun theFooterPartsFollowOneAnotherInsteadOfOverlapping() {
+        val home = OneListFixtures.home()
+        val loaded = (home.assetsState as WalletAssetsState.Assets).assets as AssetsLoadingState.Loaded
+        render(OneListFixtures.state(loaded.with()).copy(hasTonAccounts = false, hasSubOrEvmAccounts = false))
+
+        val manage = compose.onNodeWithText(string(R.string.wallet_manage_assets)).getUnclippedBoundsInRoot()
+        val evm = compose.onNodeWithText(string(jp.co.soramitsu.common.R.string.banner_addwallet_regular_title)).getUnclippedBoundsInRoot()
+        val ton = compose.onNodeWithText(string(jp.co.soramitsu.common.R.string.banner_addwallet_ton_title)).getUnclippedBoundsInRoot()
+        assertTrue("Manage assets $manage, banner $evm", manage.bottom <= evm.top)
+        assertTrue("banners $evm, $ton", evm.bottom <= ton.top)
+    }
+
     private fun render(state: WalletState) {
         compose.setContent {
             FearlessAppTheme {
