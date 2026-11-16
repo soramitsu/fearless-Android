@@ -558,6 +558,8 @@
       "src/test/java/com/neovisionaries/ws/client/HandshakeBuilderTest.java": "83504c7066a041bf3a3e50214547dee4f9e05ea5ddcf450a5b1111a0b437132b",
       "src/test/java/com/neovisionaries/ws/client/HandshakeResponseBudgetTest.java": "f69fdd9e86a5a6cc6748a6fd49649cbec68cdb166f7c39b6e1e3dee2eb1e14a8",
       "src/test/java/com/neovisionaries/ws/client/IncomingResponseLimitsTest.java": "e1f83d7a1c44e5cd0a71368d172e8289942dc55449182cec26da60d5dadf32f2",
+      "src/test/java/com/neovisionaries/ws/client/ListenerManagerDispatchTest.java": "8776aea75ac7a093ae404531087b531f8b599fa294c4a1e7245398e481178fb5",
+      "src/test/java/com/neovisionaries/ws/client/ListenerManagerRegistrationTest.java": "cd298e1cb334c49b58a5d9dc1cd996462c74c0a1fe6991c26cc28669fd3ad7ad",
       "src/test/java/com/neovisionaries/ws/client/MiscTest.java": "2d1acf9362911a75edbe18b225ca71bec7e1fd35400066e0bd08749e289c6fdf",
       "src/test/java/com/neovisionaries/ws/client/PerMessageDeflateExtensionTest.java": "23ec7bb8702b0555a2ee327522f7a17994562a186086dead7eb3ea2381b577a3",
       "src/test/java/com/neovisionaries/ws/client/TokenTest.java": "68a5fedb4f52e78317a7dedf70399cb525f258aeb7f37a2aba375c24fa0bd0a3",
