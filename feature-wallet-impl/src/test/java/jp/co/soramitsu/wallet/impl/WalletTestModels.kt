@@ -9,6 +9,36 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 /** Real chain and asset values for tests that map, format or route them. */
 internal object WalletTestModels {
 
+    fun fundedAsset(
+        configuration: Asset = asset(priceId = "dot"),
+        balance: String = "100",
+        locked: String = "0"
+    ): jp.co.soramitsu.wallet.impl.domain.model.Asset {
+        val zero = jp.co.soramitsu.wallet.impl.domain.model.AssetAmountState.Known(java.math.BigInteger.ZERO)
+        val token = jp.co.soramitsu.wallet.impl.domain.model.Token(
+            configuration,
+            jp.co.soramitsu.wallet.impl.domain.model.AssetAmountState.Known(java.math.BigDecimal("6")),
+            jp.co.soramitsu.wallet.impl.domain.model.AssetAmountState.Known(java.math.BigDecimal.ONE),
+            jp.co.soramitsu.wallet.impl.domain.model.FiatValuationContext("usd"),
+            "usd",
+            configuration.priceId
+        )
+        return jp.co.soramitsu.wallet.impl.domain.model.Asset.createEmpty(configuration, 1L, substrateAccountId, minSupportedVersion = null).copy(
+            token = token,
+            freeInPlanksState = jp.co.soramitsu.wallet.impl.domain.model.AssetAmountState.Known(
+                java.math.BigDecimal(balance).movePointRight(configuration.precision).toBigIntegerExact()
+            ),
+            reservedInPlanksState = zero,
+            miscFrozenInPlanksState = jp.co.soramitsu.wallet.impl.domain.model.AssetAmountState.Known(
+                java.math.BigDecimal(locked).movePointRight(configuration.precision).toBigIntegerExact()
+            ),
+            feeFrozenInPlanksState = zero,
+            bondedInPlanksState = zero,
+            redeemableInPlanksState = zero,
+            unbondingInPlanksState = zero
+        )
+    }
+
     const val ALICE = "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
     const val BOB = "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty"
     const val ETH_A = "0x1111111111111111111111111111111111111111"
