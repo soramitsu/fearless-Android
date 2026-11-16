@@ -2,6 +2,30 @@
 
 # Status Summary
 
+## SORA pools and swap bugs found by the coverage campaign, fixed — 16 November 2026
+
+Branch `claude/android-bugfix-batch2-20261116` (from `9cc061b3d`, batch 1): one commit per bug, each with a JVM test
+that failed before its fix. Amounts are tested with a 6-decimal target asset next to 18-decimal XOR.
+
+- Demeter farming: Deposit/Withdraw with an empty, "." or zero amount crashed the app; they now show "Enter a positive
+  amount" and submit nothing.
+- Pool details: "null%" APY for pools without a strategic-bonus yield (now empty); the pooled target amount was valued
+  at the base token's price.
+- Pool reserves: `getBasicPools`/`updateBasicPools` converted target reserves with the base asset's precision, so a
+  non-18-decimal target's reserve was off by 10^(18 - decimals) and the two cache refreshes disagreed.
+- Add liquidity: the empty-reserve check tested the target reserve twice, so a pool with no base reserve priced the
+  counterpart amount at zero.
+- Remove liquidity: with part of a position farmed, the withdrawable target amount was rounded to the base token's
+  18 decimals instead of the target's.
+- Pool list: rows rebuilt by a search, or built after the yields arrived, kept a loading APY for good; rows and yields
+  now come from one combined flow, and a pool without a yield shows no APY.
+- Swap: a pair with no route showed nothing (untitled `PathUnavailableException`); a quote or fee estimate that threw
+  ended its flow, so later amounts got no quote or fee.
+- Slippage slider: one step too many (2.0 % read 1.980198 %).
+
+No signing, key or extrinsic-building code changed. Evidence: `build/reports/android-bugfix-batch2-20261116/` in the
+workspace.
+
 ## Bugs found by the coverage campaign, fixed — 16 November 2026
 
 Branch `claude/android-bugfix-batch-20261116` (from `fc9dc707b`): one commit per bug, each with a JVM test that
