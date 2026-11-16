@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.presentation
 
 import android.os.Bundle
+import android.os.Looper
 import android.widget.LinearLayout
 import androidx.activity.ComponentDialog
 import androidx.compose.ui.test.assertIsDisplayed
@@ -25,6 +26,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.android.controller.ActivityController
 import org.robolectric.shadows.ShadowSystemClock
 
@@ -45,6 +47,9 @@ class ErrorDialogRobolectricTest {
     @After
     fun closeHost() {
         controller.pause().stop().destroy()
+        // Removing the window queues Compose work on the main looper. Run it now: Robolectric drops queued messages
+        // between tests, which would leave the shared AndroidUiDispatcher waiting and later Compose tests never idle.
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1))
     }
 
     @Test

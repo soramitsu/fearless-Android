@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.base
 
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,6 +22,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import java.time.Duration
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.fw.LocalFwSecureSurface
 import jp.co.soramitsu.common.presentation.ErrorDialog
@@ -34,6 +36,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.android.controller.ActivityController
 import org.robolectric.shadows.ShadowToast
 
@@ -52,7 +55,13 @@ class BaseFragmentHostsRobolectricTest {
         activity.setContentView(FrameLayout(activity).apply { id = 12345 })
     }
 
-    @After fun destroyHost() { controller.pause().stop().destroy() }
+    @After
+    fun destroyHost() {
+        controller.pause().stop().destroy()
+        // Removing the window queues Compose work on the main looper. Run it now: Robolectric drops queued messages
+        // between tests, which would leave the shared AndroidUiDispatcher waiting and later Compose tests never idle.
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1))
+    }
 
     @Test
     fun shouldHostComposeContentAndRouteViewModelEvents() {
