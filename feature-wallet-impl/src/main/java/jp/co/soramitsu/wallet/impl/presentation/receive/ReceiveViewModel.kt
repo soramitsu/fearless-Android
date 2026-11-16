@@ -45,8 +45,11 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
@@ -163,6 +166,18 @@ class ReceiveViewModel @Inject constructor(
 
     init {
         setInitialChainsAndAssetIds()
+        watchForDepositsOnShownNetwork()
+    }
+
+    // A first deposit on a network background sync does not keep then shows as it arrives, not at the
+    // next discovery sweep: the registry keeps the shown network synced while this screen is open and for
+    // a while after (ChainRegistry.watchForDeposits).
+    private fun watchForDepositsOnShownNetwork() {
+        viewModelScope.launch {
+            assetFlow.map { it.token.configuration.chainId }
+                .distinctUntilChanged()
+                .collectLatest { chainId -> chainRegistry.watchForDeposits(chainId) }
+        }
     }
 
     override fun copyClicked() {

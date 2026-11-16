@@ -2,6 +2,26 @@
 
 # Status Summary
 
+## Automatic balances: Receive watch, Retry and the cross-chain reader — 16 November 2026
+
+Follow-ups to the 13 November balance work (`ac449228a`), on `claude/android-followups-20261116`:
+
+- **A first deposit on a network outside background sync now shows as it arrives when the user asked to receive
+  there.** The Receive screen asks the registry to watch the network it shows (`ChainRegistry.watchForDeposits`):
+  the network joins background sync, so its balance subscription runs, while the screen is open and for 30 minutes
+  after it closes or moves to another network. A deposit stored meanwhile makes the network funded and background
+  sync keeps it; without one the network leaves the selection and is disconnected like any other. Deposits nobody
+  announced through Receive still wait for the daily sweep or a pull-to-refresh (`docs/roadmap.md`).
+- **"Retry" on a network issue no longer leaves a connection nobody owns.** It sets the network up again through the
+  registry (`ChainRegistry.withRetriedConnection`): a network background sync keeps stays connected as before; any
+  other is disconnected once the retry has its answer, and a selection change during the retry cannot strand it.
+- **The cross-chain balance reader reads like discovery** (`withDiscoveryConnection`): a bridge origin outside
+  background sync is connected for the read only. Cross-chain transfers stay compiled off in releases.
+
+Tests: `ChainRegistryDiscoveryLeaseTest` (retry and watch rules), `RetryChainSyncConnectionTest` and
+`ReviewedBridgeBalanceReaderConnectionTest` (a real registry over mocked pools), `ReceiveSnapshotTest`. No signing,
+key or extrinsic code changed.
+
 ## SORA pools and swap bugs found by the coverage campaign, fixed — 16 November 2026
 
 Branch `claude/android-bugfix-batch2-20261116` (from `9cc061b3d`, batch 1): one commit per bug, each with a JVM test

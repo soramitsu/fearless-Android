@@ -31,6 +31,7 @@ import java.io.File
 import java.math.BigDecimal
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -68,6 +69,8 @@ class ReceiveSnapshotTest {
     private val writtenBitmaps = mutableListOf<Bitmap>()
     private val viewModels = mutableListOf<ReceiveViewModel>()
     private val file = File("synthetic-receive-image")
+    private val watched = mutableListOf<String>()
+    private val released = mutableListOf<String>()
 
     @Before
     fun setup() {
@@ -78,6 +81,11 @@ class ReceiveSnapshotTest {
         every { manager.assetFlow } returns selectedAsset
         coEvery { currentAddress(any()) } coAnswers { accounts.value.address }
         coEvery { registry.getChain(any()) } returns mockk { every { name } returns "SORA" }
+        coEvery { registry.watchForDeposits(any(), any()) } coAnswers {
+            val chainId = firstArg<String>()
+            watched += chainId
+            try { awaitCancellation() } finally { released += chainId }
+        }
         every { resources.getString(R.string.wallet_receive_share_message) } returns "My %s address to receive %s:"
         coEvery { interactor.createFileInTempStorageAndRetrieveAsset(any()) } returns Result.success(file)
         coEvery { interactor.getQrCodeSharingSoraString(any(), any(), any()) } coAnswers {
@@ -118,6 +126,27 @@ class ReceiveSnapshotTest {
     }
 
     private fun snapshot(vm: ReceiveViewModel) = (vm.state.value as LoadingState.Loaded).data
+
+    @Test
+    fun shownNetworkIsWatchedForDepositsWhileTheScreenShowsIt() = runTest(dispatcher) {
+        val vm = viewModel()
+        runCurrent()
+        assertEquals(listOf(soraMainChainId), watched)
+
+        // Another asset on the same network keeps the one watch; another network replaces it.
+        selectedAsset.value = asset("val")
+        runCurrent()
+        assertEquals(listOf(soraMainChainId), watched)
+        selectedAsset.value = asset("eth", "ethereum")
+        runCurrent()
+        assertEquals(listOf(soraMainChainId, "ethereum"), watched)
+        assertEquals(listOf(soraMainChainId), released)
+
+        // Closing the screen ends the watch; the registry keeps the network a while longer.
+        vm.coroutineContext.cancel()
+        runCurrent()
+        assertEquals(listOf(soraMainChainId, "ethereum"), released)
+    }
 
     @Test
     fun unavailableReceiveBalanceIsNotShownAsKnownZero() = runTest(dispatcher) {

@@ -21,17 +21,16 @@
 - **`.ton` names in sends** are refused by recipient validation; if DNS names are ever accepted, `TonTransferService`
   must resolve them before `MsgAddressInt.parse`.
 
-## Automatic balances: open items — 13 November 2026
+## Automatic balances: open items — 13 November 2026, updated 16 November 2026
 
 Described in `docs/status.md`. Not done:
 
-- **A first deposit on a network outside background sync appears at the next sweep, not live.** A network joins
-  background sync once it holds funds, but the first deposit there is found by the daily sweep or a pull-to-refresh,
-  which read one network at a time (24 per batch, up to 45 s each). Reading the catalog in parallel or more often costs
-  data and battery; not changed.
-- **Two on-demand reads still connect a network without the lease** and leave it connected until the process ends:
-  the cross-chain balance reader (`ReviewedBridgeBalanceReader`; cross-chain transfers are compiled off in releases)
-  and "retry" on a network issue (`WalletInteractorImpl.retryChainSync`), which the user starts for a network they see.
+- **A first deposit the Receive screen did not announce appears at the next sweep, not live.** Since 16 November the
+  network shown on the Receive screen stays in background sync while the screen is open and for 30 minutes after, so
+  a deposit there is stored as it arrives. A first deposit on any other network outside background sync (sent without
+  the Receive screen, or arriving later than that) is still found by the daily sweep or a pull-to-refresh, which read
+  one network at a time (24 per batch, up to 45 s each). Keeping every network subscribed, or reading the catalog in
+  parallel or more often, costs data and battery; not changed.
 
 ## Branded production candidate 4.3.5 (237)
 
