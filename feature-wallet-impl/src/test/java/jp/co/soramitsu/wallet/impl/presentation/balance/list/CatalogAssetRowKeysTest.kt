@@ -61,19 +61,22 @@ class CatalogAssetRowKeysTest {
         assertEquals(catalog.size, catalog.map { manageRow(it).listKey }.toSet().size)
     }
 
-    @Test fun theHomeKeepsBothTokensOfAPairInEachLens() {
+    @Test fun theHomeKeepsBothTokensOfAPairInEachLensAndSearch() {
         collisions.forEach { pair ->
-            for (lens in PortfolioLens.entries) {
-                val rows = PortfolioListBuilder.build(
+            for (lens in PortfolioLens.entries) for (searching in listOf(false, true)) {
+                val items = PortfolioListBuilder.build(
                     visible = pair.map(::portfolio),
                     hidden = emptyList(),
                     groups = ResolvedTokenGroups(emptyList()),
-                    ui = PortfolioUiState(lens = lens),
+                    ui = PortfolioUiState(lens = lens, zeroSummaryExpanded = true),
                     selectedNetwork = null,
-                    walletHasPositiveBalance = true
-                ).filterIsInstance<PortfolioListItem.AssetRow>()
-                assertEquals("$lens ${pair.map { it.symbol }}", pair.map { it.symbol }.toSet(), rows.map { it.asset.state.assetSymbol }.toSet())
-                assertEquals(rows.size, rows.map { it.key }.toSet().size)
+                    walletHasPositiveBalance = true,
+                    searching = searching
+                )
+                val rows = items.filterIsInstance<PortfolioListItem.AssetRow>()
+                assertEquals("$lens $searching ${pair.map { it.symbol }}", pair.map { it.symbol }.toSet(), rows.map { it.asset.state.assetSymbol }.toSet())
+                // Every LazyColumn key of the home is unique (Manage assets once crashed on a duplicate).
+                assertEquals(items.size, items.map { it.key }.toSet().size)
             }
         }
     }

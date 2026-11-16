@@ -68,9 +68,7 @@ class ManageAssetsViewModel @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val manageSectionsFlow = walletInteractor.selectedMetaAccountFlow().map { it.id }.distinctUntilChanged()
-        .flatMapLatest { id -> combine(portfolioPreferences.observeManageSections(id), portfolioPreferences.observeLens(id)) { sections, lens ->
-            Triple(id, sections, lens)
-        } }
+        .flatMapLatest { id -> portfolioPreferences.observeManageSections(id).map { sections -> id to sections } }
 
     private val selectedChainIdFlow = MutableStateFlow<ChainId?>(null)
 
@@ -120,10 +118,9 @@ class ManageAssetsViewModel @Inject constructor(
                 state.update { it.copy(assets = null, allSectionAssets = emptyMap()) }
                 return@combine
             }
-            val lens = sections.third
+            // One token list, like the wallet home: Manage no longer groups by network.
             fun sectionKey(item: ManageAssetItemState): String =
                 if (selectedChainIdFlow.value != null && filter != ManageAssetFilter.Hidden) item.canonicalAssetKey
-                else if (lens == jp.co.soramitsu.wallet.impl.presentation.balance.list.PortfolioLens.ByNetwork) "network:${item.chainId}"
                 else groups.groupOf(item.chainId, item.id)?.let { "group:${it.id}" } ?: item.canonicalAssetKey
             val visible = rows.filter { item ->
                 val inNetworkScope = if (filter == ManageAssetFilter.Hidden) true
@@ -137,7 +134,7 @@ class ManageAssetsViewModel @Inject constructor(
                     item.assetName.orEmpty().contains(query, true) || item.chainName.contains(query, true))
             }
             state.update { it.copy(assets = visible.groupBy(::sectionKey), allSectionAssets = rows.groupBy(::sectionKey),
-                visibilityFilter = filter, collapsedSections = sections.second, lens = lens) }
+                visibilityFilter = filter, collapsedSections = sections.second) }
         }.launchIn(this)
 
         jp.co.soramitsu.common.utils.combine(

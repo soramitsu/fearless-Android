@@ -91,7 +91,15 @@ interface WalletScreenInterface : AssetsListInterface {
     fun onHiddenFundsReviewClick()
     fun onHiddenFundsKeepHiddenClick()
     fun onRetry()
-    fun onPortfolioLensChanged(lens: PortfolioLens) {}
+    /** Closes the one-time "All your assets in one list" note of a wallet that had kept By network. */
+    fun onPortfolioLayoutNoticeDismiss() {}
+    fun onPortfolioSearch(query: String) {}
+
+    /** A network chip, or All networks (null); picking the selected network again shows every network. */
+    fun onPortfolioNetworkSelect(chainId: String?) {}
+
+    /** Opens the full network list (More networks, or the chip of a Popular or Favorites group). */
+    fun onPortfolioMoreNetworks() {}
     fun onPortfolioGroupToggle(id: String) {}
     fun onPortfolioNetworkToggle(id: String) {}
     fun onPortfolioZeroToggle(id: String?) {}
@@ -225,10 +233,20 @@ fun WalletScreen(
                 val loaded = data.assetsState.assets as? AssetsLoadingState.Loaded
                 val header: @Composable () -> Unit = {
                     if (scrollHeaderWithAssets) walletHeader()
-                    if (loaded != null && loaded.selectedNetwork == null) {
-                        Box(Modifier.launchTier(SEGMENT_TIER)) {
-                            MultiToggleButton(MultiToggleButtonState(loaded.portfolioUi.lens, PortfolioLens.entries),
-                                callback::onPortfolioLensChanged, stacked = largeText)
+                    // One list: the search and the network chips replace the By token / By network switch.
+                    if (loaded != null) {
+                        if (scrollHeaderWithAssets) MarginVertical(8.dp)
+                        PortfolioDiscoveryControls(loaded, callback, Modifier.launchTier(SEGMENT_TIER))
+                        MarginVertical(if (loaded.networkFilterAvailable) 0.dp else 8.dp)
+                    }
+                    if (loaded?.portfolioUi?.showOneListNotice == true) {
+                        BackgroundCornered(Modifier.launchTier(LIST_TIER).testTag("portfolio_one_list_notice")) {
+                            Column(Modifier.padding(12.dp)) {
+                                B2(text = stringResource(R.string.portfolio_one_list_notice), color = white64)
+                                MarginVertical(8.dp)
+                                GrayButton(stringResource(R.string.common_got_it), modifier = Modifier.fillMaxWidth(),
+                                    onClick = callback::onPortfolioLayoutNoticeDismiss)
+                            }
                         }
                         MarginVertical(8.dp)
                     }

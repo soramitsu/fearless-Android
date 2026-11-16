@@ -173,11 +173,12 @@ class WalletScreenRobolectricTest {
         ComposeFixtures.passDoubleTapGuard()
         compose.onAllNodes(hasText("Moonbeam"))[0].performClick()
         compose.onNodeWithText(string(R.string.portfolio_group_networks, 2)).performClick()
-        compose.onNodeWithText(string(R.string.portfolio_by_network)).performClick()
         compose.waitForIdle()
 
         assertTrue(callback.calls.toString(), callback.calls.containsAll(listOf("valueNotice", "hiddenReview", "keepHidden", "zero:null", "network:moonbeam", "group:usdt")))
-        assertTrue(callback.calls.contains("lens:ByNetwork"))
+        // One list: the By token / By network switch is gone, the search and the network chips replace it.
+        assertEquals(0, compose.count(string(R.string.portfolio_by_network)))
+        compose.onNodeWithTag(SEARCH_TAG).assertIsDisplayed()
         compose.onNodeWithText(string(R.string.portfolio_price_incomplete)).assertIsDisplayed()
         compose.onNodeWithText(string(R.string.portfolio_group_hidden, 1)).assertIsDisplayed()
     }
@@ -385,7 +386,10 @@ internal class RecordingWalletCallback : WalletScreenInterface {
     override fun onHiddenFundsKeepHiddenClick() { calls += "keepHidden" }
     override fun onRetry() { calls += "retry" }
     override fun onWalletRecoveryClick() { calls += "recovery" }
-    override fun onPortfolioLensChanged(lens: PortfolioLens) { calls += "lens:$lens" }
+    override fun onPortfolioLayoutNoticeDismiss() { calls += "oneListNotice" }
+    override fun onPortfolioSearch(query: String) { calls += "search:$query" }
+    override fun onPortfolioNetworkSelect(chainId: String?) { calls += "networkSelect:$chainId" }
+    override fun onPortfolioMoreNetworks() { calls += "moreNetworks" }
     override fun onPortfolioGroupToggle(id: String) { calls += "group:$id" }
     override fun onPortfolioNetworkToggle(id: String) { calls += "network:$id" }
     override fun onPortfolioZeroToggle(id: String?) { calls += "zero:$id" }

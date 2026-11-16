@@ -2,6 +2,15 @@
 
 # Roadmap & Technical Debt
 
+## One-list wallet home: follow-ups — 16 November 2026
+
+- The home search covers the rows the portfolio shows (zero balances included once searched). Hidden assets and
+  reviewed tokens the wallet does not hold yet are still found by the toolbar's full search; folding them into the home
+  search, as the extension's 3.0.10 search did, is a separate change.
+- `PortfolioListItem.NetworkHeader`, the collapsed-network preference and Manage's `network:` sections are no longer
+  produced; they can be removed with their tests once no saved state needs them.
+- Network chips show names only; the web chips also show each network's logo.
+
 ## SORA pools: open items from the coverage-campaign fixes — 16 November 2026
 
 - **Demeter**: "Transaction submitted: <hash>" is cleared at once by the refresh the submission starts.
