@@ -4,12 +4,6 @@
 
 ## SORA pools: open items from the coverage-campaign fixes — 16 November 2026
 
-- **Remove-liquidity minimum outputs are not rounded to the asset's decimals.** `LiquidityRemovePresenter` sends
-  `amount × (1 − 0.5 %)` (three more decimals than the amount) to the confirm screen, and
-  `PoolsRepositoryImpl.validateRemoveLiquidity` refuses any minimum with more decimals than the asset
-  ("… exceeds the canonical asset precision"), so most withdrawals fail closed before signing. Rounding the minimums
-  down to each asset's precision (as `validateAddLiquidity` does) changes the submitted `output_a_min`/`output_b_min`,
-  so it needs its own reviewed change; not done in the bug-fix batch.
 - **Demeter**: "Transaction submitted: <hash>" is cleared at once by the refresh the submission starts.
 - **All pools** shows a blank " APY" label for pools without a strategic-bonus yield; the full pool list now shows no
   APY for them.

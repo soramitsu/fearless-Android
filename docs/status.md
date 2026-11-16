@@ -2,6 +2,20 @@
 
 # Status Summary
 
+## Remove liquidity: minimum outputs rounded to each asset's decimals — 16 November 2026
+
+`LiquidityRemovePresenter` sent `amount × 0.995` as each minimum output, with up to three more decimals than the asset
+has, and `PoolsRepositoryImpl.validateRemoveLiquidity` converts each minimum with `exactPositivePlanks`, which refuses a
+value finer than the asset ("Minimum … output exceeds the canonical asset precision"). Any withdrawal whose amount
+used the asset's last decimals therefore failed before signing. Each minimum is now rounded down to its asset's
+precision before the confirm screen, as `validateAddLiquidity` already does for deposits.
+
+This changes what is submitted: `output_a_min`/`output_b_min` of `PoolXYK.withdraw_liquidity` are now
+`floor(amount × 0.995)` in planks, at most one plank below the exact product, so the slippage bound is never tighter
+than 0.5 % and never looser by more than one plank. Amounts, the withdrawn pool tokens and the repository's checks
+(precision, positive, fresh reserves, fresh position) are unchanged. Test: `LiquidityRemoveMinimumOutputPrecisionTest`
+(a 6-decimal target next to 18-decimal XOR); both cases failed before with "… exceeds the canonical asset precision".
+
 ## Automatic balances: Receive watch, Retry and the cross-chain reader — 16 November 2026
 
 Follow-ups to the 13 November balance work (`ac449228a`), on `claude/android-followups-20261116`:
