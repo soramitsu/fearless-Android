@@ -11,7 +11,6 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import io.mockk.every
 import io.mockk.mockkObject
@@ -70,9 +69,12 @@ class WalletOneListRobolectricTest {
         render(OneListFixtures.home())
 
         compose.onNodeWithTag(ALL_TAG).assertIsSelected()
-        compose.onNodeWithTag(networkTag("moonbeam")).assertIsNotSelected().performScrollTo().performClick()
-        compose.onNodeWithTag(ALL_TAG).performScrollTo().performClick()
-        compose.onNodeWithTag(MORE_TAG).performScrollTo().performClick()
+        compose.revealChip(networkTag("moonbeam"))
+        compose.onNodeWithTag(networkTag("moonbeam")).assertIsNotSelected().performClick()
+        compose.revealChip(ALL_TAG)
+        compose.onNodeWithTag(ALL_TAG).performClick()
+        compose.revealChip(MORE_TAG)
+        compose.onNodeWithTag(MORE_TAG).performClick()
         compose.waitForIdle()
 
         assertEquals(listOf("networkSelect:moonbeam", "networkSelect:null", "moreNetworks"), callback.calls)
@@ -84,7 +86,8 @@ class WalletOneListRobolectricTest {
         render(OneListFixtures.home(selectedNetwork = "moonbeam"))
 
         compose.onNodeWithTag(ALL_TAG).assertIsNotSelected()
-        compose.onNodeWithTag(networkTag("moonbeam")).assertIsSelected().performScrollTo().performClick()
+        compose.revealChip(networkTag("moonbeam"))
+        compose.onNodeWithTag(networkTag("moonbeam")).assertIsSelected().performClick()
         compose.waitForIdle()
 
         assertEquals(listOf("networkSelect:moonbeam"), callback.calls)
@@ -166,9 +169,12 @@ class WalletOneListRobolectricTest {
         every { FwRestyle.isEnabled(any()) } returns false
         render(OneListFixtures.home(networkGroup = ChainSelectorViewStateWithFilters.Filter.Favorite))
 
-        compose.onNodeWithTag(networkTag("assethub")).performScrollTo().performClick()
-        compose.onNodeWithTag(GROUP_TAG).performScrollTo().performClick()
-        compose.onNodeWithTag(MORE_TAG).performScrollTo().performClick()
+        compose.revealChip(networkTag("assethub"))
+        compose.onNodeWithTag(networkTag("assethub")).performClick()
+        compose.revealChip(GROUP_TAG)
+        compose.onNodeWithTag(GROUP_TAG).performClick()
+        compose.revealChip(MORE_TAG)
+        compose.onNodeWithTag(MORE_TAG).performClick()
         compose.waitForIdle()
 
         assertEquals(listOf("networkSelect:assethub", "moreNetworks", "moreNetworks"), callback.calls)

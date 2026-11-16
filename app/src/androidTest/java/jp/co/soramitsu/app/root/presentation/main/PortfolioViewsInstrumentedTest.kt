@@ -78,14 +78,19 @@ class PortfolioViewsInstrumentedTest {
             compose.waitForIdle()
             save("portfolio-one-list-search-${(font * 100).toInt()}")
             compose.runOnIdle { assertEquals("Ethereum", query); query = "" }
-            compose.onNodeWithTag("portfolio-network-ethereum").performScrollTo().performClick()
+            // The chip row runs under the page gutter: it is scrolled by its own action, not performScrollTo, which
+            // would also ask the list (it cannot scroll sideways) to show the gutter part.
+            compose.onNodeWithTag("portfolio-network-filters").performSemanticsAction(SemanticsActions.ScrollBy) { it(-100_000f, 0f) }
+            compose.onNodeWithTag("portfolio-network-ethereum").performClick()
             compose.runOnIdle { assertEquals("ethereum", selected) }
             save("portfolio-one-list-chip-${(font * 100).toInt()}")
-            compose.onNodeWithTag("portfolio-network-ethereum").performScrollTo().performClick()
+            compose.onNodeWithTag("portfolio-network-filters").performSemanticsAction(SemanticsActions.ScrollBy) { it(-100_000f, 0f) }
+            compose.onNodeWithTag("portfolio-network-ethereum").performClick()
             compose.runOnIdle { assertNull(selected); selected = "ethereum"; query = "missing" }
             compose.onNodeWithTag("portfolio-search-all-networks").performScrollTo().performClick()
             compose.runOnIdle { assertNull(selected); assertEquals("missing", query); query = "" }
-            compose.onNodeWithTag("portfolio-network-more").performScrollTo().performClick()
+            compose.onNodeWithTag("portfolio-network-filters").performSemanticsAction(SemanticsActions.ScrollBy) { it(100_000f, 0f) }
+            compose.onNodeWithTag("portfolio-network-more").performClick()
             compose.runOnIdle { assertTrue(openedPicker) }
         }
     }

@@ -16,7 +16,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.hasScrollToIndexAction
-import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
@@ -100,7 +100,7 @@ class WalletOneListScreenshotTest {
     @Test
     fun theLastChipsAndMoreNetworks() {
         shoot("12-chips-end-more-networks", OneListFixtures.home(), scrollToSearch = true) {
-            compose.onNodeWithTag(MORE_TAG).performScrollTo()
+            compose.revealChip(MORE_TAG)
         }
         val more = compose.onNodeWithTag(MORE_TAG).getUnclippedBoundsInRoot()
         assertTrue("More networks is a readable pill: $more", more.right - more.left >= 120.dp)
@@ -148,6 +148,9 @@ class WalletOneListScreenshotTest {
                 }
             }
         }
+        settle()
+        // The wallet list keeps its scroll position for the whole process (rememberForeverLazyListState): start at the top.
+        compose.onNode(hasScrollToIndexAction()).performScrollToIndex(0)
         settle()
         if (scrollToSearch) {
             // The page scrolls as one: bring the search to the top, as a user reading the list sees it.

@@ -1,5 +1,10 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.junit4.ComposeContentTestRule
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performSemanticsAction
 import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
@@ -81,4 +86,16 @@ internal object OneListFixtures {
             trustedFiat = BigDecimal(fiat),
             fiatSymbol = "$"
         )
+}
+
+/**
+ * Scrolls the chip row so the chip is centred (or as near as the row's ends allow). The row runs under the page gutter,
+ * so `performScrollTo` would ask the list, which cannot scroll sideways, to bring the gutter part into view as well.
+ */
+internal fun ComposeContentTestRule.revealChip(tag: String) {
+    val chip = onNodeWithTag(tag).getUnclippedBoundsInRoot()
+    val row = onNodeWithTag(FILTERS_TAG).getUnclippedBoundsInRoot()
+    val dx = with(density) { ((chip.left + chip.right) / 2 - (row.left + row.right) / 2).toPx() }
+    onNodeWithTag(FILTERS_TAG).performSemanticsAction(SemanticsActions.ScrollBy) { it(dx, 0f) }
+    waitForIdle()
 }
