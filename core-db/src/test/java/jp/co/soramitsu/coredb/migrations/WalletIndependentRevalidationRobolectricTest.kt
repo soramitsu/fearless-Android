@@ -1,14 +1,14 @@
 package jp.co.soramitsu.coredb.migrations
 
-import androidx.sqlite.db.SupportSQLiteDatabase
 import android.content.Context
+import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.test.core.app.ApplicationProvider
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import jp.co.soramitsu.coredb.APP_DATABASE_VERSION
 import java.io.File
 import java.security.MessageDigest
 import java.util.UUID
+import jp.co.soramitsu.coredb.APP_DATABASE_VERSION
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 /** Exercises the shared independent-wallet recovery contract on JVM SQLite. */
 @RunWith(RobolectricTestRunner::class)

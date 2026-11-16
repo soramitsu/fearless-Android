@@ -8,8 +8,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
+import java.security.MessageDigest
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1Impl
 import jp.co.soramitsu.common.data.secrets.v2.KeyPairSchema
@@ -17,9 +16,9 @@ import jp.co.soramitsu.common.data.secrets.v2.MetaAccountSecrets
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
+import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.WalletRootSecretValidator
-import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretConcurrentMutationException
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
@@ -46,11 +45,9 @@ import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypair
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
-import jp.co.soramitsu.fearless_utils.extensions.toHexString as toPlainHexString
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import jp.co.soramitsu.testshared.HashMapEncryptedPreferences
-import java.security.MessageDigest
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
@@ -60,6 +57,9 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import jp.co.soramitsu.fearless_utils.extensions.toHexString as toPlainHexString
 
 private const val MNEMONIC_WORDS = "bottom drive obey lake curtain smoke basket hold race lonely fit walk"
 private const val OTHER_MNEMONIC_WORDS = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"

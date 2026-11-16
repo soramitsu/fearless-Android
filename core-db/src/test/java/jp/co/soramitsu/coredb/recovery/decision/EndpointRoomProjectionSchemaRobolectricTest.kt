@@ -1,13 +1,13 @@
 package jp.co.soramitsu.coredb.recovery.decision
 
+import android.content.Context
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
-import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import org.robolectric.RobolectricTestRunner
-import org.junit.runner.RunWith
 import java.util.UUID
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 /** Exercises the shared projection schema contract on disposable JVM SQLite files. */
 @RunWith(RobolectricTestRunner::class)

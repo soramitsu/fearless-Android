@@ -6,8 +6,6 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1Impl
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
@@ -18,10 +16,9 @@ import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
-import jp.co.soramitsu.common.data.storage.forEachMatchingPreferenceKey
-import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferenceSnapshot
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferenceSnapshotMove
+import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.WalletPublicIdentityIntegrityException
 import jp.co.soramitsu.common.data.storage.encrypt.WalletPublicIdentityRecovery
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretArchive
@@ -32,6 +29,7 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalSt
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore.PublicAfterImage
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageUnavailableException
+import jp.co.soramitsu.common.data.storage.forEachMatchingPreferenceKey
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.invoke
@@ -43,7 +41,6 @@ import jp.co.soramitsu.coredb.migrations.shipped.ShippedSecretWriters
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
-import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair as FearlessKeypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.Sr25519Keypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
@@ -51,7 +48,6 @@ import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
-import jp.co.soramitsu.fearless_utils.extensions.toHexString as toPlainHexString
 import jp.co.soramitsu.fearless_utils.scale.toHexString
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
@@ -61,8 +57,12 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import org.ton.api.pk.PrivateKeyEd25519
 import org.ton.mnemonic.Mnemonic
+import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair as FearlessKeypair
+import jp.co.soramitsu.fearless_utils.extensions.toHexString as toPlainHexString
 
 /** Device migration scenarios replayed on JVM SQLite with deterministic ED25519 fixtures. */
 @RunWith(RobolectricTestRunner::class)
@@ -1904,7 +1904,7 @@ class WalletSecretIntegrityMigrationRobolectricTest {
             execSQL(
                 "UPDATE chain_accounts SET metaId = zeroblob(?) " +
                     "WHERE chainId = ?",
-                arrayOf(ATTACKER_DB_IDENTITY_BYTES, CHAIN_ID)
+                arrayOf<Any>(ATTACKER_DB_IDENTITY_BYTES, CHAIN_ID)
             )
         }
         val preferences = AccessCountingPreferences()

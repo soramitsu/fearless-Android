@@ -1,9 +1,9 @@
 package jp.co.soramitsu.coredb.migrations
 
+import android.content.Context
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
-import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import java.io.File
 import java.security.MessageDigest

@@ -4,8 +4,6 @@ import android.content.Context
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferenceSnapshot
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.WalletPublicIdentityIntegrityException
@@ -14,6 +12,8 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 /** Device SQL scenarios replayed by the JVM coverage suite. */
 @RunWith(RobolectricTestRunner::class)
@@ -291,7 +291,7 @@ class WalletSecretIntegrityQueryPreflightRobolectricTest {
                     initialized
                 ) VALUES(?, ?, ?, ?, ?, ?, ?)
                 """.trimIndent(),
-                arrayOf(
+                arrayOf<Any?>(
                     metaId,
                     chainId,
                     CHAIN_PUBLIC_KEY,
@@ -443,7 +443,7 @@ class WalletSecretIntegrityQueryPreflightRobolectricTest {
                 ecosystem
             ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
-            arrayOf(
+            arrayOf<Any?>(
                 CHAIN_ID,
                 "Query preflight chain",
                 "fixture-icon",
@@ -471,7 +471,7 @@ class WalletSecretIntegrityQueryPreflightRobolectricTest {
                 initialized
             ) VALUES(?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
-            arrayOf(
+            arrayOf<Any?>(
                 META_ID,
                 CHAIN_ID,
                 CHAIN_PUBLIC_KEY,
@@ -518,7 +518,7 @@ class WalletSecretIntegrityQueryPreflightRobolectricTest {
             FROM meta_accounts
             WHERE id = ?
             """.trimIndent(),
-            arrayOf(
+            arrayOf<Any?>(
                 SECOND_META_ID,
                 "Second row-limit wallet",
                 META_ID
@@ -549,7 +549,7 @@ class WalletSecretIntegrityQueryPreflightRobolectricTest {
             FROM chain_accounts
             WHERE metaId = ?
             """.trimIndent(),
-            arrayOf(
+            arrayOf<Any?>(
                 SECOND_META_ID,
                 "Second row-limit chain account",
                 META_ID
