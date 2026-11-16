@@ -49,6 +49,9 @@ timber = "5.0.1"
 retrofit = "2.11.0"
 roomVersion = "2.7.2"
 rules = "1.6.1"
+robolectric = "4.16.1"
+robolectricAndroidAll = "16-robolectric-13921718-i7"
+androidxTestCore = "1.6.1"
 runner = "1.6.2"
 securityCryptoVersion = "1.0.0"
 shimmerVersion = "0.5.0"
@@ -98,6 +101,10 @@ mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoVers
 mockito-inline = { module = "org.mockito:mockito-inline", version.ref = "mockitoInlineVersion" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+robolectric-androidAll = { module = "org.robolectric:android-all-instrumented", version.ref = "robolectricAndroidAll" }
+androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTestCore" }
+compose-uiTestManifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "compose" }
 navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navControllerVersion" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navControllerVersion" }

@@ -341,6 +341,9 @@ subprojects { subproject ->
                     because("4.3.1 (233) shipped this version; removing Google SDKs must not downgrade it")
                 }
             }
+            if (subproject.name != 'test-shared') {
+                subproject.apply from: rootProject.file('gradle/jvm-ui-tests.gradle')
+            }
         }
     }
 }
