@@ -5,11 +5,13 @@ import android.view.Gravity
 import android.view.View
 import android.widget.TextView
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import jp.co.soramitsu.app.HiltShim
 import jp.co.soramitsu.app.HiltShimApplication
 import jp.co.soramitsu.app.HiltShimHostActivity
 import jp.co.soramitsu.app.R
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -22,10 +24,16 @@ import org.robolectric.annotation.Config
 @Config(application = HiltShimApplication::class)
 class PolkaswapNavigationLargeTextTest {
 
+    @After
+    fun tearDown() {
+        HiltShim.closeHosts()
+        RuntimeEnvironment.setFontScale(1f)
+    }
+
     @Test
     fun largeTextRaisesTheBarAndLetsLabelsWrap() {
         RuntimeEnvironment.setFontScale(1.5f)
-        val activity = Robolectric.buildActivity(HiltShimHostActivity::class.java).setup().get()
+        val activity = HiltShim.host()
         val themed = ContextThemeWrapper(activity, com.google.android.material.R.style.Theme_MaterialComponents_DayNight_NoActionBar)
         val navigation = BottomNavigationView(themed).apply { inflateMenu(R.menu.bottom_navigations_fab) }
         activity.setContentView(navigation)

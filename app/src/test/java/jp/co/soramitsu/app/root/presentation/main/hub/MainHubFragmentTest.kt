@@ -123,7 +123,7 @@ class MainHubFragmentTest {
     }
 
     private fun show(type: MainHubType): MainHubFragment {
-        val host = Robolectric.buildActivity(HiltShimHostActivity::class.java).setup().get()
+        val host = HiltShim.host()
         val fragment = MainHubFragment().apply { arguments = bundleOf("hub_type" to type.wireValue) }
         host.supportFragmentManager.beginTransaction().add(android.R.id.content, fragment).commitNow()
         idle()

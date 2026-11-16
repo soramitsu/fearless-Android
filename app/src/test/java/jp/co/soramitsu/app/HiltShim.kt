@@ -37,7 +37,9 @@ import jp.co.soramitsu.app.root.presentation.main.MainFragment_GeneratedInjector
 import jp.co.soramitsu.app.root.presentation.main.hub.MainHubFragment_GeneratedInjector
 import jp.co.soramitsu.app.root.presentation.stories.StoryFragment_GeneratedInjector
 import kotlin.reflect.KClass
+import org.robolectric.Robolectric
 import org.robolectric.Shadows.shadowOf
+import org.robolectric.android.controller.ActivityController
 
 /**
  * Test-only stand-in for the generated Hilt graph.
@@ -73,7 +75,19 @@ object HiltShim {
         viewModels[type.java] = create
     }
 
+    private val hosts = mutableListOf<ActivityController<HiltShimHostActivity>>()
+
+    /** A started [HiltShimHostActivity]; [reset] or [closeHosts] destroys it so no screen outlives its test. */
+    fun host(): HiltShimHostActivity =
+        Robolectric.buildActivity(HiltShimHostActivity::class.java).setup().also { hosts += it }.get()
+
+    fun closeHosts() {
+        hosts.filterNot { it.get().isDestroyed }.forEach { it.pause().stop().destroy() }
+        hosts.clear()
+    }
+
     fun reset() {
+        closeHosts()
         injectors.clear()
         viewModels.clear()
     }

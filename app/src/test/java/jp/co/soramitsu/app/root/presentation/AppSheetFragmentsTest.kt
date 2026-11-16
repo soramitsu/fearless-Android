@@ -49,7 +49,7 @@ class AppSheetFragmentsTest {
         HiltShim.reset()
         HiltShim.inject(AlertFragment::class) { it.navigator = navigator }
         ShadowSystemClock.advanceBy(Duration.ofSeconds(10))
-        host = Robolectric.buildActivity(HiltShimHostActivity::class.java).setup().get()
+        host = HiltShim.host()
         listOf(42, 7, 9).forEach { destination ->
             val handle = SavedStateHandle().also { results[destination] = it }
             val entry = mock(NavBackStackEntry::class.java)

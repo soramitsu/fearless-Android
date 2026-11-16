@@ -34,7 +34,7 @@ class StoryFragmentTest {
         HiltShim.reset()
         HiltShim.inject(StoryFragment::class) { }
         HiltShim.viewModel(StoryViewModel::class) { handle -> StoryViewModel({ backs++ }, handle) }
-        val host = Robolectric.buildActivity(HiltShimHostActivity::class.java).setup().get()
+        val host = HiltShim.host()
         fragment = StoryFragment().apply { arguments = StoryFragment.getBundle(StoryGroupModel(listOf(staking, onboarding, plain))) }
         // The progress bar advances stories on its own once the main looper runs; the tests drive it explicitly.
         host.supportFragmentManager.beginTransaction().add(android.R.id.content, fragment).commitNow()

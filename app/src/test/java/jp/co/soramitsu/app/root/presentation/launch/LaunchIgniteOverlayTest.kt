@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import java.time.Duration
+import jp.co.soramitsu.app.HiltShim
 import jp.co.soramitsu.app.HiltShimApplication
 import jp.co.soramitsu.app.HiltShimHostActivity
 import jp.co.soramitsu.app.R
@@ -35,7 +36,7 @@ import org.robolectric.shadows.ShadowSystemClock
 @RunWith(RobolectricTestRunner::class)
 @Config(application = HiltShimApplication::class)
 class LaunchIgniteOverlayTest {
-    private val activity = Robolectric.buildActivity(HiltShimHostActivity::class.java).setup().get()
+    private val activity = HiltShim.host()
     private val parent = activity.findViewById<ViewGroup>(android.R.id.content)
     private val content = FrameLayout(activity)
     private var ready = false
@@ -65,6 +66,7 @@ class LaunchIgniteOverlayTest {
 
     @After
     fun tearDown() {
+        HiltShim.closeHosts()
         ShadowMediaPlayer.resetStaticState()
         LaunchFlightStage.resetForTest()
         LaunchLanding.resetForTest()

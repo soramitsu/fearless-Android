@@ -3,6 +3,7 @@ package jp.co.soramitsu.app.root.presentation
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import jp.co.soramitsu.app.HiltShim
 import jp.co.soramitsu.app.HiltShimApplication
 import jp.co.soramitsu.app.HiltShimHostActivity
 import jp.co.soramitsu.app.root.domain.InitializationStep
@@ -11,6 +12,7 @@ import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -22,7 +24,10 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(application = HiltShimApplication::class)
 class StartupConnectionAlertTest {
-    private val activity: AppCompatActivity = Robolectric.buildActivity(HiltShimHostActivity::class.java).setup().get()
+    private val activity: AppCompatActivity = HiltShim.host()
+
+    @After
+    fun tearDown() = HiltShim.closeHosts()
 
     @Test
     fun settingsAndNetworkFailuresExplainWhatCouldNotRefreshAndRetryThatStep() {

@@ -56,7 +56,7 @@ class LaunchIgniteHostTest {
             if (className == NavHostFragment::class.java.name) super.instantiate(classLoader, className) else Screen()
     }
 
-    private val activity = Robolectric.buildActivity(HiltShimHostActivity::class.java).setup().get()
+    private val activity = HiltShim.host()
     private val content = FrameLayout(activity)
 
     @Before

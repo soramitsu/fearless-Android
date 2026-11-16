@@ -19,6 +19,7 @@ import jp.co.soramitsu.account.impl.domain.recovery.SavedEndpointAccess
 import jp.co.soramitsu.account.impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.account.impl.presentation.recovery.RecoveryTarget
+import jp.co.soramitsu.app.HiltShim
 import jp.co.soramitsu.app.HiltShimApplication
 import jp.co.soramitsu.app.HiltShimHostActivity
 import jp.co.soramitsu.app.R
@@ -71,7 +72,7 @@ import org.robolectric.annotation.Config
 @Config(application = HiltShimApplication::class)
 class NavigatorRouteTableTest {
     private val root: NavController = mock(NavController::class.java)
-    private val host = Robolectric.buildActivity(HiltShimHostActivity::class.java).setup().get()
+    private val host = HiltShim.host()
     private val navigator = Navigator(mockk<SavedEndpointAccess>(relaxed = true)).apply { attach(root, host) }
     private val asset = AssetPayload("polkadot", "dot")
     private val alert = AlertViewState("Title", "Message", "OK", iconRes = 0)
@@ -82,6 +83,7 @@ class NavigatorRouteTableTest {
         jobs.forEach { it.cancel() }
         navigator.detach()
         WalletSessionLock.unlock()
+        HiltShim.closeHosts()
     }
 
     @Test
@@ -282,6 +284,14 @@ class NavigatorRouteTableTest {
         val check = rebind!!.getParcelable<PinCodeAction.Check>(PincodeFragment.KEY_PINCODE_ACTION)!!
         assertEquals(R.id.importAccountFragment, (check.delayedNavigation as NavComponentDelayedNavigation).globalActionId)
         assertEquals(R.string.wallet_recovery_restore, check.toolbarConfiguration.titleRes)
+    }
+
+    @Test
+    fun creatingAPinWrapsTheDestinationInACreateAction() {
+        val delayed = NavComponentDelayedNavigation(R.id.exportSeedFragment)
+        val (destination, args) = route { navigator.withPinCodeCheckRequired(delayed, true, null) }.single()
+        assertEquals(R.id.open_pincode_check, destination)
+        assertSame(delayed, args!!.getParcelable<PinCodeAction.Create>(PincodeFragment.KEY_PINCODE_ACTION)!!.delayedNavigation)
     }
 
     @Test
