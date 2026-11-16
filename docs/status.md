@@ -2,6 +2,16 @@
 
 # Status Summary
 
+## Unbond confirmation: fee revoked with its review (B36) — 16 November 2026
+
+The intermittent `UnbondReviewAndQuoteTest` failure had a production cause: the unbond confirmation screen projected its
+balance, fiat amount and fee status on `Dispatchers.Default`, so after a source change the "review changed" dialog
+could appear while the fee row still showed its earlier state (null in the test). 6af2d5304 (29 October) made the test
+wait for the late fee. The projections now run on Main in the same turn as the review change, and the test again checks
+the fee right after the dialog. Loop counts (JUnitCore loop in the test JVM): the pre-6af2d5304 assertion failed in 118
+of 300 runs on the previous code, and in none of 600 after the fix; the test as committed passed 400 of 400.
+Validation, signing and submission are unchanged.
+
 ## Remove liquidity: minimum outputs rounded to each asset's decimals — 16 November 2026
 
 `LiquidityRemovePresenter` sent `amount × 0.995` as each minimum output, with up to three more decimals than the asset
