@@ -3,6 +3,7 @@ package jp.co.soramitsu.staking.impl.presentation
 import android.os.Bundle
 import android.os.Looper
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.components.FragmentComponent
@@ -144,12 +145,21 @@ object HiltFragmentHarness {
         noinline inject: (F) -> Unit = {}
     ): HiltHostActivity = launchWith(fragment, VM::class.java, viewModel, arguments, inject)
 
+    /** Shows a real dialog fragment, including its dialog window and bottom-sheet behavior. */
+    inline fun <F : DialogFragment, reified VM : ViewModel> launchDialog(
+        fragment: F,
+        viewModel: VM,
+        arguments: Bundle? = null,
+        noinline inject: (F) -> Unit = {}
+    ): HiltHostActivity = launchWith(fragment, VM::class.java, viewModel, arguments, inject, showAsDialog = true)
+
     fun <F : Fragment> launchWith(
         fragment: F,
         viewModelClass: Class<out ViewModel>,
         viewModel: ViewModel,
         arguments: Bundle?,
-        inject: (F) -> Unit
+        inject: (F) -> Unit,
+        showAsDialog: Boolean = false
     ): HiltHostActivity {
         viewModels = mapOf(viewModelClass to viewModel)
         @Suppress("UNCHECKED_CAST")
@@ -158,7 +168,11 @@ object HiltFragmentHarness {
         val controller = Robolectric.buildActivity(HiltHostActivity::class.java).setup()
         hosts.add(controller)
         val activity = controller.get()
-        activity.supportFragmentManager.beginTransaction().add(android.R.id.content, fragment).commitNow()
+        if (showAsDialog) {
+            (fragment as DialogFragment).showNow(activity.supportFragmentManager, "test-dialog")
+        } else {
+            activity.supportFragmentManager.beginTransaction().add(android.R.id.content, fragment).commitNow()
+        }
         shadowOf(Looper.getMainLooper()).idle()
         return activity
     }
