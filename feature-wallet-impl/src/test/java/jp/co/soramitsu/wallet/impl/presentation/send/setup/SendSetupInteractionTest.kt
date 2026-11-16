@@ -21,7 +21,9 @@ import jp.co.soramitsu.common.compose.component.AddressInputWithScore
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.models.Ecosystem
+import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.wallet.api.domain.ExistentialDepositUseCase
 import jp.co.soramitsu.wallet.api.domain.TransferValidationResult
@@ -281,8 +283,10 @@ class SendSetupInteractionTest {
 
     @Test
     fun soraQrSelectsItsAssetAndLocksItsRequestedAmount() {
-        config = config.copy(chainId = soraTestChainId, currencyId = "sora-token")
-        chain = WalletTestModels.chain(id = soraTestChainId, assets = listOf(config))
+        // The view model looks for the build's SORA network: the test network in debug builds, mainnet in release.
+        val soraChainId = if (BuildConfig.DEBUG) soraTestChainId else soraMainChainId
+        config = config.copy(chainId = soraChainId, currencyId = "sora-token")
+        chain = WalletTestModels.chain(id = soraChainId, assets = listOf(config))
         asset = WalletTestModels.fundedAsset(config)
         coEvery { wallet.tryReadSoraFormat("sora-qr") } returns QrContentSora(WalletTestModels.BOB, "", "Recipient", "sora-token", "3.5")
         val vm = model()
@@ -290,7 +294,7 @@ class SendSetupInteractionTest {
         await { vm.state.value.isInputLocked }
         main.dispatcher.scheduler.advanceTimeBy(301)
         await { vm.state.value.amountInputState.tokenAmount == BigDecimal("3.5") }
-        assertEquals(soraTestChainId, shared.chainId)
+        assertEquals(soraChainId, shared.chainId)
         assertEquals(config.id, shared.assetId)
         assertFalse(vm.state.value.amountInputState.inputEnabled)
     }

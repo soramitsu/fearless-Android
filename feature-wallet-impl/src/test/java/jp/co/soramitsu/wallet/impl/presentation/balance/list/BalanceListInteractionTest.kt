@@ -21,6 +21,7 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.androidfoundation.coroutine.CoroutineManager
 import jp.co.soramitsu.androidfoundation.testing.MainCoroutineRule
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
@@ -35,6 +36,7 @@ import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.nft.domain.NFTInteractor
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.runtime.multiNetwork.tokengroups.ResolvedTokenGroups
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
@@ -231,13 +233,15 @@ class BalanceListInteractionTest {
     }
 
     @Test fun soraQrPreservesTheRequestedAmountAndToken() {
-        val soraAsset = config.copy(chainId = soraTestChainId, currencyId = "sora-token")
-        every { wallet.getChains() } returns flowOf(listOf(WalletTestModels.chain(id = soraTestChainId, assets = listOf(soraAsset))))
+        // The view model looks for the build's SORA network: the test network in debug builds, mainnet in release.
+        val soraChainId = if (BuildConfig.DEBUG) soraTestChainId else soraMainChainId
+        val soraAsset = config.copy(chainId = soraChainId, currencyId = "sora-token")
+        every { wallet.getChains() } returns flowOf(listOf(WalletTestModels.chain(id = soraChainId, assets = listOf(soraAsset))))
         coEvery { wallet.tryReadSoraFormat("sora-qr") } returns QrContentSora(WalletTestModels.BOB, "", "Bob", "sora-token", "3.5")
         val vm = model()
         vm.qrCodeScanned("sora-qr")
         main.dispatcher.scheduler.runCurrent()
-        verify { router.openLockedAmountSend(AssetPayload(soraTestChainId, config.id), WalletTestModels.BOB, "sora-token", BigDecimal("3.5")) }
+        verify { router.openLockedAmountSend(AssetPayload(soraChainId, config.id), WalletTestModels.BOB, "sora-token", BigDecimal("3.5")) }
     }
 
     @Test fun malformedSoraAmountDoesNotInventAnAmount() {
