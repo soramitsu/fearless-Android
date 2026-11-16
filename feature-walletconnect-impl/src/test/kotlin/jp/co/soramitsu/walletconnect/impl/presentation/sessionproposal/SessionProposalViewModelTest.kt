@@ -20,6 +20,8 @@ import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import jp.co.soramitsu.walletconnect.impl.presentation.awaitErrorDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -53,6 +55,8 @@ class SessionProposalViewModelTest {
         every { accountsFlow(any()) } returns flowOf(emptyList())
     }
 
+    private val models = mutableListOf<SessionProposalViewModel>()
+
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -67,6 +71,14 @@ class SessionProposalViewModelTest {
 
     @After
     fun tearDown() {
+        // The view models' shared flows run on Dispatchers.Default and hand values to Main: stop them before
+        // Main is reset, or a late hand-off fails in whichever test runs next.
+        runBlocking {
+            withTimeout(5_000) {
+                models.forEach { it.cancel() }
+                models.forEach { it.coroutineContext[Job]?.join() }
+            }
+        }
         WCDelegate.sessionProposalEvent = null
         WalletSessionLock.lock()
         Dispatchers.resetMain()
@@ -165,5 +177,5 @@ class SessionProposalViewModelTest {
         walletConnectRouter = router,
         resourceManager = resourceManager,
         accountRepository = mockk<AccountRepository>(relaxed = true)
-    )
+    ).also { models += it }
 }

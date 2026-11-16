@@ -181,7 +181,13 @@ class AssetModelTest {
         assertTrue(balance.toString().contains("freeInPlanks=10"))
     }
 
-    private fun asset(free: String?, reserved: String?, miscFrozen: String?, feeFrozen: String?, status: String?) = Asset(
+    private fun asset(
+        free: String?,
+        reserved: String?,
+        miscFrozen: String?,
+        feeFrozen: String?,
+        status: String?
+    ) = Asset(
         metaId = 1,
         token = Token(configuration = config, fiatRate = null, fiatSymbol = null, recentRateChange = null),
         accountId = accountId,

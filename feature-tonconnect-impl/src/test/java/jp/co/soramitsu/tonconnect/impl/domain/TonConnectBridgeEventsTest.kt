@@ -192,7 +192,11 @@ class TonConnectBridgeEventsTest {
         assertEquals(BridgeError.USER_DECLINED_TRANSACTION.code, delivered.getJSONObject("payload").getInt("code"))
     }
 
-    private fun event(id: Long, message: JSONObject, from: String = clientId): String {
+    private fun event(
+        id: Long,
+        message: JSONObject,
+        from: String = clientId
+    ): String {
         val plaintext = message.toString().toByteArray()
         val box = SecretBox(sessionPublic, dappPrivate)
         val nonce = box.nonce(plaintext)
@@ -212,7 +216,8 @@ class TonConnectBridgeEventsTest {
 
     private fun String.hexBytes(): ByteArray = chunked(2).map { it.toInt(16).toByte() }.toByteArray()
 
-    private fun connectRequest() = ConnectRequest("https://dapp.example/manifest.json", listOf(ConnectRequest.Item.TonAddress))
+    private fun connectRequest() =
+        ConnectRequest("https://dapp.example/manifest.json", listOf(ConnectRequest.Item.TonAddress))
 
     private class MemoryStorage : TonConnectBridgeEventLedger.Storage {
         @Volatile var value: String? = null

@@ -27,6 +27,8 @@ import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import jp.co.soramitsu.walletconnect.impl.presentation.awaitErrorDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -86,6 +88,8 @@ class SessionProposalFlowTest {
         coEvery { getSelectedLightMetaAccount() } returns mockk { every { id } returns 7L }
     }
 
+    private val models = mutableListOf<SessionProposalViewModel>()
+
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -100,6 +104,14 @@ class SessionProposalFlowTest {
 
     @After
     fun tearDown() {
+        // The view models' shared flows run on Dispatchers.Default and hand values to Main: stop them before
+        // Main is reset, or a late hand-off fails in whichever test runs next.
+        runBlocking {
+            withTimeout(5_000) {
+                models.forEach { it.cancel() }
+                models.forEach { it.coroutineContext[Job]?.join() }
+            }
+        }
         WCDelegate.sessionProposalEvent = null
         WalletSessionLock.lock()
         Dispatchers.resetMain()
@@ -219,7 +231,9 @@ class SessionProposalFlowTest {
     @Test
     fun unsupportedChainsOnlyLetTheUserCloseTheProposal() {
         coEvery { interactor.checkChainsSupported(any()) } returns Result.success(false)
-        every { interactor.silentRejectSession(any(), any(), any()) } answers { thirdArg<(Throwable) -> Unit>()(IllegalStateException()) }
+        every { interactor.silentRejectSession(any(), any(), any()) } answers {
+            thirdArg<(Throwable) -> Unit>()(IllegalStateException())
+        }
         val viewModel = viewModel()
 
         val dialog = viewModel.awaitErrorDialog {
@@ -233,7 +247,9 @@ class SessionProposalFlowTest {
 
     @Test
     fun failedRejectionCanBeRetried() {
-        every { interactor.rejectSession(any(), any(), any()) } answers { thirdArg<(Throwable) -> Unit>()(IllegalStateException()) }
+        every { interactor.rejectSession(any(), any(), any()) } answers {
+            thirdArg<(Throwable) -> Unit>()(IllegalStateException())
+        }
         val viewModel = viewModel()
 
         viewModel.onRejectClicked()
@@ -285,5 +301,5 @@ class SessionProposalFlowTest {
         walletConnectRouter = router,
         resourceManager = resourceManager,
         accountRepository = accountRepository
-    )
+    ).also { models += it }
 }
