@@ -2,6 +2,17 @@
 
 # Status Summary
 
+## One line again: 4.3.5 (237) inside the consolidated branch — 16 November 2026
+
+`release/consolidated-20261110` (PR #1279) now merges `codex/android-branded-4.3.5` (`d857e0ca7`), the source of
+the 237 build Google Play serves: the 4.3.4 crash fixes (`3123ec916`, `e6324898c`, `a8b35c548`, `91eec1f64`,
+`6fb752f28`), the runtime source pin fix `eb7d9881a`, and the 4.3.4 and 4.3.5 release records. PR #1280 carries
+nothing this branch lacks. Only `docs/status.md` and `docs/roadmap.md` conflicted; both sides' sections are kept.
+
+The branch now says 4.3.5 (237), but it holds more than the 237 bundle (automatic balances, Shikiban motion). Play
+accepts a version code once, so a release from this branch or from master needs a new code (238 or later) and its own
+version name, with the IAS hardcodes changed in the same commit.
+
 ## Holdings on every network, bounded connections — 13 November 2026
 
 The owner asked on 13 November 2026 for token balances that load faster and stay clear and accurate, with no assets to
