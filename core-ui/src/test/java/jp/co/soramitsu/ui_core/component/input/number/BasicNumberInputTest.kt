@@ -9,13 +9,13 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performImeAction
 import androidx.compose.ui.test.performTextReplacement
-import java.math.BigDecimal
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import java.math.BigDecimal
 
 @RunWith(RobolectricTestRunner::class)
 class BasicNumberInputTest {

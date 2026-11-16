@@ -125,17 +125,22 @@ class PolkamarktViewModelTest {
 
     @Test fun editingTradeInputsInvalidatesAnExistingQuote() = runTest(dispatcher) {
         runCurrent()
-        vm.requestQuote(); runCurrent()
+        vm.requestQuote()
+        runCurrent()
         vm.setAmount("4")
         assertNull(vm.state.value.quote)
-        vm.requestQuote(); runCurrent()
+        vm.requestQuote()
+        runCurrent()
         vm.setOutcome(PolkamarktOutcome.No)
         assertNull(vm.state.value.quote)
-        vm.requestQuote(); runCurrent()
+        vm.requestQuote()
+        runCurrent()
         vm.setTradeMode(PolkamarktTradeMode.Sell)
         assertNull(vm.state.value.quote)
-        vm.requestQuote(); runCurrent()
-        vm.selectMarket(null); runCurrent()
+        vm.requestQuote()
+        runCurrent()
+        vm.selectMarket(null)
+        runCurrent()
         assertNull(vm.state.value.quote)
     }
 
@@ -153,18 +158,22 @@ class PolkamarktViewModelTest {
     @Test fun quoteAndMutationFailuresExposeFallbackMessages() = runTest(dispatcher) {
         runCurrent()
         coEvery { interactor.quote(any()) } throws IllegalStateException()
-        vm.requestQuote(); runCurrent()
+        vm.requestQuote()
+        runCurrent()
         assertEquals("Quote unavailable.", vm.state.value.message)
         coEvery { interactor.mutate(any()) } returns Result.failure(IllegalStateException())
-        vm.claimTrader("7"); runCurrent()
+        vm.claimTrader("7")
+        runCurrent()
         assertEquals("Transaction failed.", vm.state.value.message)
         assertFalse(vm.state.value.mutating)
     }
 
     @Test fun confirmationUsesQuoteValuesAndRefreshesAfterSubmission() = runTest(dispatcher) {
         runCurrent()
-        vm.requestQuote(); runCurrent()
-        vm.confirmTrade(); runCurrent()
+        vm.requestQuote()
+        runCurrent()
+        vm.confirmTrade()
+        runCurrent()
         coVerify { interactor.mutate(PolkamarktMutation.Trade("7", quote.mode, quote.outcome, "3", "4.95")) }
         coVerify(exactly = 2) { interactor.snapshot("7") }
         assertNull(vm.state.value.quote)
@@ -173,13 +182,18 @@ class PolkamarktViewModelTest {
 
     @Test fun claimsUseDistinctRequestsAndNavigationDelegates() = runTest(dispatcher) {
         runCurrent()
-        vm.claimTrader("9"); runCurrent()
-        vm.claimCreator("10"); runCurrent()
+        vm.claimTrader("9")
+        runCurrent()
+        vm.claimCreator("10")
+        runCurrent()
         coVerify { interactor.mutate(PolkamarktMutation.ClaimMarket("9")) }
         coVerify { interactor.mutate(PolkamarktMutation.ClaimCreatorFees("10")) }
         vm.openDisclaimer()
         vm.back()
-        verify { router.openRiskDisclaimer(); router.back() }
+        verify {
+            router.openRiskDisclaimer()
+            router.back()
+        }
         assertFalse(vm.state.value.mutating)
     }
 }

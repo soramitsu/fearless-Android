@@ -22,8 +22,11 @@ class BlockExplorerManagerTest {
 
         override suspend fun getStakingRewarded(chainId: String, accountAddress: String) = error("not used")
 
-        override suspend fun getValidatorsList(chainId: String, stashAccountAddress: String, historicalRange: List<String>) =
-            error("not used")
+        override suspend fun getValidatorsList(
+            chainId: String,
+            stashAccountAddress: String,
+            historicalRange: List<String>
+        ) = error("not used")
     }
 
     @Test

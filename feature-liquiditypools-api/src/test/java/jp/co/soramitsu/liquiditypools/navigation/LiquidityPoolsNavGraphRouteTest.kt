@@ -28,8 +28,10 @@ class LiquidityPoolsNavGraphRouteTest {
 
         routes.forEach { (route, companion) -> assertEquals(companion.routeName, route.routeName) }
         assertEquals(
-            listOf("Loading", "AllPoolsScreen", "ListPoolsScreen", "LiquidityPoolDetailsScreen", "LiquidityAddScreens",
-                "LiquidityAddConfirmScreen", "LiquidityRemoveScreen", "LiquidityRemoveConfirmScreen"),
+            listOf(
+                "Loading", "AllPoolsScreen", "ListPoolsScreen", "LiquidityPoolDetailsScreen", "LiquidityAddScreens",
+                "LiquidityAddConfirmScreen", "LiquidityRemoveScreen", "LiquidityRemoveConfirmScreen"
+            ),
             routes.map { it.first.routeName }
         )
     }

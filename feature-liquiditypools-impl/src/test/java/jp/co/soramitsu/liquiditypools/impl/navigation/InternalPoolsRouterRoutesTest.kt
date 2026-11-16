@@ -51,8 +51,10 @@ class InternalPoolsRouterRoutesTest {
         router.openRemoveLiquidityConfirmScreen(ids, BigDecimal.ONE, BigDecimal.TEN, BigDecimal("0.9"), BigDecimal("9"), BigDecimal("3"))
 
         assertEquals(
-            listOf("AllPoolsScreen", "LiquidityPoolDetailsScreen", "LiquidityAddScreens", "LiquidityAddConfirmScreen",
-                "LiquidityRemoveScreen", "LiquidityRemoveConfirmScreen"),
+            listOf(
+                "AllPoolsScreen", "LiquidityPoolDetailsScreen", "LiquidityAddScreens", "LiquidityAddConfirmScreen",
+                "LiquidityRemoveScreen", "LiquidityRemoveConfirmScreen"
+            ),
             routes.map { it.routeName }
         )
         assertEquals(ids, router.destination(LiquidityPoolsNavGraphRoute.PoolDetailsScreen::class.java)?.ids)

@@ -414,7 +414,8 @@ class PoolsRepositoryImplTest {
     }
 
     @Test
-    fun `add liquidity fails closed on bad slippage, another account, equal assets or a disabled switch`() = runBlocking {
+    fun `add liquidity fails closed on bad slippage, another account, equal assets or a disabled switch`() =
+        runBlocking {
         dexInfos()
         authorize(listOf(xor, valToken))
         assertFailure("Liquidity slippage must be at least zero and below 100 percent", observeAdd(slippage = 100.0))
@@ -445,7 +446,8 @@ class PoolsRepositoryImplTest {
     }
 
     @Test
-    fun `remove liquidity fails closed on an oversized withdrawal, missing position or disabled switch`() = runBlocking {
+    fun `remove liquidity fails closed on an oversized withdrawal, missing position or disabled switch`() =
+        runBlocking {
         dexInfos()
         poolStorage(XOR_ID, VAL_ID)
         authorize(listOf(xor, valToken))

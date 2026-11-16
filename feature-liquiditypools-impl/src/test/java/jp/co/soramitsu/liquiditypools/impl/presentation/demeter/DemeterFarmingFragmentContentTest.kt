@@ -41,7 +41,9 @@ class DemeterFarmingFragmentContentTest {
     private val farm = DemeterFarmingBasicPool(walletAsset(xor), walletAsset(valToken), walletAsset(pswap), 5.0, BigDecimal("10"), 0.5)
     private val position = DemeterFarmingPool(walletAsset(xor), walletAsset(valToken), walletAsset(pswap), 40.0, BigDecimal("10"), BigDecimal("1"))
     private val state = MutableStateFlow(DemeterFarmingState(loading = false, positions = listOf(position), availablePools = listOf(farm)))
-    private val stubViewModel = mockk<DemeterFarmingViewModel>(relaxed = true) { every { state } returns this@DemeterFarmingFragmentContentTest.state }
+    private val stubViewModel = mockk<DemeterFarmingViewModel>(relaxed = true) {
+        every { state } returns this@DemeterFarmingFragmentContentTest.state
+    }
 
     @Before fun advanceClock() { ShadowSystemClock.advanceBy(Duration.ofSeconds(10)) }
 

@@ -5,7 +5,6 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
@@ -38,6 +37,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.math.BigInteger
 
 class PolkamarktRuntimeTest {
     private val socket = mockk<SocketService>()
@@ -102,13 +102,19 @@ class PolkamarktRuntimeTest {
     }
 
     @Test fun capabilitiesReflectRuntimeStorageCallsAndRpcMethods() = runTest {
-        runtimeWith(module(listOf(entry("Markets", null), entry("Conditions", null)),
-            calls = listOf("buy", "sell", "claim_market", "claim_creator_fees")))
+        runtimeWith(
+            module(
+                listOf(entry("Markets", null), entry("Conditions", null)),
+            calls = listOf("buy", "sell", "claim_market", "claim_creator_fees")
+            )
+        )
         rpc["rpc_methods"] = { mapOf("methods" to allMethods) }
 
         assertEquals(
-            PolkamarktRuntimeCapabilities(browse = true, quoteBuy = true, quoteSell = true, marketState = true, buy = true,
-                sell = true, claimMarket = true, claimCreatorFees = true, reasons = emptyList()),
+            PolkamarktRuntimeCapabilities(
+                browse = true, quoteBuy = true, quoteSell = true, marketState = true, buy = true,
+                sell = true, claimMarket = true, claimCreatorFees = true, reasons = emptyList()
+            ),
             polkamarkt.capabilities()
         )
     }
@@ -189,20 +195,36 @@ class PolkamarktRuntimeTest {
         coEvery { bulk.queryKeys(socket, any(), any()) } answers {
             secondArg<List<String>>().associateWith { if (it == nullValueKey) null else "0x00" }
         }
-        val market7 = Struct.Instance(mapOf("condition_id" to BigInteger("3"), "closeBlock" to BigInteger("200"),
-            "status" to DictEnum.Entry("Open", null), "creator" to "cnCreator".toByteArray()))
-        val market9 = Struct.Instance(mapOf("conditionId" to BigInteger("4"), "closeBlock" to BigInteger("50"),
-            "mechanism" to DictEnum.Entry("Amm", null)))
+        val market7 = Struct.Instance(
+            mapOf(
+                "condition_id" to BigInteger("3"), "closeBlock" to BigInteger("200"),
+            "status" to DictEnum.Entry("Open", null), "creator" to "cnCreator".toByteArray()
+            )
+        )
+        val market9 = Struct.Instance(
+            mapOf(
+                "conditionId" to BigInteger("4"), "closeBlock" to BigInteger("50"),
+            "mechanism" to DictEnum.Entry("Amm", null)
+            )
+        )
         val untitled = Struct.Instance(mapOf("closeBlock" to BigInteger("1")))
-        val condition7 = Struct.Instance(mapOf("question" to "Will it rain?".toByteArray().map { it.toInt() },
-            "oracle" to "Oracle DAO\u0000\u0000".toByteArray(), "resolution_source" to " https://weather.example "))
+        val condition7 = Struct.Instance(
+            mapOf(
+                "question" to "Will it rain?".toByteArray().map { it.toInt() },
+            "oracle" to "Oracle DAO\u0000\u0000".toByteArray(), "resolution_source" to " https://weather.example "
+            )
+        )
         val condition9 = Struct.Instance(mapOf("question" to "Second?".toByteArray()))
-        runtimeWith(module(listOf(
+        runtimeWith(
+            module(
+                listOf(
             entry("Markets", decoding(market7, market9, untitled)),
             entry("Conditions", decoding(condition7, condition9)),
             entry("ConditionDetails", decoding(Struct.Instance(mapOf("category" to "Weather".toByteArray())), Struct.Instance(emptyMap()))),
             entry("MarketVolume", decoding(BigInteger("5000000000000000000"), "not-a-number"))
-        )))
+        )
+            )
+        )
         rpc["polkamarkt_marketState"] = { params ->
             check(params.single() == BigInteger("7")) { "no state" }
             mapOf("impliedYesProbabilityBps" to "4250", "mechanism" to "Dpm", "dpmCollateral" to "0x0de0b6b3a7640000")

@@ -30,11 +30,16 @@ class PoolListScreenTest {
         compose.setContent { FearlessAppTheme { PoolListScreen(PoolListState(listOf(pool), "", false), callbacks) } }
         compose.onNodeWithText("XOR-VAL").assertIsDisplayed().performClick()
         compose.onNode(hasSetTextAction()).performTextReplacement("xor")
-        verify { callbacks.onPoolClicked(pool.ids); callbacks.onAssetSearchEntered("xor") }
+        verify {
+            callbacks.onPoolClicked(pool.ids)
+            callbacks.onAssetSearchEntered("xor")
+        }
     }
 
     @Test fun emptySearchDisplaysNoResultsMessage() {
-        compose.setContent { FearlessAppTheme { PoolListScreen(PoolListState(searchQuery = "missing", isLoading = false), callbacks) } }
+        compose.setContent {
+            FearlessAppTheme { PoolListScreen(PoolListState(searchQuery = "missing", isLoading = false), callbacks) }
+        }
         compose.onNodeWithText(context.getString(R.string.common_search_network_and_assets_alert_description)).assertIsDisplayed()
         compose.onNodeWithText("missing").assertIsDisplayed()
     }

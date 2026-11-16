@@ -125,8 +125,12 @@ class DemeterFarmingViewModelTest {
         assertEquals("Claims paused", viewModel.state.value.message)
         coVerify(exactly = 0) { interactor.claimRewards(any(), any()) }
 
-        coEvery { interactor.mutationCapabilityReason(soraMainChainId, DemeterMutationAction.Deposit) } returns "Deposits paused"
-        coEvery { interactor.mutationCapabilityReason(soraMainChainId, DemeterMutationAction.Withdraw) } returns "Withdrawals paused"
+        coEvery {
+            interactor.mutationCapabilityReason(soraMainChainId, DemeterMutationAction.Deposit)
+        } returns "Deposits paused"
+        coEvery {
+            interactor.mutationCapabilityReason(soraMainChainId, DemeterMutationAction.Withdraw)
+        } returns "Withdrawals paused"
         viewModel.deposit(highYield, "1")
         viewModel.withdraw(position, "1")
         advanceUntilIdle()
@@ -138,8 +142,12 @@ class DemeterFarmingViewModelTest {
 
     @Test
     fun `an action already known to be unavailable does nothing`() = runTest(dispatcher) {
-        coEvery { interactor.mutationCapabilityReason(soraMainChainId, DemeterMutationAction.Deposit) } returns "Deposits paused"
-        coEvery { interactor.mutationCapabilityReason(soraMainChainId, DemeterMutationAction.Withdraw) } returns "Withdrawals paused"
+        coEvery {
+            interactor.mutationCapabilityReason(soraMainChainId, DemeterMutationAction.Deposit)
+        } returns "Deposits paused"
+        coEvery {
+            interactor.mutationCapabilityReason(soraMainChainId, DemeterMutationAction.Withdraw)
+        } returns "Withdrawals paused"
         val viewModel = DemeterFarmingViewModel(interactor)
         advanceUntilIdle()
 

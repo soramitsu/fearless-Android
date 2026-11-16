@@ -11,8 +11,6 @@ import io.mockk.mockkStatic
 import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
@@ -53,6 +51,8 @@ import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class PolkamarktInteractorImplTest {
     private val endpoint = "https://indexer.example/graphql"
@@ -76,8 +76,10 @@ class PolkamarktInteractorImplTest {
         id = "7", title = "Rain tomorrow?", description = "Weather", category = "Weather",
         displayStatus = PolkamarktDisplayStatus.Open, runtimeOnly = true, volumeUsd = "5"
     )
-    private val resolvedMarket = openMarket.copy(id = "8", title = "Resolved", displayStatus = PolkamarktDisplayStatus.Resolved,
-        runtimeOnly = false)
+    private val resolvedMarket = openMarket.copy(
+        id = "8", title = "Resolved", displayStatus = PolkamarktDisplayStatus.Resolved,
+        runtimeOnly = false
+    )
     private val history = PolkamarktHistoryPoint("h1", "7", probabilityPercent = "40")
     private val position = PolkamarktPosition("p1", "7", yesShares = "3000000000000000000", noShares = "0.5")
     private val trade = PolkamarktTrade("t1", "7", side = "buy")
@@ -86,7 +88,13 @@ class PolkamarktInteractorImplTest {
         chainRegistry, indexer, runtime, accounts, wallets, extrinsics, polkaswap, toggles, authorization
     )
 
-    private fun asset(currency: String, amount: BigDecimal?, assetChain: String = soraMainChainId): Asset = mockk {
+    private val buy = PolkamarktMutation.Trade("7", PolkamarktTradeMode.Buy, PolkamarktOutcome.Yes, "1.5", "1.98")
+
+    private fun asset(
+        currency: String,
+        amount: BigDecimal?,
+        assetChain: String = soraMainChainId
+    ): Asset = mockk {
         every { chainId } returns assetChain
         every { token.configuration.currencyId } returns currency
         every { transferable } returns amount
@@ -105,7 +113,9 @@ class PolkamarktInteractorImplTest {
     @Before fun setUp() {
         mockkStatic("jp.co.soramitsu.account.api.domain.model.MetaAccountKt")
         every { chain.id } returns soraMainChainId
-        every { chain.externalApi } returns Chain.ExternalApi(null, Chain.ExternalApi.Section(Chain.ExternalApi.Section.Type.SUBQUERY, endpoint), null)
+        every {
+            chain.externalApi
+        } returns Chain.ExternalApi(null, Chain.ExternalApi.Section(Chain.ExternalApi.Section.Type.SUBQUERY, endpoint), null)
         coEvery { chainRegistry.getChain(soraMainChainId) } returns chain
         every { wallet.id } returns 1L
         every { wallet.address(chain) } returns "cnAlice"
@@ -264,13 +274,17 @@ class PolkamarktInteractorImplTest {
 
     @Test fun disabledTogglesAndUnreadDisclaimerRefuseMutationsBeforeAnyRead() = runTest {
         every { toggles.polkamarktMutationsEnabled } returns false
-        assertEquals("Polkamarkt actions are temporarily disabled.",
-            interactor.mutate(PolkamarktMutation.ClaimMarket("8")).exceptionOrNull()?.message)
+        assertEquals(
+            "Polkamarkt actions are temporarily disabled.",
+            interactor.mutate(PolkamarktMutation.ClaimMarket("8")).exceptionOrNull()?.message
+        )
 
         every { toggles.polkamarktMutationsEnabled } returns true
         every { polkaswap.hasReadDisclaimer } returns false
-        assertEquals("Accept the Polkaswap and SORA risk disclaimer first.",
-            interactor.mutate(PolkamarktMutation.ClaimMarket("8")).exceptionOrNull()?.message)
+        assertEquals(
+            "Accept the Polkaswap and SORA risk disclaimer first.",
+            interactor.mutate(PolkamarktMutation.ClaimMarket("8")).exceptionOrNull()?.message
+        )
         coVerify(exactly = 0) { accounts.getSelectedMetaAccount() }
     }
 
@@ -369,15 +383,19 @@ class PolkamarktInteractorImplTest {
 
         every { wallet.accountId(chain) } returns accountId
         coEvery { extrinsics.hasLocalSubstrateKey(chain, accountId) } returns false
-        assertEquals("This SORA account cannot sign in this wallet.",
-            interactor.mutate(PolkamarktMutation.ClaimMarket("8")).exceptionOrNull()?.message)
+        assertEquals(
+            "This SORA account cannot sign in this wallet.",
+            interactor.mutate(PolkamarktMutation.ClaimMarket("8")).exceptionOrNull()?.message
+        )
     }
 
     @Test fun accountOrWalletChangesDuringAuthorizationAbortTheMutation() = runTest {
         // The snapshot reads "cnAlice", then the selected account resolves to another address.
         every { wallet.address(chain) } returnsMany listOf("cnAlice", "cnBob")
-        assertEquals("The selected SORA account changed. Refresh before confirming.",
-            interactor.mutate(PolkamarktMutation.ClaimMarket("8")).exceptionOrNull()?.message)
+        assertEquals(
+            "The selected SORA account changed. Refresh before confirming.",
+            interactor.mutate(PolkamarktMutation.ClaimMarket("8")).exceptionOrNull()?.message
+        )
 
         every { wallet.address(chain) } returns "cnAlice"
         val other = mockk<MetaAccount>()
@@ -385,8 +403,10 @@ class PolkamarktInteractorImplTest {
         every { other.accountId(chain) } returns accountId
         coEvery { extrinsics.estimateFee(chain, false, any()) } returns BigInteger("3000000000000000")
         coEvery { accounts.getSelectedMetaAccount() } returnsMany listOf(wallet, wallet, other)
-        assertEquals("The selected wallet changed. Review the transaction again.",
-            interactor.mutate(PolkamarktMutation.ClaimMarket("8")).exceptionOrNull()?.message)
+        assertEquals(
+            "The selected wallet changed. Review the transaction again.",
+            interactor.mutate(PolkamarktMutation.ClaimMarket("8")).exceptionOrNull()?.message
+        )
         coVerify(exactly = 0) { extrinsics.submitAuthorizedExtrinsic(any(), any(), any(), any(), any(), any(), any()) }
     }
 
@@ -413,15 +433,16 @@ class PolkamarktInteractorImplTest {
         assertTrue(realIndexer.activity(endpoint, null).positions.isEmpty())
     }
 
-    private val buy = PolkamarktMutation.Trade("7", PolkamarktTradeMode.Buy, PolkamarktOutcome.Yes, "1.5", "1.98")
-
     private fun stubBuyQuote() {
         coEvery { runtime.quote(PolkamarktQuoteRequest("7", PolkamarktTradeMode.Buy, PolkamarktOutcome.Yes, "1.5")) } returns
             json("""{"sharesOut":"2000000000000000000","collateralIn":"1500000000000000000","feeAmount":"10000000000000000"}""")
         coEvery { extrinsics.estimateFee(chain, false, any()) } returns BigInteger("3000000000000000")
     }
 
-    private suspend fun builtCall(form: io.mockk.CapturingSlot<suspend ExtrinsicBuilder.() -> Unit>, callName: String): Map<String, Any?> {
+    private suspend fun builtCall(
+        form: io.mockk.CapturingSlot<suspend ExtrinsicBuilder.() -> Unit>,
+        callName: String
+    ): Map<String, Any?> {
         val builder = mockk<ExtrinsicBuilder>()
         val args = slot<Map<String, Any?>>()
         every { builder.call("Polkamarkt", callName, capture(args)) } returns builder

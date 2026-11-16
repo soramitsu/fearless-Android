@@ -107,18 +107,19 @@ class SoraDeFiMutationAuthorizerFailClosedTest {
         assertNull(balanceFailure(context, listOf(SoraAssetSpend(valToken, BigInteger.TEN, "VAL short")), BigInteger.TEN))
     }
 
-    private suspend fun reason(
-        feature: SoraMutationFeature,
-        calls: Set<SoraRuntimeCall> = emptySet()
-    ) = authorizer.capabilityReason(feature, soraMainChainId, calls)
+    private suspend fun reason(feature: SoraMutationFeature, calls: Set<SoraRuntimeCall> = emptySet()) =
+        authorizer.capabilityReason(feature, soraMainChainId, calls)
 
-    private suspend fun failure(
-        chainId: String = soraMainChainId,
-        assets: List<CanonicalSoraAsset> = emptyList()
-    ) = runCatching { authorizer.authorize(SoraMutationFeature.Liquidity, chainId, assets, emptySet()) }.exceptionOrNull()?.message
+    private suspend fun failure(chainId: String = soraMainChainId, assets: List<CanonicalSoraAsset> = emptyList()) =
+        runCatching {
+        authorizer.authorize(SoraMutationFeature.Liquidity, chainId, assets, emptySet())
+    }.exceptionOrNull()?.message
 
-    private suspend fun balanceFailure(context: SoraMutationContext, spends: List<SoraAssetSpend>, fee: BigInteger) =
-        runCatching { authorizer.requireFreshBalances(context, spends, fee) }.exceptionOrNull()?.message
+    private suspend fun balanceFailure(
+        context: SoraMutationContext,
+        spends: List<SoraAssetSpend>,
+        fee: BigInteger
+    ) = runCatching { authorizer.requireFreshBalances(context, spends, fee) }.exceptionOrNull()?.message
 
     private companion object {
         val ACCOUNT = ByteArray(32) { 7 }

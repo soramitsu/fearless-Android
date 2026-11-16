@@ -13,6 +13,7 @@ class ValidateLiquidityUseCasesTest {
 
     private val add = ValidateAddLiquidityUseCase()
     private val remove = ValidateRemoveLiquidityUseCase()
+    private val String.bd get() = BigDecimal(this)
 
     @Test
     fun `adding counts the fee against the utility side of the pair`() {
@@ -57,6 +58,4 @@ class ValidateLiquidityUseCasesTest {
             remove("1".bd, "10".bd, "20".bd, "1".bd, "1".bd, "1".bd).getOrThrow()
         )
     }
-
-    private val String.bd get() = BigDecimal(this)
 }

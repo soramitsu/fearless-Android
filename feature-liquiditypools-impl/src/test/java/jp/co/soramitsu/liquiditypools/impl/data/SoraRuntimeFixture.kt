@@ -68,7 +68,11 @@ internal object SoraRuntime {
 
     fun storage(module: String, name: String): StorageEntry = runtime.metadata.module(module).storage(name)
 
-    fun key(module: String, name: String, vararg keys: Any?): String = storage(module, name).storageKey(runtime, *keys)
+    fun key(
+        module: String,
+        name: String,
+        vararg keys: Any?
+    ): String = storage(module, name).storageKey(runtime, *keys)
 
     fun prefix(module: String, name: String): String = storage(module, name).storageKey()
 
@@ -76,7 +80,11 @@ internal object SoraRuntime {
 
     fun encode(type: Type<*>, value: Any?): String = type.bytes(runtime, value).toHexString(withPrefix = true)
 
-    fun encodeValue(module: String, name: String, value: Any?): String = encode(valueType(module, name), value)
+    fun encodeValue(
+        module: String,
+        name: String,
+        value: Any?
+    ): String = encode(valueType(module, name), value)
 
     fun code(assetId: String) = Struct.Instance(mapOf("code" to soraAssetIdCode(assetId.fromHex())))
 
@@ -134,7 +142,7 @@ internal class FakeSoraNode(assets: List<CoreAsset>) {
             requests += request
             val result: Any? = when (request.method) {
                 "state_getStorage" -> storage[request.params.single() as String]
-                "state_getKeys" -> keys[request.params.singleOrNull() as String?].orEmpty()
+                "state_getKeys" -> keys[request.params.singleOrNull()?.let { it as String }].orEmpty()
                 "liquidityProxy_isPathAvailable" -> pathAvailable
                 else -> error("Unexpected request ${request.method}")
             }

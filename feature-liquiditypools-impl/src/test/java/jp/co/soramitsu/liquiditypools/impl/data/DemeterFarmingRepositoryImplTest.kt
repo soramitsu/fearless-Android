@@ -273,7 +273,12 @@ class DemeterFarmingRepositoryImplTest {
         assertEquals(TX_HASH, repository.withdraw(soraMainChainId, farmedPool(), BigDecimal("5")).getOrThrow())
         val calls = mutableListOf<Map<String, Any?>>()
         verify(exactly = 2) { builder.call(PALLET, "withdraw", capture(calls)) }
-        assertEquals(listOf(BigInteger("5000000000000000000"), BigInteger("5000000000000000000")), calls.map { it["pooled_tokens"] })
+        assertEquals(
+            listOf(BigInteger("5000000000000000000"), BigInteger("5000000000000000000")),
+            calls.map {
+            it["pooled_tokens"]
+        }
+        )
 
         val tooMuch = repository.withdraw(soraMainChainId, farmedPool(), BigDecimal("6"))
         assertEquals("Demeter position balance is insufficient for this withdrawal", tooMuch.exceptionOrNull()?.message)
@@ -341,7 +346,7 @@ class DemeterFarmingRepositoryImplTest {
         isRemoved: Boolean = false,
         base: String = XOR_ID,
         pool: String = VAL_ID
-    ) = (pool to reward) to SoraRuntime.struct(
+    ) = pool to reward to SoraRuntime.struct(
         SoraRuntime.vecElement(PALLET, "Pools"),
         mapOf(
             "baseAsset" to code(base),

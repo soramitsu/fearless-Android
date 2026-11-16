@@ -53,8 +53,12 @@ class PoolsFlowFragmentContentTest {
         every { navGraphRoutesFlow } returns routes
         every { navGraphActionsFlow } returns actions
         every { toolbarStateFlow } returns toolbar
-        every { allPoolsScreenState } returns MutableStateFlow(AllPoolsState(allPools = listOf(pool("XOR-ALL")), isLoading = false))
-        every { poolListScreenState } returns MutableStateFlow(PoolListState(pools = listOf(pool("XOR-LIST")), isLoading = false))
+        every {
+            allPoolsScreenState
+        } returns MutableStateFlow(AllPoolsState(allPools = listOf(pool("XOR-ALL")), isLoading = false))
+        every {
+            poolListScreenState
+        } returns MutableStateFlow(PoolListState(pools = listOf(pool("XOR-LIST")), isLoading = false))
         every { poolDetailsScreenState } returns MutableStateFlow(PoolDetailsState(tvl = "$100"))
         every { liquidityAddScreenState } returns MutableStateFlow(LiquidityAddState(feeInfo = fee("0.0101 XOR")))
         every { liquidityAddConfirmState } returns MutableStateFlow(LiquidityAddConfirmState(feeInfo = fee("0.0102 XOR")))

@@ -9,6 +9,7 @@ import org.junit.Test
 import java.math.BigDecimal
 
 class PolkaswapFormulasTest {
+    private val String.bd get() = BigDecimal(this)
 
     @Test
     fun `pooled value and share follow the provider balance`() {
@@ -49,8 +50,6 @@ class PolkaswapFormulasTest {
         assertAmount("6", PolkaswapFormulas.calculateOneAmountFromAnother("2".bd, "10".bd, "30".bd))
         assertAmount("0", PolkaswapFormulas.calculateOneAmountFromAnother("2".bd, "0".bd, "30".bd))
     }
-
-    private val String.bd get() = BigDecimal(this)
 
     private fun assertAmount(expected: String, actual: BigDecimal) {
         assertTrue("expected $expected but was $actual", BigDecimal(expected).compareTo(actual) == 0)

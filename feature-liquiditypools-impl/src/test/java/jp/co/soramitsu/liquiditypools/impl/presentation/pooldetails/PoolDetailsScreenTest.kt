@@ -10,7 +10,6 @@ import androidx.test.core.app.ApplicationProvider
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.time.Duration
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -21,14 +20,21 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.shadows.ShadowSystemClock
+import java.time.Duration
 
 @RunWith(RobolectricTestRunner::class)
 class PoolDetailsScreenTest {
     @get:Rule val compose = createComposeRule()
     private val callbacks = mockk<PoolDetailsCallbacks>(relaxed = true)
     private val context = ApplicationProvider.getApplicationContext<Context>()
-    private val base = mockk<Asset> { every { symbol } returns "xor"; every { iconUrl } returns "" }
-    private val target = mockk<Asset> { every { symbol } returns "val"; every { iconUrl } returns "" }
+    private val base = mockk<Asset> {
+        every { symbol } returns "xor"
+        every { iconUrl } returns ""
+    }
+    private val target = mockk<Asset> {
+        every { symbol } returns "val"
+        every { iconUrl } returns ""
+    }
 
     @Before fun advanceClock() { ShadowSystemClock.advanceBy(Duration.ofSeconds(10)) }
 

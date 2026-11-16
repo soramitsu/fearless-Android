@@ -11,7 +11,6 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.test.core.app.ApplicationProvider
 import io.mockk.mockk
 import io.mockk.verify
-import java.time.Duration
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -22,6 +21,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.shadows.ShadowSystemClock
+import java.time.Duration
 
 @RunWith(RobolectricTestRunner::class)
 class LiquidityRemoveConfirmScreenTest {
@@ -47,7 +47,9 @@ class LiquidityRemoveConfirmScreenTest {
 
     @Test fun unavailableStateExplainsWhyThePrimaryActionIsDisabled() {
         compose.setContent {
-            FearlessAppTheme { LiquidityRemoveConfirmScreen(ready.copy(buttonEnabled = false, capabilityReason = "Runtime unavailable"), callbacks) }
+            FearlessAppTheme {
+                LiquidityRemoveConfirmScreen(ready.copy(buttonEnabled = false, capabilityReason = "Runtime unavailable"), callbacks)
+            }
         }
         compose.onNodeWithText("Runtime unavailable").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText(context.getString(R.string.common_confirm)).performScrollTo().assertIsNotEnabled().performClick()

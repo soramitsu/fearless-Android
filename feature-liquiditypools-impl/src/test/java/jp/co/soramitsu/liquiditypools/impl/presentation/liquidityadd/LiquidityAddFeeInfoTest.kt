@@ -13,8 +13,8 @@ import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.liquiditypools.impl.presentation.PoolsFlowViewModel.Companion.ITEM_FEE_ID
 import org.junit.Before
-import org.junit.Test
 import org.junit.Rule
+import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.shadows.ShadowSystemClock

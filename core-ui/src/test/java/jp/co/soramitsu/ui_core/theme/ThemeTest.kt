@@ -3,9 +3,9 @@ package jp.co.soramitsu.ui_core.theme
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -18,9 +18,10 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class ThemeTest {
     @get:Rule val compose = createComposeRule()
+
     // Distinct opaque test colours (#000000 + n * 1000) built from channels: the raw-colour ratchet
     // (FwRawColourRatchetTest) counts every hex Color literal under src/, test sources included.
-    private val palette = (1..21).map { Color(red = 0, green = (it * 1000) shr 8, blue = (it * 1000) and 0xFF) }
+    private val palette = (1..21).map { Color(red = 0, green = it * 1000 shr 8, blue = it * 1000 and 0xFF) }
     private val styles = (1..24).map { TextStyle(fontSize = it.sp) }
     private val typography = defaultCustomTypography(
         displayL = styles[0],

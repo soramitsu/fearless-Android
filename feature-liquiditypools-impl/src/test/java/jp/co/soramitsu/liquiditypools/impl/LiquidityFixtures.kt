@@ -1,7 +1,6 @@
 package jp.co.soramitsu.liquiditypools.impl
 
 import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
-import jp.co.soramitsu.core.models.Asset as CoreAsset
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
 import jp.co.soramitsu.wallet.impl.domain.model.AssetAmountState
@@ -9,6 +8,7 @@ import jp.co.soramitsu.wallet.impl.domain.model.FiatValuationContext
 import jp.co.soramitsu.wallet.impl.domain.model.Token
 import java.math.BigDecimal
 import java.math.BigInteger
+import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 /** Shared SORA assets and wallet balances for liquidity pool unit tests. */
 internal object LiquidityFixtures {
@@ -16,6 +16,8 @@ internal object LiquidityFixtures {
     const val VAL_ID = "0x0200040000000000000000000000000000000000000000000000000000000000"
     const val PSWAP_ID = "0x0200050000000000000000000000000000000000000000000000000000000000"
     const val UNKNOWN_ID = "0x00ff000000000000000000000000000000000000000000000000000000000000"
+    const val META_ID = 7L
+    val ACCOUNT_ID = ByteArray(32) { 7 }
 
     val xor = coreAsset("xor", "XOR", XOR_ID, isUtility = true)
     val valToken = coreAsset("val", "VAL", VAL_ID)
@@ -71,7 +73,4 @@ internal object LiquidityFixtures {
         miscFrozenInPlanksState = AssetAmountState.Known(BigInteger.ZERO),
         feeFrozenInPlanksState = AssetAmountState.Known(BigInteger.ZERO)
     )
-
-    const val META_ID = 7L
-    val ACCOUNT_ID = ByteArray(32) { 7 }
 }

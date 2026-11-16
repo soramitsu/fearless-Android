@@ -17,7 +17,6 @@ import androidx.compose.ui.test.performTextReplacement
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.time.Duration
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.polkamarkt.api.PolkamarktAccountCapability
 import jp.co.soramitsu.polkamarkt.api.PolkamarktClaimable
@@ -39,6 +38,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.shadows.ShadowSystemClock
+import java.time.Duration
 
 @OptIn(ExperimentalMaterialApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -85,7 +85,10 @@ class PolkamarktScreenTest {
         compose.onNodeWithText("Indexer offline").assertIsDisplayed()
         click("Try again")
         click("Back")
-        verify { vm.refresh(); vm.back() }
+        verify {
+            vm.refresh()
+            vm.back()
+        }
     }
 
     @Test fun catalogShowsRuntimeMarketsAndRoutesSearchFiltersAndSelection() {
@@ -96,7 +99,12 @@ class PolkamarktScreenTest {
         click("Finalized")
         click("All")
         compose.onNode(hasSetTextAction()).performTextReplacement("snow")
-        verify { vm.selectMarket("7"); vm.setFilter(MarketFilter.Finalized); vm.setFilter(MarketFilter.All); vm.setQuery("snow") }
+        verify {
+            vm.selectMarket("7")
+            vm.setFilter(MarketFilter.Finalized)
+            vm.setFilter(MarketFilter.All)
+            vm.setQuery("snow")
+        }
     }
 
     @Test fun emptyCatalogAndUnavailableAccountExplainTheirStates() {
@@ -126,10 +134,12 @@ class PolkamarktScreenTest {
         val detailed = market.copy(oracle = "oracle", resolutionSource = "station", closeBlock = "200")
         val history = listOf(PolkamarktHistoryPoint("a", "7", probabilityPercent = "25"), PolkamarktHistoryPoint("b", "7", probabilityPercent = "65"))
         val trade = PolkamarktTrade("t", "7", side = "buy", outcome = "Yes", collateral = "3", blockNumber = "90")
-        render(PolkamarktUiState(
+        render(
+            PolkamarktUiState(
             loading = false, snapshot = snapshot.copy(markets = listOf(detailed), history = history, trades = listOf(trade)),
             selectedMarketId = "7", amount = "3", quote = quote, disclaimerAccepted = true, mutationsEnabled = true
-        ))
+        )
+        )
         compose.onNodeWithText("Oracle: oracle").assertExists()
         compose.onNodeWithText("25% → 65%").performScrollTo().assertIsDisplayed()
         click("Sell")
@@ -140,15 +150,27 @@ class PolkamarktScreenTest {
         click("Confirm buy")
         compose.onNodeWithText("buy Yes · 3 · block 90").performScrollTo().assertIsDisplayed()
         click("Back")
-        verify { vm.setTradeMode(PolkamarktTradeMode.Sell); vm.setOutcome(PolkamarktOutcome.No); vm.setAmount("4") }
-        verify { vm.requestQuote(); vm.confirmTrade(); vm.selectMarket(null) }
+        verify {
+            vm.setTradeMode(PolkamarktTradeMode.Sell)
+        vm.setOutcome(PolkamarktOutcome.No)
+        vm.setAmount("4")
+        }
+        verify {
+            vm.requestQuote()
+        vm.confirmTrade()
+        vm.selectMarket(null)
+        }
     }
 
     @Test fun unsupportedQuoteAndWatchOnlyAccountDisableTradeActions() {
         val quote = PolkamarktQuote("7", PolkamarktTradeMode.Sell, PolkamarktOutcome.No, "3", "0", "0.02", "2", "1.98")
         val disabled = snapshot.copy(capabilities = snapshot.capabilities.copy(quoteSell = false), account = snapshot.account.copy(signable = false))
-        render(PolkamarktUiState(loading = false, snapshot = disabled, selectedMarketId = "7", amount = "3",
-            tradeMode = PolkamarktTradeMode.Sell, quote = quote, mutationsEnabled = true, disclaimerAccepted = true))
+        render(
+            PolkamarktUiState(
+                loading = false, snapshot = disabled, selectedMarketId = "7", amount = "3",
+            tradeMode = PolkamarktTradeMode.Sell, quote = quote, mutationsEnabled = true, disclaimerAccepted = true
+            )
+        )
         compose.onNodeWithText("Probability history is unavailable.").assertExists()
         compose.onNodeWithText("Shares amount").assertExists()
         compose.onNodeWithText("Get runtime quote").performScrollTo().assertIsNotEnabled()
@@ -159,14 +181,22 @@ class PolkamarktScreenTest {
     @Test fun positionsExposeSeparateTraderAndCreatorClaims() {
         val position = PolkamarktPosition("p", "7", marketTitle = "Rain position", outcome = "Yes", shares = "10")
         val claim = PolkamarktClaimable("7", "alice", "Resolved", traderPayout = "20", creatorFees = "2", isCreator = true)
-        render(PolkamarktUiState(loading = false, snapshot = snapshot.copy(positions = listOf(position), claimable = listOf(claim)),
-            section = PolkamarktSection.Positions, disclaimerAccepted = true, mutationsEnabled = true))
+        render(
+            PolkamarktUiState(
+                loading = false, snapshot = snapshot.copy(positions = listOf(position), claimable = listOf(claim)),
+            section = PolkamarktSection.Positions, disclaimerAccepted = true, mutationsEnabled = true
+            )
+        )
         click("Rain position")
         compose.onNodeWithText("Yes · 10 shares").assertExists()
         compose.onNodeWithText("Claim trader payout").performScrollTo().assertIsEnabled()
         click("Claim trader payout")
         click("Claim creator fees")
-        verify { vm.selectMarket("7"); vm.claimTrader("7"); vm.claimCreator("7") }
+        verify {
+            vm.selectMarket("7")
+        vm.claimTrader("7")
+        vm.claimCreator("7")
+        }
     }
 
     @Test fun marketBundleOnlyIncludesProvidedId() {

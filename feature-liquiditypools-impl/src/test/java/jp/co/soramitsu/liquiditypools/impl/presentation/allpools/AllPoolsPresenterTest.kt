@@ -135,11 +135,17 @@ class AllPoolsPresenterTest {
         verify(exactly = 0) { pools.subscribePoolsCacheOfAccount(any()) }
     }
 
-    private fun pool(symbol: String, reserves: Int, basePooled: String?): CommonPoolData {
+    private fun pool(
+        symbol: String,
+        reserves: Int,
+        basePooled: String?
+    ): CommonPoolData {
         val target = coreAsset(symbol, symbol.uppercase(), "0x$symbol")
         return CommonPoolData(
-            basic = BasicPoolData(xor, target, BigDecimal(reserves), BigDecimal(reserves), BigDecimal.TEN,
-                if (symbol == "aaa") "r-none" else "r-$symbol"),
+            basic = BasicPoolData(
+                xor, target, BigDecimal(reserves), BigDecimal(reserves), BigDecimal.TEN,
+                if (symbol == "aaa") "r-none" else "r-$symbol"
+            ),
             user = basePooled?.let { UserPoolData(BigDecimal(it), BigDecimal(it) * BigDecimal(2), 1.0, BigDecimal.ONE) }
         )
     }

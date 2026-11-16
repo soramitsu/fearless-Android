@@ -19,10 +19,10 @@ import jp.co.soramitsu.liquiditypools.navigation.InternalPoolsRouter
 import jp.co.soramitsu.liquiditypools.navigation.LiquidityPoolsNavGraphRoute
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
@@ -110,9 +110,15 @@ class PoolListPresenterTest {
         runCurrent()
     }
 
-    private fun pool(symbol: String, reserves: Int, basePooled: String?) = CommonPoolData(
-        basic = BasicPoolData(xor, coreAsset(symbol, symbol.uppercase(), "0x$symbol"), BigDecimal(reserves), BigDecimal(reserves),
-            BigDecimal.TEN, "r-$symbol"),
+    private fun pool(
+        symbol: String,
+        reserves: Int,
+        basePooled: String?
+    ) = CommonPoolData(
+        basic = BasicPoolData(
+            xor, coreAsset(symbol, symbol.uppercase(), "0x$symbol"), BigDecimal(reserves), BigDecimal(reserves),
+            BigDecimal.TEN, "r-$symbol"
+        ),
         user = basePooled?.let { UserPoolData(BigDecimal(it), BigDecimal(it), 1.0, BigDecimal.ONE) }
     )
 }

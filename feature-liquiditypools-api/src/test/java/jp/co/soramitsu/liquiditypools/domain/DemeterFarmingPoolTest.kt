@@ -17,7 +17,12 @@ class DemeterFarmingPoolTest {
     fun `a farmed position keeps its tokens, yield and amounts`() {
         val position = DemeterFarmingPool(base, pool, reward, apr = 12.5, amount = BigDecimal.TEN, amountReward = BigDecimal.ONE)
 
-        assertEquals(listOf("XOR", "VAL", "PSWAP"), listOf(position.tokenBase, position.tokenTarget, position.tokenReward).map { it.token.configuration.symbol })
+        assertEquals(
+            listOf("XOR", "VAL", "PSWAP"),
+            listOf(position.tokenBase, position.tokenTarget, position.tokenReward).map {
+            it.token.configuration.symbol
+        }
+        )
         assertEquals(12.5, position.apr, 0.0)
         assertEquals(BigDecimal.TEN to BigDecimal.ONE, position.amount to position.amountReward)
         assertEquals(position, position.copy())

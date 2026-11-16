@@ -60,7 +60,11 @@ class PoolModelsTest {
         assertEquals(listOf("Deposit", "Withdraw", "Claim"), DemeterMutationAction.entries.map { it.name })
     }
 
-    private fun asset(id: String, symbol: String, currencyId: String?) = Asset(
+    private fun asset(
+        id: String,
+        symbol: String,
+        currencyId: String?
+    ) = Asset(
         id = id, name = symbol, symbol = symbol, iconUrl = "", chainId = "sora", chainName = "SORA", chainIcon = null,
         isTestNet = false, priceId = null, precision = 18, staking = Asset.StakingType.UNSUPPORTED, purchaseProviders = null,
         supportStakingPool = false, isUtility = false, type = null, currencyId = currencyId, existentialDeposit = null,
