@@ -8,11 +8,14 @@ import io.mockk.mockk
 import io.mockk.verify
 import jp.co.soramitsu.account.impl.presentation.mnemonic.confirm.view.MnemonicWordView
 import jp.co.soramitsu.account.impl.testutil.hostFragment
+import jp.co.soramitsu.account.impl.testutil.closeFragmentHost
+import jp.co.soramitsu.account.impl.testutil.closeFragmentHosts
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentConfirmMnemonicBinding
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -20,6 +23,11 @@ import org.robolectric.Shadows.shadowOf
 
 @RunWith(RobolectricTestRunner::class)
 class ConfirmMnemonicFragmentTest {
+    @After
+    fun cleanUpHosts() {
+        closeFragmentHosts()
+    }
+
     @Test
     fun wordSelectionAndRemovalMoveTheDisplayedWordAndNotifyTheViewModel() {
         val vm = mockk<ConfirmMnemonicViewModel>(relaxed = true)
@@ -49,7 +57,7 @@ class ConfirmMnemonicFragmentTest {
         assertTrue(word.parent === binding.wordsMnemonicView)
         assertFalse((0 until binding.confirmationMnemonicView.childCount)
             .map(binding.confirmationMnemonicView::getChildAt).any { it is MnemonicWordView })
-        host.pause().stop().destroy()
+        host.closeFragmentHost()
     }
 
     @Test
@@ -80,6 +88,6 @@ class ConfirmMnemonicFragmentTest {
         verify { vm.resetConfirmationClicked() }
         skip.value = false
         assertFalse(binding.confirmMnemonicSkip.isEnabled)
-        host.pause().stop().destroy()
+        host.closeFragmentHost()
     }
 }

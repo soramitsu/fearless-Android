@@ -11,6 +11,8 @@ import jp.co.soramitsu.account.impl.presentation.exporting.mnemonic.ExportMnemon
 import jp.co.soramitsu.account.impl.presentation.exporting.seed.ExportSeedFragment
 import jp.co.soramitsu.account.impl.presentation.exporting.seed.ExportSeedViewModel
 import jp.co.soramitsu.account.impl.testutil.hostFragment
+import jp.co.soramitsu.account.impl.testutil.closeFragmentHost
+import jp.co.soramitsu.account.impl.testutil.closeFragmentHosts
 import jp.co.soramitsu.common.compose.component.MnemonicWordModel
 import jp.co.soramitsu.common.utils.ComponentHolder
 import jp.co.soramitsu.core.models.CryptoType
@@ -18,12 +20,18 @@ import jp.co.soramitsu.feature_account_impl.databinding.FragmentExportMnemonicBi
 import jp.co.soramitsu.feature_account_impl.databinding.FragmentExportSeedBinding
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
 @RunWith(RobolectricTestRunner::class)
 class ExportSecretFragmentsTest {
+    @After
+    fun cleanUpHosts() {
+        closeFragmentHosts()
+    }
+
     @Test
     fun seedScreenDisplaysAvailableEcosystemsAndDispatchesExportAndCopyActions() {
         val vm = mockk<ExportSeedViewModel>(relaxed = true)
@@ -54,7 +62,7 @@ class ExportSecretFragmentsTest {
         assertEquals(View.GONE, binding.exportSeedSubstrateLayout.visibility)
         assertEquals(View.VISIBLE, binding.exportSeedEthereumLayout.visibility)
         assertEquals(View.GONE, binding.exportSeedAdvanced.visibility)
-        host.pause().stop().destroy()
+        host.closeFragmentHost()
     }
 
     @Test
@@ -84,6 +92,6 @@ class ExportSecretFragmentsTest {
         assertEquals(View.VISIBLE, binding.exportMnemonicAdvanced.ethereumDerivationPathField.visibility)
         paths.value = ComponentHolder(listOf("", null))
         assertEquals(View.GONE, binding.exportMnemonicAdvanced.visibility)
-        host.pause().stop().destroy()
+        host.closeFragmentHost()
     }
 }

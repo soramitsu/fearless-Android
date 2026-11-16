@@ -12,17 +12,21 @@ import android.widget.FrameLayout
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Lifecycle
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import jp.co.soramitsu.account.impl.testutil.hostFragment
+import jp.co.soramitsu.account.impl.testutil.closeFragmentHost
+import jp.co.soramitsu.account.impl.testutil.closeFragmentHosts
 import jp.co.soramitsu.common.utils.Event
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -32,6 +36,11 @@ import org.robolectric.annotation.GraphicsMode
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class ExportFragmentLifecycleTest {
+    @After
+    fun cleanUpHosts() {
+        closeFragmentHosts()
+    }
+
     class TestFragment : ExportFragment<ExportViewModel>() {
         override val viewModel = mockk<ExportViewModel>(relaxed = true)
         val warnings = MutableLiveData<Event<Unit>>()
@@ -43,6 +52,23 @@ class ExportFragmentLifecycleTest {
         override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
             FrameLayout(inflater.context)
         override fun initViews() = Unit
+    }
+
+    @Test
+    fun closingTheHostDestroysItsFragmentAndWarningComposition() {
+        val fragment = TestFragment()
+        val host = hostFragment(fragment)
+        fragment.warnings.value = Event(Unit)
+        shadowOf(Looper.getMainLooper()).idle()
+        val warning = fragment.childFragmentManager.findFragmentByTag(SecurityWarningBottomSheet.TAG)!!
+        val warningViewLifecycle = warning.viewLifecycleOwner.lifecycle
+
+        host.closeFragmentHost()
+
+        assertEquals(Lifecycle.State.DESTROYED, host.get().lifecycle.currentState)
+        assertEquals(Lifecycle.State.DESTROYED, warningViewLifecycle.currentState)
+        assertFalse(warning.isAdded)
+        assertFalse(fragment.isAdded)
     }
 
     @Test
@@ -86,7 +112,7 @@ class ExportFragmentLifecycleTest {
         manager.setFragmentResult(SecurityWarningBottomSheet.REQUEST_KEY,
             bundleOf(SecurityWarningBottomSheet.RESULT_ACTION_KEY to SecurityWarningBottomSheet.ACTION_CANCEL))
         verify(exactly = 1) { fragment.viewModel.securityWarningCancel() }
-        host.pause().stop().destroy()
+        host.closeFragmentHost()
     }
 
     @Test
@@ -98,7 +124,7 @@ class ExportFragmentLifecycleTest {
         repeat(2) { fragment.warnings.value = Event(Unit) }
         assertSame(blocker, fragment.childFragmentManager.findFragmentByTag(SecurityWarningBottomSheet.TAG))
         verify(exactly = 1) { fragment.viewModel.securityWarningCancel() }
-        host.pause().stop().destroy()
+        host.closeFragmentHost()
     }
 
     @Test
@@ -111,7 +137,7 @@ class ExportFragmentLifecycleTest {
         verify(exactly = 0) { fragment.viewModel.securityWarningCancel() }
         manager.setFragmentResult(SecurityWarningBottomSheet.REQUEST_KEY, Bundle())
         verify(exactly = 1) { fragment.viewModel.securityWarningCancel() }
-        host.pause().stop().destroy()
+        host.closeFragmentHost()
     }
 
     @Test
@@ -121,7 +147,7 @@ class ExportFragmentLifecycleTest {
         val manager = fragment.childFragmentManager
         host.saveInstanceState(Bundle())
         assertEquals(SecurityWarningShowResult.FAILED_CLOSED, manager.showSecurityWarningSheet())
-        host.pause().stop().destroy()
+        host.closeFragmentHost()
         assertEquals(SecurityWarningShowResult.FAILED_CLOSED, manager.showSecurityWarningSheet())
     }
 
@@ -141,6 +167,6 @@ class ExportFragmentLifecycleTest {
         fragment.childFragmentManager.executePendingTransactions()
         verify(exactly = 1) { fragment.viewModel.securityWarningCancel() }
         assertFalse(dialog.isShowing)
-        host.pause().stop().destroy()
+        host.closeFragmentHost()
     }
 }
