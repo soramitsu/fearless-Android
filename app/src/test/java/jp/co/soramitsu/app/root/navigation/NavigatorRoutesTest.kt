@@ -39,7 +39,7 @@ class NavigatorRoutesTest {
 
     @After
     fun releaseNavigation() {
-        navigator.detach()
+        navigator.detach(host)
     }
 
     @Test

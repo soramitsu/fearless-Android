@@ -233,7 +233,7 @@ class WalletRootActivityTest {
         controller.pause().stop()
         verify(atLeast = 2) { navigator.revokeSavedEndpointAccess() }
         controller.destroy()
-        verify(exactly = 1) { navigator.detach() }
+        verify(exactly = 1) { navigator.detach(activity) }
         assertEquals(ChainConnection.ExternalRequirement.FORBIDDEN, connections.value)
     }
 

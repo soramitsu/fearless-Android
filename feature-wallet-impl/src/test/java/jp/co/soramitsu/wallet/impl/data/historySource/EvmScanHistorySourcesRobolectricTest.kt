@@ -95,7 +95,8 @@ class EvmScanHistorySourcesRobolectricTest {
         val page = VicscanHistorySource(api, "https://vic/").operations("3")
 
         assertEquals("4", page.nextCursor)
-        assertEquals("7", page.first().id)
+        // 4.3.5: the transaction hash is the id (the in-block index repeated across blocks).
+        assertEquals("0xh", page.first().id)
         assertEquals(
             listOf(Operation.Status.COMPLETED, Operation.Status.FAILED, Operation.Status.COMPLETED),
             page.map { (it.type as Operation.Type.Transfer).status }

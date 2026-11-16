@@ -61,7 +61,7 @@ class AppSheetFragmentsTest {
 
     @After
     fun tearDown() {
-        navigator.detach()
+        navigator.detach(host)
         HiltShim.reset()
     }
 

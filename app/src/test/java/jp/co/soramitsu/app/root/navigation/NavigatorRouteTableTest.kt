@@ -81,7 +81,7 @@ class NavigatorRouteTableTest {
     @After
     fun tearDown() {
         jobs.forEach { it.cancel() }
-        navigator.detach()
+        navigator.detach(host)
         WalletSessionLock.unlock()
         HiltShim.closeHosts()
     }
