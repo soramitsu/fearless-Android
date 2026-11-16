@@ -77,7 +77,7 @@ class OperationMappersRobolectricTest {
     }
 
     @Test
-    fun databaseMappingPreservesFieldsExceptTheLegacySwapModule() {
+    fun databaseMappingPreservesEveryFieldIncludingTheSwapModule() {
         listOf(transfer, reward, extrinsic, swap).forEach { type ->
             val asset = if (type is Operation.Type.Swap) xor else dot
             val chain = if (type is Operation.Type.Swap) sora else polkadot
@@ -87,9 +87,8 @@ class OperationMappersRobolectricTest {
             val restored = mapOperationLocalToOperation(local, asset, chain)
 
             assertEquals(OperationLocal.Source.APP, local.source)
-            // Existing database mapping records module only for extrinsics, losing a swap's module.
-            val expected = if (type is Operation.Type.Swap) operation.copy(type = type.copy(module = "")) else operation
-            assertEquals(expected, restored)
+            // A swap keeps its module through the database too (coverage bug #20).
+            assertEquals(operation, restored)
         }
     }
 

@@ -29,6 +29,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.math.BigDecimal
@@ -71,7 +72,8 @@ class PoolListPresenterTest {
         assertEquals(listOf("XOR-DAI", "XOR-PSWAP", "XOR-VAL", "XOR-ETH"), value.pools.map { it.text1 })
         val apy = "%s%%".format(BigDecimal("7.25").formatCrypto())
         assertEquals(apy, (value.pools.first().apy as LoadingState.Loaded).data)
-        assertTrue("no yield published for ETH", value.pools.last().apy is LoadingState.Loading)
+        // ETH has no published yield: it shows no APY rather than loading for good (coverage bug #34).
+        assertNull("no yield published for ETH", value.pools.last().apy)
     }
 
     @Test

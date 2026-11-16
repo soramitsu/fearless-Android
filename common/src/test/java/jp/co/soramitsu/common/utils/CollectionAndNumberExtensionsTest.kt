@@ -14,7 +14,8 @@ class CollectionAndNumberExtensionsTest {
     @Test
     fun shouldConvertFractionsAndMultiplyExactFiatRates() {
         assertEquals(BigDecimal("12.50"), BigDecimal("0.125").fractionToPercentage().stripTrailingZeros().setScale(2))
-        assertEquals(BigDecimal("0.125"), BigDecimal("12.500").percentageToFraction())
+        // Exact whatever the percentage's scale: 12.5 % is 0.125, not 0.1 (coverage bug #5).
+        assertEquals(0, BigDecimal("0.125").compareTo(BigDecimal("12.5").percentageToFraction()))
         assertEquals(BigDecimal("7.50"), BigDecimal("2.5").applyFiatRate(BigDecimal("3.0")))
         assertNull(BigDecimal.ONE.applyFiatRate(null))
         assertTrue(BigDecimal.ZERO.isNonNegative)

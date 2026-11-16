@@ -46,8 +46,8 @@ class PincodeFragmentTest {
     private val matchingError = MutableLiveData<Event<Unit>>()
     private val retryDelay = MutableLiveData<Event<String>>()
     private val resetInput = MutableLiveData<Event<String>>()
-    // A loading recovery state runs an indeterminate spinner; a looper drain would then never finish.
-    private val hidden = PinCodeViewModel.RecoveryState(visible = false, loading = false)
+    // The view model's hidden recovery state is idle (coverage bug #28): no spinner runs under the PIN pad.
+    private val hidden = PinCodeViewModel.RecoveryState.HIDDEN
     private val recovery = MutableLiveData(hidden)
 
     private lateinit var fragment: PincodeFragment

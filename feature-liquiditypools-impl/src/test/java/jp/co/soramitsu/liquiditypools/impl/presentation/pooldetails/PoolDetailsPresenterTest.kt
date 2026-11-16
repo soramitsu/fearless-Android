@@ -58,7 +58,12 @@ class PoolDetailsPresenterTest {
         coEvery { getPoolData(XOR_ID, VAL_ID) } returns flowOf(pool)
         coEvery { getSbApy("reserve") } returns 18.0
     }
-    private val wallet = mockk<WalletInteractor> { coEvery { getToken(xor) } returns token(xor) }
+
+    // XOR at $2 and VAL at $3: each pooled amount is valued at its own token's price (coverage bug #30).
+    private val wallet = mockk<WalletInteractor> {
+        coEvery { getToken(xor) } returns token(xor)
+        coEvery { getToken(valToken) } returns token(valToken, fiatRate = BigDecimal("3"))
+    }
     private val chain = mockk<Chain>(relaxed = true) {
         every { id } returns soraMainChainId
         every { ecosystem } returns Ecosystem.Substrate
@@ -94,6 +99,7 @@ class PoolDetailsPresenterTest {
         assertEquals(BigDecimal("10").formatCrypto("XOR"), value.pooledBaseAmount)
         assertEquals(BigDecimal("20").formatFiat("$"), value.pooledBaseFiat)
         assertEquals(BigDecimal("20").formatCrypto("VAL"), value.pooledTargetAmount)
+        assertEquals(BigDecimal("60").formatFiat("$"), value.pooledTargetFiat)
         assertEquals(BigDecimal("4000").formatFiat("$"), value.tvl)
         assertEquals("${BigDecimal("18.0").formatPercent()}%", value.apy)
     }
