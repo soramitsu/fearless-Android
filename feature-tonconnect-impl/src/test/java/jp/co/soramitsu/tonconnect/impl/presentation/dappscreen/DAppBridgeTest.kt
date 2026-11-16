@@ -28,9 +28,11 @@ class DAppBridgeTest {
         val args = JSONArray().put("transaction")
         assertEquals("sent", JSONObject(bridge.invokeFunction("send", args).toString()).getString("result"))
         assertSame(args, sent)
-        val connect = JSONArray().put(2).put(JSONObject(
-            """{"manifestUrl":"https://dapp.example/manifest.json","items":[{"name":"ton_proof","payload":"challenge"}]}"""
-        ))
+        val connect = JSONArray().put(2).put(
+            JSONObject(
+                """{"manifestUrl":"https://dapp.example/manifest.json","items":[{"name":"ton_proof","payload":"challenge"}]}"""
+            )
+        )
         assertEquals("challenge", JSONObject(bridge.invokeFunction("connect", connect).toString()).getString("proof"))
         assertEquals("restored", JSONObject(bridge.invokeFunction("restoreConnection", JSONArray()).toString()).getString("result"))
         assertSame(Unit, bridge.invokeFunction("disconnect", JSONArray()))
@@ -49,9 +51,11 @@ class DAppBridgeTest {
                 .protocol(Protocol.HTTP_1_1).code(200).message("OK").header("X-Test", "value")
                 .body("response-body".toResponseBody()).build()
         }
-        val response = JSONObject(bridge.invokeFunction(
-            "tonapi.fetch", JSONArray().put("https://TONAPI.io/v2/accounts/test").put("""{"method":"GET"}""")
-        ).toString())
+        val response = JSONObject(
+            bridge.invokeFunction(
+                "tonapi.fetch", JSONArray().put("https://TONAPI.io/v2/accounts/test").put("""{"method":"GET"}""")
+            ).toString()
+        )
         assertEquals("https://tonapi.io/v2/accounts/test", requestedUrl)
         assertEquals("""{"method":"GET"}""", requestedOptions)
         assertEquals("response-body", response.getString("body"))
@@ -67,7 +71,10 @@ class DAppBridgeTest {
     @Test
     fun fetchRejectsUnsupportedOriginBeforeCallingNetwork(): Unit = runBlocking {
         var fetched = false
-        val bridge = bridge { _, _ -> fetched = true; error("must not fetch") }
+        val bridge = bridge { _, _ ->
+            fetched = true
+            error("must not fetch")
+        }
         val failure = runCatching {
             bridge.invokeFunction("tonapi.fetch", JSONArray().put("https://evil.example/v2/accounts"))
         }.exceptionOrNull()
@@ -118,15 +125,19 @@ class DAppBridgeTest {
         assertEquals("unknown client error", json.getString("data"))
     }
 
-    private fun bridge(fetch: suspend (String, String) -> Response = { _, _ -> error("unexpected fetch") }) = DAppBridge(
-        deviceInfo = "fixture-device",
-        send = { args -> sent = args; JSONObject().put("result", "sent") },
-        connect = { protocol, request ->
-            assertEquals(2, protocol)
-            JSONObject().put("proof", request.proofPayload)
-        },
-        restoreConnection = { JSONObject().put("result", "restored") },
-        disconnect = { disconnects++ },
-        tonapiFetch = fetch
-    )
+    private fun bridge(fetch: suspend (String, String) -> Response = { _, _ -> error("unexpected fetch") }) =
+        DAppBridge(
+            deviceInfo = "fixture-device",
+            send = { args ->
+                sent = args
+                JSONObject().put("result", "sent")
+            },
+            connect = { protocol, request ->
+                assertEquals(2, protocol)
+                JSONObject().put("proof", request.proofPayload)
+            },
+            restoreConnection = { JSONObject().put("result", "restored") },
+            disconnect = { disconnects++ },
+            tonapiFetch = fetch
+        )
 }

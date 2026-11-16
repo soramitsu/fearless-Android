@@ -94,9 +94,15 @@ class NFTModelsTest {
         assertEquals("sea-image", withSea.imageUrl)
         assertEquals(2, withSea.balance)
         assertEquals(0, withSea.collectionSize)
-        val fallback = CollectionImpl("chain", "Ethereum", contractInfo(name = "Name", media = listOf(
-            TokenInfo.Media("gateway", null, null, null, null)
-        )))
+        val fallback = CollectionImpl(
+            "chain", "Ethereum",
+            contractInfo(
+                name = "Name",
+                media = listOf(
+                    TokenInfo.Media("gateway", null, null, null, null)
+                )
+            )
+        )
         assertEquals("Name", fallback.collectionName)
         assertEquals("gateway", fallback.imageUrl)
         val unnamed = CollectionImpl("chain", "Ethereum", contractInfo())

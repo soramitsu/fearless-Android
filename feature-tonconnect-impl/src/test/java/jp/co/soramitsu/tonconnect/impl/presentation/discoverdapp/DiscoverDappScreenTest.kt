@@ -112,7 +112,11 @@ class DiscoverDappScreenTest {
         assertEquals(app, selected)
     }
 
-    private fun dapp(id: String, name: String, description: String) = DappModel(
+    private fun dapp(
+        id: String,
+        name: String,
+        description: String
+    ) = DappModel(
         id, listOf("-239"), name, "https://swap.example", description, null, null, null
     )
 }

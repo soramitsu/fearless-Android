@@ -21,7 +21,7 @@ class Web3ResponseMappingTest {
 
     @Test
     fun rpcErrorPreventsTransformAndPreservesDiagnostic() {
-        val response = Response<String>().apply { error = Response.Error(-32000, "denied") }
+        val response = Response<String>().apply { error = Response.Error(-32_000, "denied") }
         val failure = assertThrows(IllegalStateException::class.java) { response.map { "unused" } }
         assertEquals("Could not fetch web3 response due to \"denied\"", failure.message)
     }

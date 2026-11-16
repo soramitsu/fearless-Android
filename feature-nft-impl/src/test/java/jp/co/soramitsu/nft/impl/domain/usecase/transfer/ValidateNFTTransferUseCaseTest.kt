@@ -51,5 +51,6 @@ class ValidateNFTTransferUseCaseTest {
         balance: BigInteger = BigInteger.ONE,
         fee: BigInteger = BigInteger.TEN,
         confirmed: List<TransferValidationResult> = emptyList()
-    ): TransferValidationResult = validate(chain, recipient, ownAddress, utility, fee, false, balance, confirmed).getOrThrow()
+    ): TransferValidationResult =
+        validate(chain, recipient, ownAddress, utility, fee, false, balance, confirmed).getOrThrow()
 }

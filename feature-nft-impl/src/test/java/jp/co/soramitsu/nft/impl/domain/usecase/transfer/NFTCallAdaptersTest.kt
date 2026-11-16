@@ -109,7 +109,11 @@ class NFTCallAdaptersTest {
         assertEquals("Token provided is not supported.", failure.message)
     }
 
-    private fun token(type: String, id: BigInteger = BigInteger.valueOf(42), address: String = contract): NFT = mockk {
+    private fun token(
+        type: String,
+        id: BigInteger = BigInteger.valueOf(42),
+        address: String = contract
+    ): NFT = mockk {
         every { tokenType } returns type
         every { tokenId } returns id
         every { contractAddress } returns address

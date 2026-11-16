@@ -16,16 +16,16 @@ import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
@@ -91,9 +91,11 @@ class NftDetailsPresenterTest {
         presenter.shareClicked()
         runCurrent()
         verify {
-            fixture.router.shareText(match {
-                it.contains(OWNER) && it.contains(CREATOR) && it.contains("Ethereum") && it.contains("Birds") && it.contains("42")
-            })
+            fixture.router.shareText(
+                match {
+                    it.contains(OWNER) && it.contains(CREATOR) && it.contains("Ethereum") && it.contains("Birds") && it.contains("42")
+                }
+            )
         }
     }
 

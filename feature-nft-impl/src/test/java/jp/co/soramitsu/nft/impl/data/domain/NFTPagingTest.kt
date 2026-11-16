@@ -123,8 +123,14 @@ class NFTPagingTest {
                     acknowledged.receive()
                     emit(listOf(response(PageBackStack.Request.Next("p3", 1), 3)))
                     acknowledged.receive()
-                    emit(listOf(PagedResponse("chain", PageBackStack.Request.Next(null, 1),
-                        Result.success(PageBackStack.PageResult.NoNextPages()))))
+                    emit(
+                        listOf(
+                            PagedResponse(
+                                "chain", PageBackStack.Request.Next(null, 1),
+                                Result.success(PageBackStack.PageResult.NoNextPages())
+                            )
+                        )
+                    )
                     acknowledged.receive()
                     handle.wipeCache()
                     assertTrue(handle.swapRequests(PaginationRequest.Next(1)).isEmpty())
@@ -136,9 +142,11 @@ class NFTPagingTest {
                 acknowledged.send(Unit)
             }
             assertEquals(
-                listOf(listOf("1"), listOf("1", "2"), listOf("1", "2", "3"), listOf("2", "3", "4"),
+                listOf(
+                    listOf("1"), listOf("1", "2"), listOf("1", "2", "3"), listOf("2", "3", "4"),
                     listOf("1", "2", "3"), listOf("1", "2", "3"), listOf("1", "2", "3"),
-                    listOf("1", "2", "3"), listOf("9")),
+                    listOf("1", "2", "3"), listOf("9")
+                ),
                 snapshots
             )
         }

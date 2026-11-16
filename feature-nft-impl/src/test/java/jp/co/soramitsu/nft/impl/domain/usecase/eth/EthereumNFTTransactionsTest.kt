@@ -77,7 +77,7 @@ class EthereumNFTTransactionsTest {
 
     @Test
     fun gasEstimationUsesSenderContractNonceAndCalldata(): Unit = runBlocking {
-        assertEquals(BigInteger.valueOf(21000), connection.estimateEthTransactionGas(call))
+        assertEquals(BigInteger.valueOf(21_000), connection.estimateEthTransactionGas(call))
         val transaction = requests.single().getAsJsonArray("params")[0].asJsonObject
         assertEquals(sender, transaction.get("from").asString)
         assertEquals(contract, transaction.get("to").asString)
@@ -89,7 +89,7 @@ class EthereumNFTTransactionsTest {
     fun rawTransactionBindsChainContractNonceAndDynamicFees(): Unit = runBlocking {
         val raw = connection.CreateRawEthTransaction(call)
         assertEquals(BigInteger.valueOf(7), raw.nonce)
-        assertEquals(BigInteger.valueOf(21000), raw.gasLimit)
+        assertEquals(BigInteger.valueOf(21_000), raw.gasLimit)
         assertEquals(contract, raw.to)
         assertEquals(BigInteger.ZERO, raw.value)
         assertEquals("12345678", raw.data.removePrefix("0x"))
@@ -139,9 +139,12 @@ class EthereumNFTTransactionsTest {
         assertEquals(1, privateKey.last().toInt())
     }
 
-    private fun balanceCall(): NFTCall.AccountBalance = NFTAccountBalanceAdapter(sender, mockk<NFT> {
-        every { tokenType } returns "ERC721"
-        every { tokenId } returns BigInteger.ONE
-        every { contractAddress } returns contract
-    })
+    private fun balanceCall(): NFTCall.AccountBalance = NFTAccountBalanceAdapter(
+        sender,
+        mockk<NFT> {
+            every { tokenType } returns "ERC721"
+            every { tokenId } returns BigInteger.ONE
+            every { contractAddress } returns contract
+        }
+    )
 }

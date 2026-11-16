@@ -21,7 +21,6 @@ import jp.co.soramitsu.nft.impl.presentation.collection.models.NFTsScreenView
 import jp.co.soramitsu.nft.impl.presentation.collection.models.ScreenModel
 import jp.co.soramitsu.nft.navigation.NFTNavGraphRoute
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.time.Duration
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -30,6 +29,7 @@ import org.junit.runner.RunWith
 import org.mockito.kotlin.mock
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.shadows.ShadowSystemClock
+import java.time.Duration
 
 @RunWith(RobolectricTestRunner::class)
 class CollectionNFTsScreenTest {
