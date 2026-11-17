@@ -1,20 +1,36 @@
 package jp.co.soramitsu.common.compose.component
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Composer
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.currentComposer
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -61,6 +77,49 @@ class CorneredInputTest {
         compose.waitForIdle()
 
         assertEquals(listOf(""), inputs)
+    }
+
+    @Test
+    fun aHintTooLongForTheFieldKeepsToOneLineAndEndsInAnEllipsis() {
+        // Twice the text size on a narrow phone: the wallet home's hint wrapped to two lines and outgrew its field.
+        val hint = "Search tokens and networks"
+        compose.setContent {
+            CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, fontScale = 2f)) {
+                FearlessAppTheme {
+                    Box(Modifier.width(320.dp).testTag("field")) {
+                        CorneredInput(state = "", hintLabel = hint, textModifier = Modifier.heightIn(min = 48.dp), onInput = {})
+                    }
+                }
+            }
+        }
+
+        val layout = layoutOf(hint)
+        assertEquals(1, layout.lineCount)
+        assertTrue("what does not fit ends in an ellipsis", layout.isLineEllipsized(0))
+        // The ellipsis stops short of the field's rounded end.
+        val field = compose.onNodeWithTag("field").getUnclippedBoundsInRoot()
+        val text = compose.onNodeWithText(hint, useUnmergedTree = true).getUnclippedBoundsInRoot()
+        assertTrue("hint $text in field $field", text.right <= field.right - 15.dp)
+    }
+
+    @Test
+    fun aHintThatFitsIsShownWhole() {
+        compose.setContent {
+            FearlessAppTheme {
+                Box(Modifier.width(320.dp)) { CorneredInput(state = "", hintLabel = "Search", onInput = {}) }
+            }
+        }
+
+        val layout = layoutOf("Search")
+        assertEquals(1, layout.lineCount)
+        assertFalse(layout.isLineEllipsized(0))
+    }
+
+    private fun layoutOf(hint: String): TextLayoutResult {
+        val layouts = mutableListOf<TextLayoutResult>()
+        compose.onNodeWithText(hint, useUnmergedTree = true)
+            .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        return layouts.single()
     }
 
     @Test

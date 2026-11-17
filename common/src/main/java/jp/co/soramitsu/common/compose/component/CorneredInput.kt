@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
@@ -67,9 +68,14 @@ private fun SearchHint(text: String?) {
         )
         MarginHorizontal(margin = 8.dp)
         text?.let {
+            // One line at every text size: a hint that wraps outgrows the field. What does not fit ends in an
+            // ellipsis short of the field's rounded end.
             B1(
+                modifier = Modifier.padding(end = 16.dp),
                 text = text,
-                color = black2
+                color = black2,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1
             )
         }
     }
