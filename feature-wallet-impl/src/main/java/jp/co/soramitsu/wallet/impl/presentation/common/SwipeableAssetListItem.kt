@@ -20,6 +20,8 @@ import jp.co.soramitsu.common.compose.component.SwipeBox
 import jp.co.soramitsu.common.compose.component.SwipeBoxViewState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
+import jp.co.soramitsu.common.utils.onSingleClick
+import jp.co.soramitsu.common.utils.rememberLastClickTime
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -52,6 +54,8 @@ fun SwipeableAssetListItem(
     // A swipe is a gesture a screen reader cannot make: the actions behind the row are also the row's own.
     val swipeActions = leftBarActionViewState.actionItems + if (isHideVisible) rightBarActionViewState.actionItems else emptyList()
     val swipeActionLabels = swipeActions.map { stringResource(it.titleId) }
+    // The same double-tap guard as the visible action buttons, so a repeated screen-reader action opens one screen.
+    val lastActionTime = rememberLastClickTime()
     SwipeBox(
         swipeableState = swipeableState,
         state = swipeBoxViewState,
@@ -61,7 +65,7 @@ fun SwipeableAssetListItem(
                 modifier = Modifier.semantics {
                     customActions = swipeActions.mapIndexed { index, action ->
                         CustomAccessibilityAction(swipeActionLabels[index]) {
-                            onItemClick(action, assetState.chainId, assetState.chainAssetId)
+                            onSingleClick(lastActionTime) { onItemClick(action, assetState.chainId, assetState.chainAssetId) }
                             true
                         }
                     }
