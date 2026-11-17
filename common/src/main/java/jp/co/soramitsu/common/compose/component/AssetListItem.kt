@@ -33,6 +33,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -57,6 +59,11 @@ import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 fun AssetListItem(
     state: AssetListItemViewState,
     modifier: Modifier = Modifier,
+    /**
+     * False where the list around the row already names the network (under a network header, or under
+     * the selected network chip): the caption then keeps to the token's name.
+     */
+    showNetwork: Boolean = true,
     onClick: (AssetListItemViewState) -> Unit
 ) {
     val rowModifier = modifier
@@ -110,15 +117,15 @@ fun AssetListItem(
                         .align(CenterStart)
                 ) {
                     Row {
+                        // Read aloud, the row always says its token and its network, once each and in plain case.
+                        val spokenNames = state.names(withNetwork = true).joinToString()
                         Text(
-                            text = listOf(state.assetName, state.assetChainName)
-                                .filter(String::isNotBlank)
-                                .joinToString(" · ")
-                                .uppercase(),
+                            text = state.names(withNetwork = showNetwork).joinToString(" · ").uppercase(),
                             style = MaterialTheme.customTypography.capsTitle2,
                             modifier = Modifier
                                 .alpha(0.64f)
                                 .testTag("AssetListItem_${state.assetSymbol}_chain_name")
+                                .semantics { if (spokenNames.isNotEmpty()) contentDescription = spokenNames }
                         )
                         if (state.isTestnet) {
                             MarginHorizontal(margin = 4.dp)
@@ -248,6 +255,16 @@ fun AssetListItem(
         }
     }
 }
+
+/**
+ * The token's name and, with [withNetwork], its network, each once: a native token named after its
+ * network ("Polkadot" on Polkadot) is one name, not the same word twice.
+ */
+private fun AssetListItemViewState.names(withNetwork: Boolean): List<String> =
+    listOfNotNull(assetName, assetChainName.takeIf { withNetwork })
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+        .distinctBy { it.lowercase() }
 
 @Composable
 fun TestnetBadge() {

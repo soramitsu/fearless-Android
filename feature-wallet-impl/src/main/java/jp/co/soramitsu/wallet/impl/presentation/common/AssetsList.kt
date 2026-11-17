@@ -190,11 +190,13 @@ fun AssetsList(
 
                         items(verifiedAssets, key = { "${it.key}$isHideVisible" }) { assetState ->
                             Box(Modifier.launchTier(LIST_TIER)) {
+                                // The section's header names the network: its rows keep to the token.
                                 SwipeableAssetListItem(
                                     assetState = assetState,
                                     isHideVisible = isHideVisible,
                                     assetClicked = callback::assetClicked,
-                                    actionItemClicked = callback::actionItemClicked
+                                    actionItemClicked = callback::actionItemClicked,
+                                    showNetwork = false
                                 )
                             }
                         }
@@ -217,7 +219,8 @@ fun AssetsList(
                             items(detectedAssets, key = { "detected-${it.key}$isHideVisible" }) { assetState ->
                                 DetectedAssetReviewItem(
                                     assetState = assetState,
-                                    callback = callback
+                                    callback = callback,
+                                    showNetwork = false
                                 )
                             }
                         }
@@ -236,7 +239,9 @@ fun AssetsList(
 @Composable
 internal fun DetectedAssetReviewItem(
     assetState: AssetListItemViewState,
-    callback: AssetsListInterface
+    callback: AssetsListInterface,
+    /** False where the list around the row already names the network. */
+    showNetwork: Boolean = true
 ) {
     val actionState = rememberSwipeableState(initialValue = SwipeState.INITIAL)
     val actions = remember(assetState.chainId, assetState.chainAssetId) {
@@ -248,7 +253,7 @@ internal fun DetectedAssetReviewItem(
     }
 
     Column {
-        AssetListItem(state = assetState, onClick = callback::assetClicked)
+        AssetListItem(state = assetState, showNetwork = showNetwork, onClick = callback::assetClicked)
         ActionBar(
             state = actions,
             fillMaxWidth = true,

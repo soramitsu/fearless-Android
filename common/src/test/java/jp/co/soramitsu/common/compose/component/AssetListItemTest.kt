@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.compose.component
 
 import android.content.Context
 import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
@@ -76,6 +77,36 @@ class AssetListItemTest {
         compose.onNodeWithTag("AssetListItem_dot_Polkadot").performClick()
         compose.waitForIdle()
         assertEquals(base, clicked)
+    }
+
+    @Test
+    fun aNativeTokenNamedAfterItsNetworkPrintsTheNameOnce() {
+        compose.setContent {
+            FearlessAppTheme { AssetListItem(state = base.copy(assetChainName = "polkadot "), onClick = {}) }
+        }
+
+        // "POLKADOT · POLKADOT" said the same thing twice.
+        compose.onNodeWithTag("AssetListItem_dot_chain_name", useUnmergedTree = true).assertTextEquals("POLKADOT")
+    }
+
+    @Test
+    fun aScreenReaderHearsTheTokenAndItsNetworkOnceInPlainCase() {
+        compose.setContent {
+            FearlessAppTheme {
+                Column {
+                    AssetListItem(state = base, onClick = {})
+                    AssetListItem(
+                        state = base.copy(assetSymbol = "ksm", assetName = "Kusama", assetChainName = "Kusama"),
+                        onClick = {}
+                    )
+                }
+            }
+        }
+
+        compose.onNodeWithTag("AssetListItem_dot_chain_name", useUnmergedTree = true)
+            .assertContentDescriptionEquals("Polkadot, Relay")
+        compose.onNodeWithTag("AssetListItem_ksm_chain_name", useUnmergedTree = true)
+            .assertContentDescriptionEquals("Kusama")
     }
 
     @Test

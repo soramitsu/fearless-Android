@@ -25,7 +25,9 @@ fun SwipeableAssetListItem(
     assetClicked: (AssetListItemViewState) -> Unit,
     actionItemClicked: (actionType: ActionItemType, chainId: ChainId, chainAssetId: String, swipeableState: SwipeableState<SwipeState>) -> Unit,
     /** The visibility action behind the row; by default Show for a hidden row and Hide otherwise. */
-    visibilityAction: ActionItemType = if (assetState.isHidden) ActionItemType.SHOW else ActionItemType.HIDE
+    visibilityAction: ActionItemType = if (assetState.isHidden) ActionItemType.SHOW else ActionItemType.HIDE,
+    /** False where the list around the row already names the network. */
+    showNetwork: Boolean = true
 ) {
     val swipeableState = rememberSwipeableState(initialValue = SwipeState.INITIAL)
 
@@ -48,6 +50,7 @@ fun SwipeableAssetListItem(
         initialContent = {
             AssetListItem(
                 state = assetState,
+                showNetwork = showNetwork,
                 onClick = assetClicked
             )
         },

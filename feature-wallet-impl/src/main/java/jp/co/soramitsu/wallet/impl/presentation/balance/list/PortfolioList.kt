@@ -47,6 +47,7 @@ import jp.co.soramitsu.common.compose.theme.white64
 import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_wallet_impl.R
+import jp.co.soramitsu.wallet.impl.presentation.common.DetectedAssetReviewItem
 import jp.co.soramitsu.wallet.impl.presentation.common.EmptyAssetsContent
 import jp.co.soramitsu.wallet.impl.presentation.common.SwipeableAssetListItem
 
@@ -91,11 +92,12 @@ fun PortfolioList(
         itemsIndexed(data.portfolioItems, key = { _, it -> it.key }) { index, item ->
             Box((if (sunlit) Modifier.fwStaggerIn(stagger, index) else Modifier).launchTier(LIST_TIER)) {
             when (item) {
-                is PortfolioListItem.AssetRow -> Column(Modifier.padding(start = if (item.nested) 12.dp else 0.dp)) {
-                    // One token list: every row names its network.
-                    B2(text = item.asset.state.assetChainName, color = white64, modifier = Modifier.padding(start = 12.dp, top = 4.dp))
-                    if (item.asset.state.isDetected) jp.co.soramitsu.wallet.impl.presentation.common.DetectedAssetReviewItem(item.asset.state, callback)
-                    else SwipeableAssetListItem(item.asset.state, isHideVisible, callback::assetClicked, callback::actionItemClicked)
+                // One token list: every row names its network, once, in its own caption. Under a selected
+                // network chip the chip names it for all of them.
+                is PortfolioListItem.AssetRow -> Box(Modifier.padding(start = if (item.nested) 12.dp else 0.dp)) {
+                    if (item.asset.state.isDetected) DetectedAssetReviewItem(item.asset.state, callback, showNetwork = !data.isNetworkNamedByChip)
+                    else SwipeableAssetListItem(item.asset.state, isHideVisible, callback::assetClicked, callback::actionItemClicked,
+                        showNetwork = !data.isNetworkNamedByChip)
                 }
                 is PortfolioListItem.TokenGroup -> if (sunlit) SunlitTokenGroup(item, { callback.onPortfolioGroupToggle(item.id) },
                     { act(item, ActionItemType.SEND) }, { act(item, ActionItemType.RECEIVE) },

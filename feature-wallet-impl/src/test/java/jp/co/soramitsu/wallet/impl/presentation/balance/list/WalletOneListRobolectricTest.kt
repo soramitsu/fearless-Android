@@ -1,5 +1,8 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import androidx.compose.ui.semantics.SemanticsNode
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
@@ -33,7 +36,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
-/** The one-list wallet home: search, network chips, the no-match answer and the one-time note. */
+/** The one-list wallet home: search, network chips, how a row names its network, the no-match answer and the one-time note. */
 @RunWith(RobolectricTestRunner::class)
 @Config(qualifiers = "w420dp-h4000dp")
 class WalletOneListRobolectricTest {
@@ -155,12 +158,71 @@ class WalletOneListRobolectricTest {
     }
 
     @Test
-    fun everyRowOfTheOneListNamesItsNetwork() {
+    fun everyRowOfTheOneListNamesItsNetworkOnce() {
         render(OneListFixtures.home(searchQuery = "usdt", expandedGroups = setOf("usdt")))
 
-        // A chip and the row each name the network.
-        assertTrue(compose.onAllNodes(hasText("Moonbeam")).fetchSemanticsNodes().size >= 2)
-        assertTrue(compose.onAllNodes(hasText("Polkadot Asset Hub")).fetchSemanticsNodes().size >= 2)
+        // In the row's own caption, and not on a line above the row as well.
+        assertEquals(listOf("TETHER · MOONBEAM", "TETHER · POLKADOT ASSET HUB"), captions("usdt"))
+        assertEquals("only the chip is Moonbeam by itself", 1, count("Moonbeam"))
+        assertEquals("only the chip is Polkadot Asset Hub by itself", 1, count("Polkadot Asset Hub"))
+    }
+
+    @Test
+    fun aNativeTokenNamedAfterItsNetworkNamesItOnce() {
+        render(OneListFixtures.home())
+
+        // Not "POLKADOT · POLKADOT" under a line saying Polkadot.
+        assertEquals(listOf("POLKADOT"), captions("dot"))
+        assertEquals(listOf("MOONBEAM"), captions("glmr"))
+        assertEquals("only the chip is Polkadot by itself", 1, count("Polkadot"))
+    }
+
+    @Test
+    fun underASelectedNetworkChipTheRowsLeaveTheNetworkToTheChip() {
+        render(OneListFixtures.home(selectedNetwork = "moonbeam"))
+
+        compose.revealChip(networkTag("moonbeam"))
+        compose.onNodeWithTag(networkTag("moonbeam")).assertIsSelected()
+        assertEquals(listOf("TETHER"), captions("usdt"))
+        // GLMR is named Moonbeam itself.
+        assertEquals(listOf("MOONBEAM"), captions("glmr"))
+        assertEquals("only the chip is Moonbeam by itself", 1, count("Moonbeam"))
+    }
+
+    @Test
+    fun withoutChipsTheRowsOfTheOnlyNetworkStillNameIt() {
+        render(OneListFixtures.home(selectedNetwork = "moonbeam", networkFilterAvailable = false))
+
+        assertEquals(listOf("TETHER · MOONBEAM"), captions("usdt"))
+    }
+
+    @Test
+    fun underANetworkHeaderTheRowsLeaveTheNetworkToTheHeader() {
+        render(OneListFixtures.networkSections())
+
+        assertEquals(listOf("TETHER", "TETHER"), captions("usdt"))
+        assertEquals(listOf("POLKADOT"), captions("dot"))
+        assertEquals("only the header is Polkadot Asset Hub by itself", 1, count("Polkadot Asset Hub"))
+        assertEquals(listOf("Tether, Moonbeam", "Tether, Polkadot Asset Hub"), spokenNames("usdt"))
+    }
+
+    @Test
+    fun aScreenReaderHearsEachRowsTokenAndNetworkOnce() {
+        // Every network: the caption shows both. A native token is not said twice.
+        render(OneListFixtures.home())
+        assertEquals(listOf("Polkadot"), spokenNames("dot"))
+        assertEquals(1, timesSaid("AssetListItem_dot_Polkadot", "Polkadot"))
+        assertEquals(1, timesSaid("AssetListItem_dot_Polkadot", "DOT"))
+    }
+
+    @Test
+    fun aScreenReaderStillHearsTheNetworkOfARowUnderItsChip() {
+        // The caption leaves the network to the chip; read aloud, the row names it all the same.
+        render(OneListFixtures.home(selectedNetwork = "moonbeam"))
+
+        assertEquals(listOf("Tether, Moonbeam"), spokenNames("usdt"))
+        assertEquals(1, timesSaid("AssetListItem_usdt_Tether", "Moonbeam"))
+        assertEquals(1, timesSaid("AssetListItem_usdt_Tether", "Tether"))
     }
 
     @Test
@@ -191,6 +253,31 @@ class WalletOneListRobolectricTest {
         val ton = compose.onNodeWithText(string(jp.co.soramitsu.common.R.string.banner_addwallet_ton_title)).getUnclippedBoundsInRoot()
         assertTrue("Manage assets $manage, banner $evm", manage.bottom <= evm.top)
         assertTrue("banners $evm, $ton", evm.bottom <= ton.top)
+    }
+
+    /** The caption of each row of a token, top to bottom. */
+    private fun captions(symbol: String): List<String> =
+        captionNodes(symbol).map { node -> node.config[SemanticsProperties.Text].joinToString { it.text } }
+
+    /** What a screen reader says in place of each of those captions. */
+    private fun spokenNames(symbol: String): List<String> =
+        captionNodes(symbol).map { it.config.getOrNull(SemanticsProperties.ContentDescription).orEmpty().joinToString() }
+
+    private fun captionNodes(symbol: String) =
+        compose.onAllNodes(hasTestTag("AssetListItem_${symbol}_chain_name"), useUnmergedTree = true).fetchSemanticsNodes()
+
+    /** Nodes whose own text is exactly [text]: a chip or a header, never a row that merely mentions it. */
+    private fun count(text: String): Int = compose.onAllNodes(hasText(text)).fetchSemanticsNodes().size
+
+    /** How often a screen reader says [word] when it reads the row: a part's description when it has one, else its text. */
+    private fun timesSaid(rowTag: String, word: String): Int {
+        fun SemanticsNode.spoken(): List<String> {
+            val own = config.getOrNull(SemanticsProperties.ContentDescription)?.takeIf { it.isNotEmpty() }
+                ?: config.getOrNull(SemanticsProperties.Text)?.map { it.text }.orEmpty()
+            return own + children.flatMap { it.spoken() }
+        }
+        val said = compose.onNodeWithTag(rowTag, useUnmergedTree = true).fetchSemanticsNode().spoken().joinToString(" | ")
+        return Regex("\\b${Regex.escape(word)}\\b", RegexOption.IGNORE_CASE).findAll(said).count()
     }
 
     private fun render(state: WalletState) {

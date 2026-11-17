@@ -64,6 +64,12 @@ sealed class AssetsLoadingState {
 
         /** Something narrows the list to part of the wallet's networks: one network or a group. */
         val isNetworkFiltered: Boolean get() = selectedNetwork != null || networkGroup != null
+
+        /**
+         * Every row is on the selected network and its chip, selected above the list, names it: the rows
+         * need not repeat it. False without that chip (a wallet held to one network has no chips).
+         */
+        val isNetworkNamedByChip: Boolean get() = networkFilterAvailable && networkOptions.any { it.id == selectedNetwork }
     }
 }
 

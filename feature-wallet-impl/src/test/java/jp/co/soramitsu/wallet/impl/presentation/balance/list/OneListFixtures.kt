@@ -70,6 +70,9 @@ internal object OneListFixtures {
 
     fun noMatch(selectedNetwork: String?): WalletState = home(searchQuery = "btc", selectedNetwork = selectedNetwork)
 
+    /** The same holdings without a wallet's one list: one section per network, each under its header. */
+    fun networkSections(): WalletState = state(AssetsLoadingState.Loaded(holdings.map { it.state }))
+
     fun state(loaded: AssetsLoadingState.Loaded) = WalletState.default.copy(
         assetsState = WalletAssetsState.Assets(loaded, isHideVisible = true),
         balance = AssetBalanceViewState("$158.40", "test-address-not-a-key", true, ChangeBalanceViewState("+1.2%", "+$1.88")),

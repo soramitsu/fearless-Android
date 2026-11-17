@@ -127,8 +127,9 @@ class PortfolioViewsInstrumentedTest {
             assertTrue(actions.size >= 3)
             save("portfolio-collapsed-${(font * 100).toInt()}")
             total.performClick()
-            compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Polkadot Asset Hub", substring = true))
-            compose.onNodeWithText("Polkadot Asset Hub", substring = true).assertIsDisplayed()
+            // A row names its network in its caption (upper case); read aloud it is "Tether, Polkadot Asset Hub".
+            compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("Polkadot Asset Hub", substring = true))
+            compose.onNodeWithContentDescription("Polkadot Asset Hub", substring = true).assertIsDisplayed()
             save("portfolio-expanded-${(font * 100).toInt()}")
             val receive = compose.activity.getString(jp.co.soramitsu.common.R.string.common_action_receive)
             val groupReceive = hasText(receive).and(hasAnyAncestor(hasTestTag("group:usdt")))
