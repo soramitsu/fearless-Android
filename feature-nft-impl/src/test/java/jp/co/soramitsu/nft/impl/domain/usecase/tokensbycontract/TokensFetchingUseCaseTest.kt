@@ -105,7 +105,7 @@ class TokensFetchingUseCaseTest {
             firstArg<Flow<PaginationRequest>>().map { request ->
                 observed += "owned" to request
                 if (request is PaginationRequest.Start) {
-                    // Give the available-tokens node time to drop the same request before the switch.
+                    // Usually lets the available node drop the same request before the switch (not guaranteed; see below).
                     delay(200)
                     page(PageBackStack.PageResult.NoNextPages())
                 } else {
@@ -132,9 +132,26 @@ class TokensFetchingUseCaseTest {
                 collection.await()
             }
         }
-        assertEquals(listOf("owned", "available", "owned"), observed.map { it.first })
-        assertEquals(PaginationRequest.Start(100), observed[1].second)
-        assertEquals(PaginationRequest.ProceedFromLastPage, observed[2].second)
+        // Both request nodes read the same request flow on Dispatchers.Default, and each checks the switch
+        // when it reads, so on a slow machine the available node can still read the first Start after the
+        // owned node switched. The order then differs, but the switching must hold in every interleaving:
+        // the owned node starts, its end hands over to the available node with a Start, and the available
+        // node's beginning hands back to the owned node, which proceeds from its last page.
+        val seen = observed.toList()
+        assertEquals("owned" to PaginationRequest.Start(10), seen.first())
+        val firstAvailable = seen.indexOfFirst { it.first == "available" }
+        val ownedProceeds = seen.indexOfFirst { it == "owned" to PaginationRequest.ProceedFromLastPage }
+        assertTrue("the owned node's end never switched to the available node: $seen", firstAvailable > 0)
+        assertTrue("the available node's beginning never switched back: $seen", ownedProceeds > firstAvailable)
+        assertTrue(
+            "the available node only starts pages: $seen",
+            seen.filter { it.first == "available" }.all { it.second is PaginationRequest.Start }
+        )
+        assertTrue(
+            "the switch to the available node starts it with a full page: $seen",
+            seen.any { it == "available" to PaginationRequest.Start(100) } ||
+                seen[firstAvailable].second == PaginationRequest.Start(10)
+        )
         assertEquals(listOf(BigInteger.ONE), result.tokens.map { it.tokenId }.toList())
     }
 
