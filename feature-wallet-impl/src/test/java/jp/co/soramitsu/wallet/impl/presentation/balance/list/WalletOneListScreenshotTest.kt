@@ -9,15 +9,24 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeRight
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import io.mockk.every
@@ -28,8 +37,10 @@ import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilter
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
 import jp.co.soramitsu.common.compose.theme.fw.fwPageBackground
+import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.presentation.ComposeFixtures
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -119,6 +130,40 @@ class WalletOneListScreenshotTest {
         shoot("10-text-200", OneListFixtures.home(), scrollToSearch = true, fontScale = 2f)
         val bounds = compose.onNodeWithTag(SEARCH_TAG).getUnclippedBoundsInRoot()
         assertTrue("search height ${bounds.bottom - bounds.top}", bounds.bottom - bounds.top >= 48.dp)
+        // The hint keeps to one line: two lines outgrew the field.
+        val hint = mutableListOf<TextLayoutResult>()
+        compose.onNodeWithText(ComposeFixtures.string(R.string.portfolio_search_tokens_networks), useUnmergedTree = true)
+            .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(hint) }
+        assertEquals("lines of the search hint at 200 % text", 1, hint.single().lineCount)
+    }
+
+    @Test
+    fun aNetworkChipAtLargeText() =
+        shoot("14-chip-moonbeam-text-200", OneListFixtures.home(selectedNetwork = "moonbeam"), scrollToSearch = true, fontScale = 2f)
+
+    @Test
+    fun searchForATokenAtLargeText() = shoot(
+        "15-search-usdt-text-200",
+        OneListFixtures.home(searchQuery = "usdt", expandedGroups = setOf("usdt")),
+        scrollToSearch = true,
+        fontScale = 2f
+    )
+
+    @Test
+    fun networkSections() = shoot("16-network-sections", OneListFixtures.networkSections(), scrollToSearch = true)
+
+    @Test
+    fun networkSectionsAtLargeText() =
+        shoot("17-network-sections-text-200", OneListFixtures.networkSections(), scrollToSearch = true, fontScale = 2f)
+
+    @Test
+    fun aRowSwipedOpen() {
+        shoot("18-row-swiped-open", OneListFixtures.home(), scrollToSearch = true) {
+            compose.onAllNodesWithTag("SwipeBox")[0].performTouchInput { swipeRight() }
+        }
+        // The actions behind the row are there once it is swiped.
+        compose.onNode(hasText(ComposeFixtures.string(R.string.common_action_receive)) and hasAnyAncestor(hasTestTag("SwipeBox")))
+            .assertIsDisplayed()
     }
 
     @Test
