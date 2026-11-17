@@ -56,7 +56,7 @@ class SuccessFragmentTest {
     @Before fun setUp() {
         ShadowSystemClock.advanceBy(Duration.ofSeconds(10))
         FragmentHiltShim.viewModel(SuccessViewModel::class) { handle ->
-            SuccessViewModel(mockk(relaxed = true), chainRegistry, handle, resources, mockk(relaxed = true), mockk(relaxed = true))
+            SuccessViewModel(mockk(relaxed = true), chainRegistry, handle, resources, mockk(relaxed = true))
         }
         host = launchHost()
     }

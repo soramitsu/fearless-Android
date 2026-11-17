@@ -7,11 +7,9 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.theme.greenText
-import jp.co.soramitsu.common.data.network.BlockExplorerUrlBuilder
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.models.Ecosystem
@@ -48,7 +46,6 @@ class SuccessViewModelTest {
     private val chainRegistry = mockk<ChainRegistry>()
     private val resources = mockk<ResourceManager>()
     private val clipboard = mockk<ClipboardManager>(relaxed = true)
-    private val externalActions = mockk<ExternalAccountActions.Presentation>(relaxed = true)
     private val models = mutableListOf<SuccessViewModel>()
 
     @Before fun setUp() {
@@ -90,7 +87,7 @@ class SuccessViewModelTest {
                 SuccessFragment.KEY_CUSTOM_MESSAGE to message
             )
         )
-        return SuccessViewModel(router, chainRegistry, handle, resources, clipboard, externalActions)
+        return SuccessViewModel(router, chainRegistry, handle, resources, clipboard)
             .also { models += it; runCurrent() }
     }
 
@@ -154,7 +151,6 @@ class SuccessViewModelTest {
         val vm = create(chainId = null, hash = HASH)
         assertEquals(Chain.Explorer.Type.UNKNOWN to "", vm.state.value.explorer)
         assertTrue(vm.state.value.tableItems.first().clickState is TitleValueViewState.ClickState.Value)
-        assertTrue(vm.getSupportedExplorers(BlockExplorerUrlBuilder.Type.EXTRINSIC, HASH).isEmpty())
 
         vm.onClose(); runCurrent()
         verify(exactly = 1) { router.back() }
@@ -179,13 +175,6 @@ class SuccessViewModelTest {
         assertEquals("https://scan.test/extrinsic/$HASH", vm.openBrowserEvent.value?.peekContent())
         vm.onShareClick(); runCurrent()
         assertEquals("https://scan.test/extrinsic/$HASH", vm.shareUrlEvent.value?.peekContent())
-        assertEquals(
-            mapOf(
-                Chain.Explorer.Type.SUBSCAN to "https://scan.test/extrinsic/$HASH",
-                Chain.Explorer.Type.ETHERSCAN to "https://eth.test/extrinsic/$HASH"
-            ),
-            vm.getSupportedExplorers(BlockExplorerUrlBuilder.Type.EXTRINSIC, HASH)
-        )
     }
 
     @Test fun closingAnEthereumTransferForcesABalanceRefreshBeforeLeaving() = runTest(dispatcher) {
