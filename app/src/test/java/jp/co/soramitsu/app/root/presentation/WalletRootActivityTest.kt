@@ -190,6 +190,30 @@ class WalletRootActivityTest {
     }
 
     @Test
+    fun losingTheNetworkDuringRecoveryRestoresTheConnectingBar() {
+        ready()
+        launch(main())
+        val connectivity = activity.getSystemService(ConnectivityManager::class.java)
+        val callback = shadowOf(connectivity).networkCallbacks.single()
+        val network = checkNotNull(connectivity.activeNetwork)
+        callback.onLost(network)
+        idle()
+        callback.onAvailable(network)
+        idle()
+        assertEquals(View.VISIBLE, bar().visibility)
+        assertEquals(activity.getString(R.string.network_status_connected), bar().text.toString())
+
+        // Disconnect while the success message is still waiting to slide away.
+        callback.onLost(network)
+        idle()
+        assertEquals(View.VISIBLE, bar().visibility)
+        assertEquals(activity.getString(R.string.network_status_connecting), bar().text.toString())
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1))
+        assertEquals("The obsolete recovery animation must not hide a lost connection", View.VISIBLE, bar().visibility)
+        assertEquals(activity.getString(R.string.network_status_connecting), bar().text.toString())
+    }
+
+    @Test
     fun anUnsupportedVersionOffersTheStore() {
         coEvery { initializer.invoke(any()) } returns InitializeResult.ErrorCanRetry(NotSupportedAppVersionException(), InitializationStep.AppConfig)
         ready()

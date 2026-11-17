@@ -404,15 +404,15 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
 
     private fun showBadConnectionView() {
         animation?.cancel()
-        if (rootNetworkBar.isVisible) {
-            return
-        }
-
         val errorColor = getColor(R.color.colorAccent)
         findViewById<TextView>(R.id.rootNetworkBar).apply {
             setText(R.string.network_status_connecting)
             setBackgroundColor(errorColor)
         }
+        if (rootNetworkBar.isVisible) {
+            return
+        }
+
         animation = TranslateAnimation(0f, 0f, -ANIM_START_POSITION, 0f).apply {
             duration = ANIM_DURATION
             findViewById<TextView>(R.id.rootNetworkBar).startAnimation(this)
@@ -436,8 +436,10 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
                 override fun onAnimationRepeat(p0: Animation?) {
                 }
 
-                override fun onAnimationEnd(p0: Animation?) {
-                    findViewById<TextView>(R.id.rootNetworkBar).isVisible = false
+                override fun onAnimationEnd(ended: Animation?) {
+                    if (this@WalletRootActivity.animation === ended && !viewModel.showConnectingBar.value) {
+                        findViewById<TextView>(R.id.rootNetworkBar).isVisible = false
+                    }
                 }
 
                 override fun onAnimationStart(p0: Animation?) {
