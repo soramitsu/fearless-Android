@@ -35,6 +35,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.GraphicsMode
 
 @RunWith(RobolectricTestRunner::class)
 class CorneredInputTest {
@@ -79,6 +80,9 @@ class CorneredInputTest {
         assertEquals(listOf(""), inputs)
     }
 
+    // The hint tests measure real text: Robolectric's legacy graphics give glyphs next to no width, so no hint
+    // would ever overflow (the ellipsis assertion failed there on 2d5f7da6b even though the hint is clipped).
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
     @Test
     fun aHintTooLongForTheFieldKeepsToOneLineAndEndsInAnEllipsis() {
         // Twice the text size on a narrow phone: the wallet home's hint wrapped to two lines and outgrew its field.
@@ -102,6 +106,7 @@ class CorneredInputTest {
         assertTrue("hint $text in field $field", text.right <= field.right - 15.dp)
     }
 
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
     @Test
     fun aHintThatFitsIsShownWhole() {
         compose.setContent {
