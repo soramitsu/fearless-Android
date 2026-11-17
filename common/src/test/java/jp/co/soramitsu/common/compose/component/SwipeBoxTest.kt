@@ -4,6 +4,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.material.Text
 import androidx.compose.material.rememberSwipeableState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -13,6 +14,8 @@ import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeRight
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -27,11 +30,13 @@ class SwipeBoxTest {
     val compose = createComposeRule()
 
     private lateinit var swipeState: SwipeableState<SwipeState>
+    private lateinit var scope: CoroutineScope
 
     private fun setSwipeBox() {
         compose.setContent {
             FearlessAppTheme {
                 swipeState = rememberSwipeableState(SwipeState.INITIAL)
+                scope = rememberCoroutineScope()
                 SwipeBox(
                     state = SwipeBoxViewState(leftStateWidth = 120.dp, rightStateWidth = 80.dp),
                     swipeableState = swipeState,
@@ -44,12 +49,12 @@ class SwipeBoxTest {
     }
 
     @Test
-    fun rowStartsInTheMiddleWithAllThreeLayersComposed() {
+    fun atRestTheRowIsAloneItsActionsAreNotThereToBeDrawnOrTapped() {
         setSwipeBox()
 
         compose.onNodeWithText("Row content").assertIsDisplayed()
-        compose.onNodeWithText("Left actions").assertExists()
-        compose.onNodeWithText("Right actions").assertExists()
+        compose.onNodeWithText("Left actions").assertDoesNotExist()
+        compose.onNodeWithText("Right actions").assertDoesNotExist()
         assertEquals(SwipeState.INITIAL, swipeState.currentValue)
     }
 
@@ -62,6 +67,7 @@ class SwipeBoxTest {
 
         assertEquals(SwipeState.LEFT, swipeState.currentValue)
         compose.onNodeWithText("Left actions").assertIsDisplayed()
+        compose.onNodeWithText("Right actions").assertDoesNotExist()
     }
 
     @Test
@@ -73,5 +79,22 @@ class SwipeBoxTest {
 
         assertEquals(SwipeState.RIGHT, swipeState.currentValue)
         compose.onNodeWithText("Right actions").assertIsDisplayed()
+        compose.onNodeWithText("Left actions").assertDoesNotExist()
+    }
+
+    @Test
+    fun closingTheRowTakesItsActionsAwayAgain() {
+        setSwipeBox()
+        compose.onNodeWithTag("SwipeBox").performTouchInput { swipeRight() }
+        compose.waitForIdle()
+        compose.onNodeWithText("Left actions").assertIsDisplayed()
+
+        // As the wallet does after an action is chosen.
+        compose.runOnIdle { scope.launch { swipeState.snapTo(SwipeState.INITIAL) } }
+        compose.waitForIdle()
+
+        assertEquals(SwipeState.INITIAL, swipeState.currentValue)
+        compose.onNodeWithText("Left actions").assertDoesNotExist()
+        compose.onNodeWithText("Row content").assertIsDisplayed()
     }
 }

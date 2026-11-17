@@ -154,10 +154,9 @@ class WalletUxScreensInstrumentedTest {
             row.bottom.value - row.top.value, 1f)
         val receiveLabel = compose.activity.getString(jp.co.soramitsu.common.compose.component.ActionItemType.RECEIVE.titleId)
         val hideLabel = compose.activity.getString(jp.co.soramitsu.common.compose.component.ActionItemType.HIDE.titleId)
-        val receive = compose.onNodeWithText(receiveLabel, useUnmergedTree = true).getUnclippedBoundsInRoot()
-        val hide = compose.onNodeWithText(hideLabel, useUnmergedTree = true).getUnclippedBoundsInRoot()
-        assertTrue("Receive must wait beyond the left edge: $receive / $row", receive.right <= row.left)
-        assertTrue("Hide must wait beyond the right edge: $hide / $row", hide.left >= row.right)
+        // At rest the actions are not there at all: nothing is drawn beside the row and nothing unseen takes a tap.
+        compose.onNodeWithText(receiveLabel, useUnmergedTree = true).assertDoesNotExist()
+        compose.onNodeWithText(hideLabel, useUnmergedTree = true).assertDoesNotExist()
         save("asset-row-at-rest")
         compose.onNodeWithTag("SwipeBox").performTouchInput { swipeRight() }
         compose.waitForIdle()

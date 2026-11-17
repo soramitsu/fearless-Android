@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
@@ -15,6 +16,9 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.test.swipeRight
 import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
@@ -223,6 +227,51 @@ class WalletOneListRobolectricTest {
         assertEquals(listOf("Tether, Moonbeam"), spokenNames("usdt"))
         assertEquals(1, timesSaid("AssetListItem_usdt_Tether", "Moonbeam"))
         assertEquals(1, timesSaid("AssetListItem_usdt_Tether", "Tether"))
+    }
+
+    @Test
+    fun aRestingRowKeepsNoActionsBesideItUntilItIsSwiped() {
+        render(OneListFixtures.home())
+        val receive = hasText(string(R.string.common_action_receive)) and hasAnyAncestor(hasTestTag("SwipeBox"))
+
+        // Nothing to be drawn in the gutter beside the row, nothing unseen to tap there.
+        assertEquals(0, compose.onAllNodes(receive).fetchSemanticsNodes().size)
+
+        compose.onAllNodes(hasTestTag("SwipeBox"))[0].performTouchInput { swipeRight() }
+        repeat(3) { compose.waitForIdle() }
+        ComposeFixtures.passDoubleTapGuard()
+        compose.onNode(receive).assertIsDisplayed().performClick()
+        compose.waitForIdle()
+
+        assertEquals(listOf("action:RECEIVE:dot"), callback.calls)
+    }
+
+    @Test
+    fun aRowSwipedLeftOffersHide() {
+        render(OneListFixtures.home())
+        val hide = hasText(string(R.string.common_action_hide)) and hasAnyAncestor(hasTestTag("SwipeBox"))
+        assertEquals(0, compose.onAllNodes(hide).fetchSemanticsNodes().size)
+
+        compose.onAllNodes(hasTestTag("SwipeBox"))[0].performTouchInput { swipeLeft() }
+        repeat(3) { compose.waitForIdle() }
+        ComposeFixtures.passDoubleTapGuard()
+        compose.onNode(hide).assertIsDisplayed().performClick()
+        compose.waitForIdle()
+
+        assertEquals(listOf("action:HIDE:dot"), callback.calls)
+    }
+
+    @Test
+    fun aRowsSwipeActionsAreAlsoItsAccessibilityActions() {
+        render(OneListFixtures.home())
+
+        val actions = compose.onNodeWithTag("AssetListItem_dot_Polkadot").fetchSemanticsNode()
+            .config.getOrNull(SemanticsActions.CustomActions).orEmpty()
+        val labels = listOf(R.string.common_action_send, R.string.common_action_receive, R.string.common_action_hide).map { string(it) }
+        assertEquals(labels, actions.map { it.label })
+        compose.runOnIdle { actions.forEach { it.action() } }
+
+        assertEquals(listOf("action:SEND:dot", "action:RECEIVE:dot", "action:HIDE:dot"), callback.calls)
     }
 
     @Test

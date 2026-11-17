@@ -5,6 +5,11 @@ import androidx.compose.material.SwipeableState
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.ActionBar
 import jp.co.soramitsu.common.compose.component.ActionBarViewState
@@ -44,12 +49,23 @@ fun SwipeableAssetListItem(
 
     val leftBarActionViewState = remember { getLeftActionBarViewState(assetState) }
     val rightBarActionViewState = remember { getRightActionBarViewState(assetState, visibilityAction) }
+    // A swipe is a gesture a screen reader cannot make: the actions behind the row are also the row's own.
+    val swipeActions = leftBarActionViewState.actionItems + if (isHideVisible) rightBarActionViewState.actionItems else emptyList()
+    val swipeActionLabels = swipeActions.map { stringResource(it.titleId) }
     SwipeBox(
         swipeableState = swipeableState,
         state = swipeBoxViewState,
         initialContent = {
             AssetListItem(
                 state = assetState,
+                modifier = Modifier.semantics {
+                    customActions = swipeActions.mapIndexed { index, action ->
+                        CustomAccessibilityAction(swipeActionLabels[index]) {
+                            onItemClick(action, assetState.chainId, assetState.chainAssetId)
+                            true
+                        }
+                    }
+                },
                 showNetwork = showNetwork,
                 onClick = assetClicked
             )
