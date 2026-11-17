@@ -39,7 +39,7 @@ class AssetListItemNetworkNamingTest {
     }
 
     @Test
-    fun aTokenWithoutANameIsStillReadWithItsNetwork() {
+    fun aTokenWithoutANameStillShowsAndSaysItsNetwork() {
         compose.setContent {
             FearlessAppTheme {
                 Column {
@@ -49,7 +49,7 @@ class AssetListItemNetworkNamingTest {
             }
         }
 
-        caption("aaa").assertTextEquals("").assertContentDescriptionEquals("Moonbeam")
+        caption("aaa").assertTextEquals("MOONBEAM").assertContentDescriptionEquals("Moonbeam")
         caption("bbb").assertTextEquals("MOONBEAM").assertContentDescriptionEquals("Moonbeam")
     }
 

@@ -119,8 +119,10 @@ fun AssetListItem(
                     Row {
                         // Read aloud, the row always says its token and its network, once each and in plain case.
                         val spokenNames = state.names(withNetwork = true).joinToString()
+                        // A token without a name still needs a caption, so it falls back to its network.
+                        val shownNames = state.names(withNetwork = showNetwork).ifEmpty { state.names(withNetwork = true) }
                         Text(
-                            text = state.names(withNetwork = showNetwork).joinToString(" · ").uppercase(),
+                            text = shownNames.joinToString(" · ").uppercase(),
                             style = MaterialTheme.customTypography.capsTitle2,
                             modifier = Modifier
                                 .alpha(0.64f)
