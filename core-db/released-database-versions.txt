@@ -62,3 +62,6 @@
 
 # Yatagarasu branding, launch and transfer feedback use the existing schema.
 4.3.5+237=84
+
+# One-list wallet home and reliability fixes retain the existing schema.
+4.3.6+238=84
