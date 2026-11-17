@@ -1123,7 +1123,6 @@ class BalanceListViewModel @Inject constructor(
         }
     }
     override fun onPortfolioGroupToggle(id: String) { currentPortfolio()?.walletId?.let { portfolioPreferences.toggleGroup(it, id) } }
-    override fun onPortfolioNetworkToggle(id: String) { currentPortfolio()?.walletId?.let { portfolioPreferences.toggleNetwork(it, id) } }
     override fun onPortfolioZeroToggle(id: String?) {
         val loaded = currentPortfolio() ?: return
         val walletId = loaded.walletId ?: return

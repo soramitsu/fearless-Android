@@ -158,7 +158,7 @@ class WalletScreenRobolectricTest {
     }
 
     @Test
-    fun portfolioRowsReportGroupNetworkAndZeroToggles() {
+    fun portfolioRowsReportGroupAndZeroToggles() {
         render(baseState(assetsState = WalletAssetsState.Assets(portfolio(), isHideVisible = true)))
 
         compose.onNodeWithText(string(R.string.portfolio_value_notice)).assertIsDisplayed()
@@ -171,11 +171,10 @@ class WalletScreenRobolectricTest {
         ComposeFixtures.passDoubleTapGuard()
         compose.onNodeWithText(string(R.string.portfolio_show_zero_networks, 3)).performClick()
         ComposeFixtures.passDoubleTapGuard()
-        compose.onAllNodes(hasText("Moonbeam"))[0].performClick()
         compose.onNodeWithText(string(R.string.portfolio_group_networks, 2)).performClick()
         compose.waitForIdle()
 
-        assertTrue(callback.calls.toString(), callback.calls.containsAll(listOf("valueNotice", "hiddenReview", "keepHidden", "zero:null", "network:moonbeam", "group:usdt")))
+        assertTrue(callback.calls.toString(), callback.calls.containsAll(listOf("valueNotice", "hiddenReview", "keepHidden", "zero:null", "group:usdt")))
         // One list: the By token / By network switch is gone, the search and the network chips replace it.
         assertEquals(0, compose.count(string(R.string.portfolio_by_network)))
         compose.onNodeWithTag(SEARCH_TAG).assertIsDisplayed()
@@ -341,8 +340,7 @@ class WalletScreenRobolectricTest {
                     id = "usdt", symbol = "USDT", name = "Tether", members = listOf(moonbeam, assetHub),
                     total = BigDecimal("10"), fiat = BigDecimal("10"), priceIncomplete = true, hiddenCount = 1, expanded = false
                 ),
-                PortfolioListItem.NetworkHeader(loose, collapsed = false),
-                PortfolioListItem.AssetRow(loose, nested = true),
+                PortfolioListItem.AssetRow(loose),
                 PortfolioListItem.ZeroSummary(networkCount = 3, expanded = false)
             ),
             portfolioUi = PortfolioUiState(),
@@ -391,7 +389,6 @@ internal class RecordingWalletCallback : WalletScreenInterface {
     override fun onPortfolioNetworkSelect(chainId: String?) { calls += "networkSelect:$chainId" }
     override fun onPortfolioMoreNetworks() { calls += "moreNetworks" }
     override fun onPortfolioGroupToggle(id: String) { calls += "group:$id" }
-    override fun onPortfolioNetworkToggle(id: String) { calls += "network:$id" }
     override fun onPortfolioZeroToggle(id: String?) { calls += "zero:$id" }
     override fun onPortfolioValueNoticeDismiss() { calls += "valueNotice" }
     override fun onPortfolioMemberAction(walletId: Long, chainId: String, assetId: String, action: ActionItemType) {

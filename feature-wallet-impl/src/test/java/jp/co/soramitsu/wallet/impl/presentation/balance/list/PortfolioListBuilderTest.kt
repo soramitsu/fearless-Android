@@ -57,7 +57,7 @@ class PortfolioListBuilderTest {
     @Test fun `a saved network lens still renders the one token list`() {
         val rows = build(listOf(asset("hub", "dot", "2", "5"), asset("relay", "0", "1", "10")),
             ui = PortfolioUiState(lens = PortfolioLens.ByNetwork, collapsedNetworks = setOf("relay")))
-        assertTrue(rows.none { it is PortfolioListItem.NetworkHeader })
+        assertEquals("one token row for both networks, no network sections", listOf("group:dot"), rows.map { it.key })
         assertEquals(BigDecimal("3"), rows.filterIsInstance<PortfolioListItem.TokenGroup>().single().total)
     }
 

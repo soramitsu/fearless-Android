@@ -48,7 +48,6 @@ import jp.co.soramitsu.common.utils.formatCrypto
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.presentation.common.EmptyAssetsContent
-import jp.co.soramitsu.wallet.impl.presentation.common.PortfolioNetworkHeader
 import jp.co.soramitsu.wallet.impl.presentation.common.SwipeableAssetListItem
 
 /** Wallet-only rows of the one token list; the search and exact-asset screens keep their existing flat list. */
@@ -97,9 +96,6 @@ fun PortfolioList(
                     B2(text = item.asset.state.assetChainName, color = white64, modifier = Modifier.padding(start = 12.dp, top = 4.dp))
                     if (item.asset.state.isDetected) jp.co.soramitsu.wallet.impl.presentation.common.DetectedAssetReviewItem(item.asset.state, callback)
                     else SwipeableAssetListItem(item.asset.state, isHideVisible, callback::assetClicked, callback::actionItemClicked)
-                }
-                is PortfolioListItem.NetworkHeader -> PortfolioNetworkHeader(item.first.state, !item.collapsed) {
-                    callback.onPortfolioNetworkToggle(item.first.state.chainId)
                 }
                 is PortfolioListItem.TokenGroup -> if (sunlit) SunlitTokenGroup(item, { callback.onPortfolioGroupToggle(item.id) },
                     { act(item, ActionItemType.SEND) }, { act(item, ActionItemType.RECEIVE) },

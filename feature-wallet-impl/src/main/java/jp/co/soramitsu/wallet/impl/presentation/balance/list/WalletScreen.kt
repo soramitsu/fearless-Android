@@ -101,7 +101,6 @@ interface WalletScreenInterface : AssetsListInterface {
     /** Opens the full network list (More networks, or the chip of a Popular or Favorites group). */
     fun onPortfolioMoreNetworks() {}
     fun onPortfolioGroupToggle(id: String) {}
-    fun onPortfolioNetworkToggle(id: String) {}
     fun onPortfolioZeroToggle(id: String?) {}
     fun onPortfolioValueNoticeDismiss() {}
     fun onPortfolioMemberAction(walletId: Long, chainId: String, assetId: String, action: ActionItemType) {}

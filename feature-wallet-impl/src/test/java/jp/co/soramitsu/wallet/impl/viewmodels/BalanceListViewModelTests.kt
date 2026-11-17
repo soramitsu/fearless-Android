@@ -875,7 +875,7 @@ class BalanceListViewModelTests {
         val kept = loadedPortfolio(chains, rows)
         assertTrue(kept.portfolioUi.showOneListNotice)
         assertEquals("the list is the token list all the same", byToken, kept.portfolioUi.lens)
-        assertTrue(kept.portfolioItems.none { it is PortfolioListItem.NetworkHeader })
+        assertEquals(listOf(DOT_ASSET_ID), kept.portfolioItems.filterIsInstance<PortfolioListItem.AssetRow>().map { it.asset.state.chainAssetId })
         assertFalse(loadedPortfolio(chains, rows, walletId = WALLET_ID + 1).portfolioUi.showOneListNotice)
         portfolioViewModel.onPortfolioLayoutNoticeDismiss()
         advanceUntilIdle()
