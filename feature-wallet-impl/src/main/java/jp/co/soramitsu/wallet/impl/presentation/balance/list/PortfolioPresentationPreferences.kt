@@ -30,18 +30,22 @@ class PortfolioPresentationPreferences @Inject constructor(
     fun setLens(metaId: Long, lens: PortfolioLens) { runCatching { preferences.putString(viewModeKey(metaId), lens.name) } }
 
     fun observeUi(metaId: Long): Flow<PortfolioUiState> = combine(
-        observeLens(metaId), observeSet(expandedGroupsKey(metaId)), observeSet(collapsedNetworksKey(metaId)),
-        observeSet(expandedZeroGroupsKey(metaId)), observeString(zeroSummaryKey(metaId)), observeString(VALUE_NOTICE_KEY)
+        observeLens(metaId), observeSet(expandedGroupsKey(metaId)), observeSet(expandedZeroGroupsKey(metaId)),
+        observeString(zeroSummaryKey(metaId)), observeString(VALUE_NOTICE_KEY)
     ) { values ->
         // The home is one token list; a saved By network only asks for the one-time note until it is dismissed.
         @Suppress("UNCHECKED_CAST")
-        PortfolioUiState(PortfolioLens.ByToken, values[1] as Set<String>, values[2] as Set<String>,
-            values[3] as Set<String>, values[4] == "true", values[5] == "true",
-            showOneListNotice = values[0] == PortfolioLens.ByNetwork)
+        PortfolioUiState(
+            lens = PortfolioLens.ByToken,
+            expandedGroups = values[1] as Set<String>,
+            expandedZeroGroups = values[2] as Set<String>,
+            zeroSummaryExpanded = values[3] == "true",
+            valueNoticeAcknowledged = values[4] == "true",
+            showOneListNotice = values[0] == PortfolioLens.ByNetwork
+        )
     }
 
     fun toggleGroup(metaId: Long, id: String) = toggle(expandedGroupsKey(metaId), id)
-    fun toggleNetwork(metaId: Long, id: String) = toggle(collapsedNetworksKey(metaId), id)
     fun toggleZeroGroup(metaId: Long, id: String) = toggle(expandedZeroGroupsKey(metaId), id)
     fun toggleManageSection(metaId: Long, id: String) = toggle(manageSectionsKey(metaId), id)
     fun observeManageSections(metaId: Long): Flow<Set<String>> = observeSet(manageSectionsKey(metaId))
@@ -153,6 +157,11 @@ class PortfolioPresentationPreferences @Inject constructor(
         fun viewModeKey(metaId: Long) = "portfolio.view_mode.v1.$metaId"
         const val VALUE_NOTICE_KEY = "portfolio.value_notice_seen.v1"
         fun expandedGroupsKey(metaId: Long) = "portfolio.expanded_groups.v1.$metaId"
+        /**
+         * Retired: versions with per-network sections saved collapsed networks here. Nothing reads or writes it now;
+         * stored values are left alone, and the name must never be reused for something else.
+         */
+        @Suppress("unused")
         fun collapsedNetworksKey(metaId: Long) = "portfolio.collapsed_networks.v1.$metaId"
         fun expandedZeroGroupsKey(metaId: Long) = "portfolio.expanded_zero_groups.v1.$metaId"
         fun zeroSummaryKey(metaId: Long) = "portfolio.zero_summary_expanded.v1.$metaId"

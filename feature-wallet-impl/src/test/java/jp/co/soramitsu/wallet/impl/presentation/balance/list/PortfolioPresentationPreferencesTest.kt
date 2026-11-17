@@ -99,12 +99,10 @@ class PortfolioPresentationPreferencesTest {
 
     @Test fun `collapse and expansion are wallet scoped and survive reconstruction`() = runTest {
         preferences.toggleGroup(WALLET, "dot")
-        preferences.toggleNetwork(WALLET, "polkadot")
         preferences.toggleZeroGroup(WALLET, "dot")
         preferences.setZeroSummaryExpanded(WALLET, true)
         val restored = PortfolioPresentationPreferences(store).observeUi(WALLET).first()
         assertEquals(setOf("dot"), restored.expandedGroups)
-        assertEquals(setOf("polkadot"), restored.collapsedNetworks)
         assertEquals(setOf("dot"), restored.expandedZeroGroups)
         assertTrue(restored.zeroSummaryExpanded)
         assertEquals(PortfolioUiState(), preferences.observeUi(OTHER_WALLET).first())

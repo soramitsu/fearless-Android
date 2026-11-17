@@ -4,7 +4,6 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.list
 data class PortfolioUiState(
     val lens: PortfolioLens = PortfolioLens.ByToken,
     val expandedGroups: Set<String> = emptySet(),
-    val collapsedNetworks: Set<String> = emptySet(),
     val expandedZeroGroups: Set<String> = emptySet(),
     val zeroSummaryExpanded: Boolean = false,
     val valueNoticeAcknowledged: Boolean = false,
