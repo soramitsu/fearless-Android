@@ -2,6 +2,8 @@
 
 The 238 candidate includes the integrated 16 November source and the signed Liberland fallback configuration. Its release ledger records the unchanged database schema 84. A release test caught a stale “Connected” banner during rapid network loss; the fix refreshes its text and prevents obsolete recovery animations from hiding it. Exact local release validation and store receipts are retained in the parent workspace under `output/production-release-20261117/android/`. See `docs/releases/4.3.6.md`.
 
+Local release qualification is complete. Submit the exact signed 238 artifact to Google Play Production at the documented initial 10% rollout; store upload, review and managed publication remain pending. Preserve the required source review and the explicit emulator/baseline limitations in the release evidence; do not promote the old 237 rollout merely to unblock creation of 238.
+
 > Historical qualification receipts named in this document are retained in the local consolidation recovery archive, outside the public source tree. They are not current release approval. See `docs/public-source-qualification.md` for the published source checks and remaining release gates.
 
 # Roadmap & Technical Debt

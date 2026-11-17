@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## 4.3.6 (238)
+
+- The wallet home now has one searchable asset list with network filters saved per wallet.
+- Receive keeps its selected network subscribed for incoming deposits, and balance updates recover more reliably.
+- A rapid connection loss now restores the “Connecting…” banner instead of leaving a stale “Connected” message.
+- Liquidity removal respects each asset's decimal precision, and unbond fee reviews update together with the reviewed transaction.
+- Includes the latest NFT paging and wallet presentation fixes and a signed Liberland fallback node configuration.
+- Database schema 84, stored account identities and encrypted wallet records are preserved.
+
 ## 4.3.5 (237)
 
 - The Yatagarasu crow now appears on the app icon, welcome screen, PIN screen and wallet home.

@@ -2,6 +2,8 @@
 
 The 238 candidate includes the integrated 16 November source and the signed Liberland fallback configuration. Its release ledger records the unchanged database schema 84. A release test caught a stale “Connected” banner during rapid network loss; the fix refreshes its text and prevents obsolete recovery animations from hiding it. Exact local release validation and store receipts are retained in the parent workspace under `output/production-release-20261117/android/`. See `docs/releases/4.3.6.md`.
 
+The signed 238 artifact is bound to `7030be7a12fe`. The full 11,806-case unit run, configured live/legacy checks, lint and release-wallet suite have passed with explicit pre-existing skips retained. The current upstream NFT test correction is integrated and its 135-case module passed. The retained 237-to-238 wallet upgrade preserves public identities, ten sealed records and the exact public test phrase; old 237 ANRs and the host-reboot boundary remain documented. The final release guards passed, including all 31 appearance configurations and the final 1,504-case common-module suite. Google Play upload and production publication remain pending.
+
 > Historical qualification receipts named in this document are retained in the local consolidation recovery archive, outside the public source tree. They are not current release approval. See `docs/public-source-qualification.md` for the published source checks and remaining release gates.
 
 # Status Summary
