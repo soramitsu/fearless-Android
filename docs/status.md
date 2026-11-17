@@ -1,3 +1,7 @@
+## Android 4.3.6 release preparation — 17 November 2026
+
+The 238 candidate includes the integrated 16 November source and the signed Liberland fallback configuration. Exact local release validation and store receipts are retained in the parent workspace under `output/production-release-20261117/android/`. See `docs/releases/4.3.6.md`.
+
 > Historical qualification receipts named in this document are retained in the local consolidation recovery archive, outside the public source tree. They are not current release approval. See `docs/public-source-qualification.md` for the published source checks and remaining release gates.
 
 # Status Summary
