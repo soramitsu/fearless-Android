@@ -28,6 +28,8 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -57,6 +59,7 @@ class ChainAccountsViewModelTest {
     private val totalBalance = mockk<TotalBalanceUseCase>()
     private val chains = mockk<ChainsRepository>()
     private val externalActions = mockk<ExternalAccountActions.Presentation>(relaxed = true)
+    private val models = mutableListOf<ChainAccountsViewModel>()
 
     private val polkadot = VmTestFixtures.chain(id = "polkadot", name = "Polkadot")
     private val kusama = VmTestFixtures.chain(id = "kusama", name = "Kusama")
@@ -65,7 +68,15 @@ class ChainAccountsViewModelTest {
 
     @Before fun setUp() = Dispatchers.setMain(dispatcher)
 
-    @After fun tearDown() = Dispatchers.resetMain()
+    @After fun tearDown() {
+        try {
+            runTest(dispatcher) {
+                models.forEach { it.coroutineContext[Job]?.cancelAndJoin() }
+            }
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
 
     private fun viewModel(balances: Flow<TotalBalance> = flowOf(TotalBalance.Unavailable)): ChainAccountsViewModel {
         every { totalBalance.observe(9) } returns balances
@@ -88,7 +99,7 @@ class ChainAccountsViewModelTest {
             interactor, walletInteractor, router, mockk<AddressIconGenerator>(relaxed = true), VmTestFixtures.resourceManager(),
             totalBalance, chains, externalActions,
             SavedStateHandle(mapOf(ACCOUNT_ID_KEY to 9L, ACCOUNT_TYPE_KEY to WalletEcosystem.Substrate))
-        )
+        ).also(models::add)
     }
 
     private fun ChainAccountsViewModel.items() = state.value.chainProjections
