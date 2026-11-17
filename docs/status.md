@@ -8,6 +8,29 @@ The signed 238 artifact is bound to `7030be7a12fe`. The full 11,806-case unit ru
 
 # Status Summary
 
+## Wallet home polish: the network named once, clean gutters, a one-line search hint — 18 November 2026
+
+Branch `claude/android-home-polish-20261117` (from `c8dc923c4`). UI, presentation and dead code only; no key, signing,
+storage, migration or remote-config code is touched.
+
+- **A row names its network once.** The one list printed the network on a line above each row and again inside it
+  ("Polkadot" over "POLKADOT · POLKADOT"). The line above is gone; the row's caption is the token's name and its
+  network ("TETHER · MOONBEAM"), and a native token named after its network is one name ("POLKADOT"). Where the list
+  already names the network, under the selected network chip or under a network header, the caption keeps to the token
+  ("TETHER"). Read aloud, every row says its token and network once, in plain case ("Tether, Moonbeam").
+- **Nothing shows beside a resting row.** The Send / Receive / Hide actions behind a row waited just outside it and
+  showed as a dark sliver in the page gutter. They now exist only while the row is swiped their way (they fade in over
+  the first 40 dp), so nothing is drawn or tappable there at rest. The same actions are the row's accessibility
+  actions, since a screen reader cannot swipe a row.
+- **The shared search hint keeps to one line** at every text size and ends in an ellipsis when it does not fit
+  (at 200 % "Search tokens and networks" wrapped and outgrew the field).
+- **Removed, unused:** `BottomNavigationBar` with its `NavigationItem` and the `ic_nav_settings` drawable only it
+  named; the success sheet's hash-actions observer and external-actions sheet (its event was never sent) with the
+  view model's unused `ExternalAccountActions` side; `PortfolioListItem.NetworkHeader` and its toggle callback
+  (never produced since the one list).
+- Tests: `AssetListItemTest`, `AssetListItemNetworkNamingTest`, `SwipeBoxTest`, `SwipeBoxGutterTest` (pixels),
+  `CorneredInputTest`, `WalletOneListRobolectricTest`, `WalletOneListScreenshotTest` (captures at default and 200 % text).
+
 ## The wallet home is one searchable token list — 16 November 2026
 
 Branch `claude/android-wallet-one-list-20261116` (from `ab3fad03f`), the Android port of the web one list (Chrome
@@ -117,8 +140,8 @@ failed before its fix.
 - The hidden PIN recovery panel kept an indeterminate spinner animating under the PIN pad.
 - Previews only: AccountInfo and join-pool previews passed a `Painter` to Coil.
 
-Not changed: `BottomNavigationBar` (its layer-list icon fails in `painterResource`) is used by no screen, only its own
-preview; TON `.ton` recipient names never reach `TonTransferService`, because send validation accepts only raw and
+`BottomNavigationBar` (its layer-list icon failed in `painterResource`; used by no screen, only its own preview) was
+removed on 18 November. Not changed: TON `.ton` recipient names never reach `TonTransferService`, because send validation accepts only raw and
 user-friendly addresses. Evidence: `build/reports/android-bugfix-batch-20261116/` in the workspace.
 
 ## One line again: 4.3.5 (237) inside the consolidated branch — 16 November 2026

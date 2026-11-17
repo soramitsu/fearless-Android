@@ -13,8 +13,11 @@ Local release qualification is complete. Submit the exact signed 238 artifact to
 - The home search covers the rows the portfolio shows (zero balances included once searched). Hidden assets and
   reviewed tokens the wallet does not hold yet are still found by the toolbar's full search; folding them into the home
   search, as the extension's 3.0.10 search did, is a separate change.
-- `PortfolioListItem.NetworkHeader`, the collapsed-network preference and Manage's `network:` sections are no longer
-  produced; they can be removed with their tests once no saved state needs them.
+- The collapsed-network preference (a saved key, still read) and Manage's `network:` sections are no longer used;
+  they can be removed with their tests once no saved state needs them. `PortfolioListItem.NetworkHeader` and its
+  toggle were removed on 18 November.
+- A list state without a wallet id still renders one section per network (`AssetsList`); the view model always
+  supplies the wallet id, so only previews and tests reach it. The network sync labels live only there.
 - Network chips show names only; the web chips also show each network's logo.
 
 ## SORA pools: open items from the coverage-campaign fixes — 16 November 2026
@@ -25,8 +28,6 @@ Local release qualification is complete. Submit the exact signed 238 artifact to
 
 ## Coverage-campaign bugs: open items — 16 November 2026
 
-- **`BottomNavigationBar`** is unused (only its preview renders it) and its Polkaswap icon is a layer-list that
-  `painterResource` rejects; remove it or give it vector icons before any screen adopts it.
 - **`.ton` names in sends** are refused by recipient validation; if DNS names are ever accepted, `TonTransferService`
   must resolve them before `MsgAddressInt.parse`.
 
