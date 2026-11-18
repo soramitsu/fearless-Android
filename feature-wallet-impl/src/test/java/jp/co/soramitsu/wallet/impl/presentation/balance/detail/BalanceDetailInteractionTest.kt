@@ -13,6 +13,7 @@ import io.mockk.verify
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSource
 import jp.co.soramitsu.androidfoundation.testing.MainCoroutineRule
+import jp.co.soramitsu.common.data.model.CursorPage
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AddressDisplayState
 import jp.co.soramitsu.common.compose.component.TextInputViewState
@@ -273,6 +274,8 @@ class BalanceDetailInteractionTest {
     }
 
     @Test fun unavailableRetainedPaymentShowsAnError() {
+        // History loads on startup and uses the same error channel as recovery.
+        coEvery { wallet.syncOperationsFirstPage(any(), any(), any(), any()) } returns Result.success(CursorPage(null, emptyList()))
         coEvery { recovery.peek(any(), any()) } throws IllegalStateException("storage unavailable")
         val vm = model()
         vm.onNativePaymentClick()

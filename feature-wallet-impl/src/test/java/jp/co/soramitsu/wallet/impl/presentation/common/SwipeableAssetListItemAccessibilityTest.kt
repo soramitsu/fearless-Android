@@ -48,7 +48,7 @@ class SwipeableAssetListItemAccessibilityTest {
     fun aRepeatedAccessibilityActionWithinTheGuardRunsOnce() {
         val send = action(0)
 
-        compose.runOnIdle {
+        compose.runOnUiThread {
             send()
             send()
         }
@@ -60,7 +60,7 @@ class SwipeableAssetListItemAccessibilityTest {
     fun anAccessibilityActionAfterTheGuardRunsAgain() {
         val send = action(0)
 
-        compose.runOnIdle {
+        compose.runOnUiThread {
             send()
             ShadowSystemClock.advanceBy(Duration.ofMillis(1_600))
             send()

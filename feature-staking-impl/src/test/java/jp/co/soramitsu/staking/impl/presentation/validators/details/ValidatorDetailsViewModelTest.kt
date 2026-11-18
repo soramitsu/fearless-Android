@@ -90,11 +90,13 @@ class ValidatorDetailsViewModelTest : LegacySelectionFixture() {
     }
 
     @Test
-    fun inactiveAndUnidentifiedValidatorsHaveNoStakeBreakdownOrContactActions(): Unit = runBlocking {
+    fun inactiveUnidentifiedValidatorOffersAddressActionsButNoStakeBreakdownOrContactLinks(): Unit = runBlocking {
         val vm = model(active = false, identified = false)
-        vm.accountActionsClicked().join()
-        verify(exactly = 0) { external.showExternalActions(any()) }
         val details = vm.validatorDetails.asFlow().await()
+        val payload = slot<ExternalAccountActions.Payload>()
+        vm.accountActionsClicked().join()
+        verify(exactly = 1) { external.showExternalActions(capture(payload)) }
+        assertEquals(details.address, payload.captured.value)
         assertNull(details.identity)
         assertNull(details.stake.activeStakeModel)
         vm.webClicked()
