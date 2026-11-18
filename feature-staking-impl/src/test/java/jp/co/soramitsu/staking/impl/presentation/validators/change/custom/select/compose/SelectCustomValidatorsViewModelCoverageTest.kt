@@ -1,6 +1,7 @@
 package jp.co.soramitsu.staking.impl.presentation.validators.change.custom.select.compose
 
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -34,11 +35,15 @@ import jp.co.soramitsu.staking.impl.presentation.validators.compose.ValidatorsLi
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.job
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -50,6 +55,8 @@ import org.robolectric.RobolectricTestRunner
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
 class SelectCustomValidatorsViewModelCoverageTest {
+
+    private val owned = mutableListOf<SelectCustomValidatorsViewModel>()
 
     private val router = mockk<StakingRouter>(relaxed = true)
     private val recommendatorFactory = mockk<ValidatorRecommendatorFactory>(relaxed = true)
@@ -94,6 +101,7 @@ class SelectCustomValidatorsViewModelCoverageTest {
 
     @After
     fun tearDown() {
+        runBlocking { withTimeout(5_000) { owned.forEach { it.viewModelScope.coroutineContext.job.cancelAndJoin() } } }
         Dispatchers.resetMain()
     }
 
@@ -111,7 +119,7 @@ class SelectCustomValidatorsViewModelCoverageTest {
         return SelectCustomValidatorsViewModel(
             router, recommendatorFactory, settingsFactory, resources, settingsStorage, shared, interactor,
             SavedStateHandle(mapOf(SelectCustomValidatorsFragment.KEY_SELECTION_MODE to mode))
-        )
+        ).also(owned::add)
     }
 
     private fun SelectCustomValidatorsViewModel.loadedList(): ValidatorsListViewState {

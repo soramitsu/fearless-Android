@@ -4,7 +4,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.list.GroupedList
-import jp.co.soramitsu.common.list.toValueList
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_staking_impl.R
@@ -31,7 +30,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -63,10 +61,6 @@ class SelectedValidatorsViewModel @Inject constructor(
     private val accountId = poolSharedStateProvider.requireMainState.accountId
 
     private val validatorsFlow: MutableStateFlow<GroupedList<NominatedValidator.Status.Group, NominatedValidator>?> = MutableStateFlow(null)
-
-    private val flattenCurrentValidators = validatorsFlow
-        .map { it?.toValueList() }
-        .share()
 
     private val reload = MutableStateFlow(0)
 
@@ -123,13 +117,12 @@ class SelectedValidatorsViewModel @Inject constructor(
     }
 
     override fun onInfoClick(item: SelectableListItemState<String>) {
+        val groups = validatorsFlow.value ?: return
+        val validator = groups.values.asSequence().flatten().firstOrNull { it.validator.accountIdHex == item.id } ?: return
+
         viewModelScope.launch {
             val payload = withContext(Dispatchers.Default) {
-                val allValidators = flattenCurrentValidators.first()
-
-                val nominatedValidator = allValidators?.first { it.validator.accountIdHex == item.id }
-
-                mapValidatorToValidatorDetailsWithStakeFlagParcelModel(requireNotNull(nominatedValidator))
+                mapValidatorToValidatorDetailsWithStakeFlagParcelModel(validator)
             }
 
             stakingInteractor.validatorDetailsCache.update { prev ->

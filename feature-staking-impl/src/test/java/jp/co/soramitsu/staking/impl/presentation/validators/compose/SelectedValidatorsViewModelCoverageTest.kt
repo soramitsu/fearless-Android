@@ -24,6 +24,7 @@ import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolSharedStatePr
 import jp.co.soramitsu.staking.impl.presentation.common.StakingPoolState
 import jp.co.soramitsu.staking.impl.presentation.validators.parcel.ValidatorDetailsParcelModel
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancelAndJoin
@@ -195,9 +196,17 @@ class SelectedValidatorsViewModelCoverageTest {
         val vm = viewModel()
         val item = vm.awaitLoaded().groups[2].listState.items.single()
 
+        val opened = CompletableDeferred<String>()
+        every { router.openValidatorDetails(any()) } answers {
+            opened.complete(firstArg())
+            Unit
+        }
+
+        vm.onInfoClick(item.copy(id = "removed-validator"))
         vm.onInfoClick(item)
 
-        verify(timeout = 5_000) { router.openValidatorDetails(inactive.accountIdHex) }
+        assertEquals(inactive.accountIdHex, runBlocking { withTimeout(10_000) { opened.await() } })
+        verify(exactly = 1) { router.openValidatorDetails(any()) }
         assertEquals(inactive.accountIdHex, detailsCache.value[inactive.accountIdHex]?.accountIdHex)
     }
 

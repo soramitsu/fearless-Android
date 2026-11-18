@@ -3,11 +3,11 @@ package jp.co.soramitsu.wallet.impl.presentation.common
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.junit4.createComposeRule
 import java.time.Duration
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.wallet.impl.presentation.ComposeFixtures
+import jp.co.soramitsu.wallet.impl.presentation.createWalletComposeRule
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -25,7 +25,7 @@ import org.robolectric.shadows.ShadowSystemClock
 class SwipeableAssetListItemAccessibilityTest {
 
     @get:Rule
-    val compose = createComposeRule()
+    val compose = createWalletComposeRule()
 
     private val clicked = mutableListOf<ActionItemType>()
 
