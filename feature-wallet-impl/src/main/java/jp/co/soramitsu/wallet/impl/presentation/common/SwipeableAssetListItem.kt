@@ -4,6 +4,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -42,34 +43,34 @@ fun SwipeableAssetListItem(
         actionItemClicked(actionType, chainId, chainAssetId, swipeableState)
     }
 
-    val swipeBoxViewState = remember {
+    val swipeBoxViewState = remember(isHideVisible) {
         SwipeBoxViewState(
             leftStateWidth = 170.dp,
             rightStateWidth = if (isHideVisible) 90.dp else 0.dp
         )
     }
 
-    val leftBarActionViewState = remember { getLeftActionBarViewState(assetState) }
-    val rightBarActionViewState = remember { getRightActionBarViewState(assetState, visibilityAction) }
+    val leftBarActionViewState = getLeftActionBarViewState(assetState)
+    val rightBarActionViewState = getRightActionBarViewState(assetState, visibilityAction)
     // A swipe is a gesture a screen reader cannot make: the actions behind the row are also the row's own.
     val swipeActions = leftBarActionViewState.actionItems + if (isHideVisible) rightBarActionViewState.actionItems else emptyList()
-    val swipeActionLabels = swipeActions.map { stringResource(it.titleId) }
-    // The same double-tap guard as the visible action buttons, so a repeated screen-reader action opens one screen.
-    val lastActionTime = rememberLastClickTime()
+    val accessibilityActions = swipeActions.map { action ->
+        key(assetState.chainId, assetState.chainAssetId, action) {
+            val label = stringResource(action.titleId)
+            val lastClickTime = rememberLastClickTime()
+            CustomAccessibilityAction(label) {
+                onSingleClick(lastClickTime) { onItemClick(action, assetState.chainId, assetState.chainAssetId) }
+                true
+            }
+        }
+    }
     SwipeBox(
         swipeableState = swipeableState,
         state = swipeBoxViewState,
         initialContent = {
             AssetListItem(
                 state = assetState,
-                modifier = Modifier.semantics {
-                    customActions = swipeActions.mapIndexed { index, action ->
-                        CustomAccessibilityAction(swipeActionLabels[index]) {
-                            onSingleClick(lastActionTime) { onItemClick(action, assetState.chainId, assetState.chainAssetId) }
-                            true
-                        }
-                    }
-                },
+                modifier = Modifier.semantics { customActions = accessibilityActions },
                 showNetwork = showNetwork,
                 onClick = assetClicked
             )

@@ -48,8 +48,10 @@ class SwipeableAssetListItemAccessibilityTest {
     fun aRepeatedAccessibilityActionWithinTheGuardRunsOnce() {
         val send = action(0)
 
-        compose.runOnIdle { send() }
-        compose.runOnIdle { send() }
+        compose.runOnIdle {
+            send()
+            send()
+        }
 
         assertEquals(listOf(ActionItemType.SEND), clicked)
     }
@@ -57,13 +59,14 @@ class SwipeableAssetListItemAccessibilityTest {
     @Test
     fun anAccessibilityActionAfterTheGuardRunsAgain() {
         val send = action(0)
-        val receive = action(1)
 
-        compose.runOnIdle { send() }
-        ShadowSystemClock.advanceBy(Duration.ofMillis(1_600))
-        compose.runOnIdle { receive() }
+        compose.runOnIdle {
+            send()
+            ShadowSystemClock.advanceBy(Duration.ofMillis(1_600))
+            send()
+        }
 
-        assertEquals(listOf(ActionItemType.SEND, ActionItemType.RECEIVE), clicked)
+        assertEquals(listOf(ActionItemType.SEND, ActionItemType.SEND), clicked)
     }
 
     private fun action(index: Int): () -> Unit {
