@@ -5,6 +5,7 @@ import android.graphics.drawable.PictureDrawable
 import android.view.View
 import android.widget.TextView
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.SavedStateHandle
 import io.mockk.coEvery
 import io.mockk.every
@@ -20,6 +21,7 @@ import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.impl.WalletTestModels
+import jp.co.soramitsu.wallet.impl.awaitValue
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
 import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.HiltFragmentHost
@@ -99,8 +101,8 @@ class TransactionDetailFragmentsRobolectricTest {
         assertEquals("0.01 DOT", view.text(R.id.transactionDetailFee))
         assertEquals(View.VISIBLE, view.findViewById<View>(R.id.transactionDetailFee).visibility)
         assertEquals("0xhash", view.labeled(R.id.transactionDetailHash))
-        assertEquals("Contact", view.labeled(R.id.transactionDetailFrom))
-        assertEquals("Contact", view.labeled(R.id.transactionDetailTo))
+        assertRenderedAddress("Contact", viewModel.senderAddressModelLiveData) { view.labeled(R.id.transactionDetailFrom) }
+        assertRenderedAddress("Contact", viewModel.recipientAddressModelLiveData) { view.labeled(R.id.transactionDetailTo) }
 
         view.findViewById<View>(R.id.transactionDetailHash).performClick()
         assertExternalSheetShown()
@@ -124,11 +126,10 @@ class TransactionDetailFragmentsRobolectricTest {
         assertEquals(View.GONE, view.findViewById<View>(R.id.transactionDetailFee).visibility)
         assertEquals(View.GONE, view.findViewById<View>(R.id.transactionDetailFeeLabel).visibility)
         assertEquals(View.GONE, view.findViewById<View>(R.id.transactionDetailHash).visibility)
-        assertEquals(WalletTestModels.BOB, view.labeled(R.id.transactionDetailFrom))
-        assertEquals(
-            WalletTestModels.BOB,
-            view.findViewById<View>(R.id.transactionDetailRepeat).findViewById<TextView>(jp.co.soramitsu.common.R.id.accountTitle).text.toString()
-        )
+        assertRenderedAddress(WalletTestModels.BOB, viewModel.senderAddressModelLiveData) { view.labeled(R.id.transactionDetailFrom) }
+        val repeatTitle = view.findViewById<View>(R.id.transactionDetailRepeat)
+            .findViewById<TextView>(jp.co.soramitsu.common.R.id.accountTitle)
+        assertRenderedAddress(WalletTestModels.BOB, viewModel.retryAddressModelLiveData) { repeatTitle.text.toString() }
     }
 
     @Test
@@ -144,7 +145,7 @@ class TransactionDetailFragmentsRobolectricTest {
 
         assertEquals("+2 KSM", view.text(R.id.rewardDetailReward))
         assertEquals("1-2", view.labeled(R.id.rewardDetailHash))
-        assertEquals(WalletTestModels.BOB, view.labeled(R.id.rewardDetailValidator))
+        assertRenderedAddress(WalletTestModels.BOB, viewModel.validatorAddressModelLiveData) { view.labeled(R.id.rewardDetailValidator) }
         assertEquals("Era #12", view.text(R.id.rewardDetailEra))
         assertEquals(fragment.getString(R.string.staking_reward), view.text(R.id.rewardDetailRewardLabel))
 
@@ -186,7 +187,7 @@ class TransactionDetailFragmentsRobolectricTest {
         assertEquals("bond", view.text(R.id.extrinsicDetailCall))
         assertEquals("0.02 DOT", view.text(R.id.extrinsicDetailFee))
         assertEquals("0xextrinsic", view.labeled(R.id.extrinsicDetailHash))
-        assertEquals(WalletTestModels.ALICE, view.labeled(R.id.extrinsicDetailFrom))
+        assertRenderedAddress(WalletTestModels.ALICE, viewModel.fromAddressModelLiveData) { view.labeled(R.id.extrinsicDetailFrom) }
 
         view.findViewById<View>(R.id.extrinsicDetailHash).performClick()
         assertExternalSheetShown()
@@ -209,6 +210,12 @@ class TransactionDetailFragmentsRobolectricTest {
     }
 
     private fun names(name: String?) = mockk<AddressDisplayUseCase> { coEvery { this@mockk.invoke(any()) } returns name }
+
+    private fun assertRenderedAddress(expected: String, model: LiveData<*>, displayed: () -> String) {
+        // Address icons resolve on Dispatchers.Default after the fragment begins observing.
+        model.awaitValue { it != null && displayed() == expected }
+        assertEquals(expected, displayed())
+    }
 
     private fun assertExternalSheetShown() {
         ShadowLooper.idleMainLooper()
