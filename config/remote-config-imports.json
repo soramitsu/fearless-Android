@@ -56,7 +56,7 @@
       "commit": "ca1c2655ff541ae5942d820423962d34fd29d7f9",
       "sourcePath": "chains/v13/chains.json",
       "upstreamSha256": "79a583f08f71139a31e00c825c746891cef50c04aa81318aaa492807757b9cec",
-      "ownedSha256": "4c3f3889de54a2ed38b686df381b9dcb746645830ff560d87f2a83b66234d556"
+      "ownedSha256": "3a1bb98664002108e9c66619d1aa80e54684cd9b0465a8761cebd8378d5e1325"
     },
     {
       "path": "production/fiat/fiats.json",
@@ -4336,7 +4336,7 @@
       "commit": "f2ed4ccf1d3a6376b60ebd69d823a3f7748ddc4b",
       "sourcePath": "chains/v13/chains_dev.json",
       "upstreamSha256": "5726b01a5364d955e250939c71082c03f97da0dc9512ac9d120c6a2085173d05",
-      "ownedSha256": "6df36415997822828dc70484e688bca18a9beac5e84d27c40d94d279c262e69a"
+      "ownedSha256": "9c03192336727912a8734960d6c1c5bc71e9f0ec88797cd173dbb971b363c9f1"
     },
     {
       "path": "development/chains/v13/chains_dev_prod.json",
@@ -4344,7 +4344,7 @@
       "commit": "f2ed4ccf1d3a6376b60ebd69d823a3f7748ddc4b",
       "sourcePath": "chains/v13/chains_dev_prod.json",
       "upstreamSha256": "8c7f01cd1ee0866df13ac3faa1315007361c96ce067cc062aea2d6e48ccc3235",
-      "ownedSha256": "1c33c1d44cb07db8861a150f51ccd03840bcf89ce3925438b9557aaf794ca1e2"
+      "ownedSha256": "ce8f21e4d88979a2bcaca2c11031578868fa61e47241238ed650f253cfc55f66"
     },
     {
       "path": "development/fiat/fiats.json",
