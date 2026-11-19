@@ -95,7 +95,7 @@
 ## Runtime ownership
 - Edit `runtime-utils`, `runtime-websocket` and `core-*` modules directly. Preserve package/API compatibility and upstream license attribution.
 - Update owned file digests in `config/android-runtime-source-pins.json` with reviewed changes and run its verifier and adversarial tests. No external runtime checkout or published internal library override is supported.
-- `remote-config` is owned by Android; update its manifest and URL-closure tests with data changes. Publish on public `master` before shipping consumer URLs. Keep the legacy host available to installed clients.
+- `remote-config` is owned by Android; update its manifest and URL-closure tests with data changes. Publish on public `master` before shipping consumer URLs. Keep the legacy host available to installed clients. After editing protected configuration, run `python3 scripts/sign-remote-config.py sign` and commit the updated signed manifest alongside the catalogs. Check it with `python3 scripts/verify-owned-remote-config.py` and `python3 scripts/test-remote-config-signing.py`.
 
 ## Native Crypto (libsodium)
 - `app/src/main/jniLibs/*/libsodium.so` is built from `third_party/libsodium` using `scripts/build-libsodium.sh`.

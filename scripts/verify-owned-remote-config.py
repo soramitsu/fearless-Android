@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 """Validate Android-owned configuration inventory, URL closure and provenance."""
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 import re
 import sys
 from urllib.parse import unquote, urlsplit
+
+SIGNER_SPEC = importlib.util.spec_from_file_location('remote_config_signing', Path(__file__).with_name('sign-remote-config.py'))
+SIGNING = importlib.util.module_from_spec(SIGNER_SPEC)
+SIGNER_SPEC.loader.exec_module(SIGNING)
 
 PREFIX = 'https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/'
 LEGACY = ('shared-features-utils', 'raw.githubusercontent.com/soramitsu/fearless-utils/', 'cdn.jsdelivr.net/gh/soramitsu/fearless-utils@')
@@ -104,6 +109,9 @@ def verify(root):
             raise ValueError('Config inventory contains a symlink')
         if path.is_file():
             actual.add(path.relative_to(directory).as_posix())
+    # The signed envelope is generated locally and has no imported source entry.
+    SIGNING.verify(root)
+    actual.remove(SIGNING.MANIFEST)
     if expected != actual:
         raise ValueError('Config inventory differs from manifest')
     verify_consumers(root, listed)

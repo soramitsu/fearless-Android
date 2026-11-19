@@ -19,6 +19,10 @@ class OwnedConfigTest(unittest.TestCase):
         self.root = Path(self.tmp.name)
         (self.root / 'config').mkdir()
         (self.root / 'remote-config').mkdir()
+        self.key = self.root / 'fixture.key'
+        public = VERIFY.SIGNING.keygen(self.key)
+        key_config = {'algorithm': 'ed25519', 'publicKey': public.hex(), 'keyId': VERIFY.SIGNING.key_id(public)}
+        (self.root / VERIFY.SIGNING.KEY_CONFIG).write_text(json.dumps(key_config))
         self.entries = []
         self.put('icon.svg', b'<svg/>')
         self.put('chains.json', json.dumps({'icon': VERIFY.PREFIX + 'icon.svg'}).encode())
@@ -34,6 +38,7 @@ class OwnedConfigTest(unittest.TestCase):
         self.entries.append({'path': path, 'repository': 'soramitsu/fixture', 'commit': 'a' * 40, 'sourcePath': path, 'upstreamSha256': digest, 'ownedSha256': digest})
 
     def save(self):
+        VERIFY.SIGNING.sign(self.root, self.key)
         (self.root / 'config/remote-config-imports.json').write_text(json.dumps({'schemaVersion': 1, 'ownership': 'Android application', 'sources': self.entries, 'changes': []}))
 
     def rejected(self):
@@ -42,6 +47,18 @@ class OwnedConfigTest(unittest.TestCase):
 
     def test_closed_inventory(self):
         self.assertEqual(2, VERIFY.verify(self.root))
+
+    def test_missing_signed_manifest(self):
+        (self.root / 'remote-config' / VERIFY.SIGNING.MANIFEST).unlink()
+        self.rejected()
+
+    def test_catalog_with_updated_import_digest_still_needs_a_new_signature(self):
+        envelope = self.root / 'remote-config' / VERIFY.SIGNING.MANIFEST
+        before = envelope.read_bytes()
+        self.put('chains.json', b'[]')
+        self.save()
+        envelope.write_bytes(before)
+        self.rejected()
 
     def test_modified_bytes(self):
         (self.root / 'remote-config/icon.svg').write_text('changed')
