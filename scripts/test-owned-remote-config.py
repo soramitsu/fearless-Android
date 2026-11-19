@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location('owned_config', ROOT / 'scripts/verify-owned-remote-config.py')
@@ -117,6 +118,40 @@ class OwnedConfigTest(unittest.TestCase):
 
     def test_imported_repository(self):
         self.assertGreater(VERIFY.verify(ROOT), 600)
+
+    def test_v13_catalog_rpc_urls(self):
+        catalogs = (
+            'production/chains/v13/chains.json',
+            'development/chains/v13/chains_dev.json',
+            'development/chains/v13/chains_dev_prod.json',
+        )
+        for catalog in catalogs:
+            chains = json.loads((ROOT / 'remote-config' / catalog).read_text())
+            for chain in chains:
+                if chain.get('disabled'):
+                    continue
+                with self.subTest(catalog=catalog, chain=chain['name']):
+                    urls = [node['url'] for node in chain['nodes']]
+                    self.assertTrue(urls)
+                    self.assertEqual(len(urls), len(set(urls)))
+                    for url in urls:
+                        endpoint = urlsplit(url)
+                        self.assertIn(endpoint.scheme, ('wss', 'https'), url)
+                        self.assertTrue(endpoint.hostname, url)
+
+            with self.subTest(catalog=catalog, chainId='8217'):
+                kaia, = [chain for chain in chains if chain['chainId'] == '8217']
+                self.assertFalse(kaia.get('disabled'))
+                hosts = {urlsplit(node['url']).hostname for node in kaia['nodes']}
+                self.assertIn('public-en.node.kaia.io', hosts)
+                self.assertNotIn('alpha-hardworking-orb.kaia-mainnet.quiknode.pro', hosts)
+                self.assertNotIn('kaia.blockpi.network', hosts)
+
+    def test_disabled_chain_asset_urls_must_still_resolve(self):
+        chain = {'disabled': True, 'assets': [{'icon': VERIFY.PREFIX + 'missing.svg'}]}
+        self.put('chains.json', json.dumps([chain]).encode())
+        self.save()
+        self.rejected()
 
     def test_lcdot_general_key_matches_five_byte_currency_id(self):
         for environment in ('production', 'development'):
