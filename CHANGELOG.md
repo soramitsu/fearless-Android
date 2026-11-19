@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 4.3.7 (239)
+
+- Switch node opens the selected network from the chain accounts sheet. Back returns to the previous screen.
+
 ## 4.3.6 (238)
 
 - The wallet home now has one searchable asset list with network filters saved per wallet.

@@ -2,6 +2,7 @@ package jp.co.soramitsu.app.root.presentation.main
 
 import android.app.Application
 import android.os.Bundle
+import androidx.navigation.FloatingWindow
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph
@@ -44,6 +45,10 @@ class MainTabNavigationTest {
             root.addDestination(tab(R.id.portfolioGraph, R.id.walletFragment, R.id.manageAssetsFragment))
             root.addDestination(tab(R.id.defiGraph, R.id.defiHubFragment, R.id.stakingFragment))
             root.addDestination(tab(R.id.polkaswapGraph, R.id.polkaswapHubFragment))
+            root.addDestination(tab(R.id.settingsGraph, R.id.profileFragment, R.id.aboutFragment, R.id.nodesFragment))
+            for (id in listOf(R.id.accountDetailsDialog, R.id.chainAccountsDialog)) {
+                root.addDestination(object : NavDestination(screens), FloatingWindow {}.also { it.id = id })
+            }
             root.addDestination(screen(R.id.sendSetupFragment))
             root.setStartDestination(R.id.portfolioGraph)
         }
@@ -56,7 +61,7 @@ class MainTabNavigationTest {
         assertEquals(R.id.defiHubFragment, controller.currentDestination?.id)
         assertFalse(selectMainTab(controller, R.id.crossChainGraph))
         assertEquals(R.id.defiHubFragment, controller.currentDestination?.id)
-        assertThrows(IllegalArgumentException::class.java) { selectMainTabOrThrow(controller, R.id.settingsGraph) }
+        assertThrows(IllegalArgumentException::class.java) { selectMainTabOrThrow(controller, R.id.crossChainGraph) }
     }
 
     @Test
@@ -69,6 +74,39 @@ class MainTabNavigationTest {
 
         assertTrue(reselectMainTab(controller, R.id.defiGraph))
         assertEquals(R.id.defiHubFragment, controller.currentDestination?.id)
+    }
+
+    @Test
+    fun switchingNodesFromTheAccountsSheetOpensNodesForItsChainAndKeepsSettingsBehindIt() {
+        selectMainTabOrThrow(controller, R.id.settingsGraph)
+        controller.navigate(R.id.accountDetailsDialog)
+        controller.navigate(R.id.chainAccountsDialog)
+        assertTrue(controller.currentDestination is FloatingWindow)
+        val args = Bundle().apply { putString("chain", "kusama") }
+
+        navigateToMainTabDestination(controller, R.id.nodesFragment, args)
+
+        assertEquals(R.id.nodesFragment, controller.currentDestination?.id)
+        assertEquals("kusama", controller.currentBackStackEntry?.arguments?.getString("chain"))
+        assertTrue(controller.popBackStack())
+        assertEquals(R.id.profileFragment, controller.currentDestination?.id)
+    }
+
+    @Test
+    fun nodeSelectionKeepsTheSettingsStackWhenAnOlderSavedTabEndsInAnAccountsSheet() {
+        selectMainTabOrThrow(controller, R.id.settingsGraph)
+        controller.navigate(R.id.aboutFragment)
+        controller.navigate(R.id.chainAccountsDialog)
+        selectMainTabOrThrow(controller, R.id.portfolioGraph)
+        controller.navigate(R.id.accountDetailsDialog)
+
+        navigateToMainTabDestination(controller, R.id.nodesFragment)
+
+        assertEquals(R.id.nodesFragment, controller.currentDestination?.id)
+        assertTrue(controller.popBackStack())
+        assertEquals(R.id.aboutFragment, controller.currentDestination?.id)
+        selectMainTabOrThrow(controller, R.id.portfolioGraph)
+        assertEquals(R.id.walletFragment, controller.currentDestination?.id)
     }
 
     @Test
@@ -87,7 +125,7 @@ class MainTabNavigationTest {
         navigateToMainTabDestination(controller, R.id.sendSetupFragment)
         assertEquals(R.id.sendSetupFragment, controller.currentDestination?.id)
         assertThrows(IllegalArgumentException::class.java) {
-            navigateToMainTabDestination(controller, R.id.profileFragment)
+            navigateToMainTabDestination(controller, R.id.addNodeFragment)
         }
     }
 

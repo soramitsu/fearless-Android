@@ -74,6 +74,10 @@ The stories screen uses an app-owned segmented progress view. Neither the app no
 
 Android no longer packages the retired contribution-provider snapshots. Legacy recovery reads relay storage, not provider credentials. Historical database migration seeds are unchanged. Published signed configuration still requires owner cleanup.
 
+## Android production rollout — 19 November 2026
+
+Google Play serves Android 4.3.6 (238), targeting API 36, to 100% of the production audience. A Play crash trace from 4.3.5 exposed a Switch node crash that was reproducible on the 4.3.6 source. The fix is in the 4.3.7 (239) candidate.
+
 ## Android 4.3.6 release preparation — 17 November 2026
 
 The 238 candidate includes the integrated 16 November source and the signed Liberland fallback configuration. Its release ledger records the unchanged database schema 84. A release test caught a stale “Connected” banner during rapid network loss; the fix refreshes its text and prevents obsolete recovery animations from hiding it. Exact local release validation and store receipts are retained in the parent workspace under `output/production-release-20261117/android/`. See `docs/releases/4.3.6.md`.
