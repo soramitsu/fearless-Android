@@ -2,6 +2,7 @@ package jp.co.soramitsu.app.root.presentation.main
 
 import android.os.Bundle
 import androidx.annotation.IdRes
+import androidx.navigation.FloatingWindow
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph
@@ -50,8 +51,15 @@ internal fun navigateToMainTabDestination(
             return
         }
 
+        // A full-screen destination dismisses dialogs. Do that before saving the tab, otherwise
+        // selecting Settings can restore the global accounts sheet that initiated Switch node.
+        val opensScreen = owner.findNode(destinationId) !is FloatingWindow
+        if (opensScreen && !navController.dismissFloatingWindows()) return
+
         if (!navController.currentDestination.isInGraph(owner.id)) {
             selectMainTabOrThrow(navController, owner.id)
+            // Stacks saved by earlier versions can still end in a sheet.
+            if (opensScreen && !navController.dismissFloatingWindows()) return
             check(navController.currentDestination.isInGraph(owner.id)) {
                 "Failed to select the main tab that owns destination $destinationId"
             }
@@ -59,6 +67,13 @@ internal fun navigateToMainTabDestination(
     }
 
     navController.navigate(destinationId, args, navOptions)
+}
+
+private fun NavController.dismissFloatingWindows(): Boolean {
+    while (currentDestination is FloatingWindow) {
+        if (!popBackStack()) return false
+    }
+    return true
 }
 
 internal fun rootDestinationForMainTab(@IdRes graphId: Int): Int? = when (graphId) {

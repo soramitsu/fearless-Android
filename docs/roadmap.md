@@ -1,3 +1,7 @@
+## Android 4.3.7 — 19 November 2026
+
+Qualify the Switch node fix from the chain accounts sheet, including back stacks saved by previous versions, and check the in-place upgrade from 4.3.6.
+
 ## Android 4.3.6 release preparation — 17 November 2026
 
 The 238 candidate includes the integrated 16 November source and the signed Liberland fallback configuration. Its release ledger records the unchanged database schema 84. A release test caught a stale “Connected” banner during rapid network loss; the fix refreshes its text and prevents obsolete recovery animations from hiding it. Exact local release validation and store receipts are retained in the parent workspace under `output/production-release-20261117/android/`. See `docs/releases/4.3.6.md`.

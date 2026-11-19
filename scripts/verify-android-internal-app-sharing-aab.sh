@@ -1530,10 +1530,10 @@ fi
 
 expected_version_name="$(version_property versionName)-ias"
 expected_version_code="$(version_property versionCode)"
-[[ "$expected_version_name" == "4.3.6-ias" ]] ||
-  fail "IAS versionName must remain exactly 4.3.6-ias for this testing candidate."
-[[ "$expected_version_code" == "238" ]] ||
-  fail "IAS versionCode must remain exactly 238 for this testing candidate."
+[[ "$expected_version_name" == "4.3.7-ias" ]] ||
+  fail "IAS versionName must remain exactly 4.3.7-ias for this testing candidate."
+[[ "$expected_version_code" == "239" ]] ||
+  fail "IAS versionCode must remain exactly 239 for this testing candidate."
 
 # Firebase and Google Play services are not part of the app: no source set may hold a Google
 # Services configuration, and the bundle must not carry the resources one would generate.
