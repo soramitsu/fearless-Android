@@ -8218,14 +8218,6 @@
       {
         "url": "wss://public-en.node.kaia.io/ws",
         "name": "Kaia Foundation wss node"
-      },
-      {
-        "url": "https://alpha-hardworking-orb.kaia-mainnet.quiknode.pro/",
-        "name": "QuickNode https node"
-      },
-      {
-        "url": "wss://alpha-hardworking-orb.kaia-mainnet.quiknode.pro/",
-        "name": "QuickNode wss node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/kaiachain.svg",
