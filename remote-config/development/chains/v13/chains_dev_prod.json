@@ -77,10 +77,6 @@
     },
     "nodes": [
       {
-        "url": "wss://api-polkadot.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://rpc.polkadot.io",
         "name": "Parity node"
       },
@@ -89,8 +85,8 @@
         "name": "LuckyFriday node"
       },
       {
-        "url": "wss://polkadot.public.curie.radiumblock.co/ws",
-        "name": "RadiumBlock node"
+        "name": "Dwellir node",
+        "url": "wss://polkadot-rpc.n.dwellir.com"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Polkadot.svg",
@@ -168,10 +164,6 @@
     },
     "nodes": [
       {
-        "url": "wss://api-kusama.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://kusama-rpc.polkadot.io",
         "name": "Parity node"
       },
@@ -180,8 +172,8 @@
         "name": "LuckyFriday node"
       },
       {
-        "url": "wss://kusama.public.curie.radiumblock.co/ws",
-        "name": "RadiumBlock node"
+        "name": "Dwellir node",
+        "url": "wss://kusama-rpc.n.dwellir.com"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Kusama.svg",
@@ -231,8 +223,8 @@
         "name": "Parity node"
       },
       {
-        "url": "wss://westend-rpc.dwellir.com",
-        "name": "Dwellir node"
+        "name": "Dwellir node",
+        "url": "wss://westend-rpc.n.dwellir.com"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Westend.svg",
@@ -252,8 +244,8 @@
     "ecosystem": "substrate",
     "externalApi": {
       "history": {
-        "type": "giantsquid",
-        "url": "https://squid-statemine-api.squid.tachi.soramitsu.co.jp/graphql"
+        "type": "subquery",
+        "url": "https://subquery-history-kusama-ah-prod.novasama-tech.org"
       },
       "explorers": [
         {
@@ -354,16 +346,8 @@
     },
     "nodes": [
       {
-        "url": "wss://api-assethub-kusama.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://kusama-asset-hub-rpc.polkadot.io",
         "name": "Parity node"
-      },
-      {
-        "url": "wss://statemine.public.curie.radiumblock.co/ws",
-        "name": "RadiumBlock node"
       },
       {
         "url": "wss://rpc-asset-hub-kusama.luckyfriday.io",
@@ -372,6 +356,10 @@
       {
         "url": "wss://ksm-rpc.stakeworld.io/assethub",
         "name": "Stakeworld node"
+      },
+      {
+        "name": "Dwellir node",
+        "url": "wss://asset-hub-kusama-rpc.n.dwellir.com"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Assethub.svg",
@@ -389,8 +377,8 @@
     "ecosystem": "substrate",
     "externalApi": {
       "history": {
-        "type": "giantsquid",
-        "url": "https://squid.subsquid.io/gs-main-statemint/graphql"
+        "type": "subquery",
+        "url": "https://subquery-history-polkadot-ah-prod.novasama-tech.org"
       },
       "explorers": [
         {
@@ -479,16 +467,8 @@
     },
     "nodes": [
       {
-        "url": "wss://api-assethub-polkadot.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://polkadot-asset-hub-rpc.polkadot.io",
         "name": "Parity node"
-      },
-      {
-        "url": "wss://statemint.public.curie.radiumblock.co/ws",
-        "name": "RadiumBlock node"
       },
       {
         "url": "wss://rpc-asset-hub-polkadot.luckyfriday.io",
@@ -497,6 +477,10 @@
       {
         "url": "wss://dot-rpc.stakeworld.io/assethub",
         "name": "Stakeworld node"
+      },
+      {
+        "name": "Dwellir node",
+        "url": "wss://asset-hub-polkadot-rpc.n.dwellir.com"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Assethub.svg",
@@ -512,22 +496,7 @@
     "name": "Acala",
     "ecosystem": "substrate",
     "paraId": "2000",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-acala-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://acala.subscan.io/{type}/{value}"
-        }
-      ]
-    },
+    "externalApi": {},
     "assets": [
       {
         "id": "c801d6c1-3edf-41a9-9aea-da705eab249b",
@@ -699,10 +668,6 @@
     },
     "nodes": [
       {
-        "url": "wss://acala-rpc.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://acala-rpc-0.aca-api.network",
         "name": "Acala Foundation 0 node"
       },
@@ -713,14 +678,6 @@
       {
         "url": "wss://acala-rpc-3.aca-api.network/ws",
         "name": "Acala Foundation 3 node"
-      },
-      {
-        "url": "wss://acala.ibp.network",
-        "name": "IBP1 node"
-      },
-      {
-        "url": "wss://acala.dotters.network",
-        "name": "IBP2 node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/acala.svg",
@@ -736,22 +693,7 @@
     "name": "Karura",
     "ecosystem": "substrate",
     "paraId": "2000",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-karura-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://karura.subscan.io/{type}/{value}"
-        }
-      ]
-    },
+    "externalApi": {},
     "assets": [
       {
         "id": "e71b30a0-2a44-40ff-8b53-a166fadef6c5",
@@ -1158,12 +1100,12 @@
     },
     "nodes": [
       {
-        "url": "wss://api-karura.dwellir.com",
-        "name": "Dwellir node"
+        "url": "wss://karura-rpc-0.aca-api.network",
+        "name": "Acala Foundation 0 node"
       },
       {
-        "url": "wss://karura.polkawallet.io",
-        "name": "Polkawallet node"
+        "name": "Dwellir node",
+        "url": "wss://karura-rpc.n.dwellir.com"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Karura.svg",
@@ -1173,7 +1115,7 @@
     ]
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "401a1f9dca3da46f5c4091016c8a2f26dcea05865116b286f60f668207d1474b",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "rank": 11,
@@ -1334,10 +1276,6 @@
     "name": "Shiden",
     "ecosystem": "substrate",
     "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-shiden-api.squid.tachi.soramitsu.co.jp/graphql"
-      },
       "explorers": [
         {
           "type": "subscan",
@@ -1386,16 +1324,12 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-shiden.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://rpc.shiden.astar.network",
         "name": "StakeTechnologies node"
       },
       {
-        "url": "wss://shiden.public.blastapi.io",
-        "name": "Blast node"
+        "name": "Dwellir node",
+        "url": "wss://shiden-rpc.n.dwellir.com"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Shiden.svg",
@@ -1408,22 +1342,7 @@
     "paraId": "2001",
     "name": "Bifrost",
     "ecosystem": "substrate",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid.subsquid.io/gs-main-Bifrost/graphql"
-      },
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://bifrost-kusama.subscan.io/{type}/{value}"
-        }
-      ]
-    },
+    "externalApi": {},
     "assets": [
       {
         "isUtility": true,
@@ -1609,12 +1528,12 @@
     },
     "nodes": [
       {
-        "url": "wss://api-bifrost-kusama.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://bifrost-rpc.liebi.com/ws",
         "name": "Liebi node"
+      },
+      {
+        "url": "wss://us.bifrost-rpc.liebi.com/ws",
+        "name": "LiebiUS node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Bifrost.svg",
@@ -1681,7 +1600,7 @@
     "addressPrefix": 30
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "411f057b9107718c9624d6aa4a3f23c1653898297f3d4d529d9bb6511a39dd21",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "2086",
@@ -1730,7 +1649,7 @@
     "addressPrefix": 38
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "4ac80c99289841dd946ef92765bf659a307d39189b3ce374a92b5f0415ee17a1",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "paraId": "2084",
@@ -1808,7 +1727,7 @@
     "addressPrefix": 78
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "cd4d732201ebe5d6b014edda071c4203e16867305332301dc8d092044b28e554",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "paraId": "2095",
@@ -1859,7 +1778,7 @@
     "addressPrefix": 255
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "64a1c658a48b2e70a7fb1ad4c39eea35022568c20fc44a6e2e3d0a57aee6053b",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "paraId": "2085",
@@ -1980,7 +1899,7 @@
     "addressPrefix": 110
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "6811a339673c9daa897944dcdac99c6e2939cc88245ed21951a0a3c9a2be75bc",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "paraId": "2087",
@@ -2032,7 +1951,7 @@
     "addressPrefix": 49
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "aa3876c1dc8a1afcc2e9a685a49ff7704cfd36ad8c90bf2702b9d1b00cc40011",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "paraId": "2088",
@@ -2077,7 +1996,7 @@
     "addressPrefix": 136
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "f22b7850cdd5a7657bbfd90ac86441275bbc57ace3d2698a740c7b0ec4de5ec3",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "paraId": "2096",
@@ -2112,7 +2031,7 @@
     "addressPrefix": 268
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "5c7bd13edf349b33eb175ffae85210299e324d852916336027391536e686f267",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "2002",
@@ -2169,8 +2088,8 @@
     "ecosystem": "substrate",
     "externalApi": {
       "history": {
-        "type": "giantsquid",
-        "url": "https://squid-astar-api.squid.tachi.soramitsu.co.jp/graphql"
+        "type": "subquery",
+        "url": "https://subquery-history-astar-prod.novasama-tech.org"
       },
       "explorers": [
         {
@@ -2263,20 +2182,12 @@
     },
     "nodes": [
       {
-        "url": "wss://api-astar.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://rpc.astar.network",
         "name": "Astar node"
       },
       {
-        "url": "wss://astar.public.blastapi.io",
-        "name": "Blast node"
-      },
-      {
-        "url": "wss://astar.public.curie.radiumblock.co/ws",
-        "name": "RadiumBlock node"
+        "name": "Dwellir node",
+        "url": "wss://astar-rpc.n.dwellir.com"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/astar.svg",
@@ -2469,12 +2380,7 @@
     "paraId": "2090",
     "name": "Basilisk",
     "ecosystem": "substrate",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-basilisk-api.squid.tachi.soramitsu.co.jp/graphql"
-      }
-    },
+    "externalApi": {},
     "assets": [
       {
         "id": "7dae28e2-9f5e-49ff-9140-aa750a9579ea",
@@ -2514,10 +2420,6 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-basilisk.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://rpc.basilisk.cloud",
         "name": "Basilisk node"
       }
@@ -2526,7 +2428,7 @@
     "addressPrefix": 10041
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "fe58ea77779b7abda7da4ec526d14db9b1e9cd40a217c34892af80a9b332b76d",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "rank": 12,
@@ -2695,7 +2597,7 @@
     ]
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "91bc6e169807aaa54802737e1c504b2577d4fafedd5a02c10293b1cd60e39527",
     "rank": 111,
     "name": "Moonbase Alpha",
@@ -2751,7 +2653,7 @@
     ]
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "9af9a64e6e4da8e3073901c3ff0cc4c3aad9563786d89daf6ad820b6e14a0b8b",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "paraId": "2092",
@@ -2841,7 +2743,7 @@
     "addressPrefix": 67
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "631ccc82a078481584041656af292834e1ae6daab61d2875b4dd0c14bb9b17bc",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "paraId": "2048",
@@ -2905,7 +2807,7 @@
     "addressPrefix": 32
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "4a12be580bb959937a1c7a61d5cf24428ed67fa571974b4007645d1886e7c89f",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "2101",
@@ -2939,7 +2841,7 @@
     "addressPrefix": 28
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "1bf2a2ecb4a868de66ea8610f2ce7c8c43706561b6476031315f6640fe38e060",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "2092",
@@ -2982,8 +2884,8 @@
     "ecosystem": "substrate",
     "externalApi": {
       "history": {
-        "type": "giantsquid",
-        "url": "https://squid-hydradx-api.squid.tachi.soramitsu.co.jp/graphql"
+        "type": "subquery",
+        "url": "https://subquery-history-hydra-prod.novasama-tech.org"
       },
       "explorers": [
         {
@@ -2992,7 +2894,7 @@
             "extrinsic",
             "account"
           ],
-          "url": "https://hydradx.subscan.io/{type}/{value}"
+          "url": "https://hydration-explorer.neckwork.net/{type}/{value}"
         }
       ]
     },
@@ -3059,31 +2961,19 @@
     ],
     "nodes": [
       {
-        "url": "wss://hydration-rpc.n.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://rpc.hydradx.cloud",
         "name": "Galactic Council node"
       },
       {
-        "url": "wss://rpc.helikon.io/hydradx",
-        "name": "Helikon node"
-      },
-      {
-        "url": "wss://hydration.ibp.network",
-        "name": "IBP1 node"
-      },
-      {
-        "url": "wss://hydration.dotters.network",
-        "name": "IBP2 node"
+        "url": "wss://hydration-rpc.n.dwellir.com",
+        "name": "Dwellir node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/hydradx.svg",
     "addressPrefix": 63
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "b3db41421702df9a7fcac62b53ffeac85f7853cc4e689e0b93aeb3db18c09d82",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "2031",
@@ -3136,7 +3026,7 @@
     "addressPrefix": 36
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "97da7ede98d7bad4e36b4d734b6055425a3be036da2a332ea5a7037656427a21",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "2026",
@@ -3165,7 +3055,7 @@
     "addressPrefix": 37
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "bf88efe70e9e0e916416e8bed61f2b45717f517d7f3523e33c7b001e5ffcbc72",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "2032",
@@ -3262,12 +3152,7 @@
     "chainId": "3920bcb4960a1eef5580cd5367ff3f430eef052774f78468852f7b9cb39f8a3c",
     "name": "Polkadex Main Network",
     "ecosystem": "substrate",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-polkadex-api.squid.tachi.soramitsu.co.jp/graphql"
-      }
-    },
+    "externalApi": {},
     "assets": [
       {
         "id": "5502c9cb-14f7-4de8-a35d-71263dc3f78f",
@@ -3283,16 +3168,8 @@
     ],
     "nodes": [
       {
-        "url": "wss://polkadex-mainnet-rpc.dwellir.com",
-        "name": "Dwellir"
-      },
-      {
-        "url": "wss://polkadex.api.onfinality.io/public-ws",
-        "name": "OnFinality"
-      },
-      {
-        "url": "wss://polkadex.public.curie.radiumblock.co/ws",
-        "name": "RadiumBlock"
+        "url": "wss://so.polkadex.ee",
+        "name": "PolkadexSup node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/polkadex.svg",
@@ -3340,12 +3217,7 @@
     "paraId": "2043",
     "name": "NeuroWeb Parachain",
     "ecosystem": "substrate",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-origintrail-api.squid.tachi.soramitsu.co.jp/graphql"
-      }
-    },
+    "externalApi": {},
     "assets": [
       {
         "id": "af5bf9f0-0009-4cf8-98ed-b988268c94f1",
@@ -3359,10 +3231,6 @@
       }
     ],
     "nodes": [
-      {
-        "url": "wss://api-neuroweb.dwellir.com",
-        "name": "Dwellir node"
-      },
       {
         "url": "wss://parachain-rpc.origin-trail.network",
         "name": "TraceLabs node"
@@ -3378,12 +3246,7 @@
     "paraId": "2037",
     "name": "UNIQUE",
     "ecosystem": "substrate",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/soramitsu/Unique-x-Fearless-Wallet"
-      }
-    },
+    "externalApi": {},
     "assets": [
       {
         "id": "57d05537-06a2-453b-ac87-d081aee65ec9",
@@ -3398,10 +3261,6 @@
       }
     ],
     "nodes": [
-      {
-        "url": "wss://api-unique.dwellir.com",
-        "name": "Dwellir node"
-      },
       {
         "url": "wss://ws.unique.network",
         "name": "Geo Load Balancer node"
@@ -3431,8 +3290,8 @@
     "ecosystem": "substrate",
     "externalApi": {
       "history": {
-        "type": "giantsquid",
-        "url": "https://squid-bifrostpolkadot-api.squid.tachi.soramitsu.co.jp/graphql"
+        "type": "subquery",
+        "url": "https://subquery-history-bifrost-polkadot-prod.novasama-tech.org"
       },
       "explorers": [
         {
@@ -3493,12 +3352,12 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-bifrost-polkadot.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://hk.p.bifrost-rpc.liebi.com/ws",
         "name": "Liebi node"
+      },
+      {
+        "url": "wss://eu.bifrost-polkadot-rpc.liebi.com/ws",
+        "name": "LiebiEU node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Bifrost.svg",
@@ -3511,12 +3370,7 @@
     "paraId": "2013",
     "name": "Heima",
     "ecosystem": "substrate",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-litentry-api.squid.tachi.soramitsu.co.jp/graphql"
-      }
-    },
+    "externalApi": {},
     "assets": [
       {
         "id": "10de552c-20cb-4a86-9bf8-cf5827ca2f71",
@@ -3532,19 +3386,19 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-litentry.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://rpc.heima-parachain.heima.network",
         "name": "Heima node"
+      },
+      {
+        "name": "Dwellir node",
+        "url": "wss://heima-rpc.n.dwellir.com"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/heima.svg",
     "addressPrefix": 31
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "1bb969d85965e4bb5a651abbedf21a54b6b31a21f66b5401cc3f1e286268d736",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "2035",
@@ -3583,7 +3437,7 @@
     "addressPrefix": 30
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "daab8df776eb52ec604a5df5d388bb62a050a0aaec4556a64265b9d42755552d",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "2019",
@@ -3632,7 +3486,7 @@
     "addressPrefix": 49
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "35a06bfec2edf0ff4be89a6428ccd9ff5bd0167d618c5a0d4341f9600a458d14",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "paraId": "2119",
@@ -3670,7 +3524,7 @@
     "addressPrefix": 1337
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "feb426ca713f0f46c96465b8f039890370cf6bfd687c9076ea2843f58a6ae8a7",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "paraId": "2113",
@@ -4085,7 +3939,7 @@
     ]
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "724c168d8e86b78b831c641e2cc822b8d1bf99fa0b4b28fe59985cd6fd580215",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "2039",
@@ -4120,7 +3974,7 @@
     "addressPrefix": 13
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "0f62b701fb12d02237a33b84818c11f621653d2b1614c777973babf4652b535d",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "paraId": "2114",
@@ -4198,16 +4052,8 @@
         "name": "Encointer Association node"
       },
       {
-        "url": "wss://sys.ibp.network/encointer-kusama",
-        "name": "IBP-GeoDNS1 node"
-      },
-      {
-        "url": "wss://sys.dotters.network/encointer-kusama",
-        "name": "IBP-GeoDNS2 node"
-      },
-      {
-        "url": "wss://ksm-rpc.stakeworld.io/encointer",
-        "name": "Stakeworld node"
+        "url": "wss://api.kusama.encointer.org",
+        "name": "Encointer association node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/encointer.svg",
@@ -4248,7 +4094,7 @@
     "addressPrefix": 42
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "d42e9606a995dfe433dc7955dc2a70f495f350f373daa200098ae84437816ad2",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "paraId": "2125",
@@ -4354,7 +4200,7 @@
     "addressPrefix": 42
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "cceae7f3b9947cdb67369c026ef78efa5f34a08fe5808d373c04421ecf4f1aaf",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "paraId": "2124",
@@ -4505,7 +4351,7 @@
     "addressPrefix": 42
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "d4c0c08ca49dc7c680c3dac71a7c0703e5b222f4b6c03fe4c5219bb8f22c18dc",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "name": "Crust Shadow Parachain",
@@ -4550,7 +4396,7 @@
     "addressPrefix": 66
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "6e938c4a786f8df6f38d0c06f00a8573f1f7aabeebf48aee5157a93cc5fe3271",
     "name": "Kusama (test)",
     "ecosystem": "substrate",
@@ -4637,7 +4483,7 @@
     "addressPrefix": 2207
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "3266816be9fa51b32cfea58d3e33ca77246bc9618595a4300e44c8856a8d8a17",
     "rank": 100,
     "name": "SORA test",
@@ -4921,19 +4767,9 @@
         "url": "https://api.subquery.network/sq/sora-xor/sora-prod"
       },
       "pricing": {
-          "type": "sora",
-          "url": "https://api.subquery.network/sq/sora-xor/sora-prod"
-      },
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://sora.subscan.io/{type}/{value}"
-        }
-      ]
+        "type": "sora",
+        "url": "https://pi.soramitsu.io/graphql"
+      }
     },
     "assets": [
       {
@@ -5487,11 +5323,7 @@
       },
       {
         "url": "wss://mof2.sora.org",
-        "name": "SORA Parliament Ministry of Finance Node"
-      },
-      {
-        "url": "wss://mof3.sora.org",
-        "name": "SORA Parliament Ministry of Finance Node"
+        "name": "mof2.sora.org WSS"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/SORA.svg",
@@ -5507,9 +5339,9 @@
     "name": "Aleph Zero",
     "ecosystem": "substrate",
     "externalApi": {
-      "history":{
+      "history": {
         "type": "subquery",
-        "url": "https://api.subquery.network/sq/nova-wallet/nova-wallet-aleph-zero"
+        "url": "https://subquery-history-aleph-zero-prod.novasama-tech.org"
       }
     },
     "assets": [
@@ -5526,10 +5358,6 @@
       }
     ],
     "nodes": [
-      {
-        "url": "wss://api-aleph-zero-mainnet.dwellir.com",
-        "name": "Dwellir node"
-      },
       {
         "url": "wss://ws.azero.dev",
         "name": "Aleph Zero Foundation node"
@@ -5548,7 +5376,7 @@
     "externalApi":{
       "history": {
         "type": "subquery",
-        "url": "https://api.subquery.network/sq/nova-wallet/nova-wallet---kusama-bridgehub"
+        "url": "https://subquery-history-kusama-bh-prod.novasama-tech.org"
       }
     },
     "assets": [
@@ -5566,20 +5394,12 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-kusama-bridge-hub.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://kusama-bridge-hub-rpc.polkadot.io",
         "name": "Parity node"
       },
       {
-        "url": "wss://sys.ibp.network/bridgehub-kusama",
-        "name": "IBP-GeoDNS1 node"
-      },
-      {
-        "url": "wss://sys.dotters.network/bridgehub-kusama",
-        "name": "IBP-GeoDNS2 node"
+        "name": "Dwellir node",
+        "url": "wss://bridge-hub-kusama-rpc.n.dwellir.com"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Bridgehub.svg",
@@ -5614,7 +5434,7 @@
     "addressPrefix": 32
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "cdedc8eadbfa209d3f207bba541e57c3c58a667b05a2e1d1e86353c9000758da",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "paraId": "2015",
@@ -5693,22 +5513,7 @@
     "paraId": "2051",
     "name": "Ajuna Polkadot",
     "ecosystem": "substrate",
-    "externalApi": {
-      "explorers": [
-        {
-          "type": "subscan",
-          "types": [
-            "extrinsic",
-            "account"
-          ],
-          "url": "https://ajuna.subscan.io/{type}/{value}"
-        }
-      ],
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/nova-wallet/nova-wallet---ajuna"
-      }
-    },
+    "externalApi": {},
     "assets": [
       {
         "id": "b0afcb19-5d4c-442c-ac0f-53c64b1ea0ae",
@@ -5724,19 +5529,15 @@
     ],
     "nodes": [
       {
-        "url": "wss://rpc-parachain.ajuna.network",
-        "name": "AjunaNetwork node"
-      },
-      {
-        "url": "wss://ajuna.public.curie.radiumblock.co/ws",
-        "name": "RadiumBlock node"
+        "url": "wss://rpc-para.ajuna.network",
+        "name": "Ajuna node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Bajun.svg",
     "addressPrefix": 1328
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "c14597baeccb232d662770d2d50ae832ca8c3192693d2b0814e6433f2888ddd6",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "2048",
@@ -5764,7 +5565,7 @@
     "addressPrefix": 42
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "4319cc49ee79495b57a1fec4d2bd43f59052dcc690276de566c2691d6df4f7b8",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "2008",
@@ -5815,12 +5616,7 @@
     "paraId": "2091",
     "name": "Frequency",
     "ecosystem": "substrate",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/nova-wallet/frequency"
-      }
-    },
+    "externalApi": {},
     "assets": [
       {
         "id": "598af8e7-c0ad-4785-80cf-669705c93dd9",
@@ -5834,10 +5630,6 @@
       }
     ],
     "nodes": [
-      {
-        "url": "wss://api-frequency.dwellir.com",
-        "name": "Dwellir node"
-      },
       {
         "url": "wss://0.rpc.frequency.xyz",
         "name": "Frequency 0 node"
@@ -5886,12 +5678,7 @@
     "paraId": "2094",
     "name": "Pendulum",
     "ecosystem": "substrate",
-    "externalApi": {
-      "history": {
-        "type": "giantsquid",
-        "url": "https://squid-pendulum-api.squid.tachi.soramitsu.co.jp/graphql"
-      }
-    },
+    "externalApi": {},
     "assets": [
       {
         "id": "ebf2822f-2dd4-4f59-aeb3-ae7defa53932",
@@ -6028,10 +5815,6 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-pendulum.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://rpc-pendulum.prd.pendulumchain.tech",
         "name": "PendulumChain node"
       }
@@ -6050,11 +5833,7 @@
     "externalApi": {
       "history": {
         "type": "subquery",
-        "url": "https://api.subquery.network/sq/nova-wallet/nova-wallet-ternoa"
-      },
-      "staking": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/nova-wallet/nova-wallet-ternoa"
+        "url": "https://subquery-history-ternoa-prod.novasama-tech.org"
       }
     },
     "assets": [
@@ -6081,7 +5860,7 @@
     "addressPrefix": 42
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "6d8d9f145c2177fa83512492cdd80a71e29f22473f4a8943a6292149ac319fb9",
     "parentId": "b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe",
     "paraId": "2011",
@@ -6110,7 +5889,7 @@
     "addressPrefix": 420
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "e92d165ad41e41e215d09713788173aecfdbe34d3bed29409d33a2ef03980738",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "2025",
@@ -6146,8 +5925,8 @@
     "ecosystem": "ethereum",
     "externalApi": {
       "history": {
-        "type": "oklink",
-        "url": "https://www.oklink.com/api/v5/explorer/address/transaction-list?chainShortName=ETH"
+        "type": "etherscan",
+        "url": "https://eth.blockscout.com/api"
       },
       "explorers": [
         {
@@ -6616,14 +6395,6 @@
         "name": "Public wss"
       },
       {
-        "url": "https://bsc-mainnet.blastapi.io/",
-        "name": "Blast https"
-      },
-      {
-        "url": "wss://bsc-mainnet.blastapi.io/",
-        "name": "Blast wss"
-      },
-      {
         "url": "https://bsc-dataseed1.ninicoin.io/",
         "name": "Ninicoin"
       },
@@ -6647,8 +6418,8 @@
     "ecosystem": "ethereum",
     "externalApi": {
       "history": {
-        "type": "oklink",
-        "url": "https://www.oklink.com/api/v5/explorer/address/transaction-list?chainShortName=POLYGON"
+        "type": "etherscan",
+        "url": "https://api.polygonscan.com/api"
       },
       "explorers": [
         {
@@ -6848,7 +6619,7 @@
       ],
       "history": {
         "type": "subquery",
-        "url": "https://api.subquery.network/sq/nova-wallet/enjin-matrixchain"
+        "url": "https://subquery-history-enjin-matrixc-prod.novasama-tech.org"
       }
     },
     "assets": [
@@ -7121,8 +6892,8 @@
     "ecosystem": "ethereum",
     "externalApi": {
       "history": {
-        "type": "oklink",
-        "url": "https://www.oklink.com/api/v5/explorer/address/transaction-list?chainShortName=OP"
+        "type": "etherscan",
+        "url": "https://explorer.optimism.io/api"
       },
       "explorers": [
         {
@@ -7271,14 +7042,6 @@
     ],
     "nodes": [
       {
-        "url": "https://optimism-mainnet.blastapi.io/",
-        "name": "Blast https node"
-      },
-      {
-        "url": "wss://optimism-mainnet.blastapi.io/",
-        "name": "Blast wss node"
-      },
-      {
         "url": "https://optimism.publicnode.com/",
         "name": "Public http node"
       },
@@ -7302,8 +7065,8 @@
     "ecosystem": "ethereum",
     "externalApi": {
       "history": {
-        "type": "oklink",
-        "url": "https://www.oklink.com/api/v5/explorer/address/transaction-list?chainShortName=AVAXC"
+        "type": "etherscan",
+        "url": "https://api.routescan.io/v2/network/mainnet/evm/43114/etherscan/api"
       },
       "explorers": [
         {
@@ -7413,7 +7176,7 @@
     ]
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "1101",
     "rank": 7,
     "name": "Polygon zkEVM",
@@ -7575,7 +7338,7 @@
     ]
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "7001",
     "name": "ZetaChain Testnet",
     "ecosystem": "ethereum",
@@ -7593,22 +7356,18 @@
     ],
     "externalApi": {
       "history": {
-        "type": "blockscout",
-        "url": "https://zetachain-athens-3.blockscout.com/api/v2/"
+        "type": "etherscan",
+        "url": "https://testnet.zetascan.com/api"
       }
     },
     "nodes": [
-      {
-        "url": "https://rpc.ankr.com/zetachain_evm_athens_testnet",
-        "name": "Ankr https node"
-      },
       {
         "url": "https://zetachain-athens-evm.blockpi.network/v1/rpc/public",
         "name": "Blockpi https node"
       },
       {
-        "url": "https://zetachain-testnet-evm.itrocket.net",
-        "name": "Itrocket https node"
+        "url": "https://zetachain-athens.g.allthatnode.com/archive/evm",
+        "name": "Public RPC"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Zetachain.svg",
@@ -7647,8 +7406,8 @@
         }
       ],
       "history": {
-        "type": "blockscout",
-        "url": "https://zetachain.blockscout.com/api/v2/"
+        "type": "etherscan",
+        "url": "https://zetascan.com/api"
       }
     },
     "nodes": [
@@ -7659,10 +7418,6 @@
       {
         "url": "wss://zeta-chain.drpc.org",
         "name": "Drpc wss node"
-      },
-      {
-        "url": "https://zetachain-mainnet.public.blastapi.io",
-        "name": "Blast https node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Zetachain.svg",
@@ -7722,7 +7477,7 @@
     "addressPrefix": 42
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "f3c7ad88f6a80f366c4be216691411ef0622e8b809b1046ea297ef106058d4eb",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "name": "Manta Parachain",
@@ -7896,10 +7651,6 @@
     ],
     "nodes": [
       {
-        "url": "https://oasys.blockpi.network/v1/rpc/public/",
-        "name": "Blockpi https node"
-      },
-      {
         "url": "https://rpc.mainnet.oasys.games/",
         "name": "Oasys https node"
       }
@@ -7912,7 +7663,7 @@
     ]
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "72778",
     "name": "CAGA Ankara Testnet",
     "ecosystem": "ethereum",
@@ -7946,7 +7697,7 @@
     ]
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "72888",
     "name": "CAGA Mainnet",
     "ecosystem": "ethereum",
@@ -7984,12 +7735,7 @@
     "chainId": "50dd5d206917bf10502c68fb4d18a59fc8aa31586f4e8856b493e43544aa82aa",
     "name": "XX network",
     "ecosystem": "substrate",
-    "externalApi": {
-      "history": {
-        "type": "subquery",
-        "url": "https://api.subquery.network/sq/nova-wallet/nova-wallet-xx-network"
-      }
-    },
+    "externalApi": {},
     "assets": [
       {
         "id": "526dca29-63ff-4683-88d6-852d1455b17b",
@@ -8005,10 +7751,6 @@
     ],
     "nodes": [
       {
-        "url": "wss://xxnetwork-rpc.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://rpc.xx.network",
         "name": "xx Foundation node #1"
       },
@@ -8017,8 +7759,8 @@
         "name": "xx Foundation node #2"
       },
       {
-        "url": "wss://rpc-do.xx.network",
-        "name": "xx Foundation node #3"
+        "name": "Dwellir node",
+        "url": "wss://xxnetwork-rpc.n.dwellir.com"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/xxnetwork.svg",
@@ -8055,24 +7797,8 @@
     ],
     "nodes": [
       {
-        "url": "wss://turing-testnet.avail-rpc.com",
-        "name": "Ankr node"
-      },
-      {
-        "url": "wss://avail-turing.public.blastapi.io",
-        "name": "Blast node"
-      },
-      {
         "url": "wss://avail-turing-rpc.publicnode.com",
         "name": "AllNode node"
-      },
-      {
-        "url": "wss://turing.public.curie.radiumblock.co/ws",
-        "name": "RadiumBlock node"
-      },
-      {
-        "url": "wss://avail-turing.bountyblok.io",
-        "name": "Bountyblok node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Avail.svg",
@@ -8220,7 +7946,7 @@
     ]
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "0614f7b74a2e47f7c8d8e2a5335be84bdde9402a43f5decdec03200a87c8b943",
     "name": "Analog Testnet",
     "ecosystem": "substrate",
@@ -8255,7 +7981,7 @@
     "addressPrefix": 12850
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "7a0f5cf23f4cdf391e6adadb4f5193fed975b1b621afbc96a522234c56688adb",
     "name": "Analog SORA Testnet",
     "assets": [
@@ -8315,7 +8041,7 @@
     "addressPrefix": 12850
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "d9dcf11f17bfb5ff509247fd7986c06545565740ae1d5ed65f120f72c0fc3182",
     "name": "Analog Timechain Stage",
     "ecosystem": "substrate",
@@ -8403,24 +8129,12 @@
     ],
     "nodes": [
       {
-        "url": "wss://sys.ibp.network/people-polkadot",
-        "name": "IBP1 node"
-      },
-      {
-        "url": "wss://sys.dotters.network/people-polkadot",
-        "name": "IBP2 node"
-      },
-      {
         "url": "wss://rpc-people-polkadot.luckyfriday.io",
         "name": "LuckyFriday node"
       },
       {
         "url": "wss://polkadot-people-rpc.polkadot.io",
         "name": "Parity node"
-      },
-      {
-        "url": "wss://people-polkadot.public.curie.radiumblock.co/ws",
-        "name": "RadiumBlock node"
       }
     ],
     "options": [
@@ -8504,18 +8218,6 @@
       {
         "url": "wss://public-en.node.kaia.io/ws",
         "name": "Kaia Foundation wss node"
-      },
-      {
-        "url": "https://alpha-hardworking-orb.kaia-mainnet.quiknode.pro/",
-        "name": "QuickNode https node"
-      },
-      {
-        "url": "wss://alpha-hardworking-orb.kaia-mainnet.quiknode.pro/",
-        "name": "QuickNode wss node"
-      },
-      {
-        "url": "https://kaia.blockpi.network/v1/rpc/public",
-        "name": "Blockpi https node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/kaiachain.svg",
@@ -8542,7 +8244,7 @@
             "tx",
             "account"
           ],
-          "url": "https://baobab.klaytnscope.com/{type}/{value}"
+          "url": "https://kairos.kaiascan.io/{type}/{value}"
         }
       ]
     },
@@ -8560,12 +8262,8 @@
     ],
     "nodes": [
       {
-        "url": "https://public-en.kairos.node.kaia.io",
+        "url": "https://public-en-kairos.node.kaia.io",
         "name": "Kairos https node"
-      },
-      {
-        "url": "https://public-en-baobab.klaytn.net",
-        "name": "Klaytn Foundation https node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/kaiachain.svg",
@@ -8612,10 +8310,6 @@
     ],
     "nodes": [
       {
-        "url": "https://viction.blockpi.network/v1/rpc/public",
-        "name": "Blockpi https node"
-      },
-      {
         "url": "https://rpc.viction.xyz",
         "name": "Viction https node"
       }
@@ -8628,7 +8322,7 @@
     ]
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "995",
     "name": "5ire",
     "ecosystem": "ethereum",
@@ -8683,20 +8377,20 @@
     "name": "Avail DA Mainnet",
     "ecosystem": "substrate",
     "externalApi": {
-        "explorers": [
-          {
-            "type": "subscan",
-            "types": [
-              "extrinsic",
-              "account"
-            ],
-            "url": "https://avail.subscan.io/{type}/{value}"
-          }
-        ],
-        "history": {
-                "type": "subquery",
-                "url": "https://api.subquery.network/sq/nova-wallet/nova-wallet-avail"
-            }
+      "explorers": [
+        {
+          "type": "subscan",
+          "types": [
+            "extrinsic",
+            "account"
+          ],
+          "url": "https://avail.subscan.io/{type}/{value}"
+        }
+      ],
+      "history": {
+        "type": "subquery",
+        "url": "https://subquery-history-avail-prod.novasama-tech.org"
+      }
     },
     "assets": [
         {
@@ -8712,42 +8406,14 @@
         }
     ],
     "nodes": [
-        {
-            "url": "wss://avail-mainnet.public.blastapi.io/",
-            "name": "Blastapi node"
-        },
-        {
-          "url": "wss://mainnet.avail-rpc.com/",
-          "name": " Ankr node"
-        },
-        {
-          "url": "wss://avail-rpc.rubynodes.io/",
-          "name": " Ruby node"
-        },
-        {
-          "url": "wss://avail-us.brightlystake.com",
-          "name": " BrightlyStake node"
-        },
-        {
-          "url": "wss://rpc-avail.globalstake.io",
-          "name": " GlobalStake node"
-        },
-        {
-            "url": "wss://avail.rpc.bountyblok.io",
-            "name": "Bountyblok node"
-        },
-        {
-          "url": "wss://avail.public.curie.radiumblock.co/ws",
-          "name": "RadiumBlock node"
-        },
-        {
-          "url": "wss://avail-rpc.lgns.net/",
-          "name": "LugaNodes node"
-        },
-        {
-          "url": "wss://rpc.avail.stakepool.dev.br/ws",
-          "name": "StakePool node"
-        }
+      {
+        "url": "wss://rpc-avail.globalstake.io",
+        "name": " GlobalStake node"
+      },
+      {
+        "url": "wss://avail.api.onfinality.io/public-ws",
+        "name": "Avail primary node"
+      }
     ],
     "options": [
         "checkAppId"
@@ -8789,14 +8455,10 @@
       }
     ],
     "nodes": [
-        {
-          "url": "https://testnet-rpc.atleta.network:9944",
-          "name": "Atla https node"
-        },
-        {
-          "url": "wss://testnet-rpc.atleta.network:9944",
-          "name": "Atla wss node"
-        }
+      {
+        "url": "https://testnet-rpc.atleta.network",
+        "name": "Atleta https node"
+      }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Atleta.svg",
     "addressPrefix": 0,
@@ -8807,7 +8469,7 @@
     ]
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "168168",
     "name": "ZChains",
     "ecosystem": "ethereum",
@@ -8854,7 +8516,7 @@
     ]
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "2525",
     "name": "inEVM",
     "ecosystem": "ethereum",
@@ -8964,7 +8626,7 @@
             "tonAccount",
             "tonTransaction"
           ],
-          "url": "https://tonviewer.com/{type}/{value}"
+          "url": "https://testnet.tonviewer.com/{type}/{value}"
         }
       ]
     },
@@ -9010,12 +8672,12 @@
             "extrinsic",
             "account"
           ],
-          "url": "https://bridgehub-polkadot/{type}/{value}"
+          "url": "https://bridgehub-polkadot.subscan.io/{type}/{value}"
         }
       ],
       "history": {
         "type": "subquery",
-        "url": "https://api.subquery.network/sq/nova-wallet/nova-wallet---polkadot-bridgehub"
+        "url": "https://subquery-history-polkadot-bh-prod.novasama-tech.org"
       }
     },
     "assets": [
@@ -9033,32 +8695,20 @@
     ],
     "nodes": [
       {
-        "url": "wss://api-polkadot-bridge-hub.dwellir.com",
-        "name": "Dwellir node"
-      },
-      {
         "url": "wss://polkadot-bridge-hub-rpc.polkadot.io",
         "name": "Parity node"
-      },
-      {
-        "url": "wss://sys.ibp.network/bridgehub-polkadot",
-        "name": "IBP1 node"
-      },
-      {
-        "url": "wss://bridge-hub-polkadot.dotters.network",
-        "name": "IBP2 node"
       },
       {
         "url": "wss://rpc-bridge-hub-polkadot.luckyfriday.io",
         "name": "LuckyFriday node"
       },
       {
-        "url": "wss://bridgehub-polkadot.public.curie.radiumblock.co/ws",
-        "name": "RadiumBlock node"
-      },
-      {
         "url": "wss://dot-rpc.stakeworld.io/bridgehub",
         "name": "Stakeworld node"
+      },
+      {
+        "name": "Dwellir node",
+        "url": "wss://bridge-hub-polkadot-rpc.n.dwellir.com"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/Bridgehub.svg",
@@ -9102,20 +8752,8 @@
         "name": "Parity node"
       },
       {
-        "url": "wss://sys.ibp.network/collectives-polkadot",
-        "name": "IBP1 node"
-      },
-      {
-        "url": "wss://collectives-polkadot.dotters.network",
-        "name": "IBP2 node"
-      },
-      {
         "url": "wss://rpc-collectives-polkadot.luckyfriday.io",
         "name": "LuckyFriday node"
-      },
-      {
-        "url": "wss://collectives.public.curie.radiumblock.co/ws",
-        "name": "RadiumBlock node"
       },
       {
         "url": "wss://dot-rpc.stakeworld.io/collectives",
@@ -9133,11 +8771,10 @@
     "name": "AvN Polkadot",
     "ecosystem": "substrate",
     "externalApi": {
-      "history":
-        {
-          "type": "subquery",
-          "url": "https://api.subquery.network/sq/nova-wallet/nova-wallet-aventus"
-        }
+      "history": {
+        "type": "subquery",
+        "url": "https://subquery-history-aventus-prod.novasama-tech.org"
+      }
     },
     "assets": [
       {
@@ -9168,13 +8805,7 @@
     "paraId": "3367",
     "name": "Hyperbridge (Nexus)",
     "ecosystem": "substrate",
-    "externalApi": {
-      "history":
-        {
-          "type": "subquery",
-          "url": "https://api.subquery.network/sq/nova-wallet/nova-wallet-hyperbridge"
-        }
-    },
+    "externalApi": {},
     "assets": [
       {
         "id": "a7ac5f36-2004-4c10-8efa-2fc0f9419532",
@@ -9189,23 +8820,15 @@
     ],
     "nodes": [
       {
-        "url": "wss://nexus.ibp.network",
-        "name": "IBP1 node"
-      },
-      {
-        "url": "wss://nexus.dotters.network",
-        "name": "IBP2 node"
-      },
-      {
-        "url": "wss://hyperbridge-nexus-rpc.blockops.network",
-        "name": "BlockOps node"
+        "url": "wss://nexus.rpc.polytope.technology",
+        "name": "Polytope Labs node"
       }
     ],
     "icon": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/assets/icons/chains/white/hyperbridge.svg",
     "addressPrefix": 0
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "31a7d8914fb31c249b972f18c115f1e22b4b039abbcb03c73b6774c5642f9efe",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "3340",
@@ -9248,7 +8871,7 @@
     "addressPrefix": 117
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "7eb9354488318e7549c722669dcbdcdc526f1fef1420e7944667212f3601fdbd",
     "parentId": "91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3",
     "paraId": "3344",
