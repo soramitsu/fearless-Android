@@ -7594,7 +7594,7 @@
     ]
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "7001",
     "rank": 14,
     "name": "ZetaChain Testnet",

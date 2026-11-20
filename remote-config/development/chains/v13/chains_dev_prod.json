@@ -7338,7 +7338,7 @@
     ]
   },
   {
-    "disabled": false,
+    "disabled": true,
     "chainId": "7001",
     "name": "ZetaChain Testnet",
     "ecosystem": "ethereum",

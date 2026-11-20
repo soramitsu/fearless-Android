@@ -4336,7 +4336,7 @@
       "commit": "f2ed4ccf1d3a6376b60ebd69d823a3f7748ddc4b",
       "sourcePath": "chains/v13/chains_dev.json",
       "upstreamSha256": "5726b01a5364d955e250939c71082c03f97da0dc9512ac9d120c6a2085173d05",
-      "ownedSha256": "9c03192336727912a8734960d6c1c5bc71e9f0ec88797cd173dbb971b363c9f1"
+      "ownedSha256": "b37c9daa5a1263aa0600fe0368dc79e7a91a03ed8a0a6a19294ce8bbf60b6697"
     },
     {
       "path": "development/chains/v13/chains_dev_prod.json",
@@ -4344,7 +4344,7 @@
       "commit": "f2ed4ccf1d3a6376b60ebd69d823a3f7748ddc4b",
       "sourcePath": "chains/v13/chains_dev_prod.json",
       "upstreamSha256": "8c7f01cd1ee0866df13ac3faa1315007361c96ce067cc062aea2d6e48ccc3235",
-      "ownedSha256": "3cbe3beddc9bd86b101de3df25c183cbbe73923749ad8e508054598a884b2b2a"
+      "ownedSha256": "91b8b084593ea7c2a7afc69dfc138c2970b2b17d66740627604ab5121eeada4e"
     },
     {
       "path": "development/fiat/fiats.json",
@@ -5166,6 +5166,7 @@
     "remote-config/production/crowdloan/polkadot.json: canonical filename case remote-config/production/crowdloan/icons/Litentry.png",
     "Omit unavailable optional Rootstock icon from bundled local_chains",
     "Correct bundled Latest Mainnet icon to latestchain.svg",
-    "Disable unreachable Reef Mainnet in app-owned catalogs after retaining unavailable chain parents and clearing stale staking selection; configured RPC returned HTTP502 on 2026-10-25. Legacy shared feeds remain unchanged."
+    "Disable unreachable Reef Mainnet in app-owned catalogs after retaining unavailable chain parents and clearing stale staking selection; configured RPC returned HTTP502 on 2026-10-25. Legacy shared feeds remain unchanged.",
+    "Disable ZetaChain Athens testnet (chain ID 7001) in both development catalogs following independent RPC checks on 20 November 2026. All available providers stayed at block 25987500."
   ]
 }
