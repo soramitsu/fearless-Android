@@ -10,11 +10,9 @@ import io.mockk.verify
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.account.api.domain.model.PortfolioBalance
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -49,7 +47,6 @@ class WalletSelectorPortfolioAdoptionTest(private val screen: String) {
     private val dispatcher = StandardTestDispatcher()
     private val repository = mockk<AccountRepository>()
     private val accounts = mockk<AccountInteractor>()
-    private val scores = mockk<NomisScoreInteractor>()
     private val total = mockk<TotalBalanceUseCase>()
     private val router = mockk<WalletRouter>(relaxed = true)
     private val icons = mockk<AddressIconGenerator>()
@@ -58,14 +55,12 @@ class WalletSelectorPortfolioAdoptionTest(private val screen: String) {
     private val pendulum = mockk<PendulumPreInstalledAccountsScenario>()
     private val roster = MutableStateFlow<List<LightMetaAccount>>(listOf(ready("First").meta))
     private val balances = MutableStateFlow<TotalBalance>(ready("First"))
-    private val scoreRows = MutableStateFlow<List<NomisScoreData>>(emptyList())
     private val models = mutableListOf<BaseViewModel>()
 
     @Before fun setup() {
         Dispatchers.setMain(dispatcher)
         every { repository.lightMetaAccountsFlow() } returns roster
         every { total.observe(7) } returns balances
-        every { scores.observeNomisScores() } returns scoreRows
         every { resources.getString(any()) } answers { "text-${firstArg<Int>()}" }
         every { resources.getQuantityString(any(), any(), *anyVararg()) } returns "hidden"
         coEvery { icons.createWalletIcon(any(), any()) } returns icon
@@ -86,11 +81,10 @@ class WalletSelectorPortfolioAdoptionTest(private val screen: String) {
         assertNotEquals(first.balance, current.selectedWallet!!.balance)
     }
 
-    @Test fun metadataOnlyRosterUpdateDoesNotAddBalanceOrScoreObservers() = runTest(dispatcher) {
+    @Test fun metadataOnlyRosterUpdateDoesNotAddBalanceObservers() = runTest(dispatcher) {
         val vm = create(); runCurrent()
         roster.value = listOf(ready("Renamed roster only").meta); runCurrent()
         verify(exactly = 1) { total.observe(7) }
-        verify(exactly = 1) { scores.observeNomisScores() }
         assertEquals("First", state(vm).wallets.single().title)
         balances.value = ready("Captured new name"); runCurrent()
         assertEquals("Captured new name", state(vm).wallets.single().title)
@@ -104,40 +98,28 @@ class WalletSelectorPortfolioAdoptionTest(private val screen: String) {
         assertTrue(state(vm).wallets.isEmpty())
     }
 
-    @Test fun missingScoreClearsPreviouslyRenderedScore() = runTest(dispatcher) {
-        val score = mockk<NomisScoreData> { every { metaId } returns 7L; every { this@mockk.score } returns 73 }
-        scoreRows.value = listOf(score)
-        val vm = create(); runCurrent(); assertEquals(73, state(vm).wallets.single().score)
-        scoreRows.value = emptyList(); runCurrent()
-        assertNull(state(vm).wallets.single().score)
-    }
-
-    @Test fun unavailablePortfolioClearsNameIconMoneyAndScore() = runTest(dispatcher) {
-        scoreRows.value = listOf(mockk { every { metaId } returns 7L; every { score } returns 73 })
+    @Test fun unavailablePortfolioClearsNameIconAndMoney() = runTest(dispatcher) {
         val vm = create(); runCurrent(); assertNotNull(state(vm).wallets.single().balance)
         balances.value = TotalBalance.Unavailable; runCurrent()
         val row = state(vm).wallets.single()
-        assertEquals("", row.title); assertNull(row.balance); assertNull(row.score)
+        assertEquals("", row.title); assertNull(row.balance)
         assertNotNull(row.balanceCaption); assertNotSame(icon, row.walletIcon)
     }
 
-    @Test fun cancellationClosesBalanceAndScoreObservers() = runTest(dispatcher) {
-        var balanceStops = 0; var scoreStops = 0
+    @Test fun cancellationClosesBalanceObservers() = runTest(dispatcher) {
+        var balanceStops = 0
         every { total.observe(7) } returns flow {
             try { emit(ready("First")); CompletableDeferred<Unit>().await() } finally { balanceStops++ }
         }
-        every { scores.observeNomisScores() } returns flow {
-            try { emit(emptyList()); CompletableDeferred<Unit>().await() } finally { scoreStops++ }
-        }
         val vm = create(); runCurrent(); assertEquals(1, state(vm).wallets.size)
         vm.coroutineContext.cancel(); runCurrent()
-        assertEquals(1, balanceStops); assertEquals(1, scoreStops)
+        assertEquals(1, balanceStops)
     }
 
     private fun create(): BaseViewModel = (if (screen == "full") {
-        SelectWalletViewModel(repository, icons, accounts, scores, router, total, resources, pendulum)
+        SelectWalletViewModel(repository, icons, accounts, router, total, resources, pendulum)
     } else {
-        WalletSelectorViewModel(repository, icons, router, total, scores, resources,
+        WalletSelectorViewModel(repository, icons, router, total, resources,
             SavedStateHandle(mapOf("tag" to "test")))
     }).also(models::add)
 

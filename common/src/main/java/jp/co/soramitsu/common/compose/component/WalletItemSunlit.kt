@@ -2,7 +2,6 @@ package jp.co.soramitsu.common.compose.component
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -62,7 +60,6 @@ internal fun SunlitWalletItem(
     onOptionsClick: ((WalletItemViewState) -> Unit)?,
     onSelected: (WalletItemViewState) -> Unit,
     onLongClick: (WalletItemViewState) -> Unit,
-    onScoreClick: (WalletItemViewState) -> Unit,
     modifier: Modifier
 ) {
     val c = LocalFwColors.current
@@ -130,14 +127,6 @@ internal fun SunlitWalletItem(
             }
         }
         if (state.isSelected) FwCheckMark()
-        state.score?.let { score ->
-            Box(
-                Modifier.size(48.dp).clip(CircleShape).clickable(role = Role.Button) { onScoreClick(state) },
-                contentAlignment = Alignment.Center
-            ) {
-                ScoreStar(score = score)
-            }
-        }
         onOptionsClick?.let { optionsAction ->
             FwIconButton(
                 iconRes = R.drawable.ic_dots_horizontal_24,

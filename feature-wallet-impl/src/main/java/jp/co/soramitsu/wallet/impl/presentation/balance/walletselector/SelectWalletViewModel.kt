@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.presentation.account.withAllHoldings
 import jp.co.soramitsu.account.api.presentation.backup.GoogleBackupIssue
@@ -32,7 +31,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -43,39 +41,29 @@ class SelectWalletViewModel @Inject constructor(
     accountRepository: AccountRepository,
     addressIconGenerator: AddressIconGenerator,
     private val accountInteractor: AccountInteractor,
-    private val nomisScoreInteractor: NomisScoreInteractor,
     private val router: WalletRouter,
     private val getTotalBalance: TotalBalanceUseCase,
     private val resourceManager: ResourceManager,
     private val pendulumPreInstalledAccountsScenario: PendulumPreInstalledAccountsScenario
 ) : BaseViewModel() {
 
-    private val walletItemsFlow = combine(
-        capturedPortfolioListFlow(
-            accountRepository.lightMetaAccountsFlow().map { wallets -> wallets.map { it.id } },
-            balances = { metaId -> getTotalBalance.observe(metaId) },
-            resolveDetail = { ready ->
-                addressIconGenerator.createAddressIcon(
-                    ready.meta.supportedEcosystemWithIconAddress(),
-                    AddressIconGenerator.SIZE_BIG
-                )
-            }
-        ),
-        nomisScoreInteractor.observeNomisScores()
-            .onStart { emit(emptyList()) }
-            .catch { failure ->
-                if (failure is CancellationException) throw failure
-                emit(emptyList())
-            }
-    ) { rows, scores ->
+    private val walletItemsFlow = capturedPortfolioListFlow(
+        accountRepository.lightMetaAccountsFlow().map { wallets -> wallets.map { it.id } },
+        balances = { metaId -> getTotalBalance.observe(metaId) },
+        resolveDetail = { ready ->
+            addressIconGenerator.createAddressIcon(
+                ready.meta.supportedEcosystemWithIconAddress(),
+                AddressIconGenerator.SIZE_BIG
+            )
+        }
+    ).map { rows ->
         rows.map { row ->
             val ready = row.portfolio.source as? TotalBalance.Ready
             WalletItemViewState(
                 id = row.metaId,
                 title = ready?.meta?.name.orEmpty(),
                 isSelected = ready?.meta?.isSelected == true,
-                walletIcon = row.portfolio.detail ?: R.drawable.ic_wallet,
-                score = if (ready == null) null else scores.firstOrNull { it.metaId == row.metaId }?.score
+                walletIcon = row.portfolio.detail ?: R.drawable.ic_wallet
             ).withAllHoldings(row.portfolio.source, resourceManager)
         }
     }.catch { failure ->
@@ -194,9 +182,5 @@ class SelectWalletViewModel @Inject constructor(
                     router.back()
                 }
         }
-    }
-
-    fun onScoreClick(state: WalletItemViewState) {
-        router.openScoreDetailsScreen(state.id)
     }
 }

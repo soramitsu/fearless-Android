@@ -54,7 +54,6 @@ interface ProfileScreenInterface {
     fun recoveryClicked()
 
     fun aboutClicked()
-    fun onScoreClick(item: WalletItemViewState)
 }
 
 @Composable
@@ -72,8 +71,7 @@ fun ProfileScreen(
                 state = state.walletState,
                 onOptionsClick = callback::onWalletOptionsClick.takeIf {
                     state.walletState.onlyTonSupported.not()
-                },
-                onScoreClick = callback::onScoreClick
+                }
             )
         }
 
@@ -223,7 +221,6 @@ fun ProfileScreenPreview() {
                 percentChange = "+5.67%",
                 fiatChange = "$2345.32"
             ),
-            score = 50,
 //            supportedEcosystems = setOf(ImportAccountType.Ton)
         ),
         currency = "USD",
@@ -247,7 +244,6 @@ fun ProfileScreenPreview() {
                 override fun changePinCodeClicked() = Unit
                 override fun recoveryClicked() = Unit
                 override fun aboutClicked() = Unit
-                override fun onScoreClick(item: WalletItemViewState) = Unit
             })
     }
 }

@@ -46,8 +46,7 @@ data class BackupWalletState(
                 title = "",
                 walletIcon = R.drawable.ic_wallet,
                 isSelected = false,
-                additionalMetadata = "",
-                score = null
+                additionalMetadata = ""
             ),
             isAuthedToGoogle = false,
             isWalletSavedInGoogle = false,

@@ -52,8 +52,7 @@ class SelectWalletFragment : BaseComposeBottomSheetDialogFragment<SelectWalletVi
             onWalletSelected = viewModel::onWalletSelected,
             addNewWallet = viewModel::addNewWallet,
             onBackClicked = viewModel::onBackClicked,
-            onWalletOptionsClick = viewModel::onWalletOptionsClick,
-            onScoreClick = viewModel::onScoreClick,
+            onWalletOptionsClick = viewModel::onWalletOptionsClick
         )
     }
 

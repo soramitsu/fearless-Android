@@ -138,11 +138,11 @@ class BalanceListInteractionTest {
     @Test fun toolbarAndManagementActionsOpenTheirDestinations() {
         val vm = model()
         vm.openWalletSelector(); vm.openSearchAssets(); vm.onManageAssetClick()
-        vm.onHiddenFundsReviewClick(); vm.onServiceButtonClick(); vm.onWalletRecoveryClick(); vm.onScoreClick()
+        vm.onHiddenFundsReviewClick(); vm.onServiceButtonClick(); vm.onWalletRecoveryClick()
         main.dispatcher.scheduler.runCurrent()
         verify {
             router.openSelectWallet(); router.openSearchAssets(); router.openManageAssets("All")
-            router.openManageAssets("Hidden"); router.openServiceScreen(); router.openRecoveryCenter(); router.openScoreDetailsScreen(1L)
+            router.openManageAssets("Hidden"); router.openServiceScreen(); router.openRecoveryCenter()
         }
     }
 
@@ -370,7 +370,7 @@ class BalanceListInteractionTest {
             every { collectionsFlow(any(), any()) } returns flowOf(emptySequence())
         }
         val scan = mockk<NetworkScanStateStore> { every { states } returns MutableStateFlow(emptyMap()) }
-        return BalanceListViewModel(wallet, chains, icons, router, currencies, fiat, accounts, mockk(relaxed = true),
+        return BalanceListViewModel(wallet, chains, icons, router, currencies, fiat, accounts,
             resources, clipboard, currentAddress, total, mockk(relaxed = true), nft, walletConnect,
             CoroutineManager(main.dispatcher, main.dispatcher), tonConnect, scan, mockk(relaxed = true),
             ProductFeatureToggleStore(InMemoryPreferences(), mockk(relaxed = true)),

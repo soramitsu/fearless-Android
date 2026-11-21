@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.presentation.account.withAllHoldings
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -21,10 +20,8 @@ import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -35,7 +32,6 @@ class WalletSelectorViewModel @Inject constructor(
     addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter,
     private val totalBalanceUseCase: TotalBalanceUseCase,
-    private val nomisScoreInteractor: NomisScoreInteractor,
     private val resourceManager: ResourceManager,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel() {
@@ -46,32 +42,23 @@ class WalletSelectorViewModel @Inject constructor(
     private val walletSelectionMode = savedStateHandle[WalletSelectorFragment.WALLET_SELECTION_MODE]
         ?: WalletSelectionMode.CurrentWallet
 
-    private val walletItemsFlow = combine(
-        capturedPortfolioListFlow(
-            accountRepository.lightMetaAccountsFlow().map { wallets -> wallets.map { it.id } },
-            balances = { metaId -> totalBalanceUseCase.observe(metaId) },
-            resolveDetail = { ready ->
-                addressIconGenerator.createAddressIcon(
-                    ready.meta.supportedEcosystemWithIconAddress(),
-                    AddressIconGenerator.SIZE_BIG
-                )
-            }
-        ),
-        nomisScoreInteractor.observeNomisScores()
-            .onStart { emit(emptyList()) }
-            .catch { failure ->
-                if (failure is CancellationException) throw failure
-                emit(emptyList())
-            }
-    ) { rows, scores ->
+    private val walletItemsFlow = capturedPortfolioListFlow(
+        accountRepository.lightMetaAccountsFlow().map { wallets -> wallets.map { it.id } },
+        balances = { metaId -> totalBalanceUseCase.observe(metaId) },
+        resolveDetail = { ready ->
+            addressIconGenerator.createAddressIcon(
+                ready.meta.supportedEcosystemWithIconAddress(),
+                AddressIconGenerator.SIZE_BIG
+            )
+        }
+    ).map { rows ->
         rows.map { row ->
             val ready = row.portfolio.source as? TotalBalance.Ready
             WalletItemViewState(
                 id = row.metaId,
                 title = ready?.meta?.name.orEmpty(),
                 isSelected = ready?.meta?.isSelected == true,
-                walletIcon = row.portfolio.detail ?: R.drawable.ic_wallet,
-                score = if (ready == null) null else scores.firstOrNull { it.metaId == row.metaId }?.score
+                walletIcon = row.portfolio.detail ?: R.drawable.ic_wallet
             ).withAllHoldings(row.portfolio.source, resourceManager)
         }
     }.catch { failure ->

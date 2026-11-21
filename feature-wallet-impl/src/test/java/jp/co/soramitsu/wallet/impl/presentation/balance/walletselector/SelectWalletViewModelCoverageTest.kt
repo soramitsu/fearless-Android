@@ -14,11 +14,9 @@ import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.account.api.domain.model.PortfolioBalance
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.account.api.presentation.backup.GoogleBackupIssue
@@ -56,7 +54,6 @@ class SelectWalletViewModelCoverageTest {
     private val dispatcher = StandardTestDispatcher()
     private val repository = mockk<AccountRepository>()
     private val accounts = mockk<AccountInteractor>(relaxed = true)
-    private val scores = mockk<NomisScoreInteractor>()
     private val total = mockk<TotalBalanceUseCase>()
     private val router = mockk<WalletRouter>(relaxed = true)
     private val icons = mockk<AddressIconGenerator>(relaxed = true)
@@ -71,7 +68,6 @@ class SelectWalletViewModelCoverageTest {
         Dispatchers.setMain(dispatcher)
         every { repository.lightMetaAccountsFlow() } returns roster
         every { total.observe(7) } returns MutableStateFlow<TotalBalance>(ready("First"))
-        every { scores.observeNomisScores() } returns MutableStateFlow<List<NomisScoreData>>(emptyList())
         every { resources.getString(any()) } answers { text(firstArg()) }
         every { resources.getQuantityString(any(), any(), *anyVararg()) } returns "hidden"
         coEvery { icons.createWalletIcon(any(), any()) } returns icon
@@ -82,13 +78,11 @@ class SelectWalletViewModelCoverageTest {
         Dispatchers.resetMain()
     }
 
-    @Test fun `an unreadable score source keeps the wallets without scores`() = runTest(dispatcher) {
-        every { scores.observeNomisScores() } returns failing("scores unreadable")
+    @Test fun `the selected wallet is listed and preselected`() = runTest(dispatcher) {
         val vm = create(); runCurrent()
 
         val row = vm.state.value.wallets.single()
         assertEquals("First", row.title)
-        assertNull(row.score)
         assertEquals(row, vm.state.value.selectedWallet)
     }
 
@@ -117,12 +111,10 @@ class SelectWalletViewModelCoverageTest {
         vm.addNewWallet()
         vm.onBackClicked()
         vm.onWalletOptionsClick(item(5L))
-        vm.onScoreClick(item(6L))
 
         verify { router.openCreateAccountFromWallet() }
         verify { router.back() }
         verify { router.openOptionsWallet(5L, true) }
-        verify { router.openScoreDetailsScreen(6L) }
     }
 
     @Test fun `without Google backup support the user is offered another way to add a wallet`() = runTest(dispatcher) {
@@ -212,7 +204,7 @@ class SelectWalletViewModelCoverageTest {
         verify(exactly = 1) { router.back() }
     }
 
-    private fun create() = SelectWalletViewModel(repository, icons, accounts, scores, router, total, resources, pendulum)
+    private fun create() = SelectWalletViewModel(repository, icons, accounts, router, total, resources, pendulum)
         .also(models::add)
 
     private fun <T> failing(message: String): Flow<T> = flow { throw IllegalStateException(message) }

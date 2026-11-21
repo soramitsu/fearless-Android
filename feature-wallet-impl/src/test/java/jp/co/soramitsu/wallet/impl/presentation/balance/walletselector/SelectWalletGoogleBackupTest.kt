@@ -8,7 +8,6 @@ import io.mockk.verify
 import java.io.IOException
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import kotlinx.coroutines.CancellationException
@@ -79,8 +78,7 @@ class SelectWalletGoogleBackupTest {
 
     private fun viewModel(): SelectWalletViewModel {
         val repository = mockk<AccountRepository> { every { lightMetaAccountsFlow() } returns flowOf(emptyList()) }
-        val scores = mockk<NomisScoreInteractor> { every { observeNomisScores() } returns flowOf(emptyList()) }
-        return SelectWalletViewModel(repository, mockk(relaxed = true), accounts, scores, router, mockk(relaxed = true),
+        return SelectWalletViewModel(repository, mockk(relaxed = true), accounts, router, mockk(relaxed = true),
             mockk(relaxed = true), mockk(relaxed = true)).also { model = it }
     }
 }

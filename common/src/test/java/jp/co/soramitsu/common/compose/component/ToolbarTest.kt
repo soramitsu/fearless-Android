@@ -95,17 +95,16 @@ class ToolbarTest {
     }
 
     @Test
-    fun filterToolbarShowsWalletScoreAndFilterAndRoutesClicks() {
+    fun filterToolbarShowsWalletAndFilterAndRoutesClicks() {
         var navigation = 0
         var chain = 0
-        var score = 0
         var settings = 0
         compose.setContent {
             FearlessAppTheme {
                 MainToolbar(
                     state = MainToolbarViewStateWithFilters(
                         title = "Savings",
-                        homeIconState = ToolbarHomeIconState.Wallet(ColorDrawable(android.graphics.Color.RED), score = 80),
+                        homeIconState = ToolbarHomeIconState.Wallet(ColorDrawable(android.graphics.Color.RED)),
                         selectorViewState = ChainSelectorViewStateWithFilters(
                             filterApplied = ChainSelectorViewStateWithFilters.Filter.Favorite,
                             allowChainSelection = true
@@ -113,7 +112,6 @@ class ToolbarTest {
                     ),
                     onChangeChainClick = { chain++ },
                     onNavigationClick = { navigation++ },
-                    onScoreClick = { score++ },
                     menuItems = listOf(MenuIconItem(R.drawable.ic_settings, { settings++ }))
                 )
             }
@@ -121,29 +119,25 @@ class ToolbarTest {
 
         compose.onNodeWithText("Savings").assertIsDisplayed()
         compose.onNodeWithText(context.getString(R.string.network_managment_favourite)).performClick()
-        val scoreLabel = context.getString(R.string.account_stats_wallet_option_title)
-        compose.onNodeWithContentDescription("$scoreLabel: 80").performClick()
         compose.onNodeWithContentDescription(context.getString(R.string.ux_switch_wallet)).performClick()
         compose.onNodeWithContentDescription(context.getString(R.string.profile_settings_title)).performClick()
         compose.waitForIdle()
 
-        assertEquals(listOf(1, 1, 1, 1), listOf(chain, score, navigation, settings))
+        assertEquals(listOf(1, 1, 1), listOf(chain, navigation, settings))
     }
 
     @Test
-    fun filterToolbarWhileLoadingShowsSkeletonsAndNoScore() {
+    fun filterToolbarWhileLoadingShowsSkeletons() {
         val state = MainToolbarViewStateWithFilters.default
         assertNull(state.title)
         assertNull(state.selectorViewState)
         compose.setContent {
             FearlessAppTheme {
-                MainToolbar(state = state, onChangeChainClick = {}, onScoreClick = {})
+                MainToolbar(state = state, onChangeChainClick = {})
             }
         }
 
         compose.onNodeWithContentDescription(context.getString(R.string.ux_switch_wallet)).assertIsDisplayed()
-        compose.onAllNodesWithContentDescription(context.getString(R.string.account_stats_wallet_option_title), substring = true)
-            .assertCountEquals(0)
     }
 
     @Test
@@ -156,17 +150,15 @@ class ToolbarTest {
                             title = "Popular wallet",
                             selectorViewState = ChainSelectorViewStateWithFilters(filterApplied = ChainSelectorViewStateWithFilters.Filter.Popular)
                         ),
-                        onChangeChainClick = {},
-                        onScoreClick = {}
+                        onChangeChainClick = {}
                     )
                     MainToolbar(
                         state = MainToolbarViewStateWithFilters(
                             title = "All wallet",
-                            homeIconState = ToolbarHomeIconState.Wallet(ColorDrawable(android.graphics.Color.BLUE), score = -2),
+                            homeIconState = ToolbarHomeIconState.Wallet(ColorDrawable(android.graphics.Color.BLUE)),
                             selectorViewState = ChainSelectorViewStateWithFilters(filterApplied = ChainSelectorViewStateWithFilters.Filter.All)
                         ),
-                        onChangeChainClick = {},
-                        onScoreClick = {}
+                        onChangeChainClick = {}
                     )
                 }
             }
@@ -174,8 +166,6 @@ class ToolbarTest {
 
         compose.onNodeWithText(context.getString(R.string.network_management_popular)).assertIsDisplayed()
         compose.onNodeWithText(context.getString(R.string.chain_selection_all_networks)).assertIsDisplayed()
-        // A failed score is still offered, without a number.
-        compose.onNodeWithContentDescription(context.getString(R.string.account_stats_wallet_option_title)).assertIsDisplayed()
     }
 
     @Test
@@ -231,17 +221,15 @@ class ToolbarTest {
     }
 
     @Test
-    fun walletHomeIconShowsScoreAndRoutesBothClicks() {
+    fun walletHomeIconRoutesClicks() {
         var home = 0
-        var score = 0
         var plain = 0
         compose.setContent {
             FearlessAppTheme {
                 Column {
                     ToolbarHomeIcon(
-                        state = ToolbarHomeIconState.Wallet(ColorDrawable(android.graphics.Color.GREEN), score = 42),
-                        onClick = { home++ },
-                        onScoreClick = { score++ }
+                        state = ToolbarHomeIconState.Wallet(ColorDrawable(android.graphics.Color.GREEN)),
+                        onClick = { home++ }
                     )
                     IconButton(
                         painter = painterResource(R.drawable.ic_search),
@@ -259,15 +247,12 @@ class ToolbarTest {
             }
         }
 
-        compose.onNodeWithText("42", useUnmergedTree = true).assertIsDisplayed()
-        compose.onNodeWithText("42").performClick()
         compose.onNodeWithContentDescription(context.getString(R.string.ux_switch_wallet)).performClick()
         compose.onNodeWithContentDescription("Tinted search").performClick()
         compose.onNodeWithContentDescription("Own colours").performClick()
         compose.waitForIdle()
 
         assertEquals(1, home)
-        assertEquals(1, score)
         assertEquals(2, plain)
     }
 

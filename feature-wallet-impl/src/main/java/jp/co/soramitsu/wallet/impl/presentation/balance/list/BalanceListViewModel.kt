@@ -20,7 +20,6 @@ import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.UniversalWalletPasswordNotice
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
@@ -182,7 +181,6 @@ class BalanceListViewModel @Inject constructor(
     private val getAvailableFiatCurrencies: GetAvailableFiatCurrencies,
     private val selectedFiat: SelectedFiat,
     private val accountInteractor: AccountInteractor,
-    private val nomisScoreInteractor: NomisScoreInteractor,
     private val resourceManager: ResourceManager,
     private val clipboardManager: ClipboardManager,
     private val currentAccountAddress: CurrentAccountAddressUseCase,
@@ -772,18 +770,6 @@ class BalanceListViewModel @Inject constructor(
                 )
             }
         }.launchIn(viewModelScope)
-
-        nomisScoreInteractor.observeCurrentAccountScore()
-            .onEach { score ->
-                toolbarState.update { prevState ->
-                    val newWalletIconState =
-                        (prevState.homeIconState as? ToolbarHomeIconState.Wallet)?.copy(score = score?.score)
-                    newWalletIconState?.let {
-                        prevState.copy(homeIconState = newWalletIconState)
-                    } ?: prevState
-                }
-            }
-            .launchIn(viewModelScope)
     }
 
     private fun observeNetworkIssues() {
@@ -1605,13 +1591,6 @@ class BalanceListViewModel @Inject constructor(
 
     fun onServiceButtonClick() {
         router.openServiceScreen()
-    }
-
-    fun onScoreClick() {
-        viewModelScope.launch {
-            val currentAccount = currentMetaAccountFlow.first()
-            router.openScoreDetailsScreen(currentAccount.id)
-        }
     }
 }
 

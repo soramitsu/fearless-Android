@@ -9,11 +9,9 @@ import io.mockk.mockk
 import io.mockk.verify
 import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.account.api.domain.model.PortfolioBalance
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.common.address.AddressIconGenerator
@@ -48,7 +46,6 @@ class WalletSelectorViewModelCoverageTest {
 
     private val dispatcher = StandardTestDispatcher()
     private val repository = mockk<AccountRepository>()
-    private val scores = mockk<NomisScoreInteractor>()
     private val total = mockk<TotalBalanceUseCase>()
     private val router = mockk<WalletRouter>(relaxed = true)
     private val icons = mockk<AddressIconGenerator>(relaxed = true)
@@ -60,7 +57,6 @@ class WalletSelectorViewModelCoverageTest {
         Dispatchers.setMain(dispatcher)
         every { repository.lightMetaAccountsFlow() } returns MutableStateFlow<List<LightMetaAccount>>(listOf(ready().meta))
         every { total.observe(7) } returns MutableStateFlow<TotalBalance>(ready())
-        every { scores.observeNomisScores() } returns MutableStateFlow<List<NomisScoreData>>(emptyList())
         every { resources.getString(any()) } answers { "text-${firstArg<Int>()}" }
         every { resources.getQuantityString(any(), any(), *anyVararg()) } returns "hidden"
         coEvery { icons.createWalletIcon(any(), any()) } returns icon
@@ -71,13 +67,11 @@ class WalletSelectorViewModelCoverageTest {
         Dispatchers.resetMain()
     }
 
-    @Test fun `an unreadable score source keeps the wallets without scores`() = runTest(dispatcher) {
-        every { scores.observeNomisScores() } returns failing("scores unreadable")
+    @Test fun `the current wallet is listed and preselected`() = runTest(dispatcher) {
         val vm = create(); runCurrent()
 
         val row = vm.state.value.wallets.single()
         assertEquals("Main", row.title)
-        assertNull(row.score)
         assertEquals(row, vm.state.value.selectedWallet)
     }
 
@@ -117,7 +111,7 @@ class WalletSelectorViewModelCoverageTest {
         val arguments = mutableMapOf<String, Any?>(WalletSelectorFragment.TAG_ARGUMENT_KEY to TAG)
         if (mode != null) arguments[WalletSelectorFragment.WALLET_SELECTION_MODE] = mode
         if (selectedWalletId != null) arguments[WalletSelectorFragment.SELECTED_WALLET_ID] = selectedWalletId
-        return WalletSelectorViewModel(repository, icons, router, total, scores, resources, SavedStateHandle(arguments))
+        return WalletSelectorViewModel(repository, icons, router, total, resources, SavedStateHandle(arguments))
             .also(models::add)
     }
 

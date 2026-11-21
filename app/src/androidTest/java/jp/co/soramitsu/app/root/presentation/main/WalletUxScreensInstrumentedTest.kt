@@ -220,8 +220,6 @@ class WalletUxScreensInstrumentedTest {
     @Test
     fun walletHeaderAndNetworkSectionFitAtDoubleTextSize() {
         val networkName = "SORA test"
-        val scoreLabel = compose.activity.getString(jp.co.soramitsu.common.R.string.account_stats_wallet_option_title)
-        var scoreClicks = 0
         compose.setContent {
             CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, 2f)) {
                 FearlessAppTheme {
@@ -230,10 +228,10 @@ class WalletUxScreensInstrumentedTest {
                             jp.co.soramitsu.common.compose.component.MainToolbarViewStateWithFilters(
                                 "QA wallet",
                                 jp.co.soramitsu.common.compose.component.ToolbarHomeIconState.Wallet(
-                                    android.graphics.drawable.ColorDrawable(android.graphics.Color.GRAY), -2),
+                                    android.graphics.drawable.ColorDrawable(android.graphics.Color.GRAY)),
                                 jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters(
                                     selectedChainName = networkName, allowChainSelection = true)),
-                            onChangeChainClick = {}, onScoreClick = { scoreClicks++ },
+                            onChangeChainClick = {},
                             menuItems = listOf(
                                 jp.co.soramitsu.common.compose.component.MenuIconItem(jp.co.soramitsu.common.R.drawable.ic_scan, {}),
                                 jp.co.soramitsu.common.compose.component.MenuIconItem(jp.co.soramitsu.common.R.drawable.ic_search, {})))
@@ -264,11 +262,6 @@ class WalletUxScreensInstrumentedTest {
                 assertTrue("$text must not collapse into character-wide lines", it.lineCount <= 2)
             }
         }
-        val score = compose.onNodeWithContentDescription(scoreLabel).assertIsDisplayed()
-        val bounds = score.getUnclippedBoundsInRoot()
-        assertTrue("Score is a full touch target", bounds.right - bounds.left >= 48.dp && bounds.bottom - bounds.top >= 48.dp)
-        score.performClick()
-        compose.runOnIdle { org.junit.Assert.assertEquals(1, scoreClicks) }
         save("wallet-header-network-320dp-font200")
     }
 

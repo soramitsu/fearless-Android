@@ -43,7 +43,6 @@ class ProfileScreenTest {
         override fun changePinCodeClicked() { calls += "pin" }
         override fun recoveryClicked() { calls += "recovery" }
         override fun aboutClicked() { calls += "about" }
-        override fun onScoreClick(item: WalletItemViewState) { calls += "score" }
     }
 
     private fun wallet(ecosystems: Set<WalletEcosystem>) = WalletItemViewState(

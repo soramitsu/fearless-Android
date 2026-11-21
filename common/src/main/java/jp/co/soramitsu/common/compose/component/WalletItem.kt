@@ -45,7 +45,6 @@ data class WalletItemViewState(
     val walletIcon: Any,
     val isSelected: Boolean,
     val additionalMetadata: String = "",
-    val score: Int? = null,
     val supportedEcosystems: Set<WalletEcosystem> = emptySet(),
     /** Says what [balance] covers, for example "incl. hidden" on wallet-management cards. */
     val balanceCaption: String? = null
@@ -65,11 +64,10 @@ fun WalletItem(
     onOptionsClick: ((WalletItemViewState) -> Unit)? = null,
     onSelected: (WalletItemViewState) -> Unit = {},
     onLongClick: (WalletItemViewState) -> Unit = {},
-    onScoreClick: (WalletItemViewState) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     if (FwRestyle.isEnabled(FwSurface.Pickers)) {
-        SunlitWalletItem(state, onOptionsClick, onSelected, onLongClick, onScoreClick, modifier)
+        SunlitWalletItem(state, onOptionsClick, onSelected, onLongClick, modifier)
         return
     }
     val borderColor = if (state.isSelected) {
@@ -151,13 +149,6 @@ fun WalletItem(
                     ShimmerB2(modifier = Modifier.width(100.dp))
                 }
             }
-            state.score?.let { score ->
-                Box(modifier = Modifier
-                    .padding(9.dp)
-                    .clickableWithNoIndication { onScoreClick(state) }) {
-                    ScoreStar(score = score)
-                }
-            }
             onOptionsClick?.let { optionsAction ->
                 Box(
                     contentAlignment = Alignment.CenterEnd
@@ -204,8 +195,7 @@ private fun WalletItemPreview() {
         title = walletTitle,
         walletIcon = R.drawable.ic_wallet,
         isSelected = isSelected,
-        changeBalanceViewState = changeBalanceViewState,
-        score = 50
+        changeBalanceViewState = changeBalanceViewState
     )
 
     Column {
