@@ -1,12 +1,12 @@
 package jp.co.soramitsu.app.root.presentation.stories
 
+import android.os.Looper
 import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.View
 import android.widget.TextView
 import jp.co.soramitsu.app.HiltShim
 import jp.co.soramitsu.app.HiltShimApplication
-import jp.co.soramitsu.app.HiltShimHostActivity
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.common.presentation.StoryElement
 import jp.co.soramitsu.common.presentation.StoryGroupModel
@@ -16,9 +16,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import java.time.Duration
 
 @RunWith(RobolectricTestRunner::class)
 @Config(application = HiltShimApplication::class)
@@ -57,7 +58,7 @@ class StoryFragmentTest {
 
     @Test
     fun onboardingStoriesShowTheirImageAndOptionalButton() {
-        fragment.onNext()
+        progress.skip()
         assertEquals(fragment.getString(onboarding.titleRes), text(R.id.storyTitle))
         assertEquals(View.VISIBLE, view(R.id.storyImage).visibility)
         val button = view(R.id.stakingStoryLearnMore) as TextView
@@ -65,19 +66,34 @@ class StoryFragmentTest {
         button.performClick()
         assertEquals(1, backs)
 
-        fragment.onNext()
+        progress.skip()
         assertEquals(fragment.getString(plain.titleRes), text(R.id.storyTitle))
         assertEquals(View.GONE, view(R.id.stakingStoryLearnMore).visibility)
 
-        fragment.onPrev()
+        progress.reverse()
         assertEquals(fragment.getString(onboarding.titleRes), text(R.id.storyTitle))
     }
 
     @Test
     fun closingOrFinishingTheStoriesGoesBack() {
         view(R.id.storyCloseIcon).performClick()
-        fragment.onComplete()
+        repeat(4) { progress.skip() }
         assertEquals(2, backs)
+    }
+
+    @Test
+    fun timerResumesWithOnlyTheUnelapsedTimeRemaining() {
+        val looper = shadowOf(Looper.getMainLooper())
+        progress.reverse()
+        looper.idleFor(Duration.ofMillis(2000))
+        progress.pause()
+        looper.idleFor(Duration.ofMillis(7000))
+        assertEquals(fragment.getString(staking.titleRes), text(R.id.storyTitle))
+        progress.resume()
+        looper.idleFor(Duration.ofMillis(4199))
+        assertEquals(fragment.getString(staking.titleRes), text(R.id.storyTitle))
+        looper.idleFor(Duration.ofMillis(1))
+        assertEquals(fragment.getString(onboarding.titleRes), text(R.id.storyTitle))
     }
 
     @Test
@@ -103,5 +119,6 @@ class StoryFragmentTest {
     }
 
     private fun view(id: Int): View = fragment.requireView().findViewById(id)
+    private val progress: StoryProgressView get() = fragment.requireView().findViewById(R.id.stories)
     private fun text(id: Int): String = (view(id) as TextView).text.toString()
 }

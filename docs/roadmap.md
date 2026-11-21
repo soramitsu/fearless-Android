@@ -1,6 +1,10 @@
+## Story progress release checks
+
+Exercise timed advance, press-and-hold, both tap directions and completion on the next release candidate. Keep production and IAS locks paired without adding another repository for this view.
+
 ## Retire published crowdloan credentials
 
-Coordinate issuer revocation and check older clients first. Remove `devApiKey` and `prodApiKey` from both `remote-config/production/crowdloan/{polkadot,kusama}.json`. Update those two `ownedSha256` records in `config/remote-config-imports.json` (retain original import hashes). Sign the next sequence of `remote-config/remote-config-manifest.json` with the existing owner key: its `manifest.files` entries `production/crowdloan/polkadot.json` and `production/crowdloan/kusama.json` must hash the sanitized bytes. Publish the manifest and files together; removing a public value does not revoke it.
+Coordinate issuer revocation and check older clients first. Only `remote-config/production/crowdloan/polkadot.json` contains nonempty provider keys (lines 14–15 and 36–37). Remove those fields and update its `ownedSha256` record in `config/remote-config-imports.json` (retain the original import hash). Sign the next sequence of `remote-config/remote-config-manifest.json` with the existing owner key: `manifest.files["production/crowdloan/polkadot.json"]` must hash the sanitized bytes. Kusama's fields are empty; its digest need not change unless removing the empty fields too. Publish the manifest and files together; removing a public value does not revoke it.
 
 ## Android 4.3.6 release preparation — 17 November 2026
 

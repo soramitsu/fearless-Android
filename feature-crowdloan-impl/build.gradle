@@ -75,7 +75,6 @@ dependencies {
     implementation libs.retrofit
 
     implementation libs.shimmer
-    implementation libs.storiesProgressView
 
     implementation libs.coil
 }

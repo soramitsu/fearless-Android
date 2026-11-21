@@ -56,7 +56,6 @@ runner = "1.6.2"
 securityCryptoVersion = "1.0.0"
 shimmerVersion = "0.5.0"
 sonarqubeGradlePlugin = "3.3"
-storiesVersion = "3.0.1"
 web3j = "4.8.8-android"
 zxingEmbeddedVersion = "4.3.0"
 zxingVersion = "3.5.3"
@@ -121,7 +120,6 @@ rules = { module = "androidx.test:rules", version.ref = "rules" }
 runner = { module = "androidx.test:runner", version.ref = "runner" }
 shimmer = { module = "com.facebook.shimmer:shimmer", version.ref = "shimmerVersion" }
 sonarqube-gradle-plugin = { module = "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin", version.ref = "sonarqubeGradlePlugin" }
-storiesProgressView = { module = "com.github.ildixhaferri:StoriesProgressView", version.ref = "storiesVersion" }
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxingVersion" }
 zxing-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxingEmbeddedVersion" }
 

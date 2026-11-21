@@ -14,7 +14,7 @@
         android:fitsSystemWindows="true"
         android:orientation="vertical">
 
-        <jp.shts.android.storiesprogressview.StoriesProgressView
+        <jp.co.soramitsu.app.root.presentation.stories.StoryProgressView
             android:id="@+id/stories"
             android:layout_width="match_parent"
             android:layout_height="3dp"

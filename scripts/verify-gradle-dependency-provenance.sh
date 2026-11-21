@@ -296,7 +296,7 @@ reviewed_policy_digests = {
     # App-owned runtime modules; existing repository and IAS bootstrap policies retained.
     # The Beacon SDK removal dropped the airgap-it JitPack groups; the Reown
     # WalletConnect SDK removal dropped komputing, multiformats and Scarlet.
-    path: "e2d2f1c199f18f68eab2936a0f64016cc8c88bcc3966566168af72904d381d09",
+    path: "ace77361ced1f9abfbeebaddef529c1551382bc55d97364d0705d9c6afa1b222",
     Path(sys.argv[2]): "f9cc5ef8c17933f0ea29483a4346bb312d87e9fd669120ac9bc7419e58a0e78d",
     Path(sys.argv[3]): "46cac72bd782b6467d7bdaf34b3cede2a6da17a333d7f7902cfecc142e837b0b",
 }
@@ -490,17 +490,6 @@ if (dependencyProvenanceRequired) {
                 }
                 filter {
                     includeGroup 'org.hyperledger.iroha.sdk'
-                }
-            }
-            exclusiveContent {
-                forRepository {
-                    maven {
-                        name = 'JitPack'
-                        url = uri('https://jitpack.io')
-                    }
-                }
-                filter {
-                    includeGroup 'com.github.ildixhaferri'
                 }
             }
         }
@@ -759,10 +748,9 @@ require_text \
   "$root_build" \
   'includeGroupByRegex "jp[.]co[.]soramitsu([.].*)?"' \
   "mavenLocal Soramitsu-only content filter"
-require_text \
-  "$root_build" \
-  "exclusiveContent {" \
-  "exclusive JitPack content filter"
+if grep -Eiq 'jitpack' "$root_build" "$settings"; then
+  fail "JitPack repositories must not be configured"
+fi
 require_text \
   "$root_build" \
   "LockMode.STRICT" \

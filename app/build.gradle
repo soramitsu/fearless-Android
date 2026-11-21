@@ -917,7 +917,6 @@ dependencies {
     implementation libs.jna
 
     kspAndroidTest libs.hilt.compiler
-    implementation libs.storiesProgressView
 
     implementation libs.bundles.compose
     debugImplementation libs.bundles.composeDebug
