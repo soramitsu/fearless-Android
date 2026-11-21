@@ -102,6 +102,10 @@ no code, manifest or dependency loaded the library.
 
 ### Standard Build Wrapper
 
+For a dependency removal, resolve the local release graph with `./gradlew :app:dependencies --write-locks`; review its report for unresolved nodes even if the task exits successfully. IAS is intentionally disabled in ordinary builds: mirror the reviewed release lock delta into the paired IAS configurations and leave `verifyInternalAppSharingDependencyLocks` to its protected workflow.
+
+Gradle merges checksums into existing metadata. To find obsolete pins, save the reviewed XML, empty only its `components` element locally, then run `./gradlew --no-configure-on-demand :app:help --write-verification-metadata sha256`. Compare coordinates, filenames and **all** checksum values with the saved copy. Absence from `help` alone does not establish retirement: retain entries needed by task-created configurations (including lint, JaCoCo and AAPT2), staged Iroha, and other supported hosts. Never accept fresh bytes solely because the cache supplied them. Recalculate `gradle/verification-metadata.sha256` over the reviewed XML, then run the strict builds and provenance verifier. Never bootstrap pins in CI.
+
 `gradle/wrapper/gradle-wrapper.jar` is the standard Gradle 8.13 wrapper
 bootstrap jar, verified against Gradle's published wrapper checksum. It
 downloads the Gradle 9.0 binary distribution, whose published SHA-256 is pinned
