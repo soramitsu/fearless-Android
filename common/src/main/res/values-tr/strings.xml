@@ -47,20 +47,6 @@
   <string name="account_no_chain_projection">Hiç hesap bulunamadı</string>
   <string name="account_option">Hesap seçeneği</string>
   <string name="account_shared_secret">Gizli bilgisi paylaşılan hesaplar</string>
-  <string name="account_stats_avg_transaction_time_title">Ortalama işlem süresi</string>
-  <string name="account_stats_description_text">Çoklu Zincir Puanınız 3 ekosistemdeki zincir içi yolculuğunuza dayanmaktadır: Ethereum, Polygon ve Binance Smart Chain</string>
-  <string name="account_stats_error_message">Hesap puanı bilgisi alınamıyor. Lütfen daha sonra tekrar deneyin.</string>
-  <string name="account_stats_hold_tokens_usd_title">USD jetonlarını tutun</string>
-  <string name="account_stats_max_transaction_time_title">Maksimum işlem süresi</string>
-  <string name="account_stats_min_transaction_time_title">Minimum işlem süresi</string>
-  <string name="account_stats_native_balance_usd_title">Yerel bakiye USD</string>
-  <string name="account_stats_rejected_transactions_title">Reddedilen işlemler</string>
-  <string name="account_stats_title">Puanınız</string>
-  <string name="account_stats_total_transactions_title">Toplam işlemler</string>
-  <string name="account_stats_unavailable_text">EVM uyumlu bir hesabınız yok. Puanı görmek istiyorsanız \"Cüzdanı içe aktar\" seçeneğini kullanarak ekleyin.</string>
-  <string name="account_stats_updated_title">Güncellendi</string>
-  <string name="account_stats_wallet_age_title">Cüzdan yaşı</string>
-  <string name="account_stats_wallet_option_title">Cüzdan puanını göster</string>
   <string name="account_template">%s hesabı</string>
   <string name="accounts_add_account">Hesap ekle</string>
   <string name="accounts_for_export">Dışa aktarma için hesaplar</string>
@@ -813,7 +799,6 @@
   <string name="pool_your_total_stake">Toplam bahis tutarınız</string>
   <string name="pools_limit_has_reached_error_message">Bu ağdaki havuz sınırına ulaşıldı</string>
   <string name="pools_limit_has_reached_error_title">Daha fazla havuz oluşturamazsınız</string>
-  <string name="profile_account_score_title">Nomis çoklu zincir skoru</string>
   <string name="profile_accounts_title">Hesaplar</string>
   <string name="profile_language_title">Dil</string>
   <string name="profile_logout_description">Bu işlem ,cihazdaki tüm hesapların silinmesine neden olacak. Devam etmeden önce anahtar kelimelerinizi yedeklediğinizden emin olun.</string>
@@ -860,10 +845,6 @@
   <string name="scam_additional_stub">Ek olarak:</string>
   <string name="scam_alert_message_format">göndermemenizi şiddetle tavsiye ederiz.%sbu hesaba.</string>
   <string name="scam_alert_title">Bu adres dolandırıcılık kanıtı nedeniyle işaretlendi.</string>
-  <string name="scam_description_lowscore_text">Aktarmak üzere olduğunuz adresin zincir içi etkinliği düşük, bu da potansiyel bir dolandırıcı veya sybil saldırganının işareti olabilir</string>
-  <string name="scam_info_nomis_name">Nomis çoklu zincir skoru</string>
-  <string name="scam_info_nomis_reason_text">Düşük ağ etkinliği</string>
-  <string name="scam_info_nomis_subtype_text">Dikkatli ilerleyin</string>
   <string name="scam_warning_message">Bu adres dolandırıcılık kanıtı nedeniyle işaretlendi. göndermemenizi şiddetle tavsiye ederiz.%sbu hesaba.</string>
   <string name="scan_qr_subtitle">Alıcıdan kodu tarayın</string>
   <string name="scan_qr_title">QR Kodu Tarayın</string>
@@ -1356,10 +1337,6 @@
 
   <string name="banners_demeter_title">Demeter Protocol</string>
 
-  <plurals name="common_months_format">
-    <item quantity="one">%d month</item>
-    <item quantity="other">%d months</item>
-  </plurals>
 
   <string name="common_network_hash">%s Hash</string>
 

@@ -47,20 +47,6 @@
   <string name="account_no_chain_projection">アカウントが見つかりません</string>
   <string name="account_option">アカウントオプション</string>
   <string name="account_shared_secret">共有シークレットを持つアカウント</string>
-  <string name="account_stats_avg_transaction_time_title">平均取引時間</string>
-  <string name="account_stats_description_text">あなたのマルチチェーンスコアは、Ethereum、Polygon、Binance Smart Chainの3つのエコシステムを通じたオンチェーン活動に基づいています。</string>
-  <string name="account_stats_error_message">アカウントスコア情報を取得できません。後でもう一度お試しください。</string>
-  <string name="account_stats_hold_tokens_usd_title">保有トークン(USD)</string>
-  <string name="account_stats_max_transaction_time_title">最大取引時間</string>
-  <string name="account_stats_min_transaction_time_title">最小取引時間</string>
-  <string name="account_stats_native_balance_usd_title">ネイティブバランス(USD)</string>
-  <string name="account_stats_rejected_transactions_title">拒否された取引</string>
-  <string name="account_stats_title">あなたのスコア</string>
-  <string name="account_stats_total_transactions_title">合計取引数</string>
-  <string name="account_stats_unavailable_text">EVM互換のアカウントがありません。スコアを確認するには、「ウォレットをインポート」オプションでアカウントを追加してください。</string>
-  <string name="account_stats_updated_title">更新済み</string>
-  <string name="account_stats_wallet_age_title">ウォレットの年齢</string>
-  <string name="account_stats_wallet_option_title">ウォレットスコアを表示</string>
   <string name="account_template">%sアカウント</string>
   <string name="accounts_add_account">アカウントを追加</string>
   <string name="accounts_for_export">エクスポートするアカウント</string>
@@ -808,7 +794,6 @@
   <string name="pool_your_total_stake">総ステーク</string>
   <string name="pools_limit_has_reached_error_message">このネットワーク内のプールの制限に達しました</string>
   <string name="pools_limit_has_reached_error_title">これ以上プールを作成できません</string>
-  <string name="profile_account_score_title">Nomisマルチチェーンスコア</string>
   <string name="profile_accounts_title">アカウント</string>
   <string name="profile_language_title">言語</string>
   <string name="profile_logout_description">このアクションを行うと、このデバイスから全アカウントが削除されます。続行する前に、パスフレーズのバックアップを取ったことを必ず確認してください</string>
@@ -854,10 +839,6 @@
   <string name="scam_additional_stub">追加：</string>
   <string name="scam_alert_message_format">このアカウントに %s を送信しないことを強くお勧めします</string>
   <string name="scam_alert_title">このアドレスは、詐欺の証拠があると喚起されています。</string>
-  <string name="scam_description_lowscore_text">送金しようとしているアドレスはオンチェーン活動が少なく、詐欺師やSybil攻撃者の可能性があります。</string>
-  <string name="scam_info_nomis_name">Nomisマルチチェーンスコア</string>
-  <string name="scam_info_nomis_reason_text">ネットワークの活動が低い</string>
-  <string name="scam_info_nomis_subtype_text">注意して進めてください</string>
   <string name="scam_warning_message">このアドレスは、詐欺の証拠があると喚起されています。このアカウントに %s を送信しないことを強くお勧めします</string>
   <string name="scan_qr_subtitle">受信者からQRコードをスキャン</string>
   <string name="scan_qr_title">QRコード</string>
@@ -1349,10 +1330,6 @@
 
   <string name="banners_demeter_title">Demeter Protocol</string>
 
-  <plurals name="common_months_format">
-    <item quantity="one">%d month</item>
-    <item quantity="other">%d months</item>
-  </plurals>
 
   <string name="common_network_hash">%s Hash</string>
 
