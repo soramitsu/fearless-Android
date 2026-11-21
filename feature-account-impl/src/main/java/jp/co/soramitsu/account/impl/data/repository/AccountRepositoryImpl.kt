@@ -13,14 +13,12 @@ import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
 import jp.co.soramitsu.account.api.domain.model.accountId
-import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.account.api.domain.model.WalletRecoveryStatus
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.domain.model.cryptoType
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.account.api.domain.model.hasEthereum
 import jp.co.soramitsu.account.api.domain.model.hasSubstrate
-import jp.co.soramitsu.account.impl.data.mappers.toDomain
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.account.impl.domain.UniversalWalletFreshRoots
 import jp.co.soramitsu.account.impl.domain.UniversalWalletWatchList
@@ -58,9 +56,7 @@ import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
-import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
-import jp.co.soramitsu.coredb.model.NomisWalletScoreLocal
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -103,7 +99,6 @@ class AccountRepositoryImpl(
     private val jsonSeedEncoder: JsonSeedEncoder,
     private val languagesHolder: LanguagesHolder,
     private val chainsRepository: ChainsRepository,
-    private val nomisScoresDao: NomisScoresDao,
     private val substrateSecretStore: SubstrateSecretStore,
     private val ethereumSecretStore: EthereumSecretStore,
     private val tonSecretStore: TonSecretStore,
@@ -860,18 +855,6 @@ class AccountRepositoryImpl(
     }
 
     override fun observeFavoriteChains(metaId: Long) = accountDataSource.observeFavoriteChains(metaId).map { list -> list.associate { it.chainId to it.isFavorite } }
-
-    override fun observeNomisScores(): Flow<List<NomisScoreData>> {
-        return nomisScoresDao.observeScores().map { scores ->
-            scores.map(NomisWalletScoreLocal::toDomain)
-        }
-    }
-
-    override fun observeNomisScore(metaId: Long): Flow<NomisScoreData?> {
-        return nomisScoresDao.observeScore(metaId).map { score ->
-            score?.toDomain()
-        }
-    }
 
     override suspend fun getSubstrateSecrets(metaId: Long): EncodableStruct<SubstrateSecrets>? = withContext(dispatcher) {
         val metaAccount = getMetaAccount(metaId)

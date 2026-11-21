@@ -6,19 +6,13 @@ import io.mockk.every
 import io.mockk.mockk
 import java.math.BigInteger
 import jp.co.soramitsu.account.impl.presentation.VmTestFixtures
-import jp.co.soramitsu.common.data.network.nomis.NomisApi
-import jp.co.soramitsu.common.data.network.nomis.NomisResponse
-import jp.co.soramitsu.common.data.network.nomis.NomisResponseData
-import jp.co.soramitsu.common.data.network.nomis.NomisStats
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
-import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.model.AssetBalanceUpdateItem
 import jp.co.soramitsu.coredb.model.AssetLocal
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
-import jp.co.soramitsu.coredb.model.NomisWalletScoreLocal
 import jp.co.soramitsu.coredb.model.RelationJoinedMetaAccountInfo
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -29,7 +23,6 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -40,8 +33,6 @@ class WalletSyncServiceObservationTest {
     private val chains = mockk<ChainsRepository>()
     private val registry = mockk<ChainRegistry>()
     private val assets = mockk<AssetDao>(relaxed = true)
-    private val api = mockk<NomisApi>()
-    private val scores = mockk<NomisScoresDao>(relaxed = true)
     private val loaders = mockk<BalanceLoader.Provider>()
     private val loader = mockk<BalanceLoader>()
 
@@ -61,8 +52,6 @@ class WalletSyncServiceObservationTest {
         val wallet = account(ton = true)
         val stored = mutableListOf<List<AssetLocal>>()
         every { dao.observeNotInitializedMetaAccounts() } returns flowOf(emptyList(), listOf(wallet))
-        every { dao.observeJoinedMetaAccountsInfo() } returns flowOf(emptyList())
-        coEvery { scores.getScores() } returns emptyList()
         coEvery { chains.getChains() } returns listOf(chain)
         every { loaders.invoke(chain) } returns loader
         coEvery { loader.loadBalance(any()) } returns listOf(
@@ -71,7 +60,7 @@ class WalletSyncServiceObservationTest {
             AssetBalanceUpdateItem(7, "ton", byteArrayOf(3), "missing-asset")
         )
         coEvery { assets.insertAssets(capture(stored)) } returns Unit
-        WalletSyncService(dao, chains, registry, mockk(), assets, api, scores, loaders, StandardTestDispatcher(testScheduler)).start()
+        WalletSyncService(dao, chains, registry, mockk(), assets, loaders, StandardTestDispatcher(testScheduler)).start()
         advanceUntilIdle()
         assertEquals(1, stored.size)
         val result = stored.single().single()
@@ -89,15 +78,13 @@ class WalletSyncServiceObservationTest {
         val asset = AssetBalanceFixtures.configuration("native", "ton")
         val chain = VmTestFixtures.chain("ton", ecosystem = Ecosystem.Ton).copy(assets = listOf(asset))
         every { dao.observeNotInitializedMetaAccounts() } returns flowOf(listOf(account(ton = true)))
-        every { dao.observeJoinedMetaAccountsInfo() } returns flowOf(emptyList())
-        coEvery { scores.getScores() } returns emptyList()
         coEvery { chains.getChains() } returns listOf(chain)
         coEvery { chains.getChain("ton") } returns chain
         every { loaders.invoke(chain) } returns loader
         coEvery { loader.loadBalance(any()) } throws IllegalStateException("offline")
         val stored = mutableListOf<List<AssetLocal>>()
         coEvery { assets.insertAssets(capture(stored)) } returns Unit
-        WalletSyncService(dao, chains, registry, mockk(), assets, api, scores, loaders, StandardTestDispatcher(testScheduler)).start()
+        WalletSyncService(dao, chains, registry, mockk(), assets, loaders, StandardTestDispatcher(testScheduler)).start()
         advanceUntilIdle()
         val result = stored.single().single()
         assertEquals(AssetBalanceUpdateItem(7, "ton", byteArrayOf(3), "native").freeInPlanks, result.freeInPlanks)
@@ -110,8 +97,6 @@ class WalletSyncServiceObservationTest {
         val asset = AssetBalanceFixtures.configuration("native", "ton")
         val chain = VmTestFixtures.chain("ton", ecosystem = Ecosystem.Ton).copy(assets = listOf(asset))
         every { dao.observeNotInitializedMetaAccounts() } returns flowOf(listOf(account(7, ton = true), account(8, ton = true)))
-        every { dao.observeJoinedMetaAccountsInfo() } returns flowOf(emptyList())
-        coEvery { scores.getScores() } returns emptyList()
         coEvery { chains.getChains() } returns listOf(chain)
         every { loaders.invoke(chain) } returns loader
         coEvery { loader.loadBalance(any()) } returns listOf(
@@ -119,35 +104,9 @@ class WalletSyncServiceObservationTest {
             AssetBalanceUpdateItem(8, "ton", byteArrayOf(3), "native")
         )
         coEvery { assets.insertAssets(match { it.first().metaId == 7L }) } throws IllegalStateException("write failed")
-        WalletSyncService(dao, chains, registry, mockk(), assets, api, scores, loaders, StandardTestDispatcher(testScheduler)).start()
+        WalletSyncService(dao, chains, registry, mockk(), assets, loaders, StandardTestDispatcher(testScheduler)).start()
         advanceUntilIdle()
         coVerify(exactly = 1) { assets.insertAssets(match { it.single().metaId == 8L }) }
         coVerify { dao.markAccountsInitialized(listOf(7, 8)) }
-    }
-
-    @Test
-    fun scoresRefreshOnlyNewAndExpiredEthereumWalletsAndRecordFailures() = runTest {
-        val new = account(7, ethereum = true)
-        val expired = account(8, ethereum = true)
-        val fresh = account(9, ethereum = true)
-        every { dao.observeNotInitializedMetaAccounts() } returns flowOf(emptyList())
-        every { dao.observeJoinedMetaAccountsInfo() } returns flowOf(listOf(new, expired, fresh, account(10)))
-        coEvery { scores.getScores() } returns listOf(
-            NomisWalletScoreLocal.loading(8),
-            NomisWalletScoreLocal.loading(9).copy(updated = System.currentTimeMillis())
-        )
-        val response = NomisResponse(NomisResponseData("address", 0.75,
-            NomisStats(1.5, 2.5, 12, 30, 2, 6.0, 20.0, 1.0, "2026-01-01T00:00:00.000000Z")))
-        coEvery { api.getNomisScore("0x" + "07".repeat(20)) } returns response
-        coEvery { api.getNomisScore("0x" + "08".repeat(20)) } throws IllegalStateException("offline")
-        val writes = mutableListOf<NomisWalletScoreLocal>()
-        coEvery { scores.insert(capture(writes)) } returns Unit
-        WalletSyncService(dao, chains, registry, mockk(), assets, api, scores, loaders, StandardTestDispatcher(testScheduler)).start()
-        advanceUntilIdle()
-        assertEquals(listOf(-1, 75), writes.filter { it.metaId == 7L }.map { it.score })
-        assertEquals(listOf(-1, -2), writes.filter { it.metaId == 8L }.map { it.score })
-        assertTrue(writes.none { it.metaId in setOf(9L, 10L) })
-        assertEquals(30L, writes.last { it.metaId == 7L }.totalTransactions)
-        coVerify(exactly = 2) { api.getNomisScore(any()) }
     }
 }

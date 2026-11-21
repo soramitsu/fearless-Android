@@ -3,13 +3,11 @@ package jp.co.soramitsu.account.impl.domain
 import android.util.Log
 import java.math.BigInteger
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.common.data.network.nomis.NomisApi
 import jp.co.soramitsu.common.model.UniversalWalletRegistry
 import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
-import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.model.AssetBalanceUpdateItem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -48,8 +46,6 @@ class WalletSyncServiceFirstScanTest {
         chainRegistry = registry,
         remoteStorageSource = mock(RemoteStorageSource::class.java),
         assetDao = mock(AssetDao::class.java),
-        nomisApi = mock(NomisApi::class.java),
-        nomisScoresDao = mock(NomisScoresDao::class.java),
         balanceLoaderProvider = loaders
     )
 

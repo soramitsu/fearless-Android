@@ -19,7 +19,6 @@ import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSourceImpl
 import jp.co.soramitsu.account.impl.domain.AccountInteractorImpl
 import jp.co.soramitsu.account.impl.domain.AssetNotNeedAccountUseCaseImpl
-import jp.co.soramitsu.account.impl.domain.NomisScoreInteractorImpl
 import jp.co.soramitsu.account.impl.domain.UniversalWalletPasswordNoticeService
 import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.account.impl.presentation.common.mixin.impl.CryptoTypeChooser
@@ -65,7 +64,7 @@ class AccountFeatureModuleTest {
         return module.provideAccountRepository(
             dataSource, metaAccountDao, mockk(relaxed = true), module.provideJsonDecoder(mockk(relaxed = true)),
             module.provideJsonEncoder(mockk(relaxed = true)), mockk(relaxed = true), mockk(relaxed = true),
-            mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true), delegate,
+            mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true), delegate,
             coordinator, mockk(relaxed = true), freshRoots, watchList
         )
     }
@@ -115,7 +114,6 @@ class AccountFeatureModuleTest {
         assertTrue(interactor.isCodeSet())
         assertTrue(keyPairs is KeyPairRepository)
         assertTrue(notice is UniversalWalletPasswordNoticeService)
-        assertTrue(module.provideNomisScoresInteractor(repository, preferences, mockk()) is NomisScoreInteractorImpl)
         assertTrue(module.provideCryptoChooserMixin(interactor, mockk(relaxed = true)) is CryptoTypeChooser)
     }
 

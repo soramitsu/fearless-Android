@@ -16,7 +16,6 @@ import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
-import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
@@ -93,7 +92,6 @@ class AccountJsonExportMaterialTest {
         jsonSeedEncoder = encoder,
         languagesHolder = mock<LanguagesHolder>(),
         chainsRepository = chains,
-        nomisScoresDao = mock<NomisScoresDao>(),
         substrateSecretStore = SubstrateSecretStore(preferences),
         ethereumSecretStore = EthereumSecretStore(preferences),
         tonSecretStore = TonSecretStore(preferences),

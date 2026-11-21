@@ -340,7 +340,6 @@ class FixedAccountStateFlowTest {
         jsonSeedEncoder = mockk(),
         languagesHolder = mockk(),
         chainsRepository = mockk(),
-        nomisScoresDao = mockk(),
         substrateSecretStore = mockk(),
         ethereumSecretStore = mockk(),
         tonSecretStore = mockk(),

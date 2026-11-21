@@ -44,7 +44,7 @@ class AccountRepositoryImportTest {
     private val ethSeed = ByteArray(32) { 9 }
 
     private fun repository() = AccountRepositoryImpl(
-        source, dao, mockk(), decoder, mockk(), mockk(), mockk(), mockk(),
+        source, dao, mockk(), decoder, mockk(), mockk(), mockk(),
         mockk(), mockk(), mockk(), mockk(), mutations, mockk(), UnconfinedTestDispatcher()
     )
 

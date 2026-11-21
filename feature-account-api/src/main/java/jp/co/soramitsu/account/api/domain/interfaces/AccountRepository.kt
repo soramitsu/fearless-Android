@@ -9,7 +9,6 @@ import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
-import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.account.api.domain.model.WalletRecoveryStatus
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
@@ -166,8 +165,6 @@ interface AccountRepository {
     suspend fun getLightMetaAccount(metaId: Long): LightMetaAccount
     fun observeFavoriteChains(metaId: Long): Flow<Map<ChainId, Boolean>>
 
-    fun observeNomisScores(): Flow<List<NomisScoreData>>
-    fun observeNomisScore(metaId: Long): Flow<NomisScoreData?>
     /** Same recovery-material contract as [getChainAccountSecrets]. */
     suspend fun getSubstrateSecrets(metaId: Long) : EncodableStruct<SubstrateSecrets>?
     /** Same recovery-material contract as [getChainAccountSecrets]. */

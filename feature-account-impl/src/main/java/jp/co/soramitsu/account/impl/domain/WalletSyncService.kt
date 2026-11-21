@@ -5,30 +5,20 @@ import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.account.impl.data.mappers.mapMetaAccountLocalToMetaAccount
-import jp.co.soramitsu.account.impl.data.mappers.toLocal
-import jp.co.soramitsu.common.data.network.nomis.NomisApi
-import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
-import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.model.AssetBalanceUpdateItem
 import jp.co.soramitsu.coredb.model.AssetLocal
-import jp.co.soramitsu.coredb.model.NomisWalletScoreLocal
-import jp.co.soramitsu.coredb.model.RelationJoinedMetaAccountInfo
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.needsRegistryConnection
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.ethereumChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.polygonChainId
 import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
 import jp.co.soramitsu.runtime.ext.isUniversalWalletIroha
 import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
 import jp.co.soramitsu.runtime.storage.source.RemoteStorageSource
-import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.wallet.api.data.BalanceLoader
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -40,10 +30,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -60,8 +48,6 @@ class WalletSyncService(
     private val chainRegistry: ChainRegistry,
     private val remoteStorageSource: RemoteStorageSource,
     private val assetDao: AssetDao,
-    private val nomisApi: NomisApi,
-    private val nomisScoresDao: NomisScoresDao,
     private val balanceLoaderProvider: BalanceLoader.Provider,
     dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
@@ -71,14 +57,6 @@ class WalletSyncService(
             Log.d(
                 TAG,
                 "WalletSyncService scope error: $throwable"
-            )
-        })
-
-    private val nomisUpdateScope =
-        CoroutineScope(dispatcher + SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
-            Log.d(
-                TAG,
-                "Nomis scope error: $throwable"
             )
         })
 
@@ -113,7 +91,6 @@ class WalletSyncService(
     fun start() {
         observeNotInitializedMetaAccounts()
 //        observeNotInitializedChainAccounts()
-        observeNomisScores()
     }
 
     private fun observeNotInitializedMetaAccounts() {
@@ -387,71 +364,4 @@ class WalletSyncService(
 //            }
 //            .launchIn(scope)
 //    }
-
-    private fun observeNomisScores() {
-        var syncJob: Job? = null
-        val supportedChains = setOf(
-            ethereumChainId,
-            BSCChainId,
-            polygonChainId,
-        )
-
-        metaAccountDao.observeJoinedMetaAccountsInfo()
-            .map { list ->
-                list.filter { info ->
-                    info.metaAccount.ethereumPublicKey != null || info.chainAccounts.any { it.chainId in supportedChains }
-                }
-            }
-            .distinctUntilChangedBy {
-                it.size + it.map { info -> info.chainAccounts }.flatten().size
-            }
-            .map { metaAccountInfo ->
-                val existingScores = nomisScoresDao.getScores()
-                val currentTime = System.currentTimeMillis()
-                val twelveHoursMillis = 12 * 60 * 60 * 1000L
-                val existingScoresToUpdate =
-                    existingScores.filter { currentTime - it.updated > twelveHoursMillis }
-                        .map { it.metaId }
-
-                val newAccounts =
-                    metaAccountInfo.filter { it.metaAccount.id !in existingScores.map { score -> score.metaId } }
-
-                val accountsToUpdate = metaAccountInfo.asSequence()
-                    .filter { it.metaAccount.id in existingScoresToUpdate }
-
-                (newAccounts + accountsToUpdate).toSet()
-            }
-            .onEach { metaAccounts ->
-                syncJob?.cancel()
-                syncJob = nomisUpdateScope.launch {
-                    syncNomisScores(*metaAccounts.toTypedArray())
-                }
-            }
-            .launchIn(nomisUpdateScope)
-    }
-
-    private suspend fun syncNomisScores(vararg metaAccount: RelationJoinedMetaAccountInfo) {
-        return coroutineScope {
-            val supportedChains = setOf(
-                ethereumChainId,
-                BSCChainId,
-                polygonChainId,
-            )
-            metaAccount.onEach { accountInfo ->
-                launch {
-                    val id = accountInfo.metaAccount.id
-                    nomisScoresDao.insert(NomisWalletScoreLocal.loading(id))
-                    runCatching {
-                        val address = accountInfo.metaAccount.ethereumAddress
-                            ?: accountInfo.chainAccounts.firstOrNull { it.chainId in supportedChains }?.publicKey?.ethereumAddressFromPublicKey()
-                        nomisApi.getNomisScore(address!!.toHexString(true))
-                    }.onSuccess { response ->
-                        nomisScoresDao.insert(response.toLocal(id))
-                    }.onFailure {
-                        nomisScoresDao.insert(NomisWalletScoreLocal.error(id))
-                    }
-                }
-            }
-        }
-    }
 }
