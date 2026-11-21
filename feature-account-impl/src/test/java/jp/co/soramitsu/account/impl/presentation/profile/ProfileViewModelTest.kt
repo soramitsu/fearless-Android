@@ -7,7 +7,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.PortfolioBalance
@@ -35,7 +34,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -49,7 +47,6 @@ class ProfileViewModelTest {
     private val dispatcher = StandardTestDispatcher()
     private val interactor = mockk<AccountInteractor>()
     private val details = mockk<AccountDetailsInteractor>()
-    private val nomis = mockk<NomisScoreInteractor>(relaxed = true)
     private val router = mockk<AccountRouter>(relaxed = true)
     private val totalBalance = mockk<TotalBalanceUseCase>()
     private val fiatCurrencies = mockk<GetAvailableFiatCurrencies>()
@@ -67,9 +64,8 @@ class ProfileViewModelTest {
         coEvery { interactor.getSelectedLanguage() } returns Language("en")
         every { selectedFiat.get() } returns "usd"
         every { selectedFiat.flow() } returns flowOf("eur")
-        every { nomis.observeNomisMultichainScoreEnabled() } returns flowOf(false)
         return ProfileViewModel(
-            interactor, details, nomis, router, mockk<AddressIconGenerator>(relaxed = true),
+            interactor, details, router, mockk<AddressIconGenerator>(relaxed = true),
             mockk<ExternalAccountActions.Presentation>(relaxed = true), totalBalance, fiatCurrencies, selectedFiat,
             VmTestFixtures.resourceManager()
         )
@@ -89,7 +85,7 @@ class ProfileViewModelTest {
     )
 
     @Test
-    fun `settings rows follow language, currency, nomis toggle and chains without accounts`() = runTest(dispatcher) {
+    fun `settings rows follow language, currency and chains without accounts`() = runTest(dispatcher) {
         val vm = viewModel(flowOf(TotalBalance.AwaitingSelection), hasChainsWithNoAccount = true)
         assertEquals("usd", vm.state.value.currency)
         runCurrent()
@@ -97,7 +93,6 @@ class ProfileViewModelTest {
         val state = vm.state.value
         assertEquals("EUR", state.currency)
         assertEquals(java.util.Locale.ENGLISH.displayLanguage.replaceFirstChar { it.uppercase() }, state.language)
-        assertFalse(state.nomisChecked)
         assertEquals(SettingsItemAction.TransitionWithIcon(R.drawable.ic_status_warning_16), state.walletsItemAction)
         assertEquals(0, state.walletState.id)
 
@@ -182,14 +177,6 @@ class ProfileViewModelTest {
         vm.currencyClicked()
         runCurrent()
         assertNull(vm.showFiatChooser.value)
-    }
-
-    @Test
-    fun `the nomis row toggles the multichain score setting`() = runTest(dispatcher) {
-        every { nomis.nomisMultichainScoreEnabled } returns true
-        val vm = viewModel(flowOf(TotalBalance.AwaitingSelection))
-        vm.onNomisMultichainScoreContainerClick()
-        verify { nomis.nomisMultichainScoreEnabled = false }
     }
 
     @Test

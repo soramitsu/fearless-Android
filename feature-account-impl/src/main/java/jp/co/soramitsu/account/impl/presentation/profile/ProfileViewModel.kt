@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
@@ -43,7 +42,6 @@ private const val AVATAR_SIZE_DP = 32
 class ProfileViewModel @Inject constructor(
     private val interactor: AccountInteractor,
     accountDetailsInteractor: AccountDetailsInteractor,
-    private val nomisScoreInteractor: NomisScoreInteractor,
     private val router: AccountRouter,
     private val addressIconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
@@ -74,8 +72,7 @@ class ProfileViewModel @Inject constructor(
             walletState = defaultWalletItemViewState,
             walletsItemAction = SettingsItemAction.Transition,
             currency = selectedFiat.get(),
-            language = "",
-            nomisChecked = true,
+            language = ""
         )
     )
 
@@ -103,14 +100,6 @@ class ProfileViewModel @Inject constructor(
         selectedFiat.flow().onEach { fiat ->
             state.update { it.copy(currency = fiat.uppercase()) }
         }.launchIn(viewModelScope)
-
-        nomisScoreInteractor.observeNomisMultichainScoreEnabled()
-            .onEach {
-                state.update { prev ->
-                    prev.copy(nomisChecked = it)
-                }
-            }
-            .launchIn(viewModelScope)
 
         accountDetailsInteractor.hasChainsWithNoAccount()
             .onEach { hasChainsWithNoAccount ->
@@ -208,11 +197,6 @@ class ProfileViewModel @Inject constructor(
 
     override fun onManageAssetsClick() {
         router.openManageAssets()
-    }
-
-    override fun onNomisMultichainScoreContainerClick() {
-        nomisScoreInteractor.nomisMultichainScoreEnabled =
-            !nomisScoreInteractor.nomisMultichainScoreEnabled
     }
 
 }

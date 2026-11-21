@@ -33,8 +33,7 @@ data class ProfileScreenState(
     val walletState: WalletItemViewState,
     val walletsItemAction: SettingsItemAction = SettingsItemAction.Transition,
     val currency: String,
-    val language: String,
-    val nomisChecked: Boolean,
+    val language: String
 )
 
 interface ProfileScreenInterface {
@@ -48,7 +47,6 @@ interface ProfileScreenInterface {
     fun languagesClicked()
     fun appearanceClicked()
 
-    fun onNomisMultichainScoreContainerClick()
     fun polkaswapDisclaimerClicked()
     fun changePinCodeClicked()
     fun recoveryClicked()
@@ -177,13 +175,6 @@ fun ProfileScreen(
             FeedbackSettingsItems(divider = { SettingsDivider() })
             if (state.walletState.onlyTonSupported.not()) {
                 SettingsItem(
-                    icon = painterResource(R.drawable.ic_score_star_full_24_pink),
-                    text = stringResource(R.string.profile_account_score_title),
-                    action = SettingsItemAction.Switch(state.nomisChecked),
-                    onClick = callback::onNomisMultichainScoreContainerClick
-                )
-                SettingsDivider()
-                SettingsItem(
                     icon = painterResource(R.drawable.ic_polkaswap_logo),
                     text = stringResource(R.string.polkaswap_disclaimer_settings_item),
                     onClick = callback::polkaswapDisclaimerClicked
@@ -224,8 +215,7 @@ fun ProfileScreenPreview() {
 //            supportedEcosystems = setOf(ImportAccountType.Ton)
         ),
         currency = "USD",
-        language = "ENG",
-        nomisChecked = true,
+        language = "ENG"
     )
     FearlessAppTheme {
         ProfileScreen(
@@ -239,7 +229,6 @@ fun ProfileScreenPreview() {
                 override fun currencyClicked() = Unit
                 override fun languagesClicked() = Unit
                 override fun appearanceClicked() = Unit
-                override fun onNomisMultichainScoreContainerClick() = Unit
                 override fun polkaswapDisclaimerClicked() = Unit
                 override fun changePinCodeClicked() = Unit
                 override fun recoveryClicked() = Unit
