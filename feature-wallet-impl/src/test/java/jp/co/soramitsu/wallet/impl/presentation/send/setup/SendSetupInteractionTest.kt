@@ -13,11 +13,9 @@ import io.mockk.slot
 import io.mockk.verify
 import java.math.BigDecimal
 import java.math.BigInteger
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
-import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.androidfoundation.testing.MainCoroutineRule
 import jp.co.soramitsu.common.address.AddressIconGenerator
-import jp.co.soramitsu.common.compose.component.AddressInputWithScore
+import jp.co.soramitsu.common.compose.component.RecipientAddressInput
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.models.Ecosystem
@@ -65,7 +63,6 @@ class SendSetupInteractionTest {
     private var chain: jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain = WalletTestModels.chain(assets = listOf(config))
     private var asset: jp.co.soramitsu.wallet.impl.domain.model.Asset = WalletTestModels.fundedAsset(config)
     private var phishing: PhishingModel? = null
-    private var score: NomisScoreData? = null
     private var validation: Result<TransferValidationResult> = Result.success(TransferValidationResult.Valid)
     private var depositValidation: Result<TransferValidationResult> = Result.success(TransferValidationResult.Valid)
     private val shared = SendSharedState()
@@ -77,10 +74,6 @@ class SendSetupInteractionTest {
     }
     private val icons = mockk<AddressIconGenerator>(relaxed = true) {
         coEvery { createWalletIcon(any(), any()) } returns PictureDrawable(Picture())
-    }
-    private val scores = mockk<NomisScoreInteractor>(relaxed = true) {
-        coEvery { getNomisScore(any()) } answers { score }
-        every { getNomisScoreFromMemoryCache(any()) } returns null
     }
     private val wallet = mockk<WalletInteractor>(relaxed = true) {
         coEvery { getChain(any()) } answers { chain }
@@ -147,11 +140,11 @@ class SendSetupInteractionTest {
         every { clipboard.getFromClipboard() } returns "  " + WalletTestModels.BOB + "  "
         val vm = model()
         vm.onPasteClick()
-        await { vm.state.value.addressInputState is AddressInputWithScore.Filled }
-        assertTrue((vm.state.value.addressInputState as AddressInputWithScore.Filled).address.startsWith("5FH"))
+        await { vm.state.value.addressInputState is RecipientAddressInput.Filled }
+        assertTrue((vm.state.value.addressInputState as RecipientAddressInput.Filled).address.startsWith("5FH"))
         vm.onAddressInputClear()
-        await { vm.state.value.addressInputState is AddressInputWithScore.Empty }
-        assertTrue(vm.state.value.addressInputState is AddressInputWithScore.Empty)
+        await { vm.state.value.addressInputState is RecipientAddressInput.Empty }
+        assertTrue(vm.state.value.addressInputState is RecipientAddressInput.Empty)
         vm.onAmountInput(null)
         await { !vm.state.value.buttonState.enabled }
         assertEquals(BigDecimal.ZERO, vm.state.value.amountInputState.tokenAmount)
@@ -261,20 +254,19 @@ class SendSetupInteractionTest {
     }
 
     @Test
-    fun lowNomisScoreShowsTheScoreWarning() {
-        score = NomisScoreData(1, 10, 1, BigDecimal.ZERO, BigDecimal.ZERO, 1, 1, 0, 0.0, 0.0, 0.0, null)
+    fun recipientWithoutPhishingReportShowsNoWarning() {
         val vm = model()
         vm.onAddressInput(WalletTestModels.BOB)
-        await { vm.state.value.warningInfoState != null }
-        assertEquals("res:" + R.string.scam_description_lowscore_text, vm.state.value.warningInfoState!!.message)
-        assertEquals(10, (vm.state.value.addressInputState as AddressInputWithScore.Filled).score)
+        await { vm.state.value.addressInputState is RecipientAddressInput.Filled && vm.state.value.feeInfoState.feeAmount != null }
+        coVerify { wallet.getPhishingInfo(WalletTestModels.BOB) }
+        assertNull(vm.state.value.warningInfoState)
     }
 
     @Test
     fun ordinaryQrAddressUnlocksLockedInputAndInvalidQrExplainsFailure() {
         val vm = model(mapOf(SendSetupFragment.KEY_LOCK_AMOUNT to true, SendSetupFragment.KEY_INITIAL_AMOUNT to BigDecimal.ONE))
         vm.qrCodeScanned(WalletTestModels.BOB)
-        await { vm.state.value.addressInputState is AddressInputWithScore.Filled && !vm.state.value.isInputLocked }
+        await { vm.state.value.addressInputState is RecipientAddressInput.Filled && !vm.state.value.isInputLocked }
         assertTrue(vm.state.value.amountInputState.inputEnabled)
         vm.qrCodeScanned("not an address")
         await { vm.errorDialogStateLiveData.value != null }
@@ -309,7 +301,7 @@ class SendSetupInteractionTest {
         await { vm.state.value.commentState != null }
         vm.onCommentInput("Invoice 42")
         vm.qrCodeScanned(WalletTestModels.TON_RAW)
-        await { vm.state.value.addressInputState is AddressInputWithScore.Filled }
+        await { vm.state.value.addressInputState is RecipientAddressInput.Filled }
         assertEquals("Invoice 42", vm.state.value.commentState!!.text)
         assertFalse(vm.state.value.isInputLocked)
     }
@@ -320,7 +312,7 @@ class SendSetupInteractionTest {
         await { shared.chainId != null }
         assertEquals(config.chainId, shared.chainId)
         assertEquals(config.id, shared.assetId)
-        assertTrue(vm.state.value.addressInputState is AddressInputWithScore.Filled)
+        assertTrue(vm.state.value.addressInputState is RecipientAddressInput.Filled)
     }
 
     @Test
@@ -354,7 +346,7 @@ class SendSetupInteractionTest {
     private fun model(arguments: Map<String, Any?> = emptyMap(), withPayload: Boolean = true): SendSetupViewModel {
         val values = if (withPayload) mapOf(SendSetupFragment.KEY_PAYLOAD to AssetPayload(config.chainId, config.id)) + arguments else arguments
         return SendSetupViewModel(
-            shared, SavedStateHandle(values), resources, wallet, scores, mockk(relaxed = true),
+            shared, SavedStateHandle(values), resources, wallet, mockk(relaxed = true),
             object : ExistentialDepositUseCase {
                 override suspend fun invoke(chainAsset: jp.co.soramitsu.core.models.Asset) = Result.success(BigInteger.ONE)
             },

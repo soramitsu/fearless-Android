@@ -152,13 +152,12 @@ class AddressHistoryViewModelTest {
         sharedState,
         walletInteractor,
         chainsRepository,
-        mockk(relaxed = true),
         resourceManager,
         mockk(relaxed = true),
         router
     ).also(viewModels::add)
 
-    private fun row(address: String) = Address("Contact", address, Any(), CHAIN_ID, true, null)
+    private fun row(address: String) = Address("Contact", address, Any(), CHAIN_ID, true)
 
     private fun recipient() = runBlocking { sharedState.addressFlow.first() }
 

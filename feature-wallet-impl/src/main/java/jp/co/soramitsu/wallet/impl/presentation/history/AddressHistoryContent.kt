@@ -35,7 +35,6 @@ import jp.co.soramitsu.common.compose.component.FearlessProgress
 import jp.co.soramitsu.common.compose.component.H5
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
-import jp.co.soramitsu.common.compose.component.ScoreStar
 import jp.co.soramitsu.common.compose.component.ToolbarBottomSheet
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black05
@@ -52,8 +51,7 @@ data class Address(
     val address: String,
     val image: Any,
     val chainId: ChainId,
-    val isSavedToContacts: Boolean,
-    val score: Int?
+    val isSavedToContacts: Boolean
 )
 
 data class AddressHistoryViewState(
@@ -210,17 +208,12 @@ fun AddressItem(
             val name = address.name.ifEmpty {
                 stringResource(id = R.string.common_unknown)
             }
-            Row(modifier = Modifier.fillMaxWidth()) {
-                H5(
-                    text = name.withNoFontPadding(),
-                    color = black2,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, false)
-                )
-                MarginHorizontal(margin = 8.dp)
-                address.score?.let { ScoreStar(score = it) }
-            }
+            H5(
+                text = name.withNoFontPadding(),
+                color = black2,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
             MarginVertical(margin = 4.dp)
             B1(
                 text = address.address.shortenAddress(),
@@ -254,14 +247,9 @@ fun AddressItem(
 @Preview
 fun PreviewAddressHistoryContent() {
     val addressSet = setOf(
-        Address("Address 1 name of a very long text to show how it looks in UI", "address1qasd32dqa32e32r3qqed", R.drawable.ic_plus_circle, "", true, 99),
-        Address("" ?: "John Mir", "32dfs4323AE3asdqa32e32r3qqed", R.drawable.ic_plus_circle, "", false, 10),
-        Address("" ?: "John Mir", "32dfs4323AE3asdqa32e32r3qqed", R.drawable.ic_plus_circle, "", false, 60),
-        Address("" ?: "John Mir", "32dfs4323AE3asdqa32e32r3qqed", R.drawable.ic_plus_circle, "", false, 90),
-        Address("Address 1 name of a very long text to show how it looks in UI", "32dfs4323AE3asdqa32e32r3qqed", R.drawable.ic_plus_circle, "", false, 90),
-        Address("" ?: "John Mir", "32dfs4323AE3asdqa32e32r3qqed", R.drawable.ic_plus_circle, "", false, -1),
-        Address("" ?: "John Mir", "32dfs4323AE3asdqa32e32r3qqed", R.drawable.ic_plus_circle, "", false, -2),
-        Address("" ?: "John Mir", "32dfs4323AE3asdqa32e32r3qqed", R.drawable.ic_plus_circle, "", false, null)
+        Address("Address 1 name of a very long text to show how it looks in UI", "address1qasd32dqa32e32r3qqed", R.drawable.ic_plus_circle, "", true),
+        Address("" ?: "John Mir", "32dfs4323AE3asdqa32e32r3qqed", R.drawable.ic_plus_circle, "", false),
+        Address("Address 1 name of a very long text to show how it looks in UI", "32dfs4323AE3asdqa32e32r3qqed", R.drawable.ic_plus_circle, "", false)
     )
     val addressBookAddresses = mapOf<String?, List<Address>>("J" to addressSet.toList().subList(0, 1))
 

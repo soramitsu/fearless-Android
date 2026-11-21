@@ -26,7 +26,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.shadows.ShadowSystemClock
 
 @RunWith(RobolectricTestRunner::class)
-class AddressInputWithScoreTest {
+class RecipientAddressInputTest {
 
     @get:Rule
     val compose = createComposeRule()
@@ -39,13 +39,13 @@ class AddressInputWithScoreTest {
     }
 
     @Test
-    fun filledAddressShowsScoreAndClears() {
+    fun filledAddressShowsAddressAndClears() {
         var cleared = 0
         var pasted = 0
         compose.setContent {
             FearlessAppTheme {
-                AddressInputWithScore(
-                    state = AddressInputWithScore.Filled(title = "Send to", address = "0x23d2ef23", image = R.drawable.ic_wallet, score = 90),
+                RecipientAddressInput(
+                    state = RecipientAddressInput.Filled(title = "Send to", address = "0x23d2ef23", image = R.drawable.ic_wallet),
                     onPaste = { pasted++ },
                     onClear = { cleared++ }
                 )
@@ -54,7 +54,6 @@ class AddressInputWithScoreTest {
 
         compose.onNodeWithText("Send to").assertIsDisplayed()
         compose.onNodeWithText("0x23d2ef23").assertIsDisplayed()
-        compose.onNodeWithText("90").assertIsDisplayed()
         compose.onAllNodes(hasClickAction()).assertCountEquals(1)[0].performClick()
         compose.waitForIdle()
 
@@ -69,13 +68,13 @@ class AddressInputWithScoreTest {
         compose.setContent {
             FearlessAppTheme {
                 Column {
-                    AddressInputWithScore(
-                        state = AddressInputWithScore.Empty(title = "Recipient", hint = "Public address"),
+                    RecipientAddressInput(
+                        state = RecipientAddressInput.Empty(title = "Recipient", hint = "Public address"),
                         onPaste = { pasted++ },
                         onClear = {}
                     )
-                    AddressInputWithScore(
-                        state = AddressInputWithScore.Filled(title = "Unscored", address = "5Grw", image = R.drawable.ic_wallet, score = null),
+                    RecipientAddressInput(
+                        state = RecipientAddressInput.Filled(title = "Filled", address = "5Grw", image = R.drawable.ic_wallet),
                         onPaste = {},
                         onClear = {}
                     )
@@ -84,7 +83,7 @@ class AddressInputWithScoreTest {
         }
 
         compose.onNodeWithText("Public address").assertIsDisplayed()
-        compose.onNodeWithText("Unscored").assertIsDisplayed()
+        compose.onNodeWithText("Filled").assertIsDisplayed()
         compose.onNodeWithText(context.getString(R.string.chip_paste)).performClick()
         compose.waitForIdle()
 
@@ -94,12 +93,11 @@ class AddressInputWithScoreTest {
     @Test
     fun previewShowsFilledAndEmptyStates() {
         compose.setContent {
-            FearlessAppTheme { RenderPreview("jp.co.soramitsu.common.compose.component.AddressInputWithScoreKt", "AccountInputPreview") }
+            FearlessAppTheme { RenderPreview("jp.co.soramitsu.common.compose.component.RecipientAddressInputKt", "AccountInputPreview") }
         }
 
         compose.onAllNodes(hasText("Send to")).assertCountEquals(2)
         compose.onNodeWithText("BlueBird").assertIsDisplayed()
-        compose.onNodeWithText("100").assertIsDisplayed()
         compose.onNodeWithText("Public address").assertIsDisplayed()
     }
 
