@@ -1,3 +1,7 @@
+## Retire published crowdloan credentials
+
+Coordinate issuer revocation and check older clients first. Remove `devApiKey` and `prodApiKey` from both `remote-config/production/crowdloan/{polkadot,kusama}.json`. Update those two `ownedSha256` records in `config/remote-config-imports.json` (retain original import hashes). Sign the next sequence of `remote-config/remote-config-manifest.json` with the existing owner key: its `manifest.files` entries `production/crowdloan/polkadot.json` and `production/crowdloan/kusama.json` must hash the sanitized bytes. Publish the manifest and files together; removing a public value does not revoke it.
+
 ## Android 4.3.6 release preparation — 17 November 2026
 
 The 238 candidate includes the integrated 16 November source and the signed Liberland fallback configuration. Its release ledger records the unchanged database schema 84. A release test caught a stale “Connected” banner during rapid network loss; the fix refreshes its text and prevents obsolete recovery animations from hiding it. Exact local release validation and store receipts are retained in the parent workspace under `output/production-release-20261117/android/`. See `docs/releases/4.3.6.md`.

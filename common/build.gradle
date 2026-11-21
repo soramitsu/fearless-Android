@@ -246,8 +246,6 @@ def remoteConfigSnapshotFiles = [
         'development/appConfigs/onboarding/mobile v2.json',
         'production/scamDetection/Polkadot_Hot_Wallet_Attributions.csv',
         'production/chains/xn.json',
-        'production/crowdloan/polkadot.json',
-        'production/crowdloan/westend.json',
         'production/type_registry/bifrost.json'
 ]
 

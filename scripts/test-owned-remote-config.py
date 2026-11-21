@@ -275,6 +275,9 @@ class OwnedConfigTest(unittest.TestCase):
         self.assertTrue(VERIFY.bundled_snapshot(ROOT) <= signed)
         self.assertIn('production/chains/v13/chains.json', VERIFY.bundled_snapshot(ROOT))
 
+    def test_retired_crowdloan_provider_configs_are_not_packaged(self):
+        self.assertFalse(any(path.startswith('production/crowdloan/') for path in VERIFY.bundled_snapshot(ROOT)))
+
     def test_imported_repository(self):
         self.assertGreater(VERIFY.verify(ROOT), 600)
 

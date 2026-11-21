@@ -142,7 +142,10 @@ def verify_consumers(root, listed, signed=frozenset(), bundled=frozenset()):
             if suffix not in listed and suffix != SIGNED_MANIFEST:
                 raise ValueError('Unlisted consumer URL in ' + str(path) + ': ' + value)
             # A configuration file the app fetches needs a bundled fallback for when it does not verify.
-            if suffix in signed and suffix not in bundled:
+            historical_seed = (path.relative_to(root).as_posix() ==
+                               'core-db/src/main/java/jp/co/soramitsu/coredb/migrations/LegacyNodeMigration.kt'
+                               and suffix in {'production/crowdloan/polkadot.json', 'production/crowdloan/westend.json'})
+            if suffix in signed and suffix not in bundled and not historical_seed:
                 raise ValueError('Configuration URL without a bundled snapshot in ' + str(path) + ': ' + value)
 
 
