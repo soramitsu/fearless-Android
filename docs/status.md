@@ -2,6 +2,8 @@
 
 The stories screen uses an app-owned segmented progress view. Neither the app nor legacy crowdloan recovery declares the former JitPack library. Its AAR had no Android manifest components; the release component inventory is unchanged.
 
+`StoryProgressViewTest` exercises timed advance, pause/resume, reverse/skip, detach/reattach and one-shot completion on Robolectric API 36 without a wallet or network.
+
 ## Retired crowdloan providers — 20 November 2026
 
 Android no longer packages the retired contribution-provider snapshots. Legacy recovery reads relay storage, not provider credentials. Historical database migration seeds are unchanged. Published signed configuration still requires owner cleanup.
