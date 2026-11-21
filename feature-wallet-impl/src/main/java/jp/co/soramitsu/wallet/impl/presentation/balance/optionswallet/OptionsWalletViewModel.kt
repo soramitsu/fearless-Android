@@ -68,14 +68,13 @@ class OptionsWalletViewModel @Inject constructor(
     ) { selectedWallet, chosenWallet, oldAddresses ->
         OptionsWalletScreenViewState(
             isSelected = selectedWallet.id == walletId,
-            showScoreButton = chosenWallet.ethereumAddress != null,
             showDetailsButton = walletDetailsAvailable(chosenWallet, allowWalletDetails),
             showOldAddressesButton = oldAddresses.isNotEmpty()
         )
     }.stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
-        OptionsWalletScreenViewState(isSelected = true, showScoreButton = false, showDetailsButton = false)
+        OptionsWalletScreenViewState(isSelected = true, showDetailsButton = false)
     )
 
     override fun onChangeWalletNameClick() {
@@ -107,10 +106,6 @@ class OptionsWalletViewModel @Inject constructor(
 
     override fun onBackupWalletClick() {
         router.openBackupWalletScreen(walletId)
-    }
-
-    override fun onShowWalletScoreClick() {
-        router.openScoreDetailsScreen(walletId)
     }
 
     init {

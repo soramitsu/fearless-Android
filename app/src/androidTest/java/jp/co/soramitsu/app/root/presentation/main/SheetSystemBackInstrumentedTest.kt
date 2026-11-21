@@ -43,7 +43,6 @@ class SheetSystemBackInstrumentedTest {
     @Test
     fun everySheetLeftToMaterialClosesOnSystemBack() {
         val sheets = listOf<() -> Fragment>(
-            { jp.co.soramitsu.account.impl.presentation.nomis_scoring.ScoreDetailsFragment() },
             { jp.co.soramitsu.staking.impl.presentation.pools.SelectPoolFragment() },
             { jp.co.soramitsu.staking.impl.presentation.pools.edit.EditPoolConfirmFragment() },
             { jp.co.soramitsu.staking.impl.presentation.pools.edit.EditPoolFragment() },

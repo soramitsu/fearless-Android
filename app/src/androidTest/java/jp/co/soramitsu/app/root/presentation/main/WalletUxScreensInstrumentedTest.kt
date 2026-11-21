@@ -316,7 +316,7 @@ class WalletUxScreensInstrumentedTest {
                     Box(Modifier.requiredWidth(320.dp).fillMaxHeight().background(Color.Black).testTag("fixture")) {
                         jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletContent(
                             jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletScreenViewState(
-                                isSelected = false, showScoreButton = true, showDetailsButton = true),
+                                isSelected = false, showDetailsButton = true),
                             callbacks(jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletCallback::class.java))
                     }
                 }
@@ -331,8 +331,7 @@ class WalletUxScreensInstrumentedTest {
         assertTrue(close.right - close.left >= 48.dp && close.bottom - close.top >= 48.dp)
         save("wallet-options-320dp-font200-top")
         for (id in listOf(jp.co.soramitsu.common.R.string.export_wallet, jp.co.soramitsu.common.R.string.common_details_wallet,
-            jp.co.soramitsu.common.R.string.change_wallet_name, jp.co.soramitsu.common.R.string.account_stats_wallet_option_title,
-            jp.co.soramitsu.common.R.string.common_delete_wallet)) {
+            jp.co.soramitsu.common.R.string.change_wallet_name, jp.co.soramitsu.common.R.string.common_delete_wallet)) {
             val label = compose.activity.getString(id)
             assertFullyVisible(label)
             val layouts = mutableListOf<TextLayoutResult>()

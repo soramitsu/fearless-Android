@@ -31,7 +31,6 @@ import jp.co.soramitsu.feature_wallet_impl.R
 
 data class OptionsWalletScreenViewState(
     val isSelected: Boolean,
-    val showScoreButton: Boolean,
     val showDetailsButton: Boolean,
     val showOldAddressesButton: Boolean = false
 )
@@ -47,8 +46,6 @@ interface OptionsWalletCallback {
     fun onDeleteWalletClick()
 
     fun onCloseClick()
-
-    fun onShowWalletScoreClick()
 
     /** Reopens the notice about addresses the recovery words alone open. */
     fun onOldAddressesClick() = Unit
@@ -116,16 +113,6 @@ fun OptionsWalletContent(
                     onClick = callback::onOldAddressesClick
                 )
             }
-            if (state.showScoreButton) {
-                MarginVertical(margin = 12.dp)
-                GrayButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 48.dp),
-                    text = stringResource(id = R.string.account_stats_wallet_option_title),
-                    onClick = callback::onShowWalletScoreClick
-                )
-            }
             if (!state.isSelected) {
                 MarginVertical(margin = 12.dp)
                 TextButton(
@@ -149,7 +136,6 @@ private fun OptionsWalletScreenPreview() {
         OptionsWalletContent(
             state = OptionsWalletScreenViewState(
                 isSelected = false,
-                showScoreButton = true,
                 showDetailsButton = true
             ),
             callback = object : OptionsWalletCallback {
@@ -158,7 +144,6 @@ private fun OptionsWalletScreenPreview() {
                 override fun onBackupWalletClick() {}
                 override fun onDeleteWalletClick() {}
                 override fun onCloseClick() {}
-                override fun onShowWalletScoreClick() {}
             }
         )
     }

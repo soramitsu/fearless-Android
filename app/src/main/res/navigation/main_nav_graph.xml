@@ -1306,9 +1306,4 @@
         android:name="jp.co.soramitsu.staking.impl.presentation.staking.rewardDestination.confirm.ConfirmRewardDestinationFragment"
         android:label="ConfirmRewardDestinationFragment" />
 
-    <fragment
-        android:id="@+id/scoreDetailsFragment"
-        android:name="jp.co.soramitsu.account.impl.presentation.nomis_scoring.ScoreDetailsFragment"
-        android:label="ScoreDetailsFragment" />
-
 </navigation>

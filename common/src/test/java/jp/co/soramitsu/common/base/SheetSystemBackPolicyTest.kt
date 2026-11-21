@@ -26,7 +26,6 @@ class SheetSystemBackPolicyTest {
 
     /** Back is the toolbar's action, or Material's close for all of these once the base class lets it hide them. */
     private val closedByMaterial = listOf(
-        "ScoreDetailsFragment",
         "SelectPoolFragment",
         "EditPoolFragment",
         "PoolInfoOptionsFragment",

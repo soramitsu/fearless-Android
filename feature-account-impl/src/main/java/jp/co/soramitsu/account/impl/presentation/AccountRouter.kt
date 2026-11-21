@@ -129,8 +129,6 @@ interface AccountRouter : SecureRouter {
     fun openTonConnectionsScreen()
     fun openManageAssets()
 
-    fun openScoreDetailsScreen(metaId: Long)
-
     fun openEcosystemAccountsOptions(walletId: Long, type: WalletEcosystem)
 
     fun openEcosystemAccountsFragment(walletId: Long, type: WalletEcosystem)
