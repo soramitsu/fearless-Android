@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
@@ -78,6 +79,11 @@ class ExportJsonPasswordFragment : ExportFragment<ExportJsonPasswordViewModel>()
 
         viewModel.showDoNotMatchingErrorLiveData.observe {
             binding.exportJsonPasswordMatchingError.setVisible(it, falseState = View.INVISIBLE)
+        }
+
+        viewModel.showPasswordRuleErrorLiveData.observe { isBroken ->
+            val color = if (isBroken) jp.co.soramitsu.common.R.color.red else jp.co.soramitsu.common.R.color.gray2
+            binding.exportJsonPasswordRule.setTextColor(ContextCompat.getColor(requireContext(), color))
         }
 
         viewModel.chainLiveData.observe {

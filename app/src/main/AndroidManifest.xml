@@ -6,20 +6,43 @@
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Normal permission: hides other apps' overlays over the wallet (Window.setHideOverlayWindows). -->
+    <uses-permission android:name="android.permission.HIDE_OVERLAY_WINDOWS" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Google sign-in for Drive backup opens Google's page in a browser; Android 11+ needs this
+         query to tell whether one is installed. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
+
+    <!--
+        allowBackup="false" does not stop Android 12+ device-to-device
+        transfer, and a library may merge in rules that exclude only its own
+        files. The wallet rules exclude every domain from cloud backup and
+        device transfer, and must replace any library rules.
+    -->
     <application
         android:name=".App"
         android:allowBackup="false"
+        android:dataExtractionRules="@xml/wallet_data_extraction_rules"
+        android:fullBackupContent="@xml/wallet_full_backup_rules"
         android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:largeHeap="true"
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar"
-        android:usesCleartextTraffic="false">
+        android:usesCleartextTraffic="false"
+        tools:replace="android:dataExtractionRules,android:fullBackupContent"
+        tools:targetApi="31">
 
         <meta-data
             android:name="jp.co.soramitsu.fearless.RELEASE_COMMIT"
@@ -97,6 +120,32 @@
             android:launchMode="singleTop"
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
+
+        <!-- Google Drive backup sign-in: OAuth 2.0 with PKCE in the user's browser, no Play services.
+             The sign-in screen is private; only the redirect receiver is exported, and it forwards
+             nothing but the redirect URI, which the sign-in screen checks against its pending state. -->
+        <activity
+            android:name="jp.co.soramitsu.account.impl.presentation.google_signin.GoogleDriveSignInActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation|keyboard|keyboardHidden"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <activity
+            android:name="jp.co.soramitsu.account.impl.presentation.google_signin.GoogleDriveSignInRedirectActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="${googleDriveOAuthRedirectScheme}" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name="jp.co.soramitsu.common.scan.ScannerActivity"

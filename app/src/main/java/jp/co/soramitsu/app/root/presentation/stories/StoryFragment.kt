@@ -14,10 +14,9 @@ import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
 import jp.co.soramitsu.common.presentation.StoryElement
 import jp.co.soramitsu.common.presentation.StoryGroupModel
 import jp.co.soramitsu.common.view.viewBinding
-import jp.shts.android.storiesprogressview.StoriesProgressView
 
 @AndroidEntryPoint
-class StoryFragment : BaseFragment<StoryViewModel>(R.layout.fragment_story), StoriesProgressView.StoriesListener {
+class StoryFragment : BaseFragment<StoryViewModel>(R.layout.fragment_story) {
 
     companion object {
         const val KEY_STORY = "story"
@@ -41,7 +40,9 @@ class StoryFragment : BaseFragment<StoryViewModel>(R.layout.fragment_story), Sto
     override fun initViews() {
         binding.storyCloseIcon.setOnClickListener { viewModel.backClicked() }
 
-        binding.stories.setStoriesListener(this)
+        binding.stories.onNext = viewModel::nextStory
+        binding.stories.onPrevious = viewModel::previousStory
+        binding.stories.onFinished = viewModel::complete
 
         binding.storyContainer.setOnTouchListener(::handleStoryTouchEvent)
     }
@@ -50,9 +51,7 @@ class StoryFragment : BaseFragment<StoryViewModel>(R.layout.fragment_story), Sto
         observeBrowserEvents(viewModel)
 
         viewModel.storyLiveData.observe {
-            binding.stories.setStoriesCount(it.size)
-            binding.stories.setStoryDuration(STORY_DURATION)
-            binding.stories.startStories()
+            binding.stories.start(it.size, it.indexOf(viewModel.currentStoryLiveData.value), STORY_DURATION)
         }
 
         viewModel.currentStoryLiveData.observe {
@@ -76,18 +75,6 @@ class StoryFragment : BaseFragment<StoryViewModel>(R.layout.fragment_story), Sto
         }
     }
 
-    override fun onComplete() {
-        viewModel.complete()
-    }
-
-    override fun onPrev() {
-        viewModel.previousStory()
-    }
-
-    override fun onNext() {
-        viewModel.nextStory()
-    }
-
     private fun handleStoryTouchEvent(view: View, event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
@@ -107,6 +94,7 @@ class StoryFragment : BaseFragment<StoryViewModel>(R.layout.fragment_story), Sto
                     view.performClick()
                 }
             }
+            MotionEvent.ACTION_CANCEL -> binding.stories.resume()
         }
         return true
     }

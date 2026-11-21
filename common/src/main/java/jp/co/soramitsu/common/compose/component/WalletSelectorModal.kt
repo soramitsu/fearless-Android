@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.backgroundBlurColor
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.white
 
 data class WalletSelectorViewState(
@@ -36,6 +38,10 @@ fun WalletSelectorScreen(
     onWalletSelected: (WalletItemViewState) -> Unit,
     onBackClicked: () -> Unit
 ) {
+    if (FwRestyle.isEnabled(FwSurface.Pickers)) {
+        SunlitWalletSelectorScreen(state, onWalletSelected, onBackClicked)
+        return
+    }
     BottomSheetScreen {
         Column(
             modifier = Modifier

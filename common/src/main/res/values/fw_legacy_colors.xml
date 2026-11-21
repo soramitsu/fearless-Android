@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- GENERATED from design/fw.legacy.android.json; do not edit. -->
-<!-- sha256 cd51c6671d63003f32caee3e772fbdca26e273925d19bd2967b2fe6bdc2c075c -->
+<!-- sha256 242308549d89456ea11014f6b30b8472db2462737171e7d986f1d05d17c1f3c8 -->
 <resources>
     <color name="fw_legacy_colorPrimary">#004CB7</color>
-    <color name="fw_legacy_colorSelected">#66FF009A</color>
+    <color name="fw_legacy_colorSelected">#66E6006F</color>
     <color name="fw_legacy_colorPrimaryDark">#80004CB7</color>
-    <color name="fw_legacy_colorAccent">#FF009A</color>
-    <color name="fw_legacy_colorAccentDark">#EE0077</color>
-    <color name="fw_legacy_colorAccent_50">#80FF009A</color>
+    <color name="fw_legacy_colorAccent">#E6006F</color>
+    <color name="fw_legacy_colorAccentDark">#E6006F</color>
+    <color name="fw_legacy_colorAccent_50">#80E6006F</color>
     <color name="fw_legacy_white">#fff</color>
     <color name="fw_legacy_colorHint">#ccc</color>
     <color name="fw_legacy_black">#000</color>

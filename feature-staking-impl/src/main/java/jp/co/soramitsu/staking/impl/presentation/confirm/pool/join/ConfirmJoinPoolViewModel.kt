@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.confirm.pool.join
 
+import jp.co.soramitsu.common.feedback.TransferSeal
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.math.BigDecimal
@@ -51,6 +52,8 @@ class ConfirmJoinPoolViewModel @Inject constructor(
     private val mainReview = requireNotNull(joinReview.value).context
 
     init {
+        // A seal left by an earlier operation never shows on this screen's loader.
+        TransferSeal.clear()
         val setupState = requireNotNull(joinReview.value)
         val mainState = requireNotNull(mainReview.value)
         chain = requireNotNull(mainState.chain)
@@ -150,12 +153,16 @@ class ConfirmJoinPoolViewModel @Inject constructor(
                 if (!reviewActive.isActive() || !stakingPoolSharedStateProvider.isJoinContextCurrent(mainReview) || !joinFlow.isCurrent(joinReview)) return@launch
                 val amountInPlanks = asset.token.planksFromAmount(amount)
                 val attemptJob = coroutineContext.job
+                // The seal (brand kit SPEC v4 part 3): `ready` at the hand-over, the rest with the hash. A failure breaks
+                // it only when no submission was retained (the app shows its error); a retained, unsettled join clears it.
+                TransferSeal.ready(TransferSeal.nowMs())
                 poolInteractor.joinPool(chain, address, amountInPlanks, selectedPool.poolId, asset.metaId,
                     authorize = { intent -> reviewActive.authorize(claim, intent, attemptJob) }
                 ) {
                     // Synchronous shared state only: the API invokes this on IO before dispatching back.
                     completion.set(joinFlow.consume(claim))
                 }.fold({
+                    TransferSeal.accepted(TransferSeal.nowMs())
                     val receipt = completion.get()
                     if (reviewActive.isActive() && stakingPoolSharedStateProvider.isJoinContextCurrent(mainReview) && receipt != null && joinFlow.isCurrent(receipt)) {
                         router.returnToMain()
@@ -166,12 +173,18 @@ class ConfirmJoinPoolViewModel @Inject constructor(
                     if (reviewActive.isActive() && stakingPoolSharedStateProvider.isJoinContextCurrent(mainReview) && joinFlow.isCurrent(joinReview)) {
                         loadRecovery()
                         if (recovery.value == null && reviewActive.isActive() &&
-                            stakingPoolSharedStateProvider.isJoinContextCurrent(mainReview) && joinFlow.isCurrent(joinReview)) showError(it)
+                            stakingPoolSharedStateProvider.isJoinContextCurrent(mainReview) && joinFlow.isCurrent(joinReview)) {
+                            TransferSeal.failed(TransferSeal.nowMs())
+                            showError(it)
+                        }
                     }
+                    TransferSeal.cancelIfPending()
                 })
             } catch (error: CancellationException) {
+                TransferSeal.cancelIfPending()
                 throw error
             } catch (error: Exception) {
+                TransferSeal.cancelIfPending()
                 if (reviewActive.isActive() && stakingPoolSharedStateProvider.isJoinContextCurrent(mainReview) && joinFlow.isCurrent(completion.get() ?: joinReview)) {
                     loadRecovery()
                     if (recovery.value == null && reviewActive.isActive() && stakingPoolSharedStateProvider.isJoinContextCurrent(mainReview) &&

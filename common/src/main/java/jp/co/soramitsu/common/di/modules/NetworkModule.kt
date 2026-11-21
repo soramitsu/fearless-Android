@@ -8,20 +8,17 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import java.io.File
-import java.util.Locale
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.TimeUnit
-import javax.inject.Named
-import javax.inject.Singleton
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.AndroidLogger
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.HttpExceptionHandler
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerApi
+import jp.co.soramitsu.common.data.network.config.signed.RemoteConfigInterceptor
+import jp.co.soramitsu.common.data.network.config.signed.RemoteConfigManifestFetcher
+import jp.co.soramitsu.common.data.network.config.signed.RemoteConfigSnapshot
+import jp.co.soramitsu.common.data.network.config.signed.RemoteConfigStore
+import jp.co.soramitsu.common.data.network.config.signed.RemoteConfigVerifier
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerClient
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinTransactionHistorySync
 import jp.co.soramitsu.common.data.network.bitcoin.RetrofitBitcoinIndexerClient
@@ -29,6 +26,8 @@ import jp.co.soramitsu.common.data.network.iroha.IrohaToriiApi
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiClient
 import jp.co.soramitsu.common.data.network.iroha.RetrofitIrohaToriiClient
 import jp.co.soramitsu.common.data.network.nomis.NomisApi
+import jp.co.soramitsu.common.data.network.nomis.NomisHeadersInterceptor
+import jp.co.soramitsu.common.data.network.nomis.PreferenceAwareNomisApi
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.data.network.solana.RetrofitSolanaIndexerClient
 import jp.co.soramitsu.common.data.network.solana.RetrofitSolanaRpcClient
@@ -38,10 +37,11 @@ import jp.co.soramitsu.common.data.network.solana.SolanaIndexerClient
 import jp.co.soramitsu.common.data.network.solana.SolanaRpcApi
 import jp.co.soramitsu.common.data.network.solana.SolanaRpcClient
 import jp.co.soramitsu.common.data.network.solana.SolanaTransactionHistorySync
+import jp.co.soramitsu.common.data.network.ton.RetrofitTonIndexerClient
 import jp.co.soramitsu.common.data.network.ton.TonApi
 import jp.co.soramitsu.common.data.network.ton.TonIndexerApi
 import jp.co.soramitsu.common.data.network.ton.TonIndexerClient
-import jp.co.soramitsu.common.data.network.ton.RetrofitTonIndexerClient
+import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
@@ -70,8 +70,17 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import java.io.File
+import java.util.Locale
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
+import javax.inject.Named
+import javax.inject.Singleton
 
 private const val HTTP_CACHE = "http_cache"
+private const val REMOTE_CONFIG_STORE = "remote-config-verified"
 private const val NOMIS_CACHE = "nomis_cache"
 private const val CACHE_SIZE = 50L * 1024L * 1024L // 50 MiB
 private const val TIMEOUT_SECONDS = 60L
@@ -165,10 +174,27 @@ class NetworkModule {
         )
     }
 
+    /** Remote configuration is used only as its signed manifest lists it; see RemoteConfigVerifier. */
+    @Provides
+    @Singleton
+    fun provideRemoteConfigVerifier(context: Context): RemoteConfigVerifier {
+        val manifestClient = OkHttpClient.Builder()
+            .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .build()
+        val fetcher = RemoteConfigManifestFetcher(manifestClient)
+        return RemoteConfigVerifier(
+            fetchManifest = fetcher::fetch,
+            store = RemoteConfigStore(File(context.filesDir, REMOTE_CONFIG_STORE)),
+            snapshot = RemoteConfigSnapshot { path -> runCatching { context.assets.open(path) }.getOrNull() }
+        )
+    }
+
     @Provides
     @Singleton
     fun provideOkHttpClient(
-        context: Context
+        context: Context,
+        remoteConfigVerifier: RemoteConfigVerifier
     ): OkHttpClient {
         val builder = OkHttpClient.Builder()
             .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -176,6 +202,7 @@ class NetworkModule {
             .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .cache(Cache(File(context.cacheDir, HTTP_CACHE), CACHE_SIZE))
             .retryOnConnectionFailure(true)
+            .addInterceptor(RemoteConfigInterceptor(remoteConfigVerifier))
 
         if (BuildConfig.DEBUG) {
 //            builder.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
@@ -186,20 +213,14 @@ class NetworkModule {
 
     @Provides
     @Singleton
-    fun provideNomisHttpClient(context: Context): NomisApi {
+    fun provideNomisHttpClient(context: Context, preferences: Preferences): NomisApi {
         val builder = OkHttpClient.Builder()
             .connectTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
             .writeTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
             .readTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
             .callTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
             .cache(Cache(File(context.cacheDir, NOMIS_CACHE), CACHE_SIZE))
-            .addInterceptor {
-                val request = it.request().newBuilder().apply {
-                    addHeader("X-API-Key", "j9Us1Kxoo9fs3nD")
-                    addHeader("X-ClientId", "FCEB90FC-E3F9-4CF5-980E-A8111A3FFF31")
-                }.build()
-                it.proceed(request)
-            }
+            .addInterceptor(NomisHeadersInterceptor(BuildConfig.NOMIS_API_KEY, BuildConfig.NOMIS_CLIENT_ID))
             .addInterceptor { chain ->
                 val request = chain.request().newBuilder()
                     .cacheControl(
@@ -220,7 +241,7 @@ class NetworkModule {
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
 
-        return retrofit.create(NomisApi::class.java)
+        return PreferenceAwareNomisApi(retrofit.create(NomisApi::class.java), preferences)
     }
 
     @Provides
@@ -365,13 +386,15 @@ class NetworkModule {
     @Provides
     @Singleton
     @Named("tonApiHttpClient")
-    fun provideTonApiHttpClient(context: Context): OkHttpClient {
+    fun provideTonApiHttpClient(context: Context, remoteConfigVerifier: RemoteConfigVerifier): OkHttpClient {
         val builder = OkHttpClient.Builder()
             .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .cache(Cache(File(context.cacheDir, HTTP_CACHE), CACHE_SIZE))
             .retryOnConnectionFailure(true)
+            // The dApp directory (DAPPS_URL) is read through this client.
+            .addInterceptor(RemoteConfigInterceptor(remoteConfigVerifier))
             .addInterceptor { chain ->
                 val request = chain.request()
 

@@ -54,12 +54,28 @@ class PortfolioListBuilderTest {
         assertFalse((rows.last() as PortfolioListItem.ZeroSummary).expanded)
     }
 
-    @Test fun `network lens ranks by trusted fiat and zero sections trail collapsed`() {
-        val rows = build(listOf(asset("hub", "dot", "2", "5"), asset("relay", "0", "1", "10"), asset("other", "dot", "0", null)),
-            ui = PortfolioUiState(lens = PortfolioLens.ByNetwork, collapsedNetworks = setOf("relay")))
-        assertEquals(listOf("relay", "hub"), rows.filterIsInstance<PortfolioListItem.NetworkHeader>().map { it.first.state.chainId })
-        assertEquals(listOf("hub"), rows.filterIsInstance<PortfolioListItem.AssetRow>().map { it.asset.state.chainId })
-        assertTrue(rows.last() is PortfolioListItem.ZeroSummary)
+    @Test fun `a saved network lens still renders the one token list`() {
+        val rows = build(listOf(asset("hub", "dot", "2", "5"), asset("relay", "0", "1", "10")),
+            ui = PortfolioUiState(lens = PortfolioLens.ByNetwork))
+        assertEquals("one token row for both networks, no network sections", listOf("group:dot"), rows.map { it.key })
+        assertEquals(BigDecimal("3"), rows.filterIsInstance<PortfolioListItem.TokenGroup>().single().total)
+    }
+
+    @Test fun `a search lists zero balances without their toggles and never calls the wallet empty`() {
+        val visible = listOf(asset("relay", "0", "2", "10"), asset("hub", "dot", "0", null), asset("solo", "x", "0", null))
+        val collapsed = build(visible, positive = false)
+        assertEquals(PortfolioListItem.ZeroSummary(1, false), collapsed.last())
+        assertTrue(collapsed.contains(PortfolioListItem.EmptyWallet))
+
+        val searched = PortfolioListBuilder.build(visible, emptyList(), groups, PortfolioUiState(expandedGroups = setOf("dot")),
+            null, walletHasPositiveBalance = false, searching = true)
+        assertTrue(searched.none { it is PortfolioListItem.ZeroSummary || it == PortfolioListItem.EmptyWallet })
+        assertEquals(listOf("relay", "hub", "solo"), searched.filterIsInstance<PortfolioListItem.AssetRow>().map { it.asset.state.chainId })
+        assertEquals(searched.size, searched.map { it.key }.toSet().size)
+
+        val collapsedGroup = PortfolioListBuilder.build(visible, emptyList(), groups, PortfolioUiState(), null, true, searching = true)
+        assertEquals("a searched group keeps its own expansion", listOf("solo"),
+            collapsedGroup.filterIsInstance<PortfolioListItem.AssetRow>().map { it.asset.state.chainId })
     }
 
     @Test fun `selected network is flat and cannot inherit a multi-network amount`() {
@@ -84,10 +100,10 @@ class PortfolioListBuilderTest {
         assertFalse(row.nested)
     }
 
-    @Test fun `unverified metadata cannot influence trusted fiat network sorting`() {
+    @Test fun `unverified metadata cannot influence trusted fiat sorting`() {
         val detected = asset("fake", "0", "2", "100000").let { it.copy(state = it.state.copy(metadataTrust = "unverified")) }
         val rows = build(listOf(detected, asset("relay", "0", "1", "10")), ui = PortfolioUiState(lens = PortfolioLens.ByNetwork))
-        assertEquals(listOf("relay", "fake"), rows.filterIsInstance<PortfolioListItem.NetworkHeader>().map { it.first.state.chainId })
+        assertEquals(listOf("relay", "fake"), rows.filterIsInstance<PortfolioListItem.AssetRow>().map { it.asset.state.chainId })
     }
 
     @Test fun `unknown holding cannot become empty wallet or automatic zero`() {
@@ -96,6 +112,14 @@ class PortfolioListBuilderTest {
         assertFalse(unknown.isAutomaticZero)
         assertTrue(rows.none { it is PortfolioListItem.EmptyWallet || it is PortfolioListItem.ZeroSummary })
         assertNull(rows.filterIsInstance<PortfolioListItem.AssetRow>().single().asset.total)
+    }
+
+    @Test fun `an unread balance outside the filtered list cannot become empty wallet`() {
+        val zero = asset("relay", "0", "0", null)
+        val rows = PortfolioListBuilder.build(listOf(zero), emptyList(), groups, PortfolioUiState(), null,
+            walletHasPositiveBalance = false, walletHasUnknownBalance = true)
+        assertTrue(rows.none { it is PortfolioListItem.EmptyWallet })
+        assertFalse((rows.single() as PortfolioListItem.ZeroSummary).expanded)
     }
 
     @Test fun `group with an unknown holding cannot publish a partial quantity as total`() {

@@ -1,5 +1,10 @@
 package jp.co.soramitsu.wallet.impl.presentation.send.setup
 
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSecondaryButton
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.FwSwitchIndicator
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
@@ -240,10 +245,11 @@ fun SendSetupContent(
                 Spacer(modifier = Modifier.weight(1f))
             }
 
+            val sunlitSend = FwRestyle.isEnabled(FwSurface.Send)
             Column(
                 modifier = Modifier
                     .onSizeChanged { footerHeight = it.height }
-                    .background(backgroundBlack.copy(alpha = 0.75f))
+                    .background(if (sunlitSend) LocalFwColors.current.surfaceRaised2 else backgroundBlack.copy(alpha = 0.75f))
                     .align(Alignment.BottomCenter)
             ) {
                 if (state.sendAllAllowed) {
@@ -261,7 +267,9 @@ fun SendSetupContent(
                             state.sendAllChecked -> colorAccentDark
                             else -> black3
                         }
-                        Switch(
+                        // The row is the toggle (role Switch); the sun-lit switch only paints its state.
+                        if (sunlitSend) FwSwitchIndicator(checked = state.sendAllChecked)
+                        else Switch(
                             colors = switchColors,
                             checked = state.sendAllChecked,
                             onCheckedChange = null,
@@ -333,6 +341,10 @@ private fun Badge(
     @StringRes labelResId: Int,
     onClick: () -> Unit
 ) {
+    if (FwRestyle.isEnabled(FwSurface.Send)) {
+        FwSecondaryButton(text = stringResource(labelResId), onClick = onClick, modifier = modifier, iconRes = iconResId)
+        return
+    }
     ColoredButton(
         modifier = modifier,
         backgroundColor = black05,

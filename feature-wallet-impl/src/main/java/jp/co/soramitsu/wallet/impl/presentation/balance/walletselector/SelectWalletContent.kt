@@ -3,6 +3,7 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.walletselector
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -25,6 +26,8 @@ import jp.co.soramitsu.common.compose.component.WalletItem
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.component.WalletSelectorViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.feature_wallet_impl.R
 
 @Composable
@@ -36,25 +39,30 @@ fun SelectWalletContent(
     onBackClicked: () -> Unit,
     onScoreClick: (WalletItemViewState) -> Unit
 ) {
+    // The list keeps the page gutter as content padding, so its cards' light is not cut at its edges.
+    val sunlit = FwRestyle.isEnabled(FwSurface.Pickers)
+    val gutter = if (sunlit) 20.dp else 16.dp
     BottomSheetScreen {
         Column(
             modifier = Modifier
                 .padding(
-                    horizontal = 16.dp
+                    horizontal = if (sunlit) 0.dp else gutter
                 )
                 .fillMaxWidth()
                 .nestedScroll(rememberNestedScrollInteropConnection())
         ) {
             ToolbarBottomSheet(
+                modifier = if (sunlit) Modifier.padding(horizontal = gutter) else Modifier,
                 title = stringResource(id = R.string.common_title_wallet),
                 navigationIconResId = R.drawable.ic_arrow_back_24dp,
                 onNavigationClick = onBackClicked
             )
-            MarginVertical(margin = 20.dp)
+            MarginVertical(margin = if (sunlit) 12.dp else 20.dp)
             Box(contentAlignment = Alignment.BottomCenter) {
                 LazyColumn(
-                    modifier = Modifier.padding(bottom = 50.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.padding(bottom = if (sunlit) 62.dp else 50.dp),
+                    contentPadding = if (sunlit) PaddingValues(start = gutter, end = gutter, top = 8.dp, bottom = 8.dp) else PaddingValues(0.dp),
+                    verticalArrangement = Arrangement.spacedBy(if (sunlit) 12.dp else 8.dp)
                 ) {
                     items(state.wallets.map { it.copy(isSelected = it.id == state.selectedWallet?.id) }) { walletItemState ->
                         WalletItem(
@@ -73,6 +81,7 @@ fun SelectWalletContent(
                         text = stringResource(id = R.string.common_add_new_wallet),
                         onClick = addNewWallet,
                         modifier = Modifier
+                            .then(if (sunlit) Modifier.padding(horizontal = gutter) else Modifier)
                             .fillMaxWidth()
                             .height(48.dp)
                     )

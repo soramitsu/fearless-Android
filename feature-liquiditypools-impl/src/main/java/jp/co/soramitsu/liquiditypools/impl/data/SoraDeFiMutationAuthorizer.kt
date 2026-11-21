@@ -2,7 +2,6 @@ package jp.co.soramitsu.liquiditypools.impl.data
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
-import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -119,11 +118,8 @@ open class SoraDeFiMutationAuthorizer @Inject constructor(
         check(!accountRepository.isSigningRecoveryRequired(metaAccount.id, chain)) {
             "Recover this wallet's signing material before continuing"
         }
-        val hasSigningMaterial = if (metaAccount.hasChainAccount(chain.id)) {
-            accountRepository.getChainAccountSecrets(metaAccount.id, chain.id) != null
-        } else {
-            accountRepository.getSubstrateSecrets(metaAccount.id) != null
-        }
+        // Key names only: sealed secrets stay closed while the wallet is locked.
+        val hasSigningMaterial = accountRepository.hasSigningMaterial(metaAccount.id, chain)
         check(hasSigningMaterial) { "This SORA account is watch-only or has no supported signer" }
 
         val identity = SoraMutationIdentity(metaAccount.id, accountId.toHexString(withPrefix = true))

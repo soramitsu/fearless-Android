@@ -1,0 +1,641 @@
+{
+  "formatVersion": 1,
+  "units": "Outer ring radius 1, origin at the centre, y down. Circles start at 12 o'clock and run anticlockwise.",
+  "stroke": {
+    "core": 0.0055,
+    "glow": 0.034
+  },
+  "colors": {
+    "core": "#FFD58A",
+    "glow": "#FF8A42",
+    "star": "#FFE9BE"
+  },
+  "strokes": [
+    {
+      "type": "circle",
+      "group": "ring",
+      "cx": 0,
+      "cy": 0,
+      "r": 1,
+      "weight": 1.25,
+      "reveal": [
+        0,
+        0.3
+      ]
+    },
+    {
+      "type": "circle",
+      "group": "ring",
+      "cx": 0,
+      "cy": 0,
+      "r": 0.955,
+      "weight": 0.8,
+      "reveal": [
+        0.05,
+        0.34
+      ]
+    },
+    {
+      "type": "line",
+      "group": "hexagram",
+      "x1": 0,
+      "y1": -1,
+      "x2": -0.86603,
+      "y2": 0.5,
+      "weight": 1,
+      "reveal": [
+        0.26,
+        0.34
+      ]
+    },
+    {
+      "type": "line",
+      "group": "hexagram",
+      "x1": -0.86603,
+      "y1": 0.5,
+      "x2": 0.86603,
+      "y2": 0.5,
+      "weight": 1,
+      "reveal": [
+        0.295,
+        0.375
+      ]
+    },
+    {
+      "type": "line",
+      "group": "hexagram",
+      "x1": 0.86603,
+      "y1": 0.5,
+      "x2": 0,
+      "y2": -1,
+      "weight": 1,
+      "reveal": [
+        0.33,
+        0.41
+      ]
+    },
+    {
+      "type": "line",
+      "group": "hexagram",
+      "x1": -0.86603,
+      "y1": -0.5,
+      "x2": 0,
+      "y2": 1,
+      "weight": 1,
+      "reveal": [
+        0.365,
+        0.445
+      ]
+    },
+    {
+      "type": "line",
+      "group": "hexagram",
+      "x1": 0,
+      "y1": 1,
+      "x2": 0.86603,
+      "y2": -0.5,
+      "weight": 1,
+      "reveal": [
+        0.4,
+        0.48
+      ]
+    },
+    {
+      "type": "line",
+      "group": "hexagram",
+      "x1": 0.86603,
+      "y1": -0.5,
+      "x2": -0.86603,
+      "y2": -0.5,
+      "weight": 1,
+      "reveal": [
+        0.435,
+        0.515
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": 0,
+      "y1": -0.61,
+      "x2": 0.235,
+      "y2": -0.46,
+      "weight": 0.72,
+      "reveal": [
+        0.5,
+        0.56
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": 0,
+      "y1": -0.61,
+      "x2": -0.235,
+      "y2": -0.46,
+      "weight": 0.72,
+      "reveal": [
+        0.512,
+        0.572
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": 0.235,
+      "y1": -0.46,
+      "x2": -0.235,
+      "y2": -0.46,
+      "weight": 0.72,
+      "reveal": [
+        0.524,
+        0.584
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": 0,
+      "y1": -0.61,
+      "x2": 0,
+      "y2": -0.34,
+      "weight": 0.72,
+      "reveal": [
+        0.536,
+        0.596
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": 0.235,
+      "y1": -0.46,
+      "x2": 0,
+      "y2": -0.34,
+      "weight": 0.72,
+      "reveal": [
+        0.548,
+        0.608
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": -0.235,
+      "y1": -0.46,
+      "x2": 0,
+      "y2": -0.34,
+      "weight": 0.72,
+      "reveal": [
+        0.56,
+        0.62
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": 0.235,
+      "y1": -0.46,
+      "x2": 0.235,
+      "y2": -0.225,
+      "weight": 0.72,
+      "reveal": [
+        0.572,
+        0.632
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": -0.235,
+      "y1": -0.46,
+      "x2": -0.235,
+      "y2": -0.225,
+      "weight": 0.72,
+      "reveal": [
+        0.584,
+        0.644
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": 0,
+      "y1": -0.34,
+      "x2": 0.235,
+      "y2": -0.225,
+      "weight": 0.72,
+      "reveal": [
+        0.596,
+        0.656
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": 0,
+      "y1": -0.34,
+      "x2": -0.235,
+      "y2": -0.225,
+      "weight": 0.72,
+      "reveal": [
+        0.608,
+        0.668
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": 0,
+      "y1": -0.34,
+      "x2": 0,
+      "y2": -0.115,
+      "weight": 0.72,
+      "reveal": [
+        0.62,
+        0.68
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": 0.235,
+      "y1": -0.225,
+      "x2": -0.235,
+      "y2": -0.225,
+      "weight": 0.72,
+      "reveal": [
+        0.632,
+        0.692
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": 0.235,
+      "y1": -0.225,
+      "x2": 0,
+      "y2": -0.115,
+      "weight": 0.72,
+      "reveal": [
+        0.644,
+        0.704
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": -0.235,
+      "y1": -0.225,
+      "x2": 0,
+      "y2": -0.115,
+      "weight": 0.72,
+      "reveal": [
+        0.656,
+        0.716
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": 0.235,
+      "y1": -0.225,
+      "x2": 0.235,
+      "y2": 0.005,
+      "weight": 0.72,
+      "reveal": [
+        0.668,
+        0.728
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": -0.235,
+      "y1": -0.225,
+      "x2": -0.235,
+      "y2": 0.005,
+      "weight": 0.72,
+      "reveal": [
+        0.68,
+        0.74
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": 0,
+      "y1": -0.115,
+      "x2": 0.235,
+      "y2": 0.005,
+      "weight": 0.72,
+      "reveal": [
+        0.692,
+        0.752
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": 0,
+      "y1": -0.115,
+      "x2": -0.235,
+      "y2": 0.005,
+      "weight": 0.72,
+      "reveal": [
+        0.704,
+        0.764
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": 0,
+      "y1": -0.115,
+      "x2": 0,
+      "y2": 0.1,
+      "weight": 0.72,
+      "reveal": [
+        0.716,
+        0.776
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": 0.235,
+      "y1": 0.005,
+      "x2": -0.235,
+      "y2": 0.005,
+      "weight": 0.72,
+      "reveal": [
+        0.728,
+        0.788
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": 0.235,
+      "y1": 0.005,
+      "x2": 0,
+      "y2": 0.1,
+      "weight": 0.72,
+      "reveal": [
+        0.74,
+        0.8
+      ]
+    },
+    {
+      "type": "line",
+      "group": "lattice",
+      "x1": -0.235,
+      "y1": 0.005,
+      "x2": 0,
+      "y2": 0.1,
+      "weight": 0.72,
+      "reveal": [
+        0.752,
+        0.812
+      ]
+    },
+    {
+      "type": "circle",
+      "group": "lattice",
+      "cx": 0,
+      "cy": -0.61,
+      "r": 0.067,
+      "weight": 0.72,
+      "reveal": [
+        0.74,
+        0.8
+      ]
+    },
+    {
+      "type": "circle",
+      "group": "lattice",
+      "cx": 0.235,
+      "cy": -0.46,
+      "r": 0.067,
+      "weight": 0.72,
+      "reveal": [
+        0.752,
+        0.812
+      ]
+    },
+    {
+      "type": "circle",
+      "group": "lattice",
+      "cx": -0.235,
+      "cy": -0.46,
+      "r": 0.067,
+      "weight": 0.72,
+      "reveal": [
+        0.764,
+        0.824
+      ]
+    },
+    {
+      "type": "circle",
+      "group": "lattice",
+      "cx": 0,
+      "cy": -0.34,
+      "r": 0.067,
+      "weight": 0.72,
+      "reveal": [
+        0.776,
+        0.836
+      ]
+    },
+    {
+      "type": "circle",
+      "group": "lattice",
+      "cx": 0.235,
+      "cy": -0.225,
+      "r": 0.067,
+      "weight": 0.72,
+      "reveal": [
+        0.788,
+        0.848
+      ]
+    },
+    {
+      "type": "circle",
+      "group": "lattice",
+      "cx": -0.235,
+      "cy": -0.225,
+      "r": 0.067,
+      "weight": 0.72,
+      "reveal": [
+        0.8,
+        0.86
+      ]
+    },
+    {
+      "type": "circle",
+      "group": "lattice",
+      "cx": 0,
+      "cy": -0.115,
+      "r": 0.067,
+      "weight": 0.72,
+      "reveal": [
+        0.812,
+        0.872
+      ]
+    },
+    {
+      "type": "circle",
+      "group": "lattice",
+      "cx": 0.235,
+      "cy": 0.005,
+      "r": 0.067,
+      "weight": 0.72,
+      "reveal": [
+        0.824,
+        0.884
+      ]
+    },
+    {
+      "type": "circle",
+      "group": "lattice",
+      "cx": -0.235,
+      "cy": 0.005,
+      "r": 0.067,
+      "weight": 0.72,
+      "reveal": [
+        0.836,
+        0.896
+      ]
+    },
+    {
+      "type": "circle",
+      "group": "lattice",
+      "cx": 0,
+      "cy": 0.1,
+      "r": 0.067,
+      "weight": 0.72,
+      "reveal": [
+        0.848,
+        0.908
+      ]
+    },
+    {
+      "type": "line",
+      "group": "ray",
+      "x1": 0,
+      "y1": -1,
+      "x2": 0,
+      "y2": 0.1,
+      "weight": 0.7,
+      "reveal": [
+        0.45,
+        0.6
+      ]
+    }
+  ],
+  "ticks": {
+    "count": 132,
+    "r": 0.978,
+    "size": 0.006,
+    "appearsAt": 0.2,
+    "turnsPerSecond": -0.002864788975654116
+  },
+  "stars": [
+    {
+      "x": 0,
+      "y": -1,
+      "size": 0.33,
+      "reveal": 0.3
+    },
+    {
+      "x": -0.86603,
+      "y": -0.5,
+      "size": 0.25,
+      "reveal": 0.33
+    },
+    {
+      "x": -0.86603,
+      "y": 0.5,
+      "size": 0.25,
+      "reveal": 0.36
+    },
+    {
+      "x": 0,
+      "y": 1,
+      "size": 0.25,
+      "reveal": 0.39
+    },
+    {
+      "x": 0.86603,
+      "y": 0.5,
+      "size": 0.25,
+      "reveal": 0.42
+    },
+    {
+      "x": 0.86603,
+      "y": -0.5,
+      "size": 0.25,
+      "reveal": 0.45
+    },
+    {
+      "x": 0,
+      "y": -0.61,
+      "size": 0.07,
+      "reveal": 0.76
+    },
+    {
+      "x": 0.235,
+      "y": -0.46,
+      "size": 0.07,
+      "reveal": 0.772
+    },
+    {
+      "x": -0.235,
+      "y": -0.46,
+      "size": 0.07,
+      "reveal": 0.784
+    },
+    {
+      "x": 0,
+      "y": -0.34,
+      "size": 0.07,
+      "reveal": 0.796
+    },
+    {
+      "x": 0.235,
+      "y": -0.225,
+      "size": 0.07,
+      "reveal": 0.808
+    },
+    {
+      "x": -0.235,
+      "y": -0.225,
+      "size": 0.07,
+      "reveal": 0.82
+    },
+    {
+      "x": 0,
+      "y": -0.115,
+      "size": 0.07,
+      "reveal": 0.832
+    },
+    {
+      "x": 0.235,
+      "y": 0.005,
+      "size": 0.07,
+      "reveal": 0.844
+    },
+    {
+      "x": -0.235,
+      "y": 0.005,
+      "size": 0.07,
+      "reveal": 0.856
+    },
+    {
+      "x": 0,
+      "y": 0.1,
+      "size": 0.07,
+      "reveal": 0.868
+    }
+  ]
+}

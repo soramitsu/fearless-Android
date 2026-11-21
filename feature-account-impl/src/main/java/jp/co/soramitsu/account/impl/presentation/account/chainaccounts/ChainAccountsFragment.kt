@@ -1,8 +1,5 @@
 package jp.co.soramitsu.account.impl.presentation.account.chainaccounts
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.FrameLayout
@@ -19,8 +16,7 @@ import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.account.api.presentation.actions.copyAddressClicked
 import jp.co.soramitsu.account.api.presentation.exporting.ExportSourceChooserPayload
 import jp.co.soramitsu.account.impl.presentation.account.details.WalletAccountActionsSheet
-import jp.co.soramitsu.common.PLAY_MARKET_APP_URI
-import jp.co.soramitsu.common.PLAY_MARKET_BROWSER_URI
+import jp.co.soramitsu.common.openPlayMarketPage
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.mixin.impl.observeBrowserEvents
@@ -82,11 +78,7 @@ class ChainAccountsDialog : BaseComposeBottomSheetDialogFragment<ChainAccountsVi
     }
 
     private fun openPlayMarket() {
-        try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_MARKET_APP_URI)))
-        } catch (e: ActivityNotFoundException) {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PLAY_MARKET_BROWSER_URI)))
-        }
+        requireContext().openPlayMarketPage()
     }
 
     override fun chainAccountClicked(item: AccountInChainUi) {

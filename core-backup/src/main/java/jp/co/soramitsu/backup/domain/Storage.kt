@@ -8,6 +8,9 @@ internal interface Storage {
 
     suspend fun signIn(activityResultLauncher: ActivityResultLauncher<Intent>): Boolean
 
+    /** Whether an account is signed in on this device. Never opens the sign-in screen. */
+    suspend fun hasSession(): Boolean
+
     /** Uploads [content] as a new file in the app backup folder and returns its file id. */
     suspend fun saveFile(
         name: String,

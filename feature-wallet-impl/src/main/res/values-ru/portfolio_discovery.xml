@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="portfolio_search_tokens_networks">Поиск токенов и сетей</string>
+    <string name="portfolio_network_filters">Фильтр по сетям</string>
+    <string name="portfolio_more_networks">Другие сети</string>
+    <string name="portfolio_search_all_networks">Искать во всех сетях</string>
+    <string name="portfolio_one_list_notice">Все ваши активы в одном списке. Ищите токены по названию или выберите сеть.</string>
+</resources>

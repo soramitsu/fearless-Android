@@ -1,6 +1,7 @@
 package jp.co.soramitsu.common.compose.component
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +11,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -20,6 +23,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.theme.fw.FwSealBreakOverlay
+import jp.co.soramitsu.common.compose.theme.fw.FwSealLoadingOverlay
+import jp.co.soramitsu.common.feedback.TransferSeal
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black1
 import jp.co.soramitsu.common.compose.theme.black2
@@ -37,8 +43,12 @@ data class ConfirmScreenViewState(
 
 @Composable
 fun ConfirmScreen(state: ConfirmScreenViewState, onNavigationClick: () -> Unit, onConfirm: () -> Unit) {
+    // The seal takes the loader's place while the operation is submitted (brand kit SPEC v4 part 3).
+    val seal by TransferSeal.record.collectAsState()
     BottomSheetScreen(Modifier.verticalScroll(rememberScrollState())) {
-        FullScreenLoading(isLoading = state.isLoading) {
+        Box {
+        // While the seal runs it draws on its own scrim below; the loader keeps blocking input but shows nothing itself.
+        FullScreenLoading(isLoading = state.isLoading, indicator = if (seal.readyAtMs != null) ({}) else null) {
             Column {
                 Toolbar(state = state.toolbarViewState, onNavigationClick = onNavigationClick)
                 Column(
@@ -73,6 +83,10 @@ fun ConfirmScreen(state: ConfirmScreenViewState, onNavigationClick: () -> Unit, 
                     MarginVertical(margin = 24.dp)
                 }
             }
+        }
+        if (state.isLoading) FwSealLoadingOverlay(seal, Modifier.matchParentSize())
+        // A definite failure breaks the seal over the screen while the app's own error appears.
+        FwSealBreakOverlay(seal, Modifier.matchParentSize())
         }
     }
 }

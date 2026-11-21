@@ -39,8 +39,11 @@ import jp.co.soramitsu.staking.impl.scenarios.StakingScenarioInteractor
 import jp.co.soramitsu.wallet.api.data.mappers.mapAssetToAssetModel
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.impl.domain.interfaces.QuickInputsUseCase
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterIsInstance
@@ -136,7 +139,7 @@ class SetupStakingViewModel @Inject constructor(
 
         launch {
             val chainAsset = assetFlow.first().token.configuration
-            minimumStake = stakingScenarioInteractor.getMinimumStake(chainAsset)
+            loadMinimumStake(chainAsset)
 
             setupStakingSharedState.setupStakingProcess.filterIsInstance<SetupStakingProcess.SetupStep>()
                 .onEach {
@@ -202,6 +205,24 @@ class SetupStakingViewModel @Inject constructor(
             },
             onRetryCancelled = ::backClicked
         )
+    }
+
+    /**
+     * The network's minimum stake can be unavailable (a Hub's minimum read failing before its exposures are cached).
+     * The screen then shows Retry instead of closing; Continue still checks the minimum before anything is signed.
+     */
+    private suspend fun loadMinimumStake(chainAsset: jp.co.soramitsu.core.models.Asset) {
+        val read = runCatching { stakingScenarioInteractor.getMinimumStake(chainAsset) }
+        currentCoroutineContext().ensureActive()
+        read.onSuccess { minimumStake = it }.onFailure { failure ->
+            showError(
+                title = resourceManager.getString(jp.co.soramitsu.common.R.string.common_error_general_title),
+                message = failure.takeUnless { it is CancellationException }?.message
+                    ?: resourceManager.getString(jp.co.soramitsu.common.R.string.common_error_general_message),
+                positiveButtonText = resourceManager.getString(jp.co.soramitsu.common.R.string.common_retry),
+                positiveClick = { launch { loadMinimumStake(chainAsset) } }
+            )
+        }
     }
 
     fun minimumStakeConfirmed() {

@@ -143,6 +143,8 @@ class SelectWalletViewModel @Inject constructor(
             runCatching {
                 accountInteractor.getGoogleBackupAccounts()
             }.onFailure {
+                // A cancelled lookup (the screen closed) is not a Google backup problem to report.
+                if (it is CancellationException) throw it
                 showGoogleSignInIssue(it.toGoogleBackupIssue())
             }.onSuccess { backupAccounts ->
                 router.openImportRemoteWalletDialog()

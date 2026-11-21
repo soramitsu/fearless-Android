@@ -4,9 +4,18 @@ import android.content.Context
 import android.graphics.drawable.StateListDrawable
 import android.util.AttributeSet
 import android.util.StateSet
+import android.view.ViewGroup
 import android.widget.Checkable
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.view.doOnAttach
 import androidx.core.view.isVisible
+import jp.co.soramitsu.common.compose.theme.fw.FwElevation
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwShape
+import jp.co.soramitsu.common.compose.theme.fw.FwStandard
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.FwViews
 import jp.co.soramitsu.common.utils.getPrimaryColor
 import jp.co.soramitsu.common.utils.setTextOrHide
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
@@ -33,6 +42,7 @@ class RewardDestinationView @JvmOverloads constructor(
         binding = ViewPayoutTargetBinding.bind(this)
 
         background = stateDrawable()
+        if (FwRestyle.isEnabled(FwSurface.Staking)) binding.payoutTargetAmountGain.setTextColor(FwStandard.success.toArgb())
 
         attrs?.let(this::applyAttrs)
     }
@@ -99,6 +109,12 @@ class RewardDestinationView @JvmOverloads constructor(
     }
 
     private fun stateDrawable() = StateListDrawable().apply {
+        if (FwRestyle.isEnabled(FwSurface.Staking)) {
+            doOnAttach { (parent as? ViewGroup)?.clipChildren = false }
+            addState(CheckedStateSet, FwViews.surface(context, FwElevation.Inset, FwShape.BUTTON.value))
+            addState(StateSet.WILD_CARD, FwViews.surface(context, FwElevation.Raised1, FwShape.BUTTON.value))
+            return@apply
+        }
         addState(CheckedStateSet, context.getCutCornerDrawableFromColors(strokeColor = context.getPrimaryColor()))
         addState(intArrayOf(-android.R.attr.state_enabled), context.getDisabledDrawable())
         addState(StateSet.WILD_CARD, context.getCutCornerDrawable(strokeColorRes = RCommon.color.gray2))

@@ -13,4 +13,7 @@
     <string name="pin_recovery_verify_backup">Verify wallet backup</string>
     <string name="pin_recovery_reset">Recover wallet PIN</string>
     <string name="pin_recovery_view_only_title">View-only access</string>
+    <string name="pin_recovery_forgot">Forgot PIN?</string>
+    <string name="pin_recovery_forgot_intro">Forgot your PIN? Prove one wallet\'s backup to set a new one.</string>
+    <string name="pin_recovery_key_unavailable">This backup cannot unlock your wallet keys. Try another wallet\'s backup.</string>
 </resources>

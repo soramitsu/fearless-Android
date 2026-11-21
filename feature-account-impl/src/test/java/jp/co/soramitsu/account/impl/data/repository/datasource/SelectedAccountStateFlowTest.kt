@@ -479,7 +479,7 @@ class SelectedAccountStateFlowTest {
                     Catalog().also { catalogs += it }.flow()
                 }
             }
-            source = AccountDataSourceImpl(mockk(), mockk(), Gson(), dao, mockk(), chains)
+            source = AccountDataSourceImpl(mockk(), Gson(), dao, mockk(), chains, mockk())
         }
 
         fun close() {

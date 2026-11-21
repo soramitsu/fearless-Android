@@ -2,6 +2,7 @@ package jp.co.soramitsu.common.data.storage.encrypt
 
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.PinPreferenceSnapshot
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSealer
 import jp.co.soramitsu.core.extrinsic.MutationExecutionGuard
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -10,10 +11,15 @@ import kotlinx.coroutines.flow.update
 
 class EncryptedPreferencesImpl(
     private val preferences: Preferences,
-    private val encryptionUtil: EncryptionUtil
+    private val encryptionUtil: EncryptionUtil,
+    /** Seals allowlisted wallet secrets while the session holds SK; null keeps every value as written. */
+    private val sealer: WalletSecretSealer? = null
 ) : EncryptedPreferences {
 
     private val mutableWalletSecretQuarantineVersion = MutableStateFlow(0L)
+
+    // Set only inside replaceEncryptedStringUnsealedIfStateMatches, under this instance's lock.
+    private var sealingSuspended = false
 
     override val walletSecretQuarantineVersion: StateFlow<Long> =
         mutableWalletSecretQuarantineVersion.asStateFlow()
@@ -47,20 +53,39 @@ class EncryptedPreferencesImpl(
 
     @Synchronized
     override fun saveRecoveredPinCodeDurably(pin: String, expected: PinResetSnapshot) {
-        persistPinCode(pin, expected)
+        persistPinCode(pin, expected, requiredHealth = PinHealth.UNREADABLE)
     }
 
-    private fun persistPinCode(pin: String, expected: PinResetSnapshot?) {
+    @Synchronized
+    override fun saveForgottenPinCodeDurably(pin: String, expected: PinResetSnapshot) {
+        persistPinCode(pin, expected, requiredHealth = PinHealth.HEALTHY)
+    }
+
+    @Synchronized
+    override fun removeLegacyPinDurably() {
+        requireDurableStorageHealthy()
+        val keys = (listOf(PinPreferenceSnapshot.PIN_KEY) + (0 until WalletSecretArchive.MAX_SLOTS).map {
+            WalletSecretArchive.keyFor(PinPreferenceSnapshot.PIN_KEY, it)
+        }).filter(preferences::contains).toSet()
+        if (keys.isEmpty()) return
+        latchDurabilityFailures {
+            check(preferences.replaceStringsDurably(emptyMap(), keys) && keys.none(preferences::contains)) {
+                "Failed to durably remove the legacy PIN"
+            }
+        }
+    }
+
+    private fun persistPinCode(pin: String, expected: PinResetSnapshot?, requiredHealth: PinHealth? = null) {
         requireDurableStorageHealthy()
         require(PinHealth.assess(true, pin) == PinHealth.HEALTHY)
         encryptionUtil.getPrerenceAesKey()
         val snapshot = preferences.pinPreferenceSnapshot()
-        if (expected != null && !expected.matches(PinResetSnapshot(typed = snapshot))) {
+        if (expected != null && !expected.matches(PinResetSnapshot(typed = snapshot, keyringPinRecord = expected.keyringPinRecord))) {
             throw WalletSecretConcurrentMutationException("PIN changed after recovery authorization")
         }
         val health = encryptionUtil.assessPinHealth()
-        if (expected != null && health != PinHealth.UNREADABLE) {
-            throw WalletSecretConcurrentMutationException("The old PIN no longer requires recovery")
+        if (expected != null && health != requiredHealth) {
+            throw WalletSecretConcurrentMutationException("The old PIN no longer matches its recovery")
         }
         val archiveKey = if (health == PinHealth.UNREADABLE && snapshot.exists) {
             (0 until WalletSecretArchive.MAX_SLOTS).firstNotNullOfOrNull { slot ->
@@ -310,6 +335,25 @@ class EncryptedPreferencesImpl(
     }
 
     @Synchronized
+    override fun replaceEncryptedStringUnsealedIfStateMatches(
+        key: String,
+        expected: EncryptedPreferenceSnapshot?,
+        plaintext: String
+    ): Boolean {
+        sealingSuspended = true
+        try {
+            return replaceEncryptedStringsDurablyIfStatesMatch(
+                expectedStates = mapOf(key to expected),
+                valuesToPut = mapOf(key to plaintext),
+                keysToRemove = emptySet(),
+                snapshotMoves = emptyList()
+            )
+        } finally {
+            sealingSuspended = false
+        }
+    }
+
+    @Synchronized
     override fun quarantineEncryptedStringDurably(
         sourceKey: String,
         quarantineKey: String,
@@ -404,15 +448,18 @@ class EncryptedPreferencesImpl(
 
     private fun encryptAndVerify(
         valuesToPut: Map<String, String>
-    ): Map<String, String> = valuesToPut.mapValues { (_, value) ->
-        val encrypted = encryptionUtil.encrypt(value)
+    ): Map<String, String> = valuesToPut.mapValues { (key, value) ->
+        // The inner envelope is the plaintext of the unchanged outer layer.
+        val stored = if (sealingSuspended) value else sealer?.sealForWrite(key, value) ?: value
+        val encrypted = encryptionUtil.encrypt(stored)
         check(
             encrypted.isNotEmpty() &&
                 encryptionUtil.isModernCiphertext(encrypted) &&
-                encryptionUtil.decrypt(encrypted) == value
+                encryptionUtil.decrypt(encrypted) == stored
         ) {
             "Failed to encrypt and verify wallet-secret migration payload"
         }
+        // WalletSecretSealer.seal already opened the envelope with the SK that sealed it.
         encrypted
     }
 

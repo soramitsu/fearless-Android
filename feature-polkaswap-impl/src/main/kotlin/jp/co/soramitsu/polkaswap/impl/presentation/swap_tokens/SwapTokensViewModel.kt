@@ -69,6 +69,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
 import javax.inject.Inject
+import kotlin.coroutines.cancellation.CancellationException
 
 typealias TooltipEvent = Event<Pair<String, String>>
 
@@ -200,14 +201,20 @@ class SwapTokensViewModel @Inject constructor(
             WithDesired.OUTPUT -> toAsset
             null -> return@transform emit(LoadingState.Loaded(null))
         }
-        val feeInPlanks = polkaswapInteractor.estimateSwapFee(
-            details.bestDexId,
-            fromCurrencyId,
-            toCurrencyId,
-            desiredAsset.token.planksFromAmount(details.amount),
-            market,
-            requireNotNull(desired)
-        )
+        // A failed estimate leaves this quote without a fee; it must not end the flow for later quotes.
+        val feeInPlanks = runCatching {
+            polkaswapInteractor.estimateSwapFee(
+                details.bestDexId,
+                fromCurrencyId,
+                toCurrencyId,
+                desiredAsset.token.planksFromAmount(details.amount),
+                market,
+                requireNotNull(desired)
+            )
+        }.getOrElse { error ->
+            if (error is CancellationException) throw error
+            return@transform emit(LoadingState.Loaded(null))
+        }
         val fee = desiredAsset.token.amountFromPlanks(feeInPlanks)
         emit(LoadingState.Loaded(fee))
     }
@@ -250,20 +257,7 @@ class SwapTokensViewModel @Inject constructor(
                 )
             },
             onFailure = { throwable ->
-                val error = when (throwable) {
-                    is PathUnavailableException -> ValidationException(
-                        resourceManager.getString(R.string.common_error_general_title),
-                        resourceManager.getString(R.string.polkaswap_path_unavailable_message)
-                    )
-
-                    is InsufficientLiquidityException -> ValidationException(
-                        resourceManager.getString(R.string.common_error_general_title),
-                        resourceManager.getString(R.string.polkaswap_insufficient_liqudity)
-                    )
-
-                    else -> throwable
-                }
-                showError(error)
+                showError(quoteError(throwable))
                 return@map null
             }
         )
@@ -392,7 +386,7 @@ class SwapTokensViewModel @Inject constructor(
             val availableDexPaths =
                 polkaswapInteractor.getAvailableDexesForPair(fromCurrencyId, toCurrencyId, dexes)
             if (availableDexPaths.isEmpty()) {
-                showError(PathUnavailableException())
+                showError(quoteError(PathUnavailableException()))
                 return@combine
             }
 
@@ -425,15 +419,36 @@ class SwapTokensViewModel @Inject constructor(
                 .toSet()
         ) return emptyResult
 
-        return polkaswapInteractor.calcDetails(
-            availableDexPaths,
-            fromAssetFlow.value!!,
-            toAssetFlow.value!!,
-            amount,
-            desired!!,
-            slippageTolerance,
-            selectedMarket
+        // A thrown quote error is this amount's failure; letting it escape would end the quote flow for good.
+        return runCatching {
+            polkaswapInteractor.calcDetails(
+                availableDexPaths,
+                fromAssetFlow.value!!,
+                toAssetFlow.value!!,
+                amount,
+                desired!!,
+                slippageTolerance,
+                selectedMarket
+            )
+        }.getOrElse { error ->
+            if (error is CancellationException) throw error
+            Result.failure(error)
+        }
+    }
+
+    // The titled message the swap screen shows for a quote failure the interactor reports by type.
+    private fun quoteError(throwable: Throwable): Throwable = when (throwable) {
+        is PathUnavailableException -> ValidationException(
+            resourceManager.getString(R.string.common_error_general_title),
+            resourceManager.getString(R.string.polkaswap_path_unavailable_message)
         )
+
+        is InsufficientLiquidityException -> ValidationException(
+            resourceManager.getString(R.string.common_error_general_title),
+            resourceManager.getString(R.string.polkaswap_insufficient_liqudity)
+        )
+
+        else -> throwable
     }
 
     private fun fillSecondInputField(amount: BigDecimal) {

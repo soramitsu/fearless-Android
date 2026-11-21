@@ -13,9 +13,14 @@ import androidx.compose.material.SwipeableState
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.GraphicsLayerScope
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
@@ -61,7 +66,7 @@ fun SwipeBox(
             val offsetX = -state.leftStateWidth.toPx() + swipeableState.offset.value
 
             val extraOffset = -10.dp.toPx() // hiding beyond screen
-            val eliminationDistance = 40.dp.toPx()
+            val eliminationDistance = REVEAL_DISTANCE.toPx()
             val eliminationCoefficient = when {
                 swipeableState.offset.value > eliminationDistance -> 0f
                 else -> (eliminationDistance - swipeableState.offset.value) / eliminationDistance
@@ -76,7 +81,7 @@ fun SwipeBox(
             val offsetX = (state.rightStateWidth.toPx() + swipeableState.offset.value).roundToInt()
 
             val extraOffset = 10.dp.toPx() // hiding beyond screen
-            val eliminationDistance = 40.dp.toPx()
+            val eliminationDistance = REVEAL_DISTANCE.toPx()
             val eliminationCoefficient = when {
                 swipeableState.offset.value.absoluteValue > eliminationDistance -> 0f
                 else -> (eliminationDistance - swipeableState.offset.value.absoluteValue) / eliminationDistance
@@ -87,6 +92,18 @@ fun SwipeBox(
         }
     }
     val contentOffset = remember<Density.() -> IntOffset> { { IntOffset(swipeableState.offset.value.roundToInt(), 0) } }
+    // The actions exist only while the row is swiped their way. At rest nothing of them is drawn beside the
+    // row (their cards showed in the page gutter) and no unseen button waits there for a tap.
+    val leftRevealed by remember(swipeableState) { derivedStateOf { swipeableState.offset.value > 0f } }
+    val rightRevealed by remember(swipeableState) { derivedStateOf { swipeableState.offset.value < 0f } }
+    // They fade in over the first part of the swipe instead of appearing at once in a wide gutter.
+    val reveal = remember<GraphicsLayerScope.() -> Unit>(swipeableState) {
+        {
+            alpha = (swipeableState.offset.value.absoluteValue / REVEAL_DISTANCE.toPx()).coerceIn(0f, 1f)
+            // No offscreen buffer: it would cut the cards' shadows at the layer's bounds.
+            compositingStrategy = CompositingStrategy.ModulateAlpha
+        }
+    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -99,22 +116,29 @@ fun SwipeBox(
             )
             .testTag("SwipeBox")
     ) {
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .wrapContentHeight()
-                .offset(leftOffsetsCalculator)
-        ) {
-            leftContent()
+        // The row in front sets the height: the actions behind it must never make the row taller.
+        if (leftRevealed) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .offset(leftOffsetsCalculator)
+                    .graphicsLayer(reveal),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                leftContent()
+            }
         }
 
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .wrapContentHeight()
-                .offset(rightOffsetsCalculator)
-        ) {
-            rightContent()
+        if (rightRevealed) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .offset(rightOffsetsCalculator)
+                    .graphicsLayer(reveal),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                rightContent()
+            }
         }
 
         Box(
@@ -127,6 +151,9 @@ fun SwipeBox(
         }
     }
 }
+
+/** The swipe distance over which the actions slide in from beyond the row and reach full strength. */
+private val REVEAL_DISTANCE = 40.dp
 
 @OptIn(ExperimentalMaterialApi::class)
 @Preview

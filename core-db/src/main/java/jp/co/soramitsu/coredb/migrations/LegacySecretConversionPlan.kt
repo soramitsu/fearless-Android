@@ -12,6 +12,8 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
 import jp.co.soramitsu.common.data.storage.encrypt.planArchiveMove
 import jp.co.soramitsu.common.data.storage.encrypt.replaceEncryptedStringsForStatesDurably
 import jp.co.soramitsu.common.data.storage.encrypt.requireSnapshotMovesReady
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelope
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelopes
 
 /**
  * One durable replacement for a legacy `<id>:ACCESS_SECRETS` payload: the V3
@@ -80,6 +82,10 @@ internal class LegacySecretConversionPlan(
  * payload is kept in quarantine rather than failing the upgrade. With
  * [legacyMovable] false the legacy payload stays where it is and only the
  * missing V3 entries are published.
+ *
+ * A sealed V3 entry is judged only through the session's SK. When it cannot
+ * be opened (before the PIN) nothing can be judged, so the plan is a no-op:
+ * no legacy move and no new entry next to it.
  */
 internal fun EncryptedPreferences.planLegacySecretConversion(
     identity: WalletPublicIdentity,
@@ -95,6 +101,7 @@ internal fun EncryptedPreferences.planLegacySecretConversion(
     val ethereumKey = "$metaId:ETHEREUM_SECRETS"
     val expectedStates = linkedMapOf<String, EncryptedPreferenceSnapshot?>()
     val valuesToPut = linkedMapOf<String, String>()
+    var cannotJudge = false
 
     fun resolve(
         targetKey: String,
@@ -111,6 +118,13 @@ internal fun EncryptedPreferences.planLegacySecretConversion(
             null
         }
         val converted = (outcome as? LegacyRootOutcome.Converted)?.plaintext
+        val existingPlaintext = existing?.plaintext?.let { stored ->
+            if (WalletSecretEnvelope.isSealed(stored)) WalletSecretEnvelopes.openOrNull(stored) else stored
+        }
+        if (existing != null && existingPlaintext == null) {
+            cannotJudge = true
+            return false
+        }
         return when {
             existing == null && converted != null -> {
                 expectedStates[targetKey] = null
@@ -120,7 +134,7 @@ internal fun EncryptedPreferences.planLegacySecretConversion(
 
             existing == null -> false
 
-            existing.plaintext == converted || provesIdentity(existing.plaintext) -> {
+            existingPlaintext == converted || provesIdentity(checkNotNull(existingPlaintext)) -> {
                 // The active V3 entry wins; the legacy copy is retained below.
                 expectedStates[targetKey] = existing
                 true
@@ -159,6 +173,10 @@ internal fun EncryptedPreferences.planLegacySecretConversion(
                     )
             )
         }
+    }
+
+    if (cannotJudge) {
+        return LegacySecretConversionPlan(expectedStates = emptyMap(), valuesToPut = emptyMap(), legacyMove = null)
     }
 
     val accessQuarantineKey = WalletSecretQuarantine.keyFor(accessKey)

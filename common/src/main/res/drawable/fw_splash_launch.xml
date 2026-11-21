@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launch art and window background: the stacked lockup on brand ink. The crest stays where the Android 12+
+     system splash drew it (centre of the window, same size), and the FEARLESS wordmark appears beneath it. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:opacity="opaque">
+    <item android:drawable="@color/fw_brand_ink" />
+    <item
+        android:width="@dimen/fw_launch_lockup_width"
+        android:height="@dimen/fw_launch_lockup_height"
+        android:top="@dimen/fw_launch_lockup_drop"
+        android:gravity="center"
+        android:drawable="@drawable/fw_brand_lockup" />
+</layer-list>

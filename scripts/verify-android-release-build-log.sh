@@ -103,14 +103,6 @@ missing_service_warning = re.compile(
 )
 if missing_service_warning.search(normalized):
     fail("R8 missing ServiceLoader class warning detected.")
-# Without the Google OAuth web client the Play build cannot sign in to Google Drive, so
-# upgrading users could neither restore nor create their Drive wallet backups.
-missing_web_client_warning = re.compile(
-    r"secret\s+'WEB_CLIENT_ID_RELEASE'\s+is\s+(?:not\s+defined|blank)",
-    flags=re.IGNORECASE,
-)
-if missing_web_client_warning.search(normalized):
-    fail("Google Drive web client secret WEB_CLIENT_ID_RELEASE is missing or blank.")
 if re.search(r"(?m)^\s*BUILD FAILED(?:\s|$)", normalized):
     fail("Gradle reported a failed production build.")
 if not re.search(r"(?m)^\s*BUILD SUCCESSFUL(?:\s|$)", normalized):

@@ -4,11 +4,15 @@ import jp.co.soramitsu.common.model.UniversalWalletRegistry
 
 /** An authoritative native and token inventory; failed/partial reads must never become zero balances. */
 interface SolanaBalanceSource {
-    /** Reads one exact wallet and cluster. For RPC sources [baseUrl] is a JSON-RPC endpoint. */
+    /**
+     * Reads one exact wallet and cluster. For RPC sources [baseUrl] is the first JSON-RPC endpoint and
+     * [fallbackUrls] are asked in order when it cannot answer; indexer sources ignore [fallbackUrls].
+     */
     suspend fun balances(
         wallet: String,
         network: UniversalWalletRegistry.SolanaNetwork = UniversalWalletRegistry.solanaMainnet,
         baseUrl: String? = null,
-        includeTokenMetadata: Boolean = true
+        includeTokenMetadata: Boolean = true,
+        fallbackUrls: List<String> = emptyList()
     ): SolanaBalanceSyncResult
 }

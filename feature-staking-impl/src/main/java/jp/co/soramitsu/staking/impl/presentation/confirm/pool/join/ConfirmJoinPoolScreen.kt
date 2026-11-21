@@ -1,5 +1,11 @@
 package jp.co.soramitsu.staking.impl.presentation.confirm.pool.join
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import jp.co.soramitsu.common.compose.theme.fw.FwSealBreakOverlay
+import jp.co.soramitsu.common.compose.theme.fw.FwSealLoadingOverlay
+import jp.co.soramitsu.common.feedback.TransferSeal
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -62,8 +68,11 @@ data class PoolJoinRecoveryViewState(
 @Composable
 fun ConfirmJoinPoolScreen(state: ConfirmJoinPoolScreenViewState, onNavigationClick: () -> Unit, onConfirm: () -> Unit,
     onCheckPending: (Boolean) -> Unit = {}, onReturnToPool: () -> Unit = {}) {
+    // The seal takes the loader's place while the join is submitted (brand kit SPEC v4 part 3), on its own scrim.
+    val seal by TransferSeal.record.collectAsState()
     BottomSheetScreen(Modifier.verticalScroll(rememberScrollState())) {
-        FullScreenLoading(isLoading = state.isLoading) {
+        Box {
+        FullScreenLoading(isLoading = state.isLoading, indicator = if (seal.readyAtMs != null) ({}) else null) {
             Column {
                 Toolbar(state = state.toolbarViewState, onNavigationClick = onNavigationClick)
                 if (state.recovery != null) {
@@ -100,6 +109,10 @@ fun ConfirmJoinPoolScreen(state: ConfirmJoinPoolScreenViewState, onNavigationCli
                 }
                 }
             }
+        }
+        if (state.isLoading) FwSealLoadingOverlay(seal, Modifier.matchParentSize())
+        // A definite failure breaks the seal over the screen while the app's own error appears.
+        FwSealBreakOverlay(seal, Modifier.matchParentSize())
         }
     }
 }

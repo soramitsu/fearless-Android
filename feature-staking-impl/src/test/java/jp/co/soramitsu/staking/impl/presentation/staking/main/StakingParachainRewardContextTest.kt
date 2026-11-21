@@ -56,6 +56,7 @@ class StakingParachainRewardContextTest {
     private val selected = mock<StakingSharedState> {
         on { selectionRevision } doReturn revision
         on { selectionItem } doReturn emptyFlow()
+        on { settledSelection } doReturn emptyFlow()
         on { currentAssetFlow() } doReturn assets
         on { assetWithChain } doReturn metadata
     }

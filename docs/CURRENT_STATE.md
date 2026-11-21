@@ -18,7 +18,7 @@ This document summarizes the current state of the codebase as observed in this r
 These features vary in maturity; consult TODOs below and module code for specifics.
 
 ## Global Initialization
-- `App` (`jp.co.soramitsu.app.App`) configures language/locale, sets `OptionsProvider` (build info), and initializes WalletConnect v2.
+- `App` (`jp.co.soramitsu.app.App`) configures language/locale, sets `OptionsProvider` (build info), and starts the in-repo WalletConnect v2 client (`WalletConnectStarter`).
 - BuildConfig fields provide IDs/secrets required by external integrations (e.g., WalletConnect project ID).
 
 ## Configuration & Secrets

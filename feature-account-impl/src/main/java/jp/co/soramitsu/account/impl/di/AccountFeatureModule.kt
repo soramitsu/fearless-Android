@@ -1,11 +1,13 @@
 package jp.co.soramitsu.account.impl.di
 
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
@@ -20,18 +22,29 @@ import jp.co.soramitsu.account.impl.data.repository.AccountRepositoryImpl
 import jp.co.soramitsu.account.impl.data.repository.KeyPairRepository
 import jp.co.soramitsu.account.impl.data.repository.SubstrateOrEvmAccountRepository
 import jp.co.soramitsu.account.impl.data.repository.TonAccountRepository
+import jp.co.soramitsu.account.api.domain.UniversalWalletFundsProbe
+import jp.co.soramitsu.account.api.domain.UniversalWalletPasswordNotice
+import jp.co.soramitsu.account.impl.domain.UniversalWalletFreshRoots
+import jp.co.soramitsu.account.impl.domain.UniversalWalletPasswordNoticeService
+import jp.co.soramitsu.account.impl.domain.UniversalWalletWatchList
 import jp.co.soramitsu.account.impl.data.repository.WalletSecretMutationCoordinator
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSourceImpl
 import jp.co.soramitsu.account.impl.domain.AccountInteractorImpl
 import jp.co.soramitsu.account.impl.domain.AssetNotNeedAccountUseCaseImpl
-import jp.co.soramitsu.account.impl.domain.BeaconConnectedUseCase
 import jp.co.soramitsu.account.impl.domain.NodeHostValidator
 import jp.co.soramitsu.account.impl.domain.NomisScoreInteractorImpl
 import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.account.impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.account.impl.presentation.common.mixin.impl.CryptoTypeChooser
+import jp.co.soramitsu.account.impl.data.backup.EncryptedGoogleOAuthTokenStore
+import jp.co.soramitsu.account.impl.presentation.google_signin.GoogleDriveSignInActivity
 import jp.co.soramitsu.backup.BackupService
+import jp.co.soramitsu.backup.oauth.GoogleDriveAuthorization
+import jp.co.soramitsu.backup.oauth.GoogleOAuthConfig
+import jp.co.soramitsu.backup.oauth.GoogleOAuthTokenClient
+import jp.co.soramitsu.backup.passkey.GoogleDriveHttpTransport
+import jp.co.soramitsu.backup.passkey.OkHttpGoogleDriveHttpTransport
 import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
@@ -46,6 +59,9 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretAccessGuard
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretMutationJournalStore
+import jp.co.soramitsu.common.data.storage.envelope.WalletPinAuthority
+import jp.co.soramitsu.common.data.network.config.signed.RemoteConfigSnapshot
+import jp.co.soramitsu.common.domain.BundledFiatCurrencies
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.common.interfaces.FileProvider
@@ -63,6 +79,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
+import okhttp3.OkHttpClient
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -97,7 +114,9 @@ class AccountFeatureModule {
         tonSecretStore: TonSecretStore,
         accountRepositoryDelegate: AccountRepositoryDelegate,
         walletSecretMutationCoordinator: WalletSecretMutationCoordinator,
-        walletSecretAccessGuard: WalletSecretAccessGuard
+        walletSecretAccessGuard: WalletSecretAccessGuard,
+        universalWalletFreshRoots: UniversalWalletFreshRoots,
+        universalWalletWatchList: UniversalWalletWatchList
     ): AccountRepository {
         return AccountRepositoryImpl(
             accountDataSource,
@@ -113,7 +132,9 @@ class AccountFeatureModule {
             tonSecretStore,
             accountRepositoryDelegate,
             walletSecretMutationCoordinator,
-            walletSecretAccessGuard
+            walletSecretAccessGuard,
+            universalWalletFreshRoots = universalWalletFreshRoots,
+            universalWalletWatchList = universalWalletWatchList
         )
     }
 
@@ -130,13 +151,41 @@ class AccountFeatureModule {
     @Singleton
     fun provideSubstrateOrEvmAccountRepository(
         metaAccountDao: MetaAccountDao,
-        walletSecretMutationCoordinator: WalletSecretMutationCoordinator
+        walletSecretMutationCoordinator: WalletSecretMutationCoordinator,
+        freshRoots: UniversalWalletFreshRoots
     ): SubstrateOrEvmAccountRepository {
         return SubstrateOrEvmAccountRepository(
             metaAccountDao,
-            walletSecretMutationCoordinator
+            walletSecretMutationCoordinator,
+            freshRoots
         )
     }
+
+    @Provides
+    @Singleton
+    fun provideUniversalWalletFreshRoots(preferences: Preferences) = UniversalWalletFreshRoots(preferences)
+
+    @Provides
+    @Singleton
+    fun provideUniversalWalletWatchList(preferences: Preferences) = UniversalWalletWatchList(preferences)
+
+    @Provides
+    @Singleton
+    fun provideUniversalWalletPasswordNotice(
+        accountRepository: AccountRepository,
+        metaAccountDao: MetaAccountDao,
+        walletSecretMutationCoordinator: WalletSecretMutationCoordinator,
+        fundsProbe: UniversalWalletFundsProbe,
+        preferences: Preferences,
+        watchList: UniversalWalletWatchList
+    ): UniversalWalletPasswordNotice = UniversalWalletPasswordNoticeService(
+        accountRepository,
+        metaAccountDao,
+        walletSecretMutationCoordinator,
+        fundsProbe,
+        preferences,
+        watchList
+    )
 
     @Provides
     @Singleton
@@ -194,11 +243,43 @@ class AccountFeatureModule {
 
     @Provides
     @Singleton
-    fun provideBackupService(context: Context): BackupService {
-        return BackupService.create(
-            context = context,
-            token = BuildConfig.WEB_CLIENT_ID
+    fun provideGoogleDriveHttpTransport(): GoogleDriveHttpTransport {
+        // A client of its own: no shared interceptor ever sees a Google token.
+        return OkHttpGoogleDriveHttpTransport(
+            OkHttpClient.Builder()
+                .connectTimeout(GOOGLE_CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .readTimeout(GOOGLE_IO_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .writeTimeout(GOOGLE_IO_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .callTimeout(GOOGLE_CALL_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(false)
+                .build()
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideGoogleDriveAuthorization(
+        transport: GoogleDriveHttpTransport,
+        encryptedPreferences: EncryptedPreferences
+    ): GoogleDriveAuthorization {
+        val config = GoogleOAuthConfig.create(BuildConfig.GOOGLE_DRIVE_OAUTH_CLIENT_ID)
+        return GoogleDriveAuthorization(
+            config = config,
+            tokenClient = GoogleOAuthTokenClient(config, transport),
+            store = EncryptedGoogleOAuthTokenStore(encryptedPreferences)
+        )
+    }
+
+    @Provides
+    @Singleton
+    fun provideBackupService(
+        context: Context,
+        authorization: GoogleDriveAuthorization,
+        transport: GoogleDriveHttpTransport
+    ): BackupService {
+        return BackupService.create(authorization, transport) { prompt ->
+            GoogleDriveSignInActivity.intent(context, prompt)
+        }
     }
 
     @Provides
@@ -214,19 +295,19 @@ class AccountFeatureModule {
     @Provides
     fun provideAccountDataSource(
         preferences: Preferences,
-        encryptedPreferences: EncryptedPreferences,
         jsonMapper: Gson,
         secretStoreV1: SecretStoreV1,
         metaAccountDao: MetaAccountDao,
-        chainsRepository: ChainsRepository
+        chainsRepository: ChainsRepository,
+        pinAuthority: WalletPinAuthority
     ): AccountDataSource {
         return AccountDataSourceImpl(
             preferences,
-            encryptedPreferences,
             jsonMapper,
             metaAccountDao,
             secretStoreV1,
-            chainsRepository
+            chainsRepository,
+            pinAuthority
         )
     }
 
@@ -282,7 +363,13 @@ class AccountFeatureModule {
 
     @Provides
     @Singleton
-    fun provideSelectedFiatUseCase(preferences: Preferences) = SelectedFiat(preferences)
+    fun provideSelectedFiatUseCase(preferences: Preferences, @ApplicationContext context: Context): SelectedFiat {
+        val snapshot = RemoteConfigSnapshot { path -> runCatching { context.assets.open(path) }.getOrNull() }
+        val currencies = BundledFiatCurrencies {
+            snapshot.read("production/fiat/fiats.json") ?: snapshot.read("development/fiat/fiats.json")
+        }
+        return SelectedFiat(preferences, currencies::get)
+    }
 
     @Provides
     fun provideAssetNotNeedAccountUseCase(
@@ -294,8 +381,9 @@ class AccountFeatureModule {
         return AssetNotNeedAccountUseCaseImpl(chainRegistry, assetDao, tokenPriceDao, selectedFiat)
     }
 
-    @Provides
-    fun provideBeaconConnectedUseCase(preferences: Preferences): BeaconConnectedUseCase {
-        return BeaconConnectedUseCase(preferences)
+    private companion object {
+        const val GOOGLE_CONNECT_TIMEOUT_SECONDS = 20L
+        const val GOOGLE_IO_TIMEOUT_SECONDS = 60L
+        const val GOOGLE_CALL_TIMEOUT_SECONDS = 120L
     }
 }

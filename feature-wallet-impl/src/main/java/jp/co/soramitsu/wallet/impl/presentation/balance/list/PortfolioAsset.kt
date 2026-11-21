@@ -11,6 +11,6 @@ data class PortfolioAsset(
     val fiatSymbol: String?,
     val rank: Int? = null
 ) {
-    val key: String get() = state.canonicalAssetKey
+    val key: String get() = state.rowKey
     val isAutomaticZero: Boolean get() = total?.signum() == 0 && state.assetPreference == "auto"
 }

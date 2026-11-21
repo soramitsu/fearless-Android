@@ -21,10 +21,10 @@ import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.TitleToValue
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
-import jp.co.soramitsu.common.compose.theme.blurColorLight
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white64
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
+import jp.co.soramitsu.staking.impl.presentation.common.stakingCardColor
 
 @Composable
 private fun StakingAssetInfo(
@@ -41,7 +41,7 @@ private fun StakingAssetInfo(
     }
 
     BackgroundCornered(
-        backgroundColor = blurColorLight,
+        backgroundColor = stakingCardColor,
         modifier = Modifier
             .fillMaxWidth()
     ) {

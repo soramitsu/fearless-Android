@@ -132,15 +132,22 @@ class DemeterFarmingViewModel @Inject constructor(
     }
 
     fun deposit(pool: DemeterFarmingBasicPool, amount: String) {
+        val depositAmount = amount.positiveAmountOrNull() ?: return rejectAmount()
         mutate(pool.key("deposit"), DemeterMutationAction.Deposit) {
-            interactor.deposit(soraMainChainId, pool, amount.decimalAmount())
+            interactor.deposit(soraMainChainId, pool, depositAmount)
         }
     }
 
     fun withdraw(pool: DemeterFarmingPool, amount: String) {
+        val withdrawAmount = amount.positiveAmountOrNull() ?: return rejectAmount()
         mutate(pool.key("withdraw"), DemeterMutationAction.Withdraw) {
-            interactor.withdraw(soraMainChainId, pool, amount.decimalAmount())
+            interactor.withdraw(soraMainChainId, pool, withdrawAmount)
         }
+    }
+
+    // The amount fields accept "", "." and "0"; such an amount is refused here, before anything is launched.
+    private fun rejectAmount() {
+        mutableState.update { it.copy(message = INVALID_AMOUNT_MESSAGE) }
     }
 
     fun claim(pool: DemeterFarmingPool) {
@@ -185,15 +192,18 @@ class DemeterFarmingViewModel @Inject constructor(
         DemeterMutationAction.Claim -> copy(claimCapabilityReason = reason)
     }
 
-    private fun String.decimalAmount(): BigDecimal = trim().toBigDecimalOrNull()
+    private fun String.positiveAmountOrNull(): BigDecimal? = trim().toBigDecimalOrNull()
         ?.takeIf { it > BigDecimal.ZERO }
-        ?: throw IllegalArgumentException("Enter a positive amount")
 
     private fun DemeterFarmingBasicPool.key(action: String) =
         "$action:${tokenBase.token.configuration.currencyId}:${tokenTarget.token.configuration.currencyId}:${tokenReward.token.configuration.currencyId}"
 
     private fun DemeterFarmingPool.key(action: String) =
         "$action:${tokenBase.token.configuration.currencyId}:${tokenTarget.token.configuration.currencyId}:${tokenReward.token.configuration.currencyId}"
+
+    private companion object {
+        const val INVALID_AMOUNT_MESSAGE = "Enter a positive amount"
+    }
 }
 
 @AndroidEntryPoint

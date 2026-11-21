@@ -1,11 +1,14 @@
 # Fail-closed production contract for Google Drive wallet backup.
 #
-# SHA-256 of the exact `WEB_CLIENT_ID_RELEASE` Google OAuth web client id
-# (project 621183184145) compiled into every official release from 2.4.1
-# through 4.2.0. Drive keeps wallet backups per Google Cloud project, so the
-# Play release must keep this client or upgrading users lose sight of their
-# backups. The id itself stays in the GitHub secret and local.properties; it is
-# not the `client_type: 3` entry of 4.2.0's google-services.json.
-# Change this line only in a reviewed pull request that moves Drive backup to a
-# new client in the same Cloud project.
-541125bea830061774ef4c2fdab5d65d76efdb3ce7d91dec2b6eec5c24bbc5bc
+# SHA-256 of the exact Google OAuth client id compiled into the release for Drive backup
+# (GOOGLE_DRIVE_OAUTH_CLIENT_ID, scripts/secrets.gradle). Drive keeps wallet backups per Google
+# Cloud project, so the client must belong to project 621183184145, which Android 2.3.1-4.3.1
+# (through Google Play services), iOS and the browser extension use; otherwise upgrading users
+# lose sight of their backups. Since 4.3.2 the app signs in with its own OAuth 2.0 + PKCE code
+# and, by default, that project's public iOS client
+# (621183184145-jla1mrbl3soobt85btt2nebon8s3d30b.apps.googleusercontent.com), whose
+# custom-scheme redirect works from Android. Installed-app client ids are public; there is no
+# client secret.
+# Change this line only in a reviewed pull request that moves Drive backup to another client in
+# the same Cloud project, together with the redirect scheme in scripts/verify-android-aab-identity.sh.
+d7d634e6fa6ab8033cfdd71c5f3d489caa1a04ca2555b0a884e332753d272d22

@@ -35,7 +35,13 @@ data class AssetListItemViewState(
     /** True when part of the total cannot be sent, so the row adds a "Transferable" line. */
     val showTransferableBalance: Boolean = false
 ) {
-    val key = listOf(index ?: 0, canonicalAssetKey, isHidden).joinToString()
+    /**
+     * One row per chain asset. [canonicalAssetKey] names the runtime identity and can repeat on a chain: Acala's tDOT and
+     * GLMR both have currency id 0, Karura's RMRK and taiKSM too, Bifrost's vKSM and vsKSM share "ksm".
+     */
+    val rowKey: String = "$chainId:$chainAssetId"
+
+    val key = listOf(index ?: 0, rowKey, isHidden).joinToString()
 
     val isDetected: Boolean = metadataTrust != "verified" && assetPreference == "auto"
 }

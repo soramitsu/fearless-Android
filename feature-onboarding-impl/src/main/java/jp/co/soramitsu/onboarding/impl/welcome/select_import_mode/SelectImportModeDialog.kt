@@ -10,7 +10,7 @@ import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
-import jp.co.soramitsu.common.utils.isGooglePlayServicesAvailable
+import jp.co.soramitsu.common.utils.canOpenHttpsLinks
 
 @AndroidEntryPoint
 class SelectImportModeDialog : BaseComposeBottomSheetDialogFragment<SelectImportModeViewModel>() {
@@ -20,7 +20,7 @@ class SelectImportModeDialog : BaseComposeBottomSheetDialogFragment<SelectImport
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
-        val isGoogleAvailable = state.isGoogleImportAllowed && context?.isGooglePlayServicesAvailable() == true
+        val isGoogleAvailable = state.isGoogleImportAllowed && context?.canOpenHttpsLinks() == true
         SelectImportModeContent(
             state = state,
             isGoogleAvailable = isGoogleAvailable,

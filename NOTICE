@@ -1,0 +1,30 @@
+Fearless Wallet for Android
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This repository includes source code from the following third-party projects.
+Each file keeps the license header it came with.
+
+polkaj-scale 0.2.3 (SCALE codec)
+  runtime-utils/src/main/java/io/emeraldpay/polkaj/scale
+  https://github.com/emeraldpay/polkaj, tag v0.2.3,
+  commit 3227a8ef605cd65b29b1cb2648a02e3a2a9c2419, by EmeraldPay.
+  Apache License, Version 2.0.
+  Modified for Fearless: Java 8 and Android API compatibility, and the Short,
+  Long and String codecs of the polkaj-scale-0.2.3.jar the app shipped until
+  4.3.1. Built from source since 4.3.2.
+
+nv-websocket-client
+  runtime-websocket/src/main/java/com/neovisionaries/ws/client
+  Copyright (C) 2015-2018 Neo Visionaries Inc.
+  Apache License, Version 2.0.
+
+XSalsa20Poly1305 (secret box)
+  runtime-utils/src/main/java/jp/co/soramitsu/fearless_utils/encrypt/xsalsa20poly1305
+  Copyright 2017 Coda Hale.
+  Apache License, Version 2.0.
+
+Base58 (from bitcoinj)
+  runtime-utils/src/main/java/jp/co/soramitsu/fearless_utils/encrypt/Base58.kt
+  runtime-utils/src/main/java/jp/co/soramitsu/fearless_utils/exceptions/AddressFormatException.kt
+  Copyright 2011 Google Inc.
+  Apache License, Version 2.0.

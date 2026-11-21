@@ -34,6 +34,7 @@ import jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.account.impl.presentation.recovery.SavedEndpointsFragment
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.InitializationStep
+import jp.co.soramitsu.common.data.storage.envelope.PinVerification
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.app.root.presentation.WalletRootActivity
 import jp.co.soramitsu.app.root.presentation.RootViewModel
@@ -120,7 +121,7 @@ class SavedEndpointDecisionAuthenticationInstrumentedTest {
         var expectedSql = retainedSql83
         assertPersistentEquals(expectedSql, after83, initialFailedAttempts, exactPreferenceBytes = !continuingSavedDecisions)
         assertEquals(PinHealth.HEALTHY, runBlocking(Dispatchers.IO) { graph.accountRepository().getPinHealth() })
-        assertEquals(PUBLIC_PIN, runBlocking(Dispatchers.IO) { graph.accountRepository().getPinCode() })
+        assertEquals(PinVerification.CORRECT, runBlocking(Dispatchers.IO) { graph.accountRepository().verifyPinCode(PUBLIC_PIN) })
 
         val title = text(R.string.saved_endpoints_title)
         compose.waitUntil(15_000) { compose.onAllNodesWithText(title).fetchSemanticsNodes().size == 1 }

@@ -13,6 +13,8 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
 
 data class ChangeBalanceViewState(
     val percentChange: String,
@@ -24,10 +26,11 @@ data class ChangeBalanceViewState(
 fun ChangeBalance(
     state: ChangeBalanceViewState
 ) {
-    val balanceChangeStatusColor = if (state.percentChange.startsWith("+")) {
-        MaterialTheme.customColors.greenText
-    } else {
-        MaterialTheme.customColors.red
+    val balanceChangeStatusColor = when {
+        FwRestyle.paletteEnabled && state.percentChange.startsWith("+") -> LocalFwColors.current.priceUp
+        FwRestyle.paletteEnabled -> LocalFwColors.current.priceDown
+        state.percentChange.startsWith("+") -> MaterialTheme.customColors.greenText
+        else -> MaterialTheme.customColors.red
     }
 
     Row {
@@ -51,7 +54,7 @@ fun ChangeBalance(
         }
         Text(
             text = "(${state.fiatChange})",
-            style = MaterialTheme.customTypography.body1.copy(color = black2),
+            style = MaterialTheme.customTypography.body1.copy(color = if (FwRestyle.paletteEnabled) LocalFwColors.current.textSecondary else black2),
             modifier = Modifier
                 .padding(start = 4.dp)
                 .testTag("balance_change_fiat")

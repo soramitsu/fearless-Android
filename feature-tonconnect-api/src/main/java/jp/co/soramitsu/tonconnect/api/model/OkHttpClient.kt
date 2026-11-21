@@ -17,6 +17,7 @@ import okhttp3.sse.EventSourceListener
 import okhttp3.sse.EventSources
 
 private const val SSE_RETRY_DELAY_MILLIS = 1000L
+private const val LAST_EVENT_ID_HEADER = "Last-Event-ID"
 
 private fun requestBuilder(url: String): Request.Builder {
     val builder = Request.Builder()
@@ -49,9 +50,24 @@ class OkHttpError(
     private val response: Response
 ) : Exception("HTTP error: ${response.code}")
 
+/** Raised when the server ends an event stream, so that the subscription reconnects. */
+class EventStreamClosedException : Exception("The event stream was closed by the server")
+
 fun OkHttpClient.sseFactory() = EventSources.createFactory(this)
 
-fun OkHttpClient.sse(url: String, lastEventId: Long? = null): Flow<SSEvent> = callbackFlow {
+/**
+ * Subscribes to a server-sent event stream and reconnects after a network
+ * failure or a server-side close. [lastEventId] is read again for every
+ * connection attempt, so a reconnect resumes after the last event the caller
+ * has recorded instead of replaying the server's queue.
+ */
+fun OkHttpClient.sse(url: String, lastEventId: suspend () -> Long?): Flow<SSEvent> = sseFactory().sse(url, lastEventId)
+
+internal fun EventSource.Factory.sse(
+    url: String,
+    lastEventId: suspend () -> Long?,
+    retryDelayMillis: Long = SSE_RETRY_DELAY_MILLIS
+): Flow<SSEvent> = callbackFlow {
     val listener = object : EventSourceListener() {
         override fun onEvent(
             eventSource: EventSource,
@@ -72,21 +88,27 @@ fun OkHttpClient.sse(url: String, lastEventId: Long? = null): Flow<SSEvent> = ca
         }
 
         override fun onClosed(eventSource: EventSource) {
-            this@callbackFlow.close()
+            // Like a browser EventSource, resume after a server-side close.
+            this@callbackFlow.close(EventStreamClosedException())
         }
     }
+    val request = sseRequest(url, lastEventId())
+    val events = newEventSource(request, listener)
+    awaitClose { events.cancel() }
+}.cancellable().retry { _ ->
+    delay(retryDelayMillis)
+    true
+}
+
+internal fun sseRequest(url: String, lastEventId: Long?): Request {
     val builder = requestBuilder(url)
         .addHeader("Accept", "text/event-stream")
         .addHeader("Cache-Control", "no-cache")
         .addHeader("Connection", "keep-alive")
 
-    if (lastEventId != null) {
-        builder.addHeader("Last-Event-ID", lastEventId.toString())
+    // Without a recorded event the header is left out rather than sent as 0.
+    if (lastEventId != null && lastEventId > 0) {
+        builder.addHeader(LAST_EVENT_ID_HEADER, lastEventId.toString())
     }
-    val request = builder.build()
-    val events = sseFactory().newEventSource(request, listener)
-    awaitClose { events.cancel() }
-}.cancellable().retry { _ ->
-    delay(SSE_RETRY_DELAY_MILLIS)
-    true
+    return builder.build()
 }

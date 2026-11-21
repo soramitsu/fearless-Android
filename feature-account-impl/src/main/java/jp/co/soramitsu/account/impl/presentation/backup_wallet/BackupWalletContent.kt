@@ -1,5 +1,7 @@
 package jp.co.soramitsu.account.impl.presentation.backup_wallet
 
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
@@ -164,8 +166,8 @@ fun SettingsDivider(
     modifier: Modifier = Modifier
 ) {
     Divider(
-        modifier = modifier.padding(horizontal = 16.dp),
-        color = MaterialTheme.customColors.dividerGray
+        modifier = modifier.padding(start = if (FwRestyle.paletteEnabled) 68.dp else 16.dp, end = 16.dp),
+        color = if (FwRestyle.paletteEnabled) LocalFwColors.current.divider else MaterialTheme.customColors.dividerGray
     )
 }
 

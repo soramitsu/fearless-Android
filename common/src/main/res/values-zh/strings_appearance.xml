@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_title">外观</string>
+    <string name="appearance_effects_title">视觉效果</string>
+    <string name="appearance_effects_automatic">自动</string>
+    <string name="appearance_effects_reduced">简化</string>
+    <string name="appearance_effects_automatic_description">显示完整的光影效果，除非设备要求更高对比度。</string>
+    <string name="appearance_effects_reduced_description">纯色平面，没有光晕和阴影。</string>
+    <string name="appearance_effects_kept_reduced">设备的对比度设置使效果保持简化。</string>
+    <string name="appearance_contrast_title">提高对比度</string>
+    <string name="appearance_contrast_description">文字更亮，轮廓更清晰。开启时效果保持简化。</string>
+    <string name="appearance_preview_title">预览</string>
+    <string name="appearance_save_failed">无法保存此选择。</string>
+</resources>

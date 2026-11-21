@@ -9,7 +9,7 @@ class ReefRequestBuilder(
     private val transfersOffset: String? = null
 ) {
     fun buildRequest(): ReefHistoryRequest {
-        val offset = transfersOffset?.let { "\"$it\"" }
+        val offset = graphqlStringLiteral(transfersOffset)
         val query = StringBuilder()
         if (filters.contains(TransactionFilter.TRANSFER)) {
             query.append(

@@ -1,6 +1,8 @@
 package jp.co.soramitsu.account.impl.presentation.mnemonic.backup
 
+import android.app.Dialog
 import android.os.Bundle
+import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -15,20 +17,33 @@ import jp.co.soramitsu.account.impl.presentation.view.advanced.encryption.model.
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.BottomSheetScreen
 import jp.co.soramitsu.common.model.WalletEcosystem
-import jp.co.soramitsu.common.utils.isGooglePlayServicesAvailable
+import jp.co.soramitsu.common.utils.canOpenHttpsLinks
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet
+import jp.co.soramitsu.common.view.protectSensitiveContent
 
 @AndroidEntryPoint
 class BackupMnemonicDialog : BaseComposeBottomSheetDialogFragment<BackupMnemonicViewModel>() {
 
+    override val secureSurface = true
+
     override val viewModel: BackupMnemonicViewModel by viewModels()
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        // The sheet shows the recovery phrase in its own window, which never
+        // inherits the Activity window flags. Mark it secure before it is
+        // first drawn; the flag goes away with the window.
+        return super.onCreateDialog(savedInstanceState).apply {
+            window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            window?.decorView?.protectSensitiveContent()
+        }
+    }
 
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
         viewModel.encryptionTypeChooserEvent.observeEvent(::showEncryptionChooser)
 
-        val isGoogleAvailable = context?.isGooglePlayServicesAvailable() == true
+        val isGoogleAvailable = context?.canOpenHttpsLinks() == true
         BottomSheetScreen {
             BackupMnemonicContent(
                 state = state,

@@ -68,6 +68,16 @@ interface AccountInteractor {
 
     suspend fun isPinCorrect(code: String): Boolean
 
+    /** Milliseconds until a PIN can be checked again after repeated wrong PINs; zero when it can be checked now. */
+    suspend fun getPinRetryDelayMillis(): Long
+
+    /**
+     * Checks a PIN unsealed by a strong biometric (see the biometric PIN vault). A match clears the
+     * wrong-PIN count, as the right PIN does, and works during a wrong-PIN delay; a mismatch is no
+     * wrong guess, because nobody typed it.
+     */
+    suspend fun verifyBiometricVaultPin(pin: String): Boolean
+
     suspend fun isBiometricEnabled(): Boolean
 
     suspend fun setBiometricOn()
@@ -152,10 +162,20 @@ interface AccountInteractor {
      */
     suspend fun deleteGoogleBackupAccount(walletId: Long, copies: List<BackupAccountMeta>)
     suspend fun authorizeGoogleBackup(launcher: ActivityResultLauncher<Intent>): Boolean
+
+    /** Whether Google is signed in on this device, asked without opening the sign-in screen. */
+    suspend fun hasGoogleBackupSession(): Boolean
     suspend fun getSubstrateSecrets(metaId: Long): EncodableStruct<SubstrateSecrets>?
 
     fun getMnemonic(metaId: Long): Flow<Mnemonic>
     fun getSeedForSeedExport(metaId: Long): Flow<ComponentHolder>
     fun getDerivationPathForExport(metaId: Long): Flow<ComponentHolder>
+
+    /**
+     * The derivation paths a TON export shows: the Substrate one, plus the Ethereum one when it
+     * holds the password the wallet's universal TON key derives with. Without that password the
+     * exported words restore a different TON address.
+     */
+    fun getDerivationPathForTonExport(metaId: Long): Flow<ComponentHolder>
     suspend fun saveChainSelectFilter(metaId: Long, filterValue: String)
 }

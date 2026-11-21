@@ -1,6 +1,8 @@
 package jp.co.soramitsu.xcm
 
 import jp.co.soramitsu.core.extrinsic.ExtrinsicBuilderFactory
+import jp.co.soramitsu.core.extrinsic.SigningRuntime
+import jp.co.soramitsu.core.extrinsic.SigningRuntimeSource
 import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.core.extrinsic.mortality.Mortality
 import jp.co.soramitsu.core.extrinsic.mortality.MortalityConstructor
@@ -142,7 +144,7 @@ class XcmFeeQuoteTest {
             override suspend fun getKeypairFor(chain: IChain, accountId: ByteArray): Keypair =
                 error("Preparation must not access private keys")
         }
-        val builder = ExtrinsicBuilderFactory(rpc, registry, mortality)
+        val builder = ExtrinsicBuilderFactory(rpc, registry, mortality, fixtureSigningRuntimes(registry))
             .createForAuthorizedSubmit(chain, account, provider, null, null)
             .builder
         builder.call("XcmFixture", "send", mapOf("value" to BigInteger.valueOf(7)))
@@ -193,4 +195,9 @@ class XcmFeeQuoteTest {
             )
         )
     }
+}
+
+// These fixtures pin Mode::Disabled encodings; the metadata hash path has its own tests.
+private fun fixtureSigningRuntimes(registry: IChainRegistry) = SigningRuntimeSource { chain, _ ->
+    SigningRuntime.MetadataHashExempt(registry.getRuntime(chain.id), "test fixture signs Mode::Disabled")
 }

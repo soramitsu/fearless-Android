@@ -1,5 +1,9 @@
 package jp.co.soramitsu.common.compose.component
 
+import jp.co.soramitsu.common.compose.theme.fw.FwMirrorLoader
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import androidx.compose.ui.platform.testTag
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -71,7 +75,10 @@ fun FeeInfo(state: FeeInfoViewState, modifier: Modifier = Modifier, tooltipClick
         Column(modifier = Modifier.weight(1f)) {
             state.feeAmount?.let {
                 CapsTitle(text = it, textAlign = TextAlign.End, modifier = Modifier.align(Alignment.End))
-            } ?: Shimmer(
+            } ?: if (FwRestyle.isEnabled(FwSurface.Loading)) {
+                // A fee being estimated: the mirror loader, 24 dp (brand kit SPEC v4 part 4).
+                FwMirrorLoader(Modifier.size(24.dp).align(Alignment.End).testTag("fee_estimate_loader"))
+            } else Shimmer(
                 modifier = Modifier
                     .height(16.dp)
                     .width(100.dp)

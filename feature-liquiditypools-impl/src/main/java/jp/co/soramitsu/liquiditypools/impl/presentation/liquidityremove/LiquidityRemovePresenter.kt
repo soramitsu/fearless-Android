@@ -196,7 +196,8 @@ class LiquidityRemovePresenter @Inject constructor(
                                     targetPooled = PolkaswapFormulas.calculateAmountByPercentage(
                                         poolDataLocal.user.targetPooled,
                                         usablePercent,
-                                        poolDataLocal.basic.baseToken.precision,
+                                        poolDataLocal.basic.targetToken?.precision
+                                            ?: poolDataLocal.basic.baseToken.precision,
                                     ),
                                     poolProvidersBalance = PolkaswapFormulas.calculateAmountByPercentage(
                                         poolDataLocal.user.poolProvidersBalance,
@@ -500,16 +501,18 @@ class LiquidityRemovePresenter @Inject constructor(
 
             val slippage = DEFAULT_SLIPPAGE
 
+            // The chain takes each minimum in planks, and the repository refuses a value finer than its asset.
+            // Rounding down keeps the slippage bound on the safe side, lower by less than one plank.
             val firstAmountMin =
                 PolkaswapFormulas.calculateMinAmount(
                     amountBase,
                     slippage
-                )
+                ).setScale(poolAssets.first.configuration.precision, RoundingMode.DOWN)
             val secondAmountMin =
                 PolkaswapFormulas.calculateMinAmount(
                     amountTarget,
                     slippage
-                )
+                ).setScale(poolAssets.second.configuration.precision, RoundingMode.DOWN)
             val desired =
                 if (percent == 100.0) {
                     poolDataUsable?.user?.poolProvidersBalance.orZero()

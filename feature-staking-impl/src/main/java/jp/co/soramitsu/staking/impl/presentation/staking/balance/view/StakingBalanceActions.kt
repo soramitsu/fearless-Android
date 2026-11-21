@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.LinearLayout
 import android.widget.TextView
+import jp.co.soramitsu.staking.impl.presentation.common.stakingCard
 import jp.co.soramitsu.common.utils.dp
 import jp.co.soramitsu.common.utils.updatePadding
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
@@ -25,7 +26,7 @@ class StakingBalanceActions
         inflate(context, R.layout.view_staking_balance_actions, this)
         binding = ViewStakingBalanceActionsBinding.bind(this)
 
-        background = context.getCutCornerDrawable(R.color.blurColor)
+        stakingCard { context.getCutCornerDrawable(R.color.blurColor) }
 
         updatePadding(top = 4.dp(context), bottom = 4.dp(context))
     }

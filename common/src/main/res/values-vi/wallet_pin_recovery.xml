@@ -13,4 +13,7 @@
     <string name="pin_recovery_verify_backup">Xác minh bản sao lưu ví</string>
     <string name="pin_recovery_reset">Khôi phục PIN ví</string>
     <string name="pin_recovery_view_only_title">Quyền chỉ xem</string>
+    <string name="pin_recovery_forgot">Quên mã PIN?</string>
+    <string name="pin_recovery_forgot_intro">Quên mã PIN? Xác minh bản sao lưu của một ví để đặt mã PIN mới.</string>
+    <string name="pin_recovery_key_unavailable">Bản sao lưu này không mở được khóa ví. Hãy thử bản sao lưu của ví khác.</string>
 </resources>

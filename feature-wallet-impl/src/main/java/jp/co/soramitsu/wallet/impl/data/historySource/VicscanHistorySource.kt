@@ -42,7 +42,10 @@ class VicscanHistorySource(
                     else -> Operation.Status.COMPLETED
                 }
                 Operation(
-                    id = element.transactionIndex.toString(),
+                    // The hash names the transaction. Its index only places it inside one block, so two
+                    // transfers in different blocks shared an id: one replaced the other in the cache, and the
+                    // list refuses two rows with one key.
+                    id = element.hash,
                     address = accountAddress,
                     time = element.timestamp,
                     chainAsset = chainAsset,

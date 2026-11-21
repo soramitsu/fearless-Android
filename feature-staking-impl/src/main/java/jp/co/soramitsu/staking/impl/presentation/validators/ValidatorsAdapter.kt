@@ -7,6 +7,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.fwListRow
 import jp.co.soramitsu.common.list.PayloadGenerator
 import jp.co.soramitsu.common.list.resolvePayload
 import jp.co.soramitsu.common.utils.inflateChild
@@ -77,6 +80,10 @@ class ValidatorsAdapter(
 }
 
 class ValidatorViewHolder(private val containerView: View) : RecyclerView.ViewHolder(containerView) {
+
+    init {
+        if (FwRestyle.isEnabled(FwSurface.Staking)) containerView.fwListRow(16)
+    }
 
     fun bind(
         validator: ValidatorModel,

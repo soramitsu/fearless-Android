@@ -1,5 +1,6 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_preview
 
+import jp.co.soramitsu.common.feedback.TransferSeal
 import android.app.Activity
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -32,6 +33,11 @@ class SwapPreviewViewModel @Inject constructor(
 
     var isClosing = false
 
+    init {
+        // A seal left by an earlier operation never shows on this screen's loader.
+        TransferSeal.clear()
+    }
+
     val state =
         MutableStateFlow(SwapPreviewState(swapDetailsViewState = swapDetailsViewState, networkFee = swapDetailsParcelModel.networkFee, isLoading = false))
 
@@ -55,7 +61,9 @@ class SwapPreviewViewModel @Inject constructor(
         state.value = state.value.copy(isLoading = true)
         val markets = if (swapDetailsParcelModel.selectedMarket == Market.SMART) emptyList() else listOf(swapDetailsParcelModel.selectedMarket)
         viewModelScope.launch {
-            val swapResult = withContext(Dispatchers.Default) {
+            // The seal (brand kit SPEC v4 part 3): this screen knows the hand-over and the network's answer only, so
+            // `ready` lights now and the rest together with the hash; a refusal breaks it beside the app's error.
+            val swapResult = TransferSeal.track { withContext(Dispatchers.Default) {
                 polkaswapInteractor.swap(
                     dexId = swapDetailsParcelModel.dexId,
                     inputAssetId = swapDetailsViewState.fromTokenId,
@@ -66,7 +74,7 @@ class SwapPreviewViewModel @Inject constructor(
                     markets = markets.backStrings(),
                     desired = swapDetailsParcelModel.desired
                 )
-            }
+            } }
             swapResult.fold(
                 onSuccess = {
                     onClose(Activity.RESULT_OK)

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Process
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.Lifecycle
@@ -21,6 +22,7 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageHealth
 import jp.co.soramitsu.common.resources.ContextManager
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.view.bottomSheet.AlertBottomSheet
+import jp.co.soramitsu.common.view.hideOtherAppsOverlays
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -43,17 +45,43 @@ internal fun Intent.toWalletInternalHandoff(
     context: Context,
     target: Class<*>
 ): Intent {
-    return Intent(this).apply {
-        // The exported startup Activity may receive caller-controlled task
-        // flags. Preserve only URI grants needed by document imports, then
-        // apply the wallet's own single-task-stack handoff contract.
-        component = null
-        setPackage(null)
-        selector = null
-        setClass(context, target)
-        flags = (flags and WALLET_URI_GRANT_FLAGS) or
-            Intent.FLAG_ACTIVITY_CLEAR_TOP or
-            Intent.FLAG_ACTIVITY_SINGLE_TOP
+    // The exported startup Activity receives caller-controlled Intents, and
+    // the wallet graph treats its host's Intent as a deep link. Build the
+    // handoff from scratch: extras (including Navigation's deep-link ids and
+    // arguments), clip data, selectors, categories, task flags and every URI
+    // outside WalletEntryIntentPolicy stay behind, so the graph always starts
+    // at splash and the PIN check.
+    val sourceData = data
+    val sourceFlags = flags
+    val entryData = WalletEntryIntentPolicy.admit(
+        action = action,
+        uri = sourceData?.let { uri ->
+            WalletEntryUri(
+                scheme = uri.scheme,
+                encodedAuthority = uri.encodedAuthority,
+                encodedPath = uri.encodedPath
+            )
+        },
+        type = type
+    )
+
+    return Intent(context, target).apply {
+        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        when (entryData) {
+            null -> action = Intent.ACTION_MAIN
+            WalletEntryData.JSON_DOCUMENT -> {
+                action = Intent.ACTION_VIEW
+                // A document import keeps its type and the caller's URI
+                // grants, the only flags it may carry across the handoff.
+                setDataAndType(sourceData, WalletEntryIntentPolicy.JSON_MIME_TYPE)
+                addFlags(sourceFlags and WALLET_URI_GRANT_FLAGS)
+            }
+            WalletEntryData.BUY_PROVIDER_REDIRECT,
+            WalletEntryData.TON_CONNECT_LINK -> {
+                action = Intent.ACTION_VIEW
+                data = sourceData
+            }
+        }
     }
 }
 
@@ -85,10 +113,20 @@ abstract class WalletGateActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        window.hideOtherAppsOverlays()
         // Deliberately discard restored fragments/navigation. The incoming
         // Bundle is used only for our primitive payload sequence below.
         super.onCreate(null)
+        // The wallet host's layout flags, so the launch art does not hop when that host takes over.
+        window.decorView.systemUiVisibility = (
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            )
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        // No splash exit listener: the system keeps its own splash window until it removes it. When the
+        // wallet host opens before that, the system hands this splash window to the host, which then stays
+        // covered by the crest on ink until its first frame. With a listener the splash content has already
+        // moved into this window, the handed-over window is empty and the screen goes black meanwhile.
         setContentView(R.layout.activity_wallet_startup)
 
         val restoredSequence = savedInstanceState
@@ -356,6 +394,10 @@ abstract class WalletGateActivity : AppCompatActivity() {
             target = WalletRootActivity::class.java
         )
         startActivity(forwardedIntent)
+        // The wallet host opens on the same launch art at the same place: a cut, not an open animation
+        // (which slid two copies of the lockup past each other). Presentation only.
+        @Suppress("DEPRECATION")
+        overridePendingTransition(0, 0)
         finish()
     }
 

@@ -303,7 +303,9 @@ class ManageAssetsViewModelTest {
         PortfolioPresentationPreferences(preferences).setLens(WALLET_ID, jp.co.soramitsu.wallet.impl.presentation.balance.list.PortfolioLens.ByNetwork)
         val vm = viewModel(deps.router, deps.walletInteractor, deps.accountInteractor, deps.chainInteractor)
         advanceUntilIdle()
-        assertEquals(jp.co.soramitsu.wallet.impl.presentation.balance.list.PortfolioLens.ByNetwork, vm.state.value.lens)
+        // One token list, like the home: a saved By network no longer groups Manage by network.
+        assertEquals(jp.co.soramitsu.wallet.impl.presentation.balance.list.PortfolioLens.ByToken, vm.state.value.lens)
+        assertTrue(vm.state.value.assets.orEmpty().keys.none { it.startsWith("network:") })
         val prior = vm.state.value.assets.orEmpty().values.flatten().single()
         vm.onChecked(prior, true)
         advanceUntilIdle()

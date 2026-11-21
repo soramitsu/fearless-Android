@@ -26,6 +26,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.borderGradientColors
@@ -66,6 +68,10 @@ fun WalletItem(
     onScoreClick: (WalletItemViewState) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    if (FwRestyle.isEnabled(FwSurface.Pickers)) {
+        SunlitWalletItem(state, onOptionsClick, onSelected, onLongClick, onScoreClick, modifier)
+        return
+    }
     val borderColor = if (state.isSelected) {
         borderGradientColors
     } else {

@@ -9,6 +9,8 @@ import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferenceSnapshot
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretArchive
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretScope
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelope
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelopes
 import jp.co.soramitsu.common.utils.v4r2tonAddress
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAddress
 import kotlinx.coroutines.CancellationException
@@ -28,11 +30,15 @@ class ArchivedWalletRecovery @Inject constructor(
         val addresses: List<Address>,
         val unprovedParts: Int,
         val readable: Boolean,
-        internal val snapshot: EncryptedPreferenceSnapshot?
+        internal val snapshot: EncryptedPreferenceSnapshot?,
+        /** The original plaintext: the stored value, or what its envelope opened to. Never log it. */
+        internal val plaintext: String? = null,
+        /** Sealed and this session cannot open it: shown as unreadable, never purged or exported. */
+        val locked: Boolean = false
     ) {
-        val canPurge: Boolean get() = snapshot != null && WalletSecretArchive.sourceKeyOf(key) != null
+        val canPurge: Boolean get() = !locked && snapshot != null && WalletSecretArchive.sourceKeyOf(key) != null
 
-        override fun toString(): String = "ArchivedWalletRecord(readable=$readable)"
+        override fun toString(): String = "ArchivedWalletRecord(readable=$readable, locked=$locked)"
     }
 
     suspend fun read(): List<Record> = withContext(Dispatchers.IO) {
@@ -43,7 +49,11 @@ class ArchivedWalletRecovery @Inject constructor(
             if (source == "pin_code" || source.startsWith("pin_code:")) return@mapNotNull null
             try {
                 val snapshot = preferences.getDecryptedStringSnapshot(key)
-                val decoded = ArchivedWalletMaterialDecoder().decode(source, snapshot?.takeIf { it.hasDecryptedValue }?.plaintext.orEmpty())
+                val stored = snapshot?.takeIf { it.hasDecryptedValue }?.plaintext.orEmpty()
+                // Opened with SK before anything is judged; a sealed record that cannot open is locked.
+                val plaintext = (if (WalletSecretEnvelope.isSealed(stored)) WalletSecretEnvelopes.openOrNull(stored) else stored)
+                    ?: return@mapNotNull Record(key, emptyList(), 0, readable = false, snapshot = null, locked = true)
+                val decoded = ArchivedWalletMaterialDecoder().decode(source, plaintext)
                 var unprovedParts = decoded.unprovedParts
                 val addresses = decoded.candidates.mapNotNull { candidate ->
                     try { Address(candidate.scope, when (candidate.scope) {
@@ -54,7 +64,7 @@ class ArchivedWalletRecovery @Inject constructor(
                     }) } catch (failure: CancellationException) { throw failure }
                     catch (_: Exception) { unprovedParts++; null }
                 }
-                Record(key, addresses, unprovedParts, snapshot?.hasDecryptedValue == true, snapshot)
+                Record(key, addresses, unprovedParts, snapshot?.hasDecryptedValue == true, snapshot, plaintext)
             } catch (failure: CancellationException) { throw failure }
             catch (_: Exception) { Record(key, emptyList(), 1, false, null) }
         }
@@ -66,16 +76,17 @@ class ArchivedWalletRecovery @Inject constructor(
     }
 
     suspend fun purge(record: Record) = withContext(Dispatchers.IO) {
+        check(!record.locked) { "A sealed record is never purged before it can be opened" }
         coordinator.purgeArchived(record.key, checkNotNull(record.snapshot))
     }
 
     /** The complete original plaintext, including unknown/malformed fields; no decoded-field projection. */
     fun exactExport(record: Record): String {
-        require(record.readable && record.snapshot?.hasDecryptedValue == true)
+        require(!record.locked && record.readable && record.snapshot?.hasDecryptedValue == true)
         val data = JsonObject().apply {
             addProperty("format", "fearless-retained-wallet-data-v1")
             addProperty("storageKey", record.key)
-            addProperty("storedData", checkNotNull(record.snapshot).plaintext)
+            addProperty("storedData", checkNotNull(record.plaintext))
         }
         return GsonBuilder().setPrettyPrinting().create().toJson(data)
     }

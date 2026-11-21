@@ -71,7 +71,10 @@ class AccountRepositoryRecoveryFlowTest {
         repository.deleteAccount(META_ID)
 
         verify(coordinator).delete(META_ID)
-        verifyNoInteractions(accountDataSource, metaAccountDao, delegate)
+        // The only other access is the read that finds the wallet's universal-password marks to forget.
+        verify(accountDataSource).getMetaAccount(META_ID)
+        verifyNoMoreInteractions(accountDataSource)
+        verifyNoInteractions(metaAccountDao, delegate)
     }
 
     @Test

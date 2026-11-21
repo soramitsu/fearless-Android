@@ -12,11 +12,10 @@ import jp.co.soramitsu.fearless_utils.encrypt.SignatureWrapper
 import jp.co.soramitsu.fearless_utils.encrypt.Signer
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ECDSAUtils
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
+import jp.co.soramitsu.fearless_utils.encrypt.ton.TonMnemonic
 import jp.co.soramitsu.fearless_utils.exceptions.Bip39Exception
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
 import jp.co.soramitsu.fearless_utils.hash.Hasher.keccak256
-import org.ton.api.pk.PrivateKeyEd25519
-import org.ton.mnemonic.Mnemonic
 import org.web3j.crypto.Sign
 import java.math.BigInteger
 
@@ -269,14 +268,14 @@ internal object PortableWalletRootSigningProof {
             }
             require(
                 words.size in setOf(12, 15, 18, 21, 24) &&
-                (validBip39 || Mnemonic.isValid(words))
+                (validBip39 || TonMnemonic.isValid(words))
             ) {
                 "TON phrase is invalid"
             }
-            val recovered = Mnemonic.toSeed(words)
+            val recovered = TonMnemonic.toSeed(words)
             try {
                 require(
-                    PrivateKeyEd25519(recovered).key.toByteArray().contentEquals(seed) ||
+                    recovered.contentEquals(seed) ||
                         validBip39 && TonKeyDerivation.matchesUniversalMnemonicKeypair(
                             phrase, seed, SolanaKeyDerivation.publicKeyFromPrivateKey(seed)
                         )

@@ -9,7 +9,6 @@ import androidx.compose.material.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
@@ -62,7 +61,8 @@ private fun AccountInfoPreview() {
     val state = AccountInfoViewState(
         address = "0xsjkdflsdgueroirgfosdifsd;fgoksd;fg;sd845tg849",
         accountName = "My account",
-        image = painterResource(id = R.drawable.ic_wallet),
+        // A drawable id: rememberAsyncImagePainter rejects a Painter model.
+        image = R.drawable.ic_wallet,
         caption = "Join pool from"
     )
     FearlessTheme {

@@ -11,6 +11,7 @@ import jp.co.soramitsu.common.utils.SolanaKeyDerivation
 import jp.co.soramitsu.common.utils.deriveSeed32
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.substrateAccountId
+import jp.co.soramitsu.core.crypto.SubstratePasswordRule
 import jp.co.soramitsu.core.model.SecuritySource
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
@@ -1343,7 +1344,8 @@ class WalletRootSecretValidatorTest {
         override fun recoverSubstrateFromEntropy(
             entropy: ByteArray,
             decodedPath: JunctionDecoder.DecodeResult?,
-            cryptoType: CryptoType
+            cryptoType: CryptoType,
+            passwordRule: SubstratePasswordRule
         ): FearlessKeypair {
             recoveryCalls++
             return recoverSubstrateEntropy?.invoke(cryptoType)

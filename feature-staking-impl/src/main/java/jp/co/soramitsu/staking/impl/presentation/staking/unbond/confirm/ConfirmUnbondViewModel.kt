@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.unbond.confirm
 
+import jp.co.soramitsu.staking.impl.presentation.common.StakingSeal
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -13,7 +14,6 @@ import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.mixin.api.Validatable
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.formatFiat
-import jp.co.soramitsu.common.utils.inBackground
 import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.validation.ValidationExecutor
 import jp.co.soramitsu.common.validation.progressConsumer
@@ -90,16 +90,17 @@ class ConfirmUnbondViewModel @Inject constructor(
         }
     }.share()
 
+    // The review's balance, fiat and fee are projected on Main, in the same turn as the review change that
+    // revokes them: on Dispatchers.Default they lagged behind it, so a revoked review could still show its
+    // old fee, or none, next to the "review changed" dialog.
     val assetModelFlow = assetFlow
         .map { asset -> asset?.let { mapAssetToAssetModel(it, resourceManager, { it.bonded }, R.string.staking_bonded_format) }
             ?: AssetModel("", "", "", "", resourceManager.getString(jp.co.soramitsu.common.R.string.portfolio_balance_unavailable)) }
-        .inBackground()
         .asLiveData()
 
     val amountFiatFLow = assetFlow.map { asset ->
         asset?.let { it.token.fiatAmount(payload.amount)?.formatFiat(it.token.fiatSymbol) }
     }
-        .inBackground()
         .asLiveData()
 
     val amount = payload.amount.toString()
@@ -108,7 +109,6 @@ class ConfirmUnbondViewModel @Inject constructor(
         if (review?.isCurrent() == true && asset != null) FeeStatus.Loaded(mapFeeToFeeModel(payload.fee, asset.token))
         else FeeStatus.Error
     }
-        .inBackground()
         .asLiveData()
 
     private val mutableOriginAddress = MutableLiveData<AddressModel?>()
@@ -195,12 +195,14 @@ class ConfirmUnbondViewModel @Inject constructor(
             attempt.requireCurrent()
             val amountInPlanks = valid.asset.token.planksFromAmount(valid.amount)
             val execution = currentCoroutineContext().job
-            val result = unbondInteractor.unbond(valid.stash, valid.asset.metaId, attempt::isCurrent,
-                { intent -> attempt.authorize(intent, execution) }) {
-                attempt.requireCurrent()
-                stakingScenarioInteractor.stakeLess(this, amountInPlanks, valid.stash,
-                    valid.asset.bondedInPlanks, valid.collatorAddress, attempt::isCurrent)
-                attempt.requireCurrent()
+            val result = StakingSeal.unbond(attempt::isCurrent) {
+                unbondInteractor.unbond(valid.stash, valid.asset.metaId, attempt::isCurrent,
+                    { intent -> attempt.authorize(intent, execution) }) {
+                    attempt.requireCurrent()
+                    stakingScenarioInteractor.stakeLess(this, amountInPlanks, valid.stash,
+                        valid.asset.bondedInPlanks, valid.collatorAddress, attempt::isCurrent)
+                    attempt.requireCurrent()
+                }
             }
             (result.exceptionOrNull() as? CancellationException)?.let { throw it }
             if (attempt.isCurrent()) {

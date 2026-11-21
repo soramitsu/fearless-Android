@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.data.repository
 
+import jp.co.soramitsu.runtime.assethub.AssetHubStaking
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumberConstant
 import jp.co.soramitsu.common.utils.constantOrNull
@@ -52,7 +53,7 @@ class StakingConstantsRepository(
             ?.constantOrNull("MaxNominations")
 
         return if (maxNominations == null) {
-            when (chainId) {
+            when (AssetHubStaking.relay(chainId) ?: chainId) {
                 kusamaChainId -> 24
                 else -> DEFAULT_MAX_VALIDATORS_PER_NOMINATOR
             }

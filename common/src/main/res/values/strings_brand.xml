@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Yatagarasu brand (2026-11-10): marks carry the brand name; the crow on the welcome page is a button. -->
+    <string name="fw_brand_name" translatable="false">Fearless</string>
+    <string name="fw_brand_tagline">The DeFi wallet</string>
+    <string name="fw_welcome_crow_call">Play the crow\'s call</string>
+</resources>

@@ -15,6 +15,9 @@ import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.customTypography
+import jp.co.soramitsu.common.compose.theme.fw.FwNotice
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.utils.withNoFontPadding
@@ -25,6 +28,10 @@ fun AttentionMessage(
     message: String,
     imageResId: Int = R.drawable.ic_alert_16
 ) {
+    if (FwRestyle.isEnabled(FwSurface.Signing)) {
+        FwNotice(message = message, title = attentionText.removeSuffix(":"))
+        return
+    }
     val styledText = buildAnnotatedString {
         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = warningOrange)) {
             append("${attentionText.uppercase().removeSuffix(":")}:")

@@ -7,6 +7,7 @@ import android.widget.LinearLayout
 import androidx.annotation.ColorRes
 import androidx.annotation.StringRes
 import androidx.core.view.isVisible
+import jp.co.soramitsu.staking.impl.presentation.common.stakingCard
 import jp.co.soramitsu.common.utils.setCompoundDrawableTint
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.view.shape.addRipple
@@ -67,9 +68,7 @@ class StakeSummaryView @JvmOverloads constructor(
 
         orientation = VERTICAL
 
-        with(context) {
-            background = addRipple(getCutCornerDrawable(R.color.blurColor))
-        }
+        stakingCard { with(context) { addRipple(getCutCornerDrawable(R.color.blurColor)) } }
     }
 
     fun setElectionStatus(status: Status) {

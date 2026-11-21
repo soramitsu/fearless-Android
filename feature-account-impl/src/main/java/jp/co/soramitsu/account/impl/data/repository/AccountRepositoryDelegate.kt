@@ -2,6 +2,7 @@ package jp.co.soramitsu.account.impl.data.repository
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountAlreadyExistsException
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
+import jp.co.soramitsu.account.impl.domain.UniversalWalletFreshRoots
 import jp.co.soramitsu.common.data.Keypair
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
 import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
@@ -20,9 +21,10 @@ import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFa
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
+import jp.co.soramitsu.fearless_utils.encrypt.ton.TonEd25519
+import jp.co.soramitsu.fearless_utils.encrypt.ton.TonMnemonic
 import jp.co.soramitsu.fearless_utils.scale.toHexString
 import org.bouncycastle.util.encoders.Hex
-import org.ton.api.pk.PrivateKeyEd25519
 
 class AccountRepositoryDelegate(
     private val substrateOrEvmAccountRepository: SubstrateOrEvmAccountRepository,
@@ -44,7 +46,8 @@ class AccountRepositoryDelegate(
 
 class SubstrateOrEvmAccountRepository(
     private val metaAccountDao: MetaAccountDao,
-    private val walletSecretMutationCoordinator: WalletSecretMutationCoordinator
+    private val walletSecretMutationCoordinator: WalletSecretMutationCoordinator,
+    private val freshRoots: UniversalWalletFreshRoots? = null
 ) {
     suspend fun createAdditional(payload: AddAccountPayload.AdditionalEvm): Long {
         val decodedEthereumDerivationPath =
@@ -116,7 +119,8 @@ class SubstrateOrEvmAccountRepository(
 
         val derivationResult = SubstrateSeedFactory.deriveSeed32(
             payload.mnemonic,
-            decodedDerivationPath?.password
+            decodedDerivationPath?.password,
+            payload.substratePasswordRule
         )
 
         val keys = SubstrateKeypairFactory.generate(
@@ -183,19 +187,26 @@ class SubstrateOrEvmAccountRepository(
             ethereumDerivationPath = payload.ethereumDerivationPath.takeIf { ethereumUsesMnemonic }
         )
 
-        return try {
+        // Marked before the row exists, so the account upgrade never sees the wallet unmarked;
+        // an import of these words is never fresh, whatever an earlier create left behind.
+        if (payload.freshlyGenerated) freshRoots?.begin(keys.publicKey) else freshRoots?.abandon(keys.publicKey)
+
+        val metaId = try {
             walletSecretMutationCoordinator.create(
                 prototype = metaAccount,
                 substrateSecretPlaintext = substrateSecrets.toHexString(),
                 ethereumSecretPlaintext = ethereumSecrets.toHexString(),
                 tonSecretPlaintext = null
             )
-        } catch (failure: WalletSecretMutationCoordinatorException) {
-            if (failure.reason == WalletMutationFailureReason.IDENTITY_CONFLICT) {
+        } catch (failure: Exception) {
+            if (payload.freshlyGenerated) freshRoots?.abandon(keys.publicKey)
+            if (failure is WalletSecretMutationCoordinatorException && failure.reason == WalletMutationFailureReason.IDENTITY_CONFLICT) {
                 throw AccountAlreadyExistsException()
             }
             throw failure
         }
+        if (payload.freshlyGenerated) freshRoots?.bind(keys.publicKey, metaId)
+        return metaId
     }
 }
 
@@ -203,9 +214,8 @@ class TonAccountRepository(
     private val walletSecretMutationCoordinator: WalletSecretMutationCoordinator
 ) {
     suspend fun create(payload: AddAccountPayload.Ton): Long {
-        val tonSeed = org.ton.mnemonic.Mnemonic.toSeed(payload.mnemonic.split(" "))
-        val tonPrivateKey = PrivateKeyEd25519(tonSeed)
-        val tonPublicKey = tonPrivateKey.publicKey()
+        val tonPrivateKey = TonMnemonic.toSeed(payload.mnemonic.split(" "))
+        val tonPublicKey = TonEd25519.publicKey(tonPrivateKey)
 
         val metaAccount = MetaAccountLocal(
             substratePublicKey = null,
@@ -213,7 +223,7 @@ class TonAccountRepository(
             substrateCryptoType = null,
             ethereumPublicKey = null,
             ethereumAddress = null,
-            tonPublicKey = tonPublicKey.key.toByteArray(),
+            tonPublicKey = tonPublicKey.copyOf(),
             name = payload.accountName,
             isSelected = true,
             position = 0,
@@ -225,8 +235,8 @@ class TonAccountRepository(
         val tonSecrets = TonSecrets(
             seed = payload.mnemonic.encodeToByteArray(),
             tonKeypair = Keypair(
-                tonPublicKey.key.toByteArray(),
-                tonPrivateKey.key.toByteArray()
+                tonPublicKey.copyOf(),
+                tonPrivateKey.copyOf()
             )
         )
 

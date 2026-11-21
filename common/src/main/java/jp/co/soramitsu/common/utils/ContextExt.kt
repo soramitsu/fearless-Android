@@ -2,6 +2,8 @@ package jp.co.soramitsu.common.utils
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.util.TypedValue
@@ -9,7 +11,6 @@ import androidx.annotation.AttrRes
 import androidx.annotation.ColorInt
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
-import com.google.android.gms.common.GoogleApiAvailability
 import jp.co.soramitsu.common.R
 
 fun Context.getDrawableCompat(@DrawableRes drawableRes: Int) =
@@ -52,7 +53,14 @@ fun Context.getColorFromAttr(
 @ColorInt
 fun Context.getPrimaryColor() = getColorFromAttr(R.attr.colorPrimary)
 
-fun Context.isGooglePlayServicesAvailable(): Boolean {
-    return GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this) ==
-            com.google.android.gms.common.ConnectionResult.SUCCESS
-}
+/**
+ * Google sign-in for Drive backup runs in the browser, so it is offered only when some app can open
+ * https links. The app manifest declares this query, which Android 11+ needs to see browsers.
+ */
+fun Context.canOpenHttpsLinks(): Boolean = packageManager.canOpenHttpsLinks(httpsLinkIntent())
+
+internal fun PackageManager.canOpenHttpsLinks(intent: Intent): Boolean =
+    queryIntentActivities(intent, 0).isNotEmpty()
+
+internal fun httpsLinkIntent(): Intent =
+    Intent(Intent.ACTION_VIEW, Uri.parse("https://accounts.google.com/")).addCategory(Intent.CATEGORY_BROWSABLE)

@@ -39,6 +39,7 @@ import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
 import jp.co.soramitsu.common.compose.theme.colorAccentDark
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white64
+import jp.co.soramitsu.common.compose.theme.fw.fwPageBackground
 import jp.co.soramitsu.feature_onboarding_impl.R
 
 interface SelectEcosystemScreenCallbacks {
@@ -68,11 +69,8 @@ private fun SelectEcosystemScreenContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .fwPageBackground()
             .verticalScroll(rememberScrollState())
-            .paint(
-                painter = painterResource(R.drawable.drawable_background_image),
-                contentScale = ContentScale.FillWidth
-            )
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

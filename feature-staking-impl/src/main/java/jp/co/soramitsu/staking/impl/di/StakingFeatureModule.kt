@@ -531,8 +531,11 @@ class StakingFeatureModule {
         validatorProvider: ValidatorProvider,
         sharedState: StakingSharedState,
         computationalCache: ComputationalCache,
-        addressIconGenerator: AddressIconGenerator
-    ) = SearchCustomBlockProducerInteractor(collatorProvider, validatorProvider, sharedState, computationalCache, addressIconGenerator)
+        addressIconGenerator: AddressIconGenerator,
+        accountRepository: AccountRepository
+    ) = SearchCustomBlockProducerInteractor(
+        collatorProvider, validatorProvider, sharedState, computationalCache, addressIconGenerator, accountRepository
+    )
 
     @Provides
     @Singleton

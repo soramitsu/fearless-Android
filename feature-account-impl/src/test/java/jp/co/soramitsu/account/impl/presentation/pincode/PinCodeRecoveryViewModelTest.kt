@@ -10,6 +10,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.model.ImportMode
+import jp.co.soramitsu.account.impl.data.biometric.BiometricPinVault
 import jp.co.soramitsu.account.impl.domain.recovery.WalletPinRecovery
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.recovery.RecoveryTarget
@@ -18,6 +19,7 @@ import jp.co.soramitsu.common.data.storage.pin.WalletViewOnlyAccess
 import jp.co.soramitsu.common.navigation.DelayedNavigation
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.vibration.DeviceVibrator
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -41,6 +43,7 @@ class PinCodeRecoveryViewModelTest {
     private val vibrator = mockk<DeviceVibrator>(relaxed = true)
     private val resources = mockk<ResourceManager> { every { getString(any()) } answers { "text-${firstArg<Int>()}" } }
     private val stores = mutableListOf<ViewModelStore>()
+    private val vault = mockk<BiometricPinVault>(relaxed = true)
     private val target = RecoveryTarget(7, "ethereum")
     private val delayed = mockk<DelayedNavigation>()
     private val saved = SavedStateHandle(mapOf(PincodeFragment.KEY_PINCODE_ACTION to PinCodeAction.Check(delayed, ToolbarConfiguration(backVisible = true))))
@@ -60,7 +63,8 @@ class PinCodeRecoveryViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun model(): PinCodeViewModel = PinCodeViewModel(interactor, router, vibrator, resources, saved, recovery).also {
+    private fun model(): PinCodeViewModel = PinCodeViewModel(interactor, router, vibrator, resources, saved, recovery, vault).also {
+            it.vaultDispatcher = dispatcher
         stores += ViewModelStore().apply { put("pin", it) }
         it.configureRecoveryAuthentication(strong = true, deviceCredential = true)
         it.startAuth()
@@ -70,13 +74,13 @@ class PinCodeRecoveryViewModelTest {
         saved[PincodeFragment.KEY_PINCODE_ACTION] = PinCodeAction.Create(delayed)
         val model = model()
         model.pinCodeEntered("123456") // Health has not loaded yet.
-        model.biometryAuthenticationSucceeded()
+        model.biometryAuthenticationSucceeded(null)
         runCurrent()
         assertTrue(model.recoveryState.value!!.visible)
         assertFalse(model.recoveryState.value!!.loading)
         assertTrue(model.recoveryState.value!!.strongBiometric)
         model.pinCodeEntered("123456")
-        model.biometryAuthenticationSucceeded()
+        model.biometryAuthenticationSucceeded(null)
         runCurrent()
         coVerify(exactly = 0) { interactor.savePin(any()); interactor.isPinCorrect(any()) }
         verify(exactly = 0) { router.openAfterPinCode(any()) }
@@ -86,7 +90,7 @@ class PinCodeRecoveryViewModelTest {
     @Test fun strongProofRequiresTwoMatchingNewPinEntriesAndUsesSnapshotBoundService() = runTest(dispatcher) {
         val model = model()
         runCurrent()
-        model.strongBiometricSucceeded()
+        model.strongBiometricSucceeded(null)
         runCurrent()
         assertFalse(model.recoveryState.value!!.visible)
         model.pinCodeEntered("123456")
@@ -95,10 +99,46 @@ class PinCodeRecoveryViewModelTest {
         coVerify(exactly = 0) { recovery.saveNewPin(any(), any()) }
         model.pinCodeEntered("123456")
         runCurrent()
-        coVerify(exactly = 1) { recovery.strongBiometricSucceeded("in-memory-challenge") }
+        coVerify(exactly = 1) { recovery.strongBiometricSucceeded("in-memory-challenge", any()) }
         coVerify(exactly = 1) { recovery.saveNewPin("in-memory-challenge", "123456") }
         coVerify(exactly = 0) { interactor.savePin(any()) }
         verify(exactly = 1) { router.openAfterPinCode(delayed) }
+    }
+
+    @Test fun forgotPinStartsBackupRecoveryForAReadablePinAndBackReturnsToThePad() = runTest(dispatcher) {
+        coEvery { interactor.getPinHealth() } returns PinHealth.HEALTHY
+        coEvery { recovery.begin(true) } returns "forgotten-challenge"
+        saved[PincodeFragment.KEY_PINCODE_ACTION] = PinCodeAction.Check(delayed, ToolbarConfiguration(backVisible = false))
+        val model = model()
+        runCurrent()
+        assertEquals(true, model.forgotPinVisible.value)
+        assertFalse(model.recoveryState.value!!.visible)
+
+        model.forgotPin()
+        runCurrent()
+        coVerify(exactly = 1) { recovery.begin(true) }
+        assertTrue(model.recoveryState.value!!.visible)
+        assertTrue(model.recoveryState.value!!.forgotten)
+        assertEquals(false, model.forgotPinVisible.value)
+        assertEquals(listOf(WalletPinRecovery.Choice("Wallet", target)), model.recoveryState.value!!.choices)
+
+        model.backPressed()
+        runCurrent()
+        verify(exactly = 1) { recovery.cancel("forgotten-challenge") }
+        assertFalse(model.recoveryState.value!!.visible)
+        assertEquals(true, model.forgotPinVisible.value)
+        verify(exactly = 0) { router.back() }
+    }
+
+    @Test fun forgotPinIsNotOfferedWhereThePinItselfIsRequired() = runTest(dispatcher) {
+        coEvery { interactor.getPinHealth() } returns PinHealth.HEALTHY
+        saved[PincodeFragment.KEY_PINCODE_ACTION] = PinCodeAction.Check(delayed, ToolbarConfiguration(backVisible = true), allowBiometric = false)
+        val model = model()
+        runCurrent()
+        assertEquals(false, model.forgotPinVisible.value)
+        model.forgotPin()
+        runCurrent()
+        coVerify(exactly = 0) { recovery.begin(true) }
     }
 
     @Test fun deviceUnlockOpensOnlyMainAndDiscardsPendingPrivateAction() = runTest(dispatcher) {
@@ -108,17 +148,17 @@ class PinCodeRecoveryViewModelTest {
         assertTrue(WalletViewOnlyAccess.isEnabled())
         verify(exactly = 1) { router.openMain(); recovery.cancel("in-memory-challenge") }
         verify(exactly = 0) { router.openAfterPinCode(any()); router.back() }
-        coVerify(exactly = 0) { recovery.saveNewPin(any(), any()); recovery.strongBiometricSucceeded(any()) }
+        coVerify(exactly = 0) { recovery.saveNewPin(any(), any()); recovery.strongBiometricSucceeded(any(), any()) }
     }
 
     @Test fun unavailableOrPreviouslyDisabledBiometricsCannotAuthorizeRecovery() = runTest(dispatcher) {
         coEvery { interactor.isBiometricEnabled() } returns false
         val model = model()
         runCurrent()
-        model.strongBiometricSucceeded()
+        model.strongBiometricSucceeded(null)
         runCurrent()
         assertFalse(model.recoveryState.value!!.strongBiometric)
-        coVerify(exactly = 0) { recovery.strongBiometricSucceeded(any()) }
+        coVerify(exactly = 0) { recovery.strongBiometricSucceeded(any(), any()) }
         model.configureRecoveryAuthentication(strong = false, deviceCredential = false)
         model.deviceCredentialSucceeded()
         verify(exactly = 0) { router.openMain() }
@@ -142,7 +182,7 @@ class PinCodeRecoveryViewModelTest {
         coEvery { recovery.saveNewPin(any(), any()) } throws IllegalStateException("expired")
         val model = model()
         runCurrent()
-        model.strongBiometricSucceeded()
+        model.strongBiometricSucceeded(null)
         runCurrent()
         model.pinCodeEntered("123456")
         model.pinCodeEntered("123456")
@@ -160,7 +200,7 @@ class PinCodeRecoveryViewModelTest {
     @Test fun stoppingClearsTemporaryPinAndBackCancelsTheGrant() = runTest(dispatcher) {
         val model = model()
         runCurrent()
-        model.strongBiometricSucceeded()
+        model.strongBiometricSucceeded(null)
         runCurrent()
         model.pinCodeEntered("123456")
         model.screenStopped()
@@ -196,6 +236,29 @@ class PinCodeRecoveryViewModelTest {
         verify { router.openAfterPinCode(delayed) }
     }
 
+    @Test fun theRecoveryPromptStaysHiddenWhileThePinIsStillBeingRead() = runTest(dispatcher) {
+        val health = CompletableDeferred<PinHealth>()
+        coEvery { interactor.getPinHealth() } coAnswers { health.await() }
+        val model = model()
+        runCurrent()
+        // A cold start shows the pad, not "Your stored PIN cannot be read", and the pad does nothing yet.
+        assertFalse(model.recoveryState.value!!.visible)
+        model.pinCodeEntered("123456")
+        runCurrent()
+        coVerify(exactly = 0) { interactor.isPinCorrect(any()) }
+        health.complete(PinHealth.UNREADABLE)
+        runCurrent()
+        assertTrue(model.recoveryState.value!!.visible)
+    }
+
+    @Test fun aHealthyPinNeverShowsTheRecoveryPrompt() = runTest(dispatcher) {
+        coEvery { interactor.getPinHealth() } returns PinHealth.HEALTHY
+        val model = model()
+        assertFalse(model.recoveryState.value!!.visible)
+        runCurrent()
+        assertFalse(model.recoveryState.value!!.visible)
+    }
+
     @Test fun healthyPinRejectsInvalidInputAndKeepsNormalUnlockAndChangeFlow() = runTest(dispatcher) {
         coEvery { interactor.getPinHealth() } returns PinHealth.HEALTHY
         coEvery { interactor.isPinCorrect("123456") } returns true
@@ -221,7 +284,7 @@ class PinCodeRecoveryViewModelTest {
         val model = model()
         runCurrent()
         coEvery { interactor.getPinHealth() } returns PinHealth.UNREADABLE
-        model.biometryAuthenticationSucceeded()
+        model.biometryAuthenticationSucceeded(null)
         runCurrent()
         assertTrue(model.recoveryState.value!!.visible)
         verify(exactly = 0) { router.openAfterPinCode(any()) }

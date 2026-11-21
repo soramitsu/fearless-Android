@@ -10,7 +10,7 @@ import java.util.Collections
  * staged cohorts bind this digest and cannot silently adopt a different chain interpretation.
  */
 internal object PortableWalletReceivingChainPolicy {
-    const val SOURCE_SHA256 = "cc5dfee038722318ee4389eb182bad8b3b458aabe4feffbaf4d2e5c5d8ca1470"
+    const val SOURCE_SHA256 = "6b9a1c3d086c751877441ec7ec11cca10bf048b8160073d0bb9e976dfaa9e495"
     const val SHA256 = "25216fc234b88a9e3daa73e45b98cec21c607d785ec4d8403a371e9a1d1b4520"
     private const val DOMAIN = "FPWCHN01\n"
 

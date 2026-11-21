@@ -13,6 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.account.impl.presentation.backup_wallet.SettingsDivider
 import jp.co.soramitsu.common.compose.component.ChangeBalanceViewState
+import jp.co.soramitsu.common.compose.component.FeedbackSettingsItems
 import jp.co.soramitsu.common.compose.component.H1
 import jp.co.soramitsu.common.compose.component.H4
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -21,9 +22,12 @@ import jp.co.soramitsu.common.compose.component.SettingsItemAction
 import jp.co.soramitsu.common.compose.component.WalletItem
 import jp.co.soramitsu.common.compose.component.WalletItemViewState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
 import jp.co.soramitsu.common.compose.theme.white50
-import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.common.model.WalletEcosystem
+import jp.co.soramitsu.feature_account_impl.R
 
 data class ProfileScreenState(
     val walletState: WalletItemViewState,
@@ -42,6 +46,7 @@ interface ProfileScreenInterface {
     fun onManageAssetsClick()
     fun currencyClicked()
     fun languagesClicked()
+    fun appearanceClicked()
 
     fun onNomisMultichainScoreContainerClick()
     fun polkaswapDisclaimerClicked()
@@ -76,7 +81,7 @@ fun ProfileScreen(
             MarginVertical(margin = 16.dp)
             H4(
                 text = stringResource(R.string.settings_section_wallets_accounts),
-                color = white50,
+                color = if (FwRestyle.isEnabled(FwSurface.Settings)) LocalFwColors.current.textTertiary else white50,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
             SettingsItem(
@@ -88,7 +93,7 @@ fun ProfileScreen(
             SettingsDivider()
             H4(
                 text = stringResource(R.string.settings_section_networks_assets),
-                color = white50,
+                color = if (FwRestyle.isEnabled(FwSurface.Settings)) LocalFwColors.current.textTertiary else white50,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
             SettingsItem(
@@ -106,7 +111,7 @@ fun ProfileScreen(
             SettingsDivider()
             H4(
                 text = stringResource(R.string.settings_section_connections),
-                color = white50,
+                color = if (FwRestyle.isEnabled(FwSurface.Settings)) LocalFwColors.current.textTertiary else white50,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
             SettingsItem(
@@ -136,7 +141,7 @@ fun ProfileScreen(
             SettingsDivider()
             H4(
                 text = stringResource(R.string.settings_section_security),
-                color = white50,
+                color = if (FwRestyle.isEnabled(FwSurface.Settings)) LocalFwColors.current.textTertiary else white50,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
             SettingsItem(
@@ -153,7 +158,7 @@ fun ProfileScreen(
             SettingsDivider()
             H4(
                 text = stringResource(R.string.settings_section_preferences),
-                color = white50,
+                color = if (FwRestyle.isEnabled(FwSurface.Settings)) LocalFwColors.current.textTertiary else white50,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
             SettingsItem(
@@ -163,6 +168,15 @@ fun ProfileScreen(
                 onClick = callback::languagesClicked
             )
             SettingsDivider()
+            if (FwRestyle.isEnabled(FwSurface.Appearance)) {
+                SettingsItem(
+                    icon = painterResource(jp.co.soramitsu.common.R.drawable.ic_appearance_24),
+                    text = stringResource(R.string.appearance_title),
+                    onClick = callback::appearanceClicked
+                )
+                SettingsDivider()
+            }
+            FeedbackSettingsItems(divider = { SettingsDivider() })
             if (state.walletState.onlyTonSupported.not()) {
                 SettingsItem(
                     icon = painterResource(R.drawable.ic_score_star_full_24_pink),
@@ -180,7 +194,7 @@ fun ProfileScreen(
             }
             H4(
                 text = stringResource(R.string.about_title),
-                color = white50,
+                color = if (FwRestyle.isEnabled(FwSurface.Settings)) LocalFwColors.current.textTertiary else white50,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
             )
             SettingsItem(
@@ -227,6 +241,7 @@ fun ProfileScreenPreview() {
                 override fun onManageAssetsClick() = Unit
                 override fun currencyClicked() = Unit
                 override fun languagesClicked() = Unit
+                override fun appearanceClicked() = Unit
                 override fun onNomisMultichainScoreContainerClick() = Unit
                 override fun polkaswapDisclaimerClicked() = Unit
                 override fun changePinCodeClicked() = Unit

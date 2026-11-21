@@ -43,4 +43,51 @@ class AuthenticatedShellNavigationTest {
         assertSame(parent, target)
         assertTrue(parentRequested)
     }
+
+    @Test
+    fun `a child the shell owns goes to the parent when it would open over a parent sheet`() {
+        val shell = Any()
+        val parent = Any()
+
+        val target = authenticatedDestinationTarget(
+            shellController = shell,
+            shellContainsDestination = { true },
+            parentController = { parent },
+            opensOverParentSheet = { it === parent }
+        )
+
+        assertSame(parent, target)
+    }
+
+    @Test
+    fun `a child the shell owns stays in the shell when no parent sheet shows`() {
+        val shell = Any()
+
+        val target = authenticatedDestinationTarget(
+            shellController = shell,
+            shellContainsDestination = { true },
+            parentController = { Any() },
+            opensOverParentSheet = { false }
+        )
+
+        assertSame(shell, target)
+    }
+
+    @Test
+    fun `a child the shell lacks stays unresolved even over a parent sheet`() {
+        var parentRequested = false
+
+        val target = authenticatedDestinationTarget(
+            shellController = Any(),
+            shellContainsDestination = { false },
+            parentController = {
+                parentRequested = true
+                Any()
+            },
+            opensOverParentSheet = { true }
+        )
+
+        assertNull(target)
+        assertFalse(parentRequested)
+    }
 }

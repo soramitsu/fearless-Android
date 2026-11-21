@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.common
 
+import jp.co.soramitsu.common.launch.launchTier
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -85,7 +86,7 @@ fun AssetsList(
                     items(state.shimmerStates) { shimmerState ->
                         AssetListItemShimmer(
                             state = shimmerState,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth().launchTier(LIST_TIER)
                         )
                     }
                     item { MarginVertical(margin = 80.dp) }
@@ -168,6 +169,7 @@ fun AssetsList(
                     val isExpanded = network.chainId !in collapsedNetworkIds
 
                     item(key = "network-${network.chainId}") {
+                        Box(Modifier.launchTier(LIST_TIER)) {
                         PortfolioNetworkHeader(
                             network = network,
                             isExpanded = isExpanded,
@@ -179,6 +181,7 @@ fun AssetsList(
                                 }
                             }
                         )
+                        }
                     }
 
                     if (isExpanded) {
@@ -186,12 +189,16 @@ fun AssetsList(
                         val detectedAssets = networkAssets.filter(AssetListItemViewState::isDetected)
 
                         items(verifiedAssets, key = { "${it.key}$isHideVisible" }) { assetState ->
-                            SwipeableAssetListItem(
-                                assetState = assetState,
-                                isHideVisible = isHideVisible,
-                                assetClicked = callback::assetClicked,
-                                actionItemClicked = callback::actionItemClicked
-                            )
+                            Box(Modifier.launchTier(LIST_TIER)) {
+                                // The section's header names the network: its rows keep to the token.
+                                SwipeableAssetListItem(
+                                    assetState = assetState,
+                                    isHideVisible = isHideVisible,
+                                    assetClicked = callback::assetClicked,
+                                    actionItemClicked = callback::actionItemClicked,
+                                    showNetwork = false
+                                )
+                            }
                         }
 
                         if (detectedAssets.isNotEmpty()) {
@@ -212,7 +219,8 @@ fun AssetsList(
                             items(detectedAssets, key = { "detected-${it.key}$isHideVisible" }) { assetState ->
                                 DetectedAssetReviewItem(
                                     assetState = assetState,
-                                    callback = callback
+                                    callback = callback,
+                                    showNetwork = false
                                 )
                             }
                         }
@@ -231,7 +239,9 @@ fun AssetsList(
 @Composable
 internal fun DetectedAssetReviewItem(
     assetState: AssetListItemViewState,
-    callback: AssetsListInterface
+    callback: AssetsListInterface,
+    /** False where the list around the row already names the network. */
+    showNetwork: Boolean = true
 ) {
     val actionState = rememberSwipeableState(initialValue = SwipeState.INITIAL)
     val actions = remember(assetState.chainId, assetState.chainAssetId) {
@@ -243,7 +253,7 @@ internal fun DetectedAssetReviewItem(
     }
 
     Column {
-        AssetListItem(state = assetState, onClick = callback::assetClicked)
+        AssetListItem(state = assetState, showNetwork = showNetwork, onClick = callback::assetClicked)
         ActionBar(
             state = actions,
             fillMaxWidth = true,
@@ -358,7 +368,8 @@ fun AssetListShimmer(
                 state = AssetListItemShimmerViewState(
                     assetIconUrl = "",
                     assetChainUrls = List(3) { "" }
-                )
+                ),
+                modifier = Modifier.launchTier(LIST_TIER)
             )
         }
         item { MarginVertical(margin = 80.dp) }
@@ -382,3 +393,6 @@ fun AssetsList(
         }
     }
 }
+
+/** The wallet home's list flies as launch tier 4 (brand kit SPEC v4 part 1, "Tiers"). */
+private const val LIST_TIER = 4

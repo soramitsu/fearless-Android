@@ -18,6 +18,19 @@ object SolanaAccountPreflight {
                 account.executable || account.dataBase64.isNotEmpty())) fail(Code.RECIPIENT_IS_NOT_WALLET)
     }
 
+    /**
+     * A SOL recipient is a signing wallet key (absent or a plain System account) or an existing plain System
+     * account at any address, such as a funded multisig vault at a program-derived address. Programs, token
+     * accounts and other program-owned accounts are refused, as is an off-curve address with no System account:
+     * nobody could sign for funds sent there. Token sends keep [requireWallet], which refuses off-curve owners.
+     */
+    fun requireNativeRecipient(address: String, account: SolanaRpcAccountInfo?) {
+        if (account == null) return requireWallet(address, null)
+        try { SolanaPublicKeyCodec.decode(address) } catch (_: IllegalArgumentException) { fail(Code.RECIPIENT_CANNOT_SIGN) }
+        if (account.ownerProgram != SolanaTransferTransactionBuilder.SYSTEM_PROGRAM_ADDRESS || account.executable ||
+            account.dataBase64.isNotEmpty()) fail(Code.RECIPIENT_IS_NOT_WALLET)
+    }
+
     /** Checks an initialized standard SPL mint and binds its decimals to the reviewed asset. */
     fun requireMint(account: SolanaRpcAccountInfo?, decimals: Int) {
         val bytes = tokenData(account, 82, Code.INVALID_TOKEN_MINT)

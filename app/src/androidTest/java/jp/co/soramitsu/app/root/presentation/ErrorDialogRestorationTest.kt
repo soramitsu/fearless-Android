@@ -81,7 +81,6 @@ class ErrorDialogRestorationTest {
             setOf(
                 "send_setup_validation_dialog_result",
                 "confirm_send_validation_dialog_result",
-                "cbdc_send_setup_validation_dialog_result",
                 "cross_chain_confirm_validation_dialog_result",
                 "cross_chain_setup_validation_dialog_result"
             ),

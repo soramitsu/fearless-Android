@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.compose.component
 
+import jp.co.soramitsu.common.compose.theme.fw.fwValueTick
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,6 +33,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -43,6 +46,9 @@ import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.bold
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
+import jp.co.soramitsu.common.compose.theme.fw.FwCard
+import jp.co.soramitsu.common.compose.theme.fw.FwElevation
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
 import jp.co.soramitsu.common.compose.theme.white16
 import jp.co.soramitsu.common.compose.theme.white64
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
@@ -53,13 +59,23 @@ import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 fun AssetListItem(
     state: AssetListItemViewState,
     modifier: Modifier = Modifier,
+    /**
+     * False where the list around the row already names the network (under a network header, or under
+     * the selected network chip): the caption then keeps to the token's name.
+     */
+    showNetwork: Boolean = true,
     onClick: (AssetListItemViewState) -> Unit
 ) {
-    BackgroundCornered(
-        modifier = modifier
-            .testTag("AssetListItem_${state.assetSymbol}_${state.assetName}")
-            .clickable(onClick = { onClick(state) })
-    ) {
+    val rowModifier = modifier
+        .testTag("AssetListItem_${state.assetSymbol}_${state.assetName}")
+        .clickable(onClick = { onClick(state) })
+    // List rows are Raised-1 in the sun-lit palette (cards are Raised-2).
+    val container: @Composable (@Composable () -> Unit) -> Unit = if (FwRestyle.paletteEnabled) {
+        { content -> FwCard(modifier = rowModifier, level = FwElevation.Raised1) { content() } }
+    } else {
+        { content -> BackgroundCornered(modifier = rowModifier) { content() } }
+    }
+    container {
         val assetRateColor = if (state.assetTokenRate.orEmpty().startsWith("+")) {
             MaterialTheme.customColors.greenText
         } else {
@@ -101,15 +117,17 @@ fun AssetListItem(
                         .align(CenterStart)
                 ) {
                     Row {
+                        // Read aloud, the row always says its token and its network, once each and in plain case.
+                        val spokenNames = state.names(withNetwork = true).joinToString()
+                        // A token without a name still needs a caption, so it falls back to its network.
+                        val shownNames = state.names(withNetwork = showNetwork).ifEmpty { state.names(withNetwork = true) }
                         Text(
-                            text = listOf(state.assetName, state.assetChainName)
-                                .filter(String::isNotBlank)
-                                .joinToString(" · ")
-                                .uppercase(),
+                            text = shownNames.joinToString(" · ").uppercase(),
                             style = MaterialTheme.customTypography.capsTitle2,
                             modifier = Modifier
                                 .alpha(0.64f)
                                 .testTag("AssetListItem_${state.assetSymbol}_chain_name")
+                                .semantics { if (spokenNames.isNotEmpty()) contentDescription = spokenNames }
                         )
                         if (state.isTestnet) {
                             MarginHorizontal(margin = 4.dp)
@@ -154,6 +172,7 @@ fun AssetListItem(
                                 modifier = Modifier
                                     .padding(vertical = 4.dp)
                                     .padding(start = 4.dp)
+                                    .fwValueTick(balance, enabled = !state.isHidden)
                                     .testTag("AssetListItem_${state.assetSymbol}_transferable")
                             )
                         }
@@ -216,6 +235,7 @@ fun AssetListItem(
                                 .wrapContentWidth()
                                 .alpha(0.64f)
                                 .padding(start = 4.dp)
+                                .fwValueTick(balanceFiat, enabled = !state.isHidden)
                                 .testTag("AssetListItem_${state.assetSymbol}_transferable_fiat")
                         )
                     }
@@ -237,6 +257,16 @@ fun AssetListItem(
         }
     }
 }
+
+/**
+ * The token's name and, with [withNetwork], its network, each once: a native token named after its
+ * network ("Polkadot" on Polkadot) is one name, not the same word twice.
+ */
+private fun AssetListItemViewState.names(withNetwork: Boolean): List<String> =
+    listOfNotNull(assetName, assetChainName.takeIf { withNetwork })
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+        .distinctBy { it.lowercase() }
 
 @Composable
 fun TestnetBadge() {

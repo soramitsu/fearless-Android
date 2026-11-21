@@ -65,6 +65,33 @@ class NativeSendUiInstrumentedTest {
         }
     }
 
+    @Test fun releasedPaymentSaysOnlyWhatIsKnownAndKeepsTheExplorerOnlyWhenUnverified() {
+        var snapshot by mutableStateOf(payment().copy(expired = true, notSent = true))
+        var closes = 0; var explorers = 0
+        compose.setContent { FearlessAppTheme {
+            NativeSendRecoveryDialog(NativeSendRecoveryUiState(snapshot), { closes++ },
+                { error("No record left to check") }, { error("No record left to retry") }, { explorers++ })
+        } }
+        // A corroborated recent expiry shows that nothing was sent; otherwise only that the outcome is unverified, and
+        // the explorer the message points to stays available.
+        for ((released, message) in listOf(
+            payment().copy(expired = true, notSent = true) to jp.co.soramitsu.common.R.string.send_solana_expired_not_sent,
+            payment().copy(expired = true, unverified = true) to jp.co.soramitsu.common.R.string.send_solana_payment_unverified)) {
+            compose.runOnIdle { snapshot = released }
+            compose.onNodeWithText(compose.activity.getString(message)).performScrollTo().assertIsDisplayed()
+            compose.onNodeWithText("1.25 USDC", substring = true).performScrollTo().assertIsDisplayed()
+            for (id in listOf(jp.co.soramitsu.common.R.string.send_check_status, jp.co.soramitsu.common.R.string.send_retry_same_payment)) {
+                compose.onNodeWithText(compose.activity.getString(id)).assertDoesNotExist()
+            }
+            val explorer = compose.onNodeWithText(compose.activity.getString(jp.co.soramitsu.common.R.string.send_view_explorer))
+            if (released.unverified) explorer.performScrollTo().assertIsDisplayed().performClick() else explorer.assertDoesNotExist()
+            save("native-recovery-released-${if (released.unverified) "unverified" else "not-sent"}-" +
+                "${(compose.activity.resources.configuration.fontScale * 100).toInt()}")
+            compose.onNodeWithText(compose.activity.getString(jp.co.soramitsu.common.R.string.common_close)).performScrollTo().assertIsDisplayed().performClick()
+        }
+        compose.runOnIdle { assertEquals(2, closes); assertEquals(1, explorers) }
+    }
+
     @Test fun legacyAndChangedNetworkRetainMetadataWithoutUnsafeActions() {
         var snapshot by mutableStateOf(payment().copy(solanaNetwork = null))
         var closes = 0

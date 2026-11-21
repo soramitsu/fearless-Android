@@ -1,6 +1,7 @@
 package jp.co.soramitsu.walletconnect.impl.presentation.chainschooser
 
 import android.widget.FrameLayout
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -19,6 +20,9 @@ class ChainChooseFragment : BaseComposeBottomSheetDialogFragment<ChainChooseView
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
+        // While choosing the sheet can't be swiped away, so Material could only collapse it. Back leaves the choice as
+        // it was, like a tap outside; Done is what applies it.
+        BackHandler { dialog?.cancel() }
         ChainSelectContent(
             state = state,
             onChainSelected = viewModel::onChainSelected,

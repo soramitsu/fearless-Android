@@ -11,6 +11,7 @@ import androidx.annotation.LayoutRes
 import androidx.annotation.StringRes
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.theme.fw.fwSheetNavigationBar
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.setDrawableStart
 
@@ -23,6 +24,7 @@ abstract class FixedListBottomSheet(context: Context) : BottomSheetDialog(contex
     @CallSuper
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        fwSheetNavigationBar()
     }
 
     final override fun setContentView(layoutResId: Int) {

@@ -1,6 +1,14 @@
 package jp.co.soramitsu.common.view
 
 import android.content.Context
+import android.content.res.ColorStateList
+import androidx.compose.ui.graphics.toArgb
+import jp.co.soramitsu.common.compose.theme.fw.FwElevation
+import jp.co.soramitsu.common.compose.theme.fw.FwNeuDrawable
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwShape
+import jp.co.soramitsu.common.compose.theme.fw.FwStandardOrHighContrast
+import jp.co.soramitsu.common.compose.theme.fw.FwViews
 import android.util.AttributeSet
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.lifecycle.LifecycleOwner
@@ -23,6 +31,18 @@ class PrimaryButton @JvmOverloads constructor(
 ) : AppCompatTextView(context, attrs, defStyle) {
 
     private var cachedText: String? = null
+
+    init {
+        if (FwRestyle.paletteEnabled) {
+            // Emissive primary action: brand gradient with its own glow; disabled rests raised.
+            val density = resources.displayMetrics.density
+            val colors = FwStandardOrHighContrast(context)
+            background = FwNeuDrawable(colors, FwViews.effects(context), density, FwElevation.Emissive,
+                cornerRadius = FwShape.BUTTON.value * density)
+            setTextColor(ColorStateList(arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf()),
+                intArrayOf(colors.textTertiary.toArgb(), colors.textOnAccent.toArgb())))
+        }
+    }
 
     private var preparedForProgress = false
 

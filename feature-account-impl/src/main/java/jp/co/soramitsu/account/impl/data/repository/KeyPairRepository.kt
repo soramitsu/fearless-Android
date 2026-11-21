@@ -185,8 +185,19 @@ class KeyPairRepository(
             }
 
             chain.ecosystem == Ecosystem.Ton -> {
-                tonSecretStore.get(metaAccount.id, metaAccount.tonPublicKey)
-                    ?.let { Keypair(it[TonSecrets.PublicKey], it[TonSecrets.PrivateKey]) }
+                // A universal TON swap may commit after the wallet was read: that is a stale
+                // request, never corruption to quarantine.
+                var settledTonKey = metaAccount.tonPublicKey
+                val secrets = tonSecretStore.readForIdentity(
+                    expectedPublicKey = metaAccount.tonPublicKey,
+                    currentPublicKey = {
+                        accountRepository.getMetaAccount(metaAccount.id).tonPublicKey.also { settledTonKey = it }
+                    }
+                ) { publicKey, quarantine -> get(metaAccount.id, publicKey, quarantine) }
+                check(settledTonKey.contentEquals(metaAccount.tonPublicKey)) {
+                    "The reviewed wallet no longer owns this signing account"
+                }
+                secrets?.let { Keypair(it[TonSecrets.PublicKey], it[TonSecrets.PrivateKey]) }
             }
 
             else -> error("No keypair found for meta account: ${metaAccount.id}, chain: ${chain.id} (${chain.ecosystem.name})")

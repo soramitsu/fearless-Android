@@ -197,8 +197,8 @@ class SavedEndpointSelectionUiInstrumentedTest {
         current: Boolean
     ): EndpointRuntimeStatus = EndpointRuntimeStatus::class.java.getDeclaredConstructor(
         EndpointRuntimeStatus.Phase::class.java, Boolean::class.javaPrimitiveType,
-        ChainNode::class.java, Function0::class.java
-    ).newInstance(phase, applied, selected, { current })
+        ChainNode::class.java, Function0::class.java, Int::class.javaPrimitiveType
+    ).newInstance(phase, applied, selected, { current }, 0)
 
     private fun form(): SavedEndpointDecisionForm {
         val helper = FrameworkSQLiteOpenHelperFactory().create(

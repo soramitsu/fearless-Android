@@ -10,6 +10,10 @@ interface RootRouter {
     fun openPincodeCheck()
 
     fun openNavGraph()
+
+    /** Suspends until the screens dApp requests open on can be reached: not over the PIN, onboarding or start screens. */
+    suspend fun awaitDappRoutes()
+
     fun openWalletConnectSessionProposal(pairingTopic: String?)
     fun openWalletConnectSessionRequest(sessionRequestTopic: String)
     suspend fun openTonSignRequestWithResult(dapp: DappModel, method: String, signRequest: TonConnectSignRequest): Result<Pair<String, String>>

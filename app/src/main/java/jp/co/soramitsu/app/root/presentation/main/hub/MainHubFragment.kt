@@ -3,6 +3,7 @@ package jp.co.soramitsu.app.root.presentation.main.hub
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,6 +30,11 @@ import jp.co.soramitsu.common.compose.component.B0
 import jp.co.soramitsu.common.compose.component.GrayButton
 import jp.co.soramitsu.common.compose.component.H1
 import jp.co.soramitsu.common.compose.component.H3
+import jp.co.soramitsu.common.compose.theme.fw.FwCard
+import jp.co.soramitsu.common.compose.theme.fw.FwNotice
+import jp.co.soramitsu.common.compose.theme.fw.FwNoticeTone
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.polkaswap.api.presentation.PolkaswapRouter
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
@@ -36,7 +42,6 @@ import jp.co.soramitsu.polkamarkt.api.PolkamarktRouter
 import jp.co.soramitsu.polkamarkt.api.PolkamarktInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.accountId
-import jp.co.soramitsu.account.api.domain.model.hasChainAccount
 import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.model.DeFiAccountRequirement
 import jp.co.soramitsu.common.model.DeFiAvailability
@@ -281,14 +286,9 @@ class MainHubViewModel @Inject constructor(
         val recoveryRequired = chainsWithAccount.isNotEmpty() && chainsWithAccount.all { chain ->
             accountRepository.isSigningRecoveryRequired(wallet.id, chain)
         }
+        // Key names only: sealed secrets stay closed while the wallet is locked.
         val hasSigningMaterial = chainsWithAccount.any { chain ->
-            runCatching {
-                if (wallet.hasChainAccount(chain.id)) {
-                    accountRepository.getChainAccountSecrets(wallet.id, chain.id) != null
-                } else {
-                    accountRepository.getSubstrateSecrets(wallet.id) != null
-                }
-            }.getOrDefault(false)
+            runCatching { accountRepository.hasSigningMaterial(wallet.id, chain) }.getOrDefault(false)
         }
         val runtimeReady = chainsWithAccount.any { chain ->
             chainRegistry.getRuntimeOrNull(chain.id) != null
@@ -419,12 +419,9 @@ class MainHubViewModel @Inject constructor(
         val wallet = accountRepository.getSelectedMetaAccount()
         val hasAccount = wallet.accountId(chain) != null
         val recoveryRequired = hasAccount && accountRepository.isSigningRecoveryRequired(wallet.id, chain)
+        // Key names only: sealed secrets stay closed while the wallet is locked.
         val hasSigningMaterial = hasAccount && !recoveryRequired && runCatching {
-            if (wallet.hasChainAccount(chain.id)) {
-                accountRepository.getChainAccountSecrets(wallet.id, chain.id) != null
-            } else {
-                accountRepository.getSubstrateSecrets(wallet.id) != null
-            }
+            accountRepository.hasSigningMaterial(wallet.id, chain)
         }.getOrDefault(false)
         val reason = when {
             !hasAccount -> "Add a SORA account to continue."
@@ -629,58 +626,52 @@ fun MainHubScreen(
                     text = stringResource(R.string.main_hub_positions_description),
                     color = white50
                 )
-                PositionCountRow(
-                    label = stringResource(R.string.main_hub_staking_action),
-                    state = defiPositions.staking
-                )
-                PositionCountRow(
-                    label = stringResource(R.string.main_hub_pools_action),
-                    state = defiPositions.liquidityPools
-                )
-                PositionCountRow(
-                    label = stringResource(R.string.main_hub_farming_title),
-                    state = defiPositions.farming
-                )
-                PositionCountRow(
-                    label = stringResource(R.string.main_hub_polkamarkt_title),
-                    state = defiPositions.polkamarkt
-                )
+                PositionsGroup {
+                    PositionCountRow(
+                        label = stringResource(R.string.main_hub_staking_action),
+                        state = defiPositions.staking
+                    )
+                    PositionCountRow(
+                        label = stringResource(R.string.main_hub_pools_action),
+                        state = defiPositions.liquidityPools
+                    )
+                    PositionCountRow(
+                        label = stringResource(R.string.main_hub_farming_title),
+                        state = defiPositions.farming
+                    )
+                    PositionCountRow(
+                        label = stringResource(R.string.main_hub_polkamarkt_title),
+                        state = defiPositions.polkamarkt
+                    )
+                }
                 AccentButton(
                     modifier = Modifier.fillMaxWidth(),
                     text = stringResource(R.string.main_hub_staking_action),
                     enabled = defiCapabilities[DEFI_STAKING]?.canOpenDestination == true,
                     onClick = onPrimaryAction
                 )
-                defiCapabilities[DEFI_STAKING]?.userFacingReason?.let { reason ->
-                    B0(text = reason, color = white50)
-                }
+                defiCapabilities[DEFI_STAKING]?.userFacingReason?.let { reason -> HubReason(reason) }
                 GrayButton(
                     modifier = Modifier.fillMaxWidth(),
                     text = stringResource(R.string.main_hub_pools_action),
                     enabled = defiCapabilities[DEFI_POOLS]?.canOpenDestination == true,
                     onClick = onSecondaryAction
                 )
-                defiCapabilities[DEFI_POOLS]?.userFacingReason?.let { reason ->
-                    B0(text = reason, color = white50)
-                }
+                defiCapabilities[DEFI_POOLS]?.userFacingReason?.let { reason -> HubReason(reason) }
                 GrayButton(
                     modifier = Modifier.fillMaxWidth(),
                     text = stringResource(R.string.main_hub_farming_title),
                     enabled = defiCapabilities[DEFI_FARMING]?.canOpenDestination == true,
                     onClick = onFarmingAction
                 )
-                defiCapabilities[DEFI_FARMING]?.userFacingReason?.let { reason ->
-                    B0(text = reason, color = white50)
-                }
+                defiCapabilities[DEFI_FARMING]?.userFacingReason?.let { reason -> HubReason(reason) }
                 GrayButton(
                     modifier = Modifier.fillMaxWidth(),
                     text = stringResource(R.string.main_hub_polkamarkt_title),
                     enabled = defiCapabilities[DEFI_POLKAMARKT]?.canOpenDestination == true,
                     onClick = onPolkamarktAction
                 )
-                defiCapabilities[DEFI_POLKAMARKT]?.userFacingReason?.let { reason ->
-                    B0(text = reason, color = white50)
-                }
+                defiCapabilities[DEFI_POLKAMARKT]?.userFacingReason?.let { reason -> HubReason(reason) }
             }
 
             MainHubType.Polkaswap -> {
@@ -695,9 +686,7 @@ fun MainHubScreen(
                     enabled = polkaswapCapability.canOpenAction,
                     onClick = onPrimaryAction
                 )
-                polkaswapCapability.reason?.let { reason ->
-                    B0(text = reason, color = white50)
-                }
+                polkaswapCapability.reason?.let { reason -> HubReason(reason) }
                 GrayButton(
                     modifier = Modifier.fillMaxWidth(),
                     text = stringResource(R.string.main_hub_pools_action),
@@ -713,11 +702,12 @@ fun MainHubScreen(
                     color = white50
                 )
                 crossChainCapability?.let { capability ->
-                    B0(
-                        text = capability.userFacingReason
-                            ?: "Protocol: ${capability.protocol.displayName}",
-                        color = white50
-                    )
+                    val reason = capability.userFacingReason
+                    if (reason != null) {
+                        HubReason(reason)
+                    } else {
+                        B0(text = "Protocol: ${capability.protocol.displayName}", color = white50)
+                    }
                 }
                 AccentButton(
                     modifier = Modifier.fillMaxWidth(),
@@ -738,6 +728,32 @@ fun MainHubScreen(
                 )
             }
         }
+    }
+}
+
+/** Why a product cannot be used right now: a still notice in the sun-lit design. */
+@Composable
+private fun HubReason(reason: String) {
+    if (FwRestyle.isEnabled(FwSurface.Unavailable)) {
+        FwNotice(message = reason, tone = FwNoticeTone.Neutral)
+    } else {
+        B0(text = reason, color = white50)
+    }
+}
+
+/** The position counts: one raised card in the sun-lit design, a plain column in the legacy one. */
+@Composable
+private fun PositionsGroup(content: @Composable ColumnScope.() -> Unit) {
+    if (FwRestyle.isEnabled(FwSurface.Staking)) {
+        FwCard(Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                content = content
+            )
+        }
+    } else {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp), content = content)
     }
 }
 

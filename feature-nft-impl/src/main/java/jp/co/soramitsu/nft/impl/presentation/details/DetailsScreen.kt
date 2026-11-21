@@ -41,7 +41,6 @@ import com.valentinilk.shimmer.shimmer
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.component.AccentButton
 import jp.co.soramitsu.common.compose.component.B1
-import jp.co.soramitsu.common.compose.component.GifImage
 import jp.co.soramitsu.common.compose.component.Image
 import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
@@ -395,7 +394,7 @@ private fun NftAsyncImage(imageUrl: String) {
         contentDescription = null,
         contentScale = ContentScale.Crop,
         error = {
-            GifImage(gifResource = R.drawable.animated_bird)
+            Image(res = R.drawable.drawable_fearless_bird, contentDescription = null)
         },
         loading = {
             Box(

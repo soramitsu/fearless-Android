@@ -41,6 +41,46 @@ interface MetaAccountDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertDerivedChainAccountsIfAbsent(accounts: List<ChainAccountLocal>)
 
+    /**
+     * Replaces a derived chain account's key only while the row still holds [expectedPublicKey];
+     * the old key's balances go with it. 0 means the row changed or is gone.
+     */
+    @Transaction
+    suspend fun replaceDerivedChainAccount(
+        metaId: Long,
+        chainId: String,
+        expectedPublicKey: ByteArray,
+        publicKey: ByteArray,
+        accountId: ByteArray
+    ): Int {
+        val oldAccountId = getChainAccountId(metaId, chainId, expectedPublicKey) ?: return 0
+        val updated = updateDerivedChainAccountKey(metaId, chainId, expectedPublicKey, publicKey, accountId)
+        if (updated == 1) deleteChainAccountAssets(metaId, chainId, oldAccountId)
+        return updated
+    }
+
+    @Query("SELECT accountId FROM chain_accounts WHERE metaId = :metaId AND chainId = :chainId AND publicKey = :publicKey")
+    suspend fun getChainAccountId(metaId: Long, chainId: String, publicKey: ByteArray): ByteArray?
+
+    @Query(
+        "UPDATE chain_accounts SET publicKey = :publicKey, accountId = :accountId, initialized = 0 " +
+            "WHERE metaId = :metaId AND chainId = :chainId AND publicKey = :expectedPublicKey"
+    )
+    suspend fun updateDerivedChainAccountKey(
+        metaId: Long,
+        chainId: String,
+        expectedPublicKey: ByteArray,
+        publicKey: ByteArray,
+        accountId: ByteArray
+    ): Int
+
+    @Query("DELETE FROM assets WHERE metaId = :metaId AND chainId = :chainId AND accountId = :accountId")
+    suspend fun deleteChainAccountAssets(metaId: Long, chainId: String, accountId: ByteArray)
+
+    /** Balances a replaced root key (TON) left on every chain it served. */
+    @Query("DELETE FROM assets WHERE metaId = :metaId AND accountId = :accountId")
+    suspend fun deleteAccountAssets(metaId: Long, accountId: ByteArray)
+
     /** Used only by atomic, public-only watch enrollment; conflicts must abort the transaction. */
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertWatchChainAccounts(accounts: List<ChainAccountLocal>)

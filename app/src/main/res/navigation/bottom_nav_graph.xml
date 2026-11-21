@@ -395,6 +395,10 @@
             android:name="jp.co.soramitsu.account.impl.presentation.language.LanguagesFragment"
             android:label="Language" />
         <fragment
+            android:id="@+id/appearanceFragment"
+            android:name="jp.co.soramitsu.account.impl.presentation.appearance.AppearanceFragment"
+            android:label="Appearance" />
+        <fragment
             android:id="@+id/pincodeFragment"
             android:name="jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment"
             android:label="Security" />
@@ -430,10 +434,6 @@
             android:id="@+id/tonConnectionInfo"
             android:name="jp.co.soramitsu.tonconnect.impl.presentation.connectioninfo.TonConnectionInfoFragment"
             android:label="TonConnect app" />
-        <fragment
-            android:id="@+id/experimentalFragment"
-            android:name="jp.co.soramitsu.account.impl.presentation.experimental.ExperimentalFragment"
-            android:label="Preferences" />
     </navigation>
 
     <fragment
@@ -527,10 +527,6 @@
         android:id="@+id/confirmSendFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.send.confirm.ConfirmSendFragment"
         android:label="Confirm send" />
-    <dialog
-        android:id="@+id/cbdcSendSetupFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.send.setupcbdc.CBDCSendSetupFragment"
-        android:label="Send" />
     <dialog
         android:id="@+id/successSheetFragment"
         android:name="jp.co.soramitsu.success.presentation.SuccessFragment"

@@ -63,6 +63,10 @@ fun rememberFwEffects(): State<FwEffects> {
     return state
 }
 
+/** One reading of the live effects for views outside Compose (PIN pad, bottom navigation, XML pages). */
+fun readFwEffectsSnapshot(context: Context): FwEffects =
+    readFwEffects(context.applicationContext, FwAppearancePreferences(context))
+
 private fun readFwEffects(context: Context, preferences: FwAppearancePreferences): FwEffects = resolveFwEffects(
     sdkInt = Build.VERSION.SDK_INT,
     lowRam = context.getSystemService(ActivityManager::class.java)?.isLowRamDevice ?: true,

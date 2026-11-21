@@ -36,7 +36,11 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black05
 import jp.co.soramitsu.common.compose.theme.blurColorLight
+import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSecondaryButton
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.white16
 import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.common.utils.clickableSingle
@@ -55,10 +59,10 @@ fun AssetSelector(
     onClick: () -> Unit = {}
 ) {
     BackgroundCornered(
-        backgroundColor = blurColorLight,
+        backgroundColor = if (FwRestyle.isEnabled(FwSurface.Pickers)) MaterialTheme.customColors.backgroundBlurColor else blurColorLight,
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .height(if (FwRestyle.isEnabled(FwSurface.Pickers)) 56.dp else 48.dp)
             .clickableSingle { onClick() }
     ) {
         Row(modifier = Modifier.fillMaxSize()) {
@@ -116,6 +120,16 @@ fun Badge(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    if (FwRestyle.paletteEnabled) {
+        FwSecondaryButton(
+            text = stringResource(id = labelResId),
+            onClick = onClick,
+            modifier = modifier,
+            iconRes = iconResId,
+            textStyle = MaterialTheme.customTypography.body1
+        )
+        return
+    }
     ColoredButton(
         modifier = modifier,
         backgroundColor = black05,

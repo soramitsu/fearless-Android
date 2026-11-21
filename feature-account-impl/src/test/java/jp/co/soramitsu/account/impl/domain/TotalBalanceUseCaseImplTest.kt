@@ -1,6 +1,7 @@
 package jp.co.soramitsu.account.impl.domain
 
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
+import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.coredb.model.cache.CachedAssetRead
 import jp.co.soramitsu.coredb.model.cache.CachedAssetWithPriceRead
 import jp.co.soramitsu.coredb.model.cache.CachedTokenPriceRead
@@ -31,6 +32,31 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TotalBalanceUseCaseImplTest {
+
+    @Test
+    fun `the selected currency's symbol labels a total and changes no amount`() {
+        val chains = mapOf(
+            CHAIN_ID to chain(listOf(chainAsset("shown", priceId = "shown-price"), chainAsset("hidden", priceId = "hidden-price")))
+        )
+        val balances = listOf(
+            walletAsset("shown", "shown-price", amount = 2, rate = "3.00", rateChange = "10.00"),
+            walletAsset("hidden", "hidden-price", amount = 5, rate = "7.00", enabled = false, rateChange = "-20.00")
+        )
+        val total = { fiat: FiatValuationContext ->
+            calculateTrustedTotalBalance(balances, chains, Chain::isTestNet, REGISTRY_PRICES_TRUSTED, fiat)
+        }
+
+        val bare = total(FiatValuationContext("usd"))
+        val labelled = total(FiatValuationContext("usd", FiatCurrency("usd", "$", "US Dollar", "")))
+
+        assertEquals("usd", bare.fiatSymbol)
+        assertEquals("$", labelled.fiatSymbol)
+        assertEquals("usd", labelled.currencyId)
+        assertSameAmount("6", labelled.shown.amount)
+        assertEquals(bare.shown, labelled.shown)
+        assertEquals(bare.hidden, labelled.hidden)
+        assertEquals(bare.allHoldings, labelled.allHoldings)
+    }
 
     @Test
     fun `missing catalog row skips only that balance`() {
@@ -236,7 +262,8 @@ class TotalBalanceUseCaseImplTest {
         assets: List<AssetWithToken>,
         chainsById: Map<String, Chain>,
         isTestnet: (Chain) -> Boolean,
-        hasTrustedPrice: (String, String) -> Boolean
+        hasTrustedPrice: (String, String) -> Boolean,
+        fiat: FiatValuationContext = FiatValuationContext("usd")
     ): TotalBalance.Ready {
         fun <T : Any> state(value: T?): CachedNumericState<T> =
             value?.let { CachedNumericState.Known(it) } ?: CachedNumericState.Missing
@@ -253,7 +280,7 @@ class TotalBalanceUseCaseImplTest {
             )
         }
         val snapshot = CurrentAccountAssetSnapshot(
-            CurrentAccountAssetContext(AssetBalanceFixtures.meta(id = 1), FiatValuationContext("usd")),
+            CurrentAccountAssetContext(AssetBalanceFixtures.meta(id = 1), fiat),
             chainsById, rows, quotesReady = true
         )
         return calculateTrustedTotalBalance(snapshot, isTestnet, hasTrustedPrice) as TotalBalance.Ready

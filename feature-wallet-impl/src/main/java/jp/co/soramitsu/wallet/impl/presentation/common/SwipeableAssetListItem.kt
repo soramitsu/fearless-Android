@@ -4,7 +4,13 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.ActionBar
 import jp.co.soramitsu.common.compose.component.ActionBarViewState
@@ -15,6 +21,8 @@ import jp.co.soramitsu.common.compose.component.SwipeBox
 import jp.co.soramitsu.common.compose.component.SwipeBoxViewState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
+import jp.co.soramitsu.common.utils.onSingleClick
+import jp.co.soramitsu.common.utils.rememberLastClickTime
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -25,7 +33,9 @@ fun SwipeableAssetListItem(
     assetClicked: (AssetListItemViewState) -> Unit,
     actionItemClicked: (actionType: ActionItemType, chainId: ChainId, chainAssetId: String, swipeableState: SwipeableState<SwipeState>) -> Unit,
     /** The visibility action behind the row; by default Show for a hidden row and Hide otherwise. */
-    visibilityAction: ActionItemType = if (assetState.isHidden) ActionItemType.SHOW else ActionItemType.HIDE
+    visibilityAction: ActionItemType = if (assetState.isHidden) ActionItemType.SHOW else ActionItemType.HIDE,
+    /** False where the list around the row already names the network. */
+    showNetwork: Boolean = true
 ) {
     val swipeableState = rememberSwipeableState(initialValue = SwipeState.INITIAL)
 
@@ -33,21 +43,35 @@ fun SwipeableAssetListItem(
         actionItemClicked(actionType, chainId, chainAssetId, swipeableState)
     }
 
-    val swipeBoxViewState = remember {
+    val swipeBoxViewState = remember(isHideVisible) {
         SwipeBoxViewState(
             leftStateWidth = 170.dp,
             rightStateWidth = if (isHideVisible) 90.dp else 0.dp
         )
     }
 
-    val leftBarActionViewState = remember { getLeftActionBarViewState(assetState) }
-    val rightBarActionViewState = remember { getRightActionBarViewState(assetState, visibilityAction) }
+    val leftBarActionViewState = getLeftActionBarViewState(assetState)
+    val rightBarActionViewState = getRightActionBarViewState(assetState, visibilityAction)
+    // A swipe is a gesture a screen reader cannot make: the actions behind the row are also the row's own.
+    val swipeActions = leftBarActionViewState.actionItems + if (isHideVisible) rightBarActionViewState.actionItems else emptyList()
+    val accessibilityActions = swipeActions.map { action ->
+        key(assetState.chainId, assetState.chainAssetId, action) {
+            val label = stringResource(action.titleId)
+            val lastClickTime = rememberLastClickTime()
+            CustomAccessibilityAction(label) {
+                onSingleClick(lastClickTime) { onItemClick(action, assetState.chainId, assetState.chainAssetId) }
+                true
+            }
+        }
+    }
     SwipeBox(
         swipeableState = swipeableState,
         state = swipeBoxViewState,
         initialContent = {
             AssetListItem(
                 state = assetState,
+                modifier = Modifier.semantics { customActions = accessibilityActions },
+                showNetwork = showNetwork,
                 onClick = assetClicked
             )
         },

@@ -1,6 +1,7 @@
 package jp.co.soramitsu.wallet.impl.data.repository.tranfser
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.universalWalletRoot
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerClient
@@ -21,9 +22,6 @@ import jp.co.soramitsu.common.data.network.solana.SolanaTransferTransactionBuild
 import jp.co.soramitsu.common.model.UniversalWalletIndexedAssetBalance
 import jp.co.soramitsu.common.model.UniversalWalletDerivationPaths
 import jp.co.soramitsu.common.model.UniversalWalletRegistry
-import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
-import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
-import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.utils.BitcoinKeyDerivation
 import jp.co.soramitsu.common.utils.IrohaAddressCodec
 import jp.co.soramitsu.common.utils.IrohaKeyDerivation
@@ -35,10 +33,10 @@ import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.utils.toLongExact
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.coredb.dao.AssetDao
-import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
-import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder.toAccountId
+import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.runtime.ext.accountIdOf
 import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
 import jp.co.soramitsu.runtime.ext.isUniversalWalletIroha
 import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
@@ -78,13 +76,26 @@ class TransferServiceProvider(
     private val sendPausePolicy: SendPausePolicy = SendPausePolicy.Unrestricted,
     private val quoteStore: NativeSendQuoteStore = NativeSendQuoteStore(),
     private val sendJournal: jp.co.soramitsu.common.data.network.send.WalletSendJournal? = null,
-    private val currentChain: (suspend (String) -> Chain)? = null
+    private val currentChain: (suspend (String) -> Chain)? = null,
+    /**
+     * Told before a retained payment is released because it can never land, so its history row can close;
+     * `verified` is false when the payment was too old for its expiry to show that nothing left the wallet.
+     */
+    private val onPaymentReleased: suspend (jp.co.soramitsu.common.data.network.send.PendingWalletSend, Boolean) -> Unit = { _, _ -> }
 ) {
-    fun provide(chain: Chain): TransferService {
+    /**
+     * [additional] calls and [batchAll] are part of the reviewed extrinsic. Only a Substrate send can carry them;
+     * every other service refuses them rather than signing a transfer without them.
+     */
+    fun provide(
+        chain: Chain,
+        additional: (suspend ExtrinsicBuilder.() -> Unit)? = null,
+        batchAll: Boolean = false
+    ): TransferService {
         if (sendPausePolicy.isPaused(chain)) {
             return PausedTransferService { sendPausePolicy.pausedError(chain) }
         }
-        return if (chain.isUniversalWalletBitcoin()) {
+        val service = if (chain.isUniversalWalletBitcoin()) {
             BitcoinTransferService(
                 chain = chain,
                 accountRepository = accountRepository,
@@ -99,7 +110,7 @@ class TransferServiceProvider(
                 accountRepository = accountRepository,
                 rpcClient = solanaRpcClient,
                 quotes = quoteStore,
-                executor = NativeSendExecutor(requireNotNull(sendJournal)),
+                executor = NativeSendExecutor(requireNotNull(sendJournal), onPaymentReleased),
                 pausePolicy = sendPausePolicy,
                 currentChain = { currentChain?.invoke(chain.id) ?: chain }
             )
@@ -113,7 +124,9 @@ class TransferServiceProvider(
         } else when (chain.ecosystem) {
             Ecosystem.EthereumBased, Ecosystem.Substrate -> SubstrateTransferService(
                 chain,
-                substrateSource
+                substrateSource,
+                additional,
+                batchAll
             )
             Ecosystem.Ethereum -> EthereumTransferService(
                 chain,
@@ -123,6 +136,10 @@ class TransferServiceProvider(
             Ecosystem.Ton -> TonTransferService(chain, keyPairRepository, accountRepository, tonRemoteSource, assetDao)
             else -> throw IllegalStateException("Unsupported chain for transfers: ${chain.name}, ecosystem: ${chain.ecosystem.name}")
         }
+        require(service is SubstrateTransferService || (additional == null && !batchAll)) {
+            "Additional calls and batching need a Substrate transfer, not ${chain.name}"
+        }
+        return service
     }
 }
 
@@ -156,7 +173,9 @@ data class IrohaTransferSigningRequest(
     val signingPublicKeyHex: String,
     val sourceAccountId: String,
     val sourceAssetId: String,
-    val transactionMetadata: IrohaTransferMetadata = IrohaTransferMetadata.empty()
+    val transactionMetadata: IrohaTransferMetadata = IrohaTransferMetadata.empty(),
+    /** The BIP39 passphrase under which [mnemonicOrSeed] derives [signingPublicKeyHex]. */
+    val passphrase: String = ""
 )
 
 class IrohaSignedTransfer(
@@ -270,19 +289,23 @@ class IrohaTransferService(
             ?: throw unsupported("Iroha recipient address is invalid for ${chain.name}")
         val amount = transfer.amount.toPlainString().normalizeIrohaTransferAmount()
         val assetDefinitionId = transfer.chainAsset.id.normalizeIrohaAssetDefinitionId()
-        val mnemonic = resolveRootMnemonic(metaAccount.id)
-        val derivedAddress = runCatching {
-            IrohaKeyDerivation.deriveAddress(
-                mnemonic = mnemonic,
-                chainDiscriminant = network.chainDiscriminant
-            ).i105
-        }.getOrElse {
+        val root = accountRepository.universalWalletRoot(metaAccount.id)
+            ?: throw unsupported("Iroha transfers require mnemonic root material for ${chain.name}")
+        // A password wallet's account derives with its passphrase, or without it for an old address.
+        val derivedAddresses = root.passphraseCandidates.map { passphrase ->
+            passphrase to runCatching {
+                IrohaKeyDerivation.deriveAddress(
+                    mnemonic = root.mnemonic,
+                    passphrase = passphrase,
+                    chainDiscriminant = network.chainDiscriminant
+                ).i105
+            }.getOrNull()
+        }
+        if (derivedAddresses.all { it.second == null }) {
             throw unsupported("Iroha mnemonic root material is invalid for ${chain.name}")
         }
-
-        if (derivedAddress != sourceAddress) {
-            throw unsupported("Iroha mnemonic does not match selected wallet for ${chain.name}")
-        }
+        val passphrase = derivedAddresses.firstOrNull { it.second == sourceAddress }?.first
+            ?: throw unsupported("Iroha mnemonic does not match selected wallet for ${chain.name}")
 
         return IrohaTransferContext(
             toriiBaseUrl = toriiBaseUrl,
@@ -293,36 +316,14 @@ class IrohaTransferService(
                 chainId = network.chainId,
                 derivationPath = UniversalWalletDerivationPaths.IROHA_DEFAULT,
                 destinationAccountId = destinationAddress,
-                mnemonicOrSeed = mnemonic,
+                mnemonicOrSeed = root.mnemonic,
                 network = network.irohaTransferNetworkKey(),
                 signingPublicKeyHex = sourceDetails.publicKeyHex,
                 sourceAccountId = sourceAddress,
-                sourceAssetId = "$assetDefinitionId#$sourceAddress"
+                sourceAssetId = "$assetDefinitionId#$sourceAddress",
+                passphrase = passphrase
             )
         )
-    }
-
-    private suspend fun resolveRootMnemonic(metaId: Long): String {
-        accountRepository.getSubstrateSecrets(metaId)
-            ?.get(SubstrateSecrets.Entropy)
-            ?.let { return MnemonicCreator.fromEntropy(it.clone()).words }
-
-        accountRepository.getEthereumSecrets(metaId)
-            ?.get(EthereumSecrets.Entropy)
-            ?.let { return MnemonicCreator.fromEntropy(it.clone()).words }
-
-        accountRepository.getTonSecrets(metaId)
-            ?.get(TonSecrets.Seed)
-            ?.decodeToString()
-            ?.normalizeMnemonic()
-            ?.let { return it }
-
-        throw unsupported("Iroha transfers require mnemonic root material for ${chain.name}")
-    }
-
-    private fun String.normalizeMnemonic(): String? {
-        val words = trim().split(Regex("\\s+")).filter(String::isNotBlank)
-        return words.takeIf { it.isNotEmpty() }?.joinToString(" ")
     }
 
     private fun String.normalizeIrohaTransferAmount(): String {
@@ -373,10 +374,13 @@ class IrohaTransferService(
 
 class SubstrateTransferService(
     private val chain: Chain,
-    private val substrateSource: SubstrateRemoteSource
+    private val substrateSource: SubstrateRemoteSource,
+    /** Reviewed calls signed in the same extrinsic as the transfer, in fee and send alike. */
+    private val additional: (suspend ExtrinsicBuilder.() -> Unit)? = null,
+    private val batchAll: Boolean = false
 ) : TransferService {
     override suspend fun getTransferFee(transfer: Transfer): BigDecimal {
-        val transferFee = substrateSource.getTransferFee(chain, transfer, null, false)
+        val transferFee = substrateSource.getTransferFee(chain, transfer, additional, batchAll)
         return chain.utilityAsset?.amountFromPlanks(transferFee)
             ?: throw IllegalStateException("cannot calculate substrate fee ${chain.name}, fee: $transferFee")
     }
@@ -388,13 +392,14 @@ class SubstrateTransferService(
     override suspend fun transfer(transfer: Transfer): String {
         require(transfer.additionalParams is SubstrateTransferParams) { "Wrong additional params type for substrate transfer" }
 
-        val accountId = transfer.sender.toAccountId()
+        // EthereumBased chains such as Moonbeam use 20-byte hex accounts, which an SS58 decode rejects.
+        val accountId = chain.accountIdOf(transfer.sender)
         return substrateSource.performTransfer(
             accountId,
             chain,
             transfer,
-            null,
-            false
+            additional,
+            batchAll
         )
     }
 }

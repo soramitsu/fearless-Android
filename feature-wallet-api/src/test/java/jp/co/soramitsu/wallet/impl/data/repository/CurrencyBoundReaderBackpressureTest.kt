@@ -47,6 +47,7 @@ class CurrencyBoundReaderBackpressureTest {
         val accounts = mockk<AccountRepository>()
         val selectedFiat = mockk<SelectedFiat> {
             every { flow() } returns flowOf("usd")
+            every { metadata(any()) } returns null
         }
         val chains = mockk<ChainsRepository> {
             every { chainsByIdFlow() } returns catalog

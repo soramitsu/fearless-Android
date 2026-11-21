@@ -57,22 +57,12 @@
 }
 
 -keep class jp.co.soramitsu.backup.** { *; }
--keep class com.google.api.** { *; }
--keep class io.opencensus.trace.** { *; }
-#for beacon sdk
 
--keep class it.airgap.beaconsdk.** { *; }
+# JNA and kotlinx.serialization
 -keep class com.sun.jna.** { *; }
 -keepclassmembers class * extends com.sun.jna.* { public *; }
 -keepattributes *Annotation*, InnerClasses
 -dontnote kotlinx.serialization.SerializationKt
--keep,includedescriptorclasses class it.airgap.beaconsdk.**$$serializer { *; }
--keepclassmembers class it.airgap.beaconsdk.** {
-    *** Companion;
-}
--keepclasseswithmembers class it.airgap.beaconsdk.** {
-    kotlinx.serialization.KSerializer serializer(...);
-}
 
 # Keep `Companion` object fields of serializable classes.
 # This avoids serializer lookup through `getDeclaredClasses` as done for named companion objects.
@@ -103,25 +93,8 @@
 
 -dontwarn java.awt.*
 
-# Google Drive and Signin
-# Needed to keep generic types and @Key annotations accessed via reflection
+# Keep generic signatures and annotations that reflection-based libraries read.
 -keepattributes Signature,RuntimeVisibleAnnotations,AnnotationDefault
-
--keepclassmembers class * {
-  @com.google.api.client.util.Key <fields>;
-}
-
-# Needed by google-http-client-android when linking against an older platform version
-
--dontwarn com.google.api.client.extensions.android.**
-
-# Needed by google-api-client-android when linking against an older platform version
-
--dontwarn com.google.api.client.googleapis.extensions.android.**
-
-# Needed by google-play-services when linking against an older platform version
-
--dontwarn com.google.android.gms.**
 
 # This is generated automatically by the Android Gradle plugin.
 -dontwarn org.slf4j.impl.StaticLoggerBinder
@@ -255,8 +228,3 @@
 -keep,allowobfuscation,allowshrinking class com.google.gson.reflect.TypeToken
 -keep,allowobfuscation,allowshrinking class * extends com.google.gson.reflect.TypeToken
 
-# Reown (formerly WalletConnect) ProGuard rules
--keep class com.reown.walletkit.client.Wallet$Model { *; }
--keep class com.reown.walletkit.client.Wallet { *; }
--keep class com.reown.android.** { *; }
--dontwarn com.reown.**

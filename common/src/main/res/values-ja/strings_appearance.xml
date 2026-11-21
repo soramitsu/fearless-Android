@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_title">外観</string>
+    <string name="appearance_effects_title">視覚効果</string>
+    <string name="appearance_effects_automatic">自動</string>
+    <string name="appearance_effects_reduced">控えめ</string>
+    <string name="appearance_effects_automatic_description">光と影をすべて表示します。端末が高いコントラストを求める場合は控えめになります。</string>
+    <string name="appearance_effects_reduced_description">光や影のない、平らで不透明な表示にします。</string>
+    <string name="appearance_effects_kept_reduced">端末のコントラスト設定により、効果は控えめのままです。</string>
+    <string name="appearance_contrast_title">コントラストを上げる</string>
+    <string name="appearance_contrast_description">文字を明るくし、輪郭をはっきりさせます。オンの間、効果は控えめのままです。</string>
+    <string name="appearance_preview_title">プレビュー</string>
+    <string name="appearance_save_failed">この設定を保存できませんでした。</string>
+</resources>

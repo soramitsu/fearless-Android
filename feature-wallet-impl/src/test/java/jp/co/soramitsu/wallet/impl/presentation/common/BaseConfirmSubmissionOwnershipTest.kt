@@ -8,6 +8,7 @@ import io.mockk.every
 import io.mockk.mockk
 import jp.co.soramitsu.androidfoundation.testing.MainCoroutineRule
 import jp.co.soramitsu.common.AlertViewState
+import jp.co.soramitsu.common.feedback.TransferSeal
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.api.presentation.BaseConfirmViewModel
@@ -40,6 +41,7 @@ class BaseConfirmSubmissionOwnershipTest {
 
     @After fun tearDown() {
         owned.forEach { it.vm.viewModelScope.cancel() }
+        TransferSeal.clear()
     }
 
     @Test fun `repeated confirm while validation waits starts one operation`() {
@@ -215,6 +217,51 @@ class BaseConfirmSubmissionOwnershipTest {
         assertFalse(state.value.isLoading)
         assertTrue(h.uncaught.isEmpty())
         assertEquals(1, h.alerts.size)
+    }
+
+    // The seal (brand kit SPEC v4 part 3) on the shared confirmation: staking pool operations and validator selection.
+
+    @Test fun `seal lights ready only once the operation is handed over, and the rest together on acceptance`() {
+        val h = harness(holdOperation = true)
+        assertEquals(TransferSeal.Stage.Idle, TransferSeal.record.value.stage)
+        h.vm.onConfirm()
+        assertEquals(TransferSeal.Stage.Ready, TransferSeal.record.value.stage)
+        assertEquals(0, h.successes)
+        h.operationResume.complete(Unit)
+        val record = TransferSeal.record.value
+        assertEquals(TransferSeal.Stage.Accepted, record.stage)
+        assertEquals(record.acceptedAtMs, record.signedAtMs)
+        assertEquals(record.acceptedAtMs, record.sentAtMs)
+        // The success presentation runs in the same step: the seal never holds the result back.
+        assertEquals(1, h.successes)
+    }
+
+    @Test fun `a refused operation breaks the seal beside the error alert`() {
+        val h = harness(failOperation = true)
+        h.vm.onConfirm()
+        assertEquals(TransferSeal.Stage.Failed, TransferSeal.record.value.stage)
+        assertEquals(1, h.alerts.size)
+    }
+
+    @Test fun `a validation that stops the confirmation lights nothing`() {
+        val h = harness()
+        h.valid = false
+        h.vm.onConfirm()
+        assertEquals(TransferSeal.Stage.Idle, TransferSeal.record.value.stage)
+        assertEquals(1, h.alerts.size)
+    }
+
+    @Test fun `a cancelled operation clears the seal instead of breaking it`() {
+        val h = harness(cancelOperation = true)
+        h.vm.onConfirm()
+        assertEquals(TransferSeal.Stage.Idle, TransferSeal.record.value.stage)
+    }
+
+    @Test fun `a new confirmation never shows a seal left by an earlier operation`() {
+        TransferSeal.ready(1)
+        TransferSeal.accepted(2)
+        harness()
+        assertEquals(TransferSeal.Stage.Idle, TransferSeal.record.value.stage)
     }
 
     private fun harness(holdValidation: Boolean = false, holdOperation: Boolean = false, reenterOnSuccess: Boolean = false, ignoreCancellation: Boolean = false, failOperation: Boolean = false, cancelValidation: Boolean = false, cancelOperation: Boolean = false) =

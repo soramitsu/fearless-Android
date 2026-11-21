@@ -40,6 +40,8 @@ import jp.co.soramitsu.common.compose.component.TestnetBadge
 import jp.co.soramitsu.common.compose.component.getImageRequest
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.black4
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.gray2
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -52,10 +54,12 @@ data class AssetSelectScreenViewState(
     val isHiddenExpanded: Boolean = false,
     val searchQuery: String? = null,
     val showAllChains: Boolean = true,
-    val emptyMessage: AssetSelectEmptyMessage = AssetSelectEmptyMessage.NothingFound
+    val emptyMessage: AssetSelectEmptyMessage = AssetSelectEmptyMessage.NothingFound,
+    /** The first list has not arrived yet, so it is too early to say that nothing was found. */
+    val isLoading: Boolean = false
 ) {
     companion object {
-        val default = AssetSelectScreenViewState(emptyList())
+        val default = AssetSelectScreenViewState(emptyList(), isLoading = true)
     }
 }
 
@@ -77,6 +81,10 @@ fun AssetSelectContent(
     state: AssetSelectScreenViewState,
     callback: AssetSelectContentInterface
 ) {
+    if (FwRestyle.isEnabled(FwSurface.Pickers)) {
+        AssetSelectSunlitContent(state, callback)
+        return
+    }
     Column(
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -96,7 +104,7 @@ fun AssetSelectContent(
                     .weight(1f)
                     .align(CenterHorizontally)
             ) {
-                EmptyResultContent(state.emptyMessage)
+                if (!state.isLoading) EmptyResultContent(state.emptyMessage)
             }
         } else {
             LazyColumn(modifier = Modifier.weight(1f)) {

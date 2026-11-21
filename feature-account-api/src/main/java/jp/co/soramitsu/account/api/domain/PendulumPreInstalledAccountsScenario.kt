@@ -2,6 +2,7 @@ package jp.co.soramitsu.account.api.domain
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
+import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
 import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.data.storage.Preferences
@@ -15,6 +16,8 @@ class PendulumPreInstalledAccountsScenario(
     private val preferences: Preferences,
     private val remoteConfigFetcher: RemoteConfigFetcher,
     private val productFeatureToggleStore: ProductFeatureToggleStore,
+    // Remote config may only turn features off, so release builds never let it turn this one on.
+    private val remoteEnableAllowed: Boolean = BuildConfig.DEBUG,
 ) {
 
     companion object {
@@ -23,6 +26,10 @@ class PendulumPreInstalledAccountsScenario(
     }
 
     suspend fun import(qrContent: String): Result<Any> {
+        // Every entry point is hidden while the feature is off; refuse a scan that arrives anyway.
+        if (!isFeatureEnabled()) {
+            return Result.failure(IllegalStateException())
+        }
         val mnemonic = kotlin.runCatching {
             val bytes = qrContent.fromHex()
             String(bytes)
@@ -52,10 +59,10 @@ class PendulumPreInstalledAccountsScenario(
     }
 
     fun isFeatureEnabled(): Boolean {
-        return /*BuildConfig.DEBUG ||*/ (preferences.contains(PENDULUM_FEATURE_TOGGLE_KEY) && preferences.getBoolean(
+        return remoteEnableAllowed && preferences.contains(PENDULUM_FEATURE_TOGGLE_KEY) && preferences.getBoolean(
             PENDULUM_FEATURE_TOGGLE_KEY,
             false
-        ))
+        )
     }
 
     suspend fun fetchFeatureToggle() {

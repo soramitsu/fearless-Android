@@ -4,7 +4,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.list.GroupedList
-import jp.co.soramitsu.common.list.toValueList
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.feature_staking_impl.R
@@ -21,12 +20,22 @@ import jp.co.soramitsu.staking.impl.presentation.pools.compose.SelectableListIte
 import jp.co.soramitsu.staking.impl.presentation.validators.toModel
 import jp.co.soramitsu.staking.impl.scenarios.StakingPoolInteractor
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -34,6 +43,7 @@ import kotlinx.coroutines.withContext
 import java.math.BigInteger
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SelectedValidatorsViewModel @Inject constructor(
     private val poolSharedStateProvider: StakingPoolSharedStateProvider,
@@ -52,17 +62,28 @@ class SelectedValidatorsViewModel @Inject constructor(
 
     private val validatorsFlow: MutableStateFlow<GroupedList<NominatedValidator.Status.Group, NominatedValidator>?> = MutableStateFlow(null)
 
-    private val flattenCurrentValidators = validatorsFlow
-        .map { it?.toValueList() }
-        .share()
+    private val reload = MutableStateFlow(0)
 
     init {
-        viewModelScope.launch(Dispatchers.Default) {
-            poolInteractor.nominatedValidatorsFlow(chain, poolId)
-                .collect { groupedValidators ->
-                    validatorsFlow.value = groupedValidators
+        // A list that cannot be read (a Hub pool's nominations or slash warnings, for one) shows Retry instead of
+        // closing the app or loading forever. A read that times out has failed; only this screen's own cancellation
+        // ends it silently.
+        reload.flatMapLatest {
+            flow { emitAll(poolInteractor.nominatedValidatorsFlow(chain, poolId)) }
+                .flowOn(Dispatchers.Default)
+                .catch { failure ->
+                    currentCoroutineContext().ensureActive()
+                    showError(
+                        title = resourceManager.getString(jp.co.soramitsu.common.R.string.common_error_general_title),
+                        message = failure.takeUnless { it is CancellationException }?.message
+                            ?: resourceManager.getString(jp.co.soramitsu.common.R.string.common_error_general_message),
+                        positiveButtonText = resourceManager.getString(jp.co.soramitsu.common.R.string.common_retry),
+                        positiveClick = { reload.update { it + 1 } }
+                    )
                 }
         }
+            .onEach { groupedValidators -> validatorsFlow.value = groupedValidators }
+            .launchIn(viewModelScope)
     }
 
     private val currentValidatorModels = validatorsFlow.map { groupedList ->
@@ -96,13 +117,12 @@ class SelectedValidatorsViewModel @Inject constructor(
     }
 
     override fun onInfoClick(item: SelectableListItemState<String>) {
+        val groups = validatorsFlow.value ?: return
+        val validator = groups.values.asSequence().flatten().firstOrNull { it.validator.accountIdHex == item.id } ?: return
+
         viewModelScope.launch {
             val payload = withContext(Dispatchers.Default) {
-                val allValidators = flattenCurrentValidators.first()
-
-                val nominatedValidator = allValidators?.first { it.validator.accountIdHex == item.id }
-
-                mapValidatorToValidatorDetailsWithStakeFlagParcelModel(requireNotNull(nominatedValidator))
+                mapValidatorToValidatorDetailsWithStakeFlagParcelModel(validator)
             }
 
             stakingInteractor.validatorDetailsCache.update { prev ->

@@ -1,5 +1,9 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.detail
 
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
+import jp.co.soramitsu.common.compose.theme.fw.FwEmptyState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -189,8 +193,11 @@ fun BalanceDetailsScreen(
                             actionItemClicked = callback::actionItemClicked
                         )
                     }
-                }}
-                MarginVertical(margin = 16.dp)
+                }
+                // The scrolling column clips at its end: inside it, the card's light fades out instead of being cut.
+                if (FwRestyle.isEnabled(FwSurface.AssetDetails)) MarginVertical(margin = 28.dp)
+                }
+                if (!FwRestyle.isEnabled(FwSurface.AssetDetails)) MarginVertical(margin = 16.dp)
                 BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxHeight()
@@ -223,7 +230,7 @@ fun BalanceDetailsScreen(
                 } else {
                     nestedScrollConnection.expandPercent
                 }
-            val background = black.copy(alpha = alpha)
+            val background = (if (FwRestyle.isEnabled(FwSurface.AssetDetails)) LocalFwColors.current.surfaceRaised2 else black).copy(alpha = alpha)
             BackgroundCornered(modifier = Modifier.height(height.value)) {
                 Column(
                     modifier = Modifier
@@ -359,14 +366,18 @@ private fun TransactionHistory(
             ShimmerTransactionHistory()
         }
 
-        is TransactionHistoryUi.State.Empty -> {
+        is TransactionHistoryUi.State.Empty -> if (FwRestyle.isEnabled(FwSurface.History)) {
+            // Empty history: the dimmed brand sun in a well, and the same message.
+            FwEmptyState(title = history.message?.takeIf { history.explorerOnly } ?: stringResource(id = R.string.transfers_empty))
+        } else {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 MarginVertical(margin = 12.dp)
                 H5(
                     modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(id = R.string.transfers_empty),
+                    // Without history data the list must not read as "no operations": say so; the explorer link is above.
+                    text = history.message?.takeIf { history.explorerOnly } ?: stringResource(id = R.string.transfers_empty),
                     color = gray2,
                     textAlign = TextAlign.Center
                 )

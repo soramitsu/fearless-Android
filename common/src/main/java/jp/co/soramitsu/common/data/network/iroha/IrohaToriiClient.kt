@@ -11,8 +11,7 @@ interface IrohaToriiClient {
     suspend fun accounts(
         baseUrl: String? = null,
         limit: Int? = null,
-        offset: Long? = null,
-        countMode: IrohaToriiRoutes.CountMode? = null
+        cursor: String? = null
     ): IrohaAccountListResponse
 
     suspend fun account(
@@ -25,12 +24,22 @@ interface IrohaToriiClient {
         accountId: String,
         baseUrl: String? = null,
         limit: Int? = null,
-        offset: Long? = null,
-        countMode: IrohaToriiRoutes.CountMode? = null,
-        asset: String? = null,
-        scope: String? = null,
+        cursor: String? = null,
         network: UniversalWalletRegistry.IrohaNetwork = UniversalWalletRegistry.taira
     ): IrohaAccountAssetListResponse
+
+    /**
+     * Account movements, newest first. A filtered page may be empty and still carry a
+     * `next_cursor`; callers follow it until it is null.
+     */
+    suspend fun accountHistory(
+        accountId: String,
+        baseUrl: String? = null,
+        limit: Int? = null,
+        cursor: String? = null,
+        filter: String? = null,
+        network: UniversalWalletRegistry.IrohaNetwork = UniversalWalletRegistry.taira
+    ): IrohaAccountHistoryPage
 
     suspend fun assetDefinitions(baseUrl: String? = null): IrohaAssetDefinitionListResponse
 
@@ -42,8 +51,7 @@ interface IrohaToriiClient {
     suspend fun assetDefinitionsPage(
         baseUrl: String? = null,
         limit: Int? = null,
-        offset: Long? = null,
-        countMode: IrohaToriiRoutes.CountMode? = null
+        cursor: String? = null
     ): IrohaAssetDefinitionListResponse = assetDefinitions(baseUrl)
 
     suspend fun submitTransaction(
@@ -56,17 +64,6 @@ interface IrohaToriiClient {
         baseUrl: String? = null,
         scope: IrohaToriiRoutes.TransactionStatusScope = IrohaToriiRoutes.TransactionStatusScope.Auto
     ): IrohaPipelineTransactionStatusResponse
-
-    suspend fun mcpCapabilities(
-        network: UniversalWalletRegistry.IrohaNetwork = UniversalWalletRegistry.taira,
-        baseUrl: String? = null
-    ): Map<String, Any?>
-
-    suspend fun mcpJsonRpc(
-        request: IrohaMcpJsonRpcRequest,
-        network: UniversalWalletRegistry.IrohaNetwork = UniversalWalletRegistry.taira,
-        baseUrl: String? = null
-    ): IrohaMcpJsonRpcResponse
 }
 
 class RetrofitIrohaToriiClient(
@@ -81,15 +78,13 @@ class RetrofitIrohaToriiClient(
     override suspend fun accounts(
         baseUrl: String?,
         limit: Int?,
-        offset: Long?,
-        countMode: IrohaToriiRoutes.CountMode?
+        cursor: String?
     ): IrohaAccountListResponse {
         return api.accounts(
             IrohaToriiRoutes.accountsUrl(
                 baseUrl = resolveBaseUrl(baseUrl),
                 limit = limit,
-                offset = offset,
-                countMode = countMode
+                cursor = cursor
             )
         )
     }
@@ -111,10 +106,7 @@ class RetrofitIrohaToriiClient(
         accountId: String,
         baseUrl: String?,
         limit: Int?,
-        offset: Long?,
-        countMode: IrohaToriiRoutes.CountMode?,
-        asset: String?,
-        scope: String?,
+        cursor: String?,
         network: UniversalWalletRegistry.IrohaNetwork
     ): IrohaAccountAssetListResponse {
         return api.accountAssets(
@@ -122,10 +114,26 @@ class RetrofitIrohaToriiClient(
                 accountId = normalizeWalletAccountId(accountId, network),
                 baseUrl = resolveBaseUrl(baseUrl, network),
                 limit = limit,
-                offset = offset,
-                countMode = countMode,
-                asset = asset,
-                scope = scope
+                cursor = cursor
+            )
+        )
+    }
+
+    override suspend fun accountHistory(
+        accountId: String,
+        baseUrl: String?,
+        limit: Int?,
+        cursor: String?,
+        filter: String?,
+        network: UniversalWalletRegistry.IrohaNetwork
+    ): IrohaAccountHistoryPage {
+        return api.accountHistory(
+            IrohaToriiRoutes.accountHistoryUrl(
+                accountId = normalizeWalletAccountId(accountId, network),
+                baseUrl = resolveBaseUrl(baseUrl, network),
+                limit = limit,
+                cursor = cursor,
+                filter = filter
             )
         )
     }
@@ -137,15 +145,13 @@ class RetrofitIrohaToriiClient(
     override suspend fun assetDefinitionsPage(
         baseUrl: String?,
         limit: Int?,
-        offset: Long?,
-        countMode: IrohaToriiRoutes.CountMode?
+        cursor: String?
     ): IrohaAssetDefinitionListResponse {
         return api.assetDefinitions(
             IrohaToriiRoutes.assetDefinitionsUrl(
                 baseUrl = resolveBaseUrl(baseUrl),
                 limit = limit,
-                offset = offset,
-                countMode = countMode
+                cursor = cursor
             )
         )
     }
@@ -172,26 +178,6 @@ class RetrofitIrohaToriiClient(
                 scope = scope
             )
         )
-    }
-
-    override suspend fun mcpCapabilities(
-        network: UniversalWalletRegistry.IrohaNetwork,
-        baseUrl: String?
-    ): Map<String, Any?> {
-        return api.mcpCapabilities(IrohaToriiRoutes.mcpUrl(network, resolveBaseUrl(baseUrl, network)))
-    }
-
-    override suspend fun mcpJsonRpc(
-        request: IrohaMcpJsonRpcRequest,
-        network: UniversalWalletRegistry.IrohaNetwork,
-        baseUrl: String?
-    ): IrohaMcpJsonRpcResponse {
-        val response = api.mcpJsonRpc(IrohaToriiRoutes.mcpUrl(network, resolveBaseUrl(baseUrl, network)), request)
-        val hasExactlyOnePayload = (response.result == null) != (response.error == null)
-        check(response.jsonrpc == "2.0" && response.id == request.id && hasExactlyOnePayload) {
-            "Torii returned an unbound or ambiguous JSON-RPC response"
-        }
-        return response
     }
 
     private fun normalizeWalletAccountId(

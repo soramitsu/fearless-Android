@@ -46,6 +46,28 @@ class StartStakingPoolViewModel @Inject constructor(
     private val assetDeferred = viewModelScope.async { requireNotNull(mainReview.value?.asset) }
     private val chainDeferred = viewModelScope.async { requireNotNull(mainReview.value?.chain) }
 
+    private val poolsLimitHasReachedDeferred = viewModelScope.async {
+        val chain = chainDeferred.await()
+        val possiblePools = stakingPoolInteractor.getPossiblePools(chain.id)
+        val poolsCount = stakingPoolInteractor.getPoolsCount(chain.id)
+        poolsCount >= possiblePools
+    }
+
+    val state: MutableStateFlow<SetupStakingPoolViewState> =
+        MutableStateFlow(
+            SetupStakingPoolViewState(
+                ToolbarViewState(
+                    resourceManager.getString(R.string.pool_staking_title),
+                    R.drawable.ic_arrow_back_24dp
+                ),
+                "...",
+                "...",
+                "...",
+                "..."
+            )
+        )
+
+    // After the state: on the main dispatcher this coroutine can reach state.update before the constructor returns.
     init {
         viewModelScope.launch {
             val rewardsPayoutDelayDeferred = async {
@@ -91,27 +113,6 @@ class StartStakingPoolViewModel @Inject constructor(
             }
         }
     }
-
-    private val poolsLimitHasReachedDeferred = viewModelScope.async {
-        val chain = chainDeferred.await()
-        val possiblePools = stakingPoolInteractor.getPossiblePools(chain.id)
-        val poolsCount = stakingPoolInteractor.getPoolsCount(chain.id)
-        poolsCount >= possiblePools
-    }
-
-    val state: MutableStateFlow<SetupStakingPoolViewState> =
-        MutableStateFlow(
-            SetupStakingPoolViewState(
-                ToolbarViewState(
-                    resourceManager.getString(R.string.pool_staking_title),
-                    R.drawable.ic_arrow_back_24dp
-                ),
-                "...",
-                "...",
-                "...",
-                "..."
-            )
-        )
 
     fun onBackClick() {
         if (review.revoke()) router.back()

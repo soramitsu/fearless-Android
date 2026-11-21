@@ -1,0 +1,11 @@
+# Reviewed XCM route membership of remote-config/production/chains/v13/chains.json:
+# origin chain id, destination chain id, asset symbol and asset id of every xcm.availableDestinations asset.
+# ProductionXcmRouteSnapshotTest fails when the catalog adds or removes a route without this file changing in
+# the same reviewed commit. Both files are owned by @soramitsu/security (.github/CODEOWNERS).
+# Text after '#' on a line names the networks for review and is ignored.
+
+b0a8d493285c2df73290dfb7e61f870f17b41801197a149ca93654499ea3dafe	48239ef607d7928874027a43a67689209727dfb3d3dc5e5b03a39bdc2eda771a	KSM	0ceffe96-8090-404e-815c-91118ee5dd65	# Kusama -> Kusama AssetHub
+6bd89e052d67a45bb60a9a23e8581053d5e0d619f15cb9865946937e690c42d6	7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5	LLD	a6b83d39-a488-4b34-8352-280705a792e	# Liberland -> SORA Mainnet
+6bd89e052d67a45bb60a9a23e8581053d5e0d619f15cb9865946937e690c42d6	7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5	LLM	30b43eb9-36b4-4b40-bf72-330d2e20ee86	# Liberland -> SORA Mainnet
+6bd89e052d67a45bb60a9a23e8581053d5e0d619f15cb9865946937e690c42d6	7e4e32d0feafd4f9c9414b0be86373f9a1efa904809b683453a9af6856d38ad5	XOR	2e7179c9-4308-420e-a654-43c92d119717	# Liberland -> SORA Mainnet
+91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3	68d56f15f85d3136970ec16946040bc1752654e906147f7e43e9d539d7c3de2f	DOT	99e66d4f-00cd-4d73-bd1b-3adadcacffb2	# Polkadot -> Polkadot AssetHub

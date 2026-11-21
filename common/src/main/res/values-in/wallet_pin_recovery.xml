@@ -13,4 +13,7 @@
     <string name="pin_recovery_verify_backup">Verifikasi cadangan dompet</string>
     <string name="pin_recovery_reset">Pulihkan PIN dompet</string>
     <string name="pin_recovery_view_only_title">Akses lihat saja</string>
+    <string name="pin_recovery_forgot">Lupa PIN?</string>
+    <string name="pin_recovery_forgot_intro">Lupa PIN? Buktikan cadangan salah satu dompet untuk menetapkan PIN baru.</string>
+    <string name="pin_recovery_key_unavailable">Cadangan ini tidak dapat membuka kunci dompet. Coba cadangan dompet lain.</string>
 </resources>

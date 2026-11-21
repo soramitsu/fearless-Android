@@ -10,7 +10,7 @@ class SolanaPaymentPlanner(private val client: SolanaRpcClient) {
     suspend fun native(sender: String, recipient: String, amount: Long, rpcUrl: String? = null, sendMax: Boolean = false): SolanaPaymentQuote {
         SolanaAccountPreflight.requireWallet(sender, client.accountInfo(sender, rpcUrl = rpcUrl))
         val destination = client.accountInfo(recipient, rpcUrl = rpcUrl)
-        SolanaAccountPreflight.requireWallet(recipient, destination)
+        SolanaAccountPreflight.requireNativeRecipient(recipient, destination)
         val balance = client.balance(sender, rpcUrl = rpcUrl)
         val rent = client.minimumBalanceForRentExemption(0, rpcUrl = rpcUrl)
         val priority = SolanaPriorityFee.fromSamples(client.recentPrioritizationFees(rpcUrl), tokenTransfer = false)
@@ -28,9 +28,13 @@ class SolanaPaymentPlanner(private val client: SolanaRpcClient) {
     /** Uses all matching spendable owner accounts as needed; full unsigned-u64 SPL amounts are supported. */
     suspend fun token(sender: String, recipient: String, mint: String, decimals: Int, amount: BigInteger,
         rpcUrl: String? = null, sendMax: Boolean = false): SolanaPaymentQuote {
+        // Token-2022 tokens are held and received, but their extensions (transfer fees, hooks) need review this
+        // version does not offer. Sending one is refused first, with its own message, before anything is built.
+        val mintAccount = client.accountInfo(mint, rpcUrl = rpcUrl)
+        if (mintAccount?.ownerProgram == SolanaTransferTransactionBuilder.TOKEN_2022_PROGRAM_ADDRESS) fail(Code.UNSUPPORTED_TOKEN)
         SolanaAccountPreflight.requireWallet(sender, client.accountInfo(sender, rpcUrl = rpcUrl))
         SolanaAccountPreflight.requireWallet(recipient, client.accountInfo(recipient, rpcUrl = rpcUrl))
-        SolanaAccountPreflight.requireMint(client.accountInfo(mint, rpcUrl = rpcUrl), decimals)
+        SolanaAccountPreflight.requireMint(mintAccount, decimals)
         val accounts = client.tokenAccounts(sender, SolanaTransferTransactionBuilder.SPL_TOKEN_PROGRAM_ADDRESS, rpcUrl = rpcUrl)
             .filter { it.mint == mint && !it.frozen && it.amount.signum() > 0 }
             .sortedBy { it.address }
@@ -73,7 +77,8 @@ class SolanaPaymentPlanner(private val client: SolanaRpcClient) {
         requireUnexpired(quote, rpcUrl)
         SolanaAccountPreflight.requireWallet(quote.sender, client.accountInfo(quote.sender, rpcUrl = rpcUrl))
         val recipient = client.accountInfo(quote.recipient, rpcUrl = rpcUrl)
-        SolanaAccountPreflight.requireWallet(quote.recipient, recipient)
+        if (quote.mint == null) SolanaAccountPreflight.requireNativeRecipient(quote.recipient, recipient)
+        else SolanaAccountPreflight.requireWallet(quote.recipient, recipient)
         if (fee(quote.message, rpcUrl) != quote.networkFeeLamports) fail(Code.REVIEW_CHANGED)
         val balance = client.balance(quote.sender, rpcUrl = rpcUrl)
         val walletRent = client.minimumBalanceForRentExemption(0, rpcUrl = rpcUrl)

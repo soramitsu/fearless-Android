@@ -1,35 +1,34 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwValueTicks
+import androidx.compose.runtime.CompositionLocalProvider
+import jp.co.soramitsu.common.launch.launchTier
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import jp.co.soramitsu.common.compose.component.B1
-import jp.co.soramitsu.common.compose.component.B2
-import jp.co.soramitsu.common.compose.component.BackgroundCornered
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.collectAsState
-import jp.co.soramitsu.common.data.storage.pin.WalletViewOnlyAccess
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
@@ -43,6 +42,9 @@ import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.ActionItemType
 import jp.co.soramitsu.common.compose.component.AssetBalance
 import jp.co.soramitsu.common.compose.component.AssetBalanceViewState
+import jp.co.soramitsu.common.compose.component.B1
+import jp.co.soramitsu.common.compose.component.B2
+import jp.co.soramitsu.common.compose.component.BackgroundCornered
 import jp.co.soramitsu.common.compose.component.BannerJoinSubstrateEvm
 import jp.co.soramitsu.common.compose.component.BannerJoinTon
 import jp.co.soramitsu.common.compose.component.BannerWalletRecovery
@@ -53,8 +55,17 @@ import jp.co.soramitsu.common.compose.component.MultiToggleButton
 import jp.co.soramitsu.common.compose.component.MultiToggleButtonState
 import jp.co.soramitsu.common.compose.component.SwipeState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwEffects
+import jp.co.soramitsu.common.compose.theme.fw.fwAurora
+import jp.co.soramitsu.common.compose.theme.fw.fwTopFade
 import jp.co.soramitsu.common.compose.theme.white64
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
+import jp.co.soramitsu.common.data.storage.pin.WalletViewOnlyAccess
+import jp.co.soramitsu.common.feedback.FeedbackCue
+import jp.co.soramitsu.common.feedback.TransferFeedback
 import jp.co.soramitsu.common.utils.rememberForeverLazyListState
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
@@ -80,20 +91,31 @@ interface WalletScreenInterface : AssetsListInterface {
     fun onHiddenFundsReviewClick()
     fun onHiddenFundsKeepHiddenClick()
     fun onRetry()
-    fun onPortfolioLensChanged(lens: PortfolioLens) {}
+    /** Closes the one-time "All your assets in one list" note of a wallet that had kept By network. */
+    fun onPortfolioLayoutNoticeDismiss() {}
+    fun onPortfolioSearch(query: String) {}
+
+    /** A network chip, or All networks (null); picking the selected network again shows every network. */
+    fun onPortfolioNetworkSelect(chainId: String?) {}
+
+    /** Opens the full network list (More networks, or the chip of a Popular or Favorites group). */
+    fun onPortfolioMoreNetworks() {}
     fun onPortfolioGroupToggle(id: String) {}
-    fun onPortfolioNetworkToggle(id: String) {}
     fun onPortfolioZeroToggle(id: String?) {}
     fun onPortfolioValueNoticeDismiss() {}
     fun onPortfolioMemberAction(walletId: Long, chainId: String, assetId: String, action: ActionItemType) {}
     fun onPortfolioHideGroup(walletId: Long, groupId: String) {}
     fun onWalletRecoveryClick()
+
+    /** Send, Receive, Buy or Swap from the sun-lit hero; asset choice happens in the opened flow. */
+    fun onHeroAction(action: ActionItemType) {}
 }
 
 @Composable
 fun WalletScreen(
     data: WalletState,
-    callback: WalletScreenInterface
+    callback: WalletScreenInterface,
+    arrivalPulse: Int = 0
 ) {
     val viewOnly by WalletViewOnlyAccess.enabled.collectAsState()
     val listState = rememberForeverLazyListState("wallet_screen")
@@ -127,17 +149,34 @@ fun WalletScreen(
 
 
     val largeText = LocalDensity.current.fontScale > 1.3f
-    val scrollHeaderWithAssets = largeText && data.assetsState is WalletAssetsState.Assets
+    val sunlit = FwRestyle.isEnabled(FwSurface.Portfolio)
+    // The sun-lit hero takes most of a phone's height, so the page scrolls as one at every text size.
+    val scrollingHeader = largeText || sunlit
+    val scrollHeaderWithAssets = scrollingHeader && data.assetsState is WalletAssetsState.Assets
     val walletHeader: @Composable () -> Unit = {
         Column {
-            MarginVertical(margin = 16.dp)
-            AssetBalance(
-                state = data.balance,
-                onAddressClick = callback::onAddressClick,
-                onBalanceClick = callback::onBalanceClicked
-            )
+            if (sunlit) {
+                val context = LocalContext.current
+                SunlitWalletHero(
+                    state = data.balance,
+                    sync = walletSyncState(data),
+                    onBalanceClick = callback::onBalanceClicked,
+                    onAddressClick = callback::onAddressClick,
+                    onAction = callback::onHeroAction,
+                    arrivalPulse = arrivalPulse,
+                    onActionPress = { TransferFeedback.play(context, FeedbackCue.Commit) }
+                )
+            } else {
+                MarginVertical(margin = 16.dp)
+                AssetBalance(
+                    state = data.balance,
+                    onAddressClick = callback::onAddressClick,
+                    onBalanceClick = callback::onBalanceClicked
+                )
+            }
 
             MarginVertical(margin = 16.dp)
+            Column(Modifier.launchTier(SEGMENT_TIER)) {
             when {
                 viewOnly -> BannerWalletRecovery(onClick = callback::onWalletRecoveryClick, viewOnly = true)
                 data.isRecoveryRequired -> BannerWalletRecovery(onClick = callback::onWalletRecoveryClick)
@@ -166,14 +205,26 @@ fun WalletScreen(
                     stacked = largeText
                 )
             }
+            }
 
         }
     }
 
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        if (!scrollHeaderWithAssets && !(largeText && data.assetsState is WalletAssetsState.NetworkIssue)) walletHeader()
+    Column(modifier = (if (sunlit) Modifier.fwTopFade() else Modifier).padding(horizontal = if (sunlit) 20.dp else 16.dp)) {
+        when {
+            // The NFT grid scrolls on its own: above it the page keeps only the switch back to currencies.
+            sunlit && data.assetsState is WalletAssetsState.NftAssets -> if (data.showCurrenciesOrNftSelector) Column(Modifier.launchTier(SEGMENT_TIER)) {
+                MarginVertical(margin = 8.dp)
+                MultiToggleButton(
+                    state = data.multiToggleButtonState,
+                    onToggleChange = callback::assetTypeChanged,
+                    stacked = largeText
+                )
+            }
+            !scrollHeaderWithAssets && !(scrollingHeader && data.assetsState is WalletAssetsState.NetworkIssue) -> walletHeader()
+        }
         when (data.assetsState) {
-            is WalletAssetsState.NftAssets -> {
+            is WalletAssetsState.NftAssets -> Box(Modifier.launchTier(LIST_TIER)) {
                 NFTScreen(collectionsScreen = data.assetsState.collectionScreenModel)
             }
 
@@ -181,13 +232,25 @@ fun WalletScreen(
                 val loaded = data.assetsState.assets as? AssetsLoadingState.Loaded
                 val header: @Composable () -> Unit = {
                     if (scrollHeaderWithAssets) walletHeader()
-                    if (loaded != null && loaded.selectedNetwork == null) {
-                        MultiToggleButton(MultiToggleButtonState(loaded.portfolioUi.lens, PortfolioLens.entries),
-                            callback::onPortfolioLensChanged, stacked = largeText)
+                    // One list: the search and the network chips replace the By token / By network switch.
+                    if (loaded != null) {
+                        if (scrollHeaderWithAssets) MarginVertical(8.dp)
+                        PortfolioDiscoveryControls(loaded, callback, Modifier.launchTier(SEGMENT_TIER))
+                        MarginVertical(if (loaded.networkFilterAvailable) 0.dp else 8.dp)
+                    }
+                    if (loaded?.portfolioUi?.showOneListNotice == true) {
+                        BackgroundCornered(Modifier.launchTier(LIST_TIER).testTag("portfolio_one_list_notice")) {
+                            Column(Modifier.padding(12.dp)) {
+                                B2(text = stringResource(R.string.portfolio_one_list_notice), color = white64)
+                                MarginVertical(8.dp)
+                                GrayButton(stringResource(R.string.common_got_it), modifier = Modifier.fillMaxWidth(),
+                                    onClick = callback::onPortfolioLayoutNoticeDismiss)
+                            }
+                        }
                         MarginVertical(8.dp)
                     }
                     if (loaded != null && !loaded.portfolioUi.valueNoticeAcknowledged) {
-                        BackgroundCornered {
+                        BackgroundCornered(Modifier.launchTier(LIST_TIER)) {
                             Column(Modifier.padding(12.dp)) {
                                 B2(text = stringResource(R.string.portfolio_value_notice), color = white64)
                                 GrayButton(stringResource(R.string.common_got_it), modifier = Modifier.fillMaxWidth(),
@@ -197,7 +260,7 @@ fun WalletScreen(
                         MarginVertical(8.dp)
                     }
                     val hiddenFundedNoticeCount = loaded?.hiddenFundedNoticeCount ?: 0
-                    if (hiddenFundedNoticeCount > 0) {
+                    if (hiddenFundedNoticeCount > 0) Box(Modifier.launchTier(LIST_TIER)) {
                         HiddenFundsNotice(
                             count = hiddenFundedNoticeCount,
                             stacked = largeText,
@@ -231,13 +294,13 @@ fun WalletScreen(
             }
 
             is WalletAssetsState.NetworkIssue -> {
-                if (largeText) {
+                if (scrollingHeader) {
                     Column(Modifier.verticalScroll(rememberScrollState())) {
                         walletHeader()
-                        NetworkIssue(data.assetsState.retryButtonLoading, callback::onRetry)
+                        Box(Modifier.launchTier(LIST_TIER)) { NetworkIssue(data.assetsState.retryButtonLoading, callback::onRetry) }
                     }
                 } else {
-                    NetworkIssue(data.assetsState.retryButtonLoading, callback::onRetry)
+                    Box(Modifier.launchTier(LIST_TIER)) { NetworkIssue(data.assetsState.retryButtonLoading, callback::onRetry) }
                 }
             }
         }
@@ -269,12 +332,19 @@ private fun Banners(
 @Composable
 fun WalletScreenWithRefresh(
     data: WalletState,
-    callback: WalletScreenInterface
+    callback: WalletScreenInterface,
+    arrivalPulse: Int = 0
 ) {
+    val sunlit = FwRestyle.isEnabled(FwSurface.Portfolio)
     PullRefreshBox(
-        onRefresh = callback::onRefresh
+        onRefresh = callback::onRefresh,
+        // The aurora drifts behind the wallet home (brand kit SPEC part 3); reduced effects leave the page as it was.
+        modifier = if (sunlit) Modifier.fwAurora(LocalFwEffects.current, LocalFwColors.current) else Modifier
     ) {
-        WalletScreen(data, callback)
+        // Values on the wallet home tick when they change (brand kit SPEC v4 part 5).
+        CompositionLocalProvider(LocalFwValueTicks provides sunlit) {
+            WalletScreen(data, callback, arrivalPulse)
+        }
     }
 }
 
@@ -392,15 +462,10 @@ fun WalletScreenFooter(
 ) {
     GrayButton(
         text = stringResource(id = R.string.wallet_manage_assets),
+        // No animateContentSize here: the size never changes, and its clip cut the button's shadow square.
         modifier = Modifier
             .scale(scale)
             .fillMaxWidth()
-            .animateContentSize(
-                animationSpec = tween(
-                    durationMillis = 300,
-                    easing = LinearOutSlowInEasing
-                )
-            )
             .height(48.dp),
         onClick = onManageAssetsClick
     )
@@ -489,3 +554,9 @@ private fun PreviewWalletScreen() {
         }
     }
 }
+
+/** The wallet home's tabs and segment controls fly as launch tier 3 (brand kit SPEC v4 part 1, "Tiers"). */
+private const val SEGMENT_TIER = 3
+
+/** The list and everything under the segment controls fly as launch tier 4. */
+private const val LIST_TIER = 4

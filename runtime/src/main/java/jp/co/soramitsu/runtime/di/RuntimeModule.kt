@@ -9,14 +9,21 @@ import jp.co.soramitsu.common.data.network.rpc.BulkRetriever
 import jp.co.soramitsu.common.data.network.ton.TonApi
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.core.extrinsic.ExtrinsicBuilderFactory
+import jp.co.soramitsu.core.extrinsic.MetadataHashUnavailableException
+import jp.co.soramitsu.core.extrinsic.SigningRuntimeSource
 import jp.co.soramitsu.core.extrinsic.mortality.IChainStateRepository
 import jp.co.soramitsu.core.extrinsic.mortality.MortalityConstructor
 import jp.co.soramitsu.core.rpc.RpcCalls
+import jp.co.soramitsu.core.runtime.RuntimeFactory
 import jp.co.soramitsu.core.storage.StorageCache
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 import jp.co.soramitsu.coredb.dao.StorageDao
+import jp.co.soramitsu.fearless_utils.extensions.toHexString
+import jp.co.soramitsu.runtime.assethub.AssetHubRuntimeTypes
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.runtime.metadatahash.MetadataHashSigningRuntimeSource
+import jp.co.soramitsu.runtime.multiNetwork.runtime.metadatahash.RpcSigningMetadataRemote
 import jp.co.soramitsu.runtime.multiNetwork.chain.remote.TonRemoteSource
 import jp.co.soramitsu.runtime.multiNetwork.chain.RemoteAssetsSyncServiceProvider
 import jp.co.soramitsu.common.model.AssetMetadataDescriptorStore
@@ -38,14 +45,33 @@ class RuntimeModule {
 
     @Provides
     @Singleton
+    fun provideSigningRuntimeSource(
+        chainRegistry: ChainRegistry,
+        chainDao: ChainDao,
+        runtimeFactory: RuntimeFactory
+    ): SigningRuntimeSource = MetadataHashSigningRuntimeSource(
+        currentRuntime = chainRegistry::getRuntime,
+        remote = RpcSigningMetadataRemote { chainId -> chainRegistry.getConnection(chainId).socketService },
+        buildRuntime = { chainId, metadataV15, specVersion ->
+            // The same type overrides the network's own runtime is built with (RuntimeProvider).
+            val types = AssetHubRuntimeTypes.forChain(chainId, chainDao.getTypes(chainId))
+                ?: throw MetadataHashUnavailableException("The network's type overrides are not available")
+            runtimeFactory.constructRuntime(metadataV15.toHexString(withPrefix = true), types, specVersion).runtime
+        }
+    )
+
+    @Provides
+    @Singleton
     fun provideExtrinsicBuilderFactory(
         rpcCalls: RpcCalls,
         chainRegistry: ChainRegistry,
-        mortalityConstructor: MortalityConstructor
+        mortalityConstructor: MortalityConstructor,
+        signingRuntimeSource: SigningRuntimeSource
     ) = ExtrinsicBuilderFactory(
         rpcCalls,
         chainRegistry,
-        mortalityConstructor
+        mortalityConstructor,
+        signingRuntimeSource
     )
 
     @Provides

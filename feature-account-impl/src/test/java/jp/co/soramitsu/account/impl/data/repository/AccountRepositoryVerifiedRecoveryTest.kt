@@ -1,5 +1,6 @@
 package jp.co.soramitsu.account.impl.data.repository
 
+import java.util.concurrent.Executors
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
@@ -14,6 +15,7 @@ import jp.co.soramitsu.common.data.secrets.v3.TonSecretStore
 import jp.co.soramitsu.common.data.secrets.v3.TonSecrets
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretAccessGuard
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
+import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.deriveSeed32
@@ -29,11 +31,14 @@ import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair as FearlessKeypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic as FearlessMnemonic
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.testshared.HashMapEncryptedPreferences
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
@@ -123,40 +128,9 @@ class AccountRepositoryVerifiedRecoveryTest {
 
     @Test
     fun verifiedRecoveryMaterialIsHandedOutUnchanged() = runTest {
-        val mnemonic = MnemonicCreator.fromEntropy(ByteArray(16) { 21 })
-        val substrateSeed = SubstrateSeedFactory.deriveSeed32(mnemonic.words, null).seed
-        val substrate = SubstrateKeypairFactory.generate(
-            encryptionType = EncryptionType.ECDSA,
-            seed = substrateSeed,
-            junctions = emptyList()
-        )
-        val ethereumPath = BIP32JunctionDecoder.decode(BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH)
-        val ethereum = EthereumKeypairFactory.generate(
-            seed = EthereumSeedFactory.deriveSeed32(mnemonic.words, ethereumPath.password).seed,
-            junctions = ethereumPath.junctions
-        )
+        val (wallet, mnemonic) = storeVerifiedWallet()
         val tonPhrase = mnemonic.words
-        val ton = tonKeypair(tonPhrase)
-        whenever(accountDataSource.getMetaAccount(META_ID))
-            .thenReturn(wallet(substrate.publicKey, ethereum.publicKey, ton.publicKey))
-
-        val substrateSecrets = SubstrateSecrets(
-            substrateKeyPair = substrate,
-            entropy = mnemonic.entropy,
-            seed = substrateSeed
-        )
-        val ethereumSecrets = EthereumSecrets(
-            entropy = mnemonic.entropy,
-            seed = ethereum.privateKey,
-            ethereumKeypair = ethereum,
-            ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
-        )
-        SubstrateSecretStore(preferences).put(META_ID, substrateSecrets)
-        EthereumSecretStore(preferences).put(META_ID, ethereumSecrets)
-        TonSecretStore(preferences).put(
-            META_ID,
-            TonSecrets(seed = tonPhrase.encodeToByteArray(), tonKeypair = ton)
-        )
+        whenever(accountDataSource.getMetaAccount(META_ID)).thenReturn(wallet)
         val repository = repository()
 
         assertArrayEquals(
@@ -177,7 +151,72 @@ class AccountRepositoryVerifiedRecoveryTest {
         )
     }
 
-    private fun repository() = AccountRepositoryImpl(
+    // The backup screens ask from the main thread, and verifying a phrase re-derives its key. On 4.3.1
+    // this held the main thread in the TON derivation long enough for Android to report "not responding".
+    @Test
+    fun secretsAreReadAwayFromTheCallersThread() = runTest {
+        val (wallet, _) = storeVerifiedWallet()
+        val threads = mutableSetOf<String>()
+        whenever(accountDataSource.getMetaAccount(META_ID)).thenAnswer {
+            threads += Thread.currentThread().name
+            wallet
+        }
+        val worker = Executors.newSingleThreadExecutor { task -> Thread(task, SECRET_READER) }.asCoroutineDispatcher()
+
+        worker.use {
+            val repository = repository(it)
+            repository.getSupportedBackupTypes(META_ID)
+            repository.getBestBackupType(META_ID, WalletEcosystem.Substrate)
+            repository.isGoogleBackupSupported(META_ID)
+            repository.getSubstrateSecrets(META_ID)
+            repository.getEthereumSecrets(META_ID)
+            repository.getTonSecrets(META_ID)
+        }
+
+        assertEquals(setOf(SECRET_READER), threads)
+    }
+
+    private fun storeVerifiedWallet(): Pair<MetaAccount, FearlessMnemonic> {
+        val mnemonic = MnemonicCreator.fromEntropy(ByteArray(16) { 21 })
+        val substrateSeed = SubstrateSeedFactory.deriveSeed32(mnemonic.words, null).seed
+        val substrate = SubstrateKeypairFactory.generate(
+            encryptionType = EncryptionType.ECDSA,
+            seed = substrateSeed,
+            junctions = emptyList()
+        )
+        val ethereumPath = BIP32JunctionDecoder.decode(BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH)
+        val ethereum = EthereumKeypairFactory.generate(
+            seed = EthereumSeedFactory.deriveSeed32(mnemonic.words, ethereumPath.password).seed,
+            junctions = ethereumPath.junctions
+        )
+        val tonPhrase = mnemonic.words
+        val ton = tonKeypair(tonPhrase)
+
+        SubstrateSecretStore(preferences).put(
+            META_ID,
+            SubstrateSecrets(
+                substrateKeyPair = substrate,
+                entropy = mnemonic.entropy,
+                seed = substrateSeed
+            )
+        )
+        EthereumSecretStore(preferences).put(
+            META_ID,
+            EthereumSecrets(
+                entropy = mnemonic.entropy,
+                seed = ethereum.privateKey,
+                ethereumKeypair = ethereum,
+                ethereumDerivationPath = BIP32JunctionDecoder.DEFAULT_DERIVATION_PATH
+            )
+        )
+        TonSecretStore(preferences).put(
+            META_ID,
+            TonSecrets(seed = tonPhrase.encodeToByteArray(), tonKeypair = ton)
+        )
+        return wallet(substrate.publicKey, ethereum.publicKey, ton.publicKey) to mnemonic
+    }
+
+    private fun repository(dispatcher: CoroutineDispatcher = UnconfinedTestDispatcher()) = AccountRepositoryImpl(
         accountDataSource = accountDataSource,
         metaAccountDao = mock<MetaAccountDao>(),
         legacyStoreV2 = SecretStoreV2(preferences),
@@ -192,7 +231,7 @@ class AccountRepositoryVerifiedRecoveryTest {
         accountRepositoryDelegate = mock<AccountRepositoryDelegate>(),
         walletSecretMutationCoordinator = mock<WalletSecretMutationCoordinator>(),
         walletSecretAccessGuard = WalletSecretAccessGuard(preferences),
-        dispatcher = UnconfinedTestDispatcher()
+        dispatcher = dispatcher
     )
 
     private fun wallet(
@@ -234,6 +273,7 @@ class AccountRepositoryVerifiedRecoveryTest {
         }
 
         const val META_ID = 7L
+        const val SECRET_READER = "secret-reader"
         const val TYPED_TON_PHRASE =
             "abandon abandon abandon abandon abandon abandon abandon abandon " +
                 "abandon abandon abandon about "

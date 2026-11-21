@@ -14,7 +14,9 @@ import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.fearless_utils.runtime.AccountId
 import jp.co.soramitsu.runtime.ext.universalWalletSolanaIndexerNetwork
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
+import jp.co.soramitsu.wallet.impl.data.network.subquery.ExplorerOnlyHistoryException
 import jp.co.soramitsu.wallet.impl.domain.interfaces.TransactionFilter
+import kotlinx.coroutines.CancellationException
 import jp.co.soramitsu.wallet.impl.domain.model.Operation
 
 class SolanaHistorySource(
@@ -39,8 +41,8 @@ class SolanaHistorySource(
         val historyAsset = chainAsset.solanaHistoryAsset(network) ?: return CursorPage(null, emptyList())
         val limit = pageSize.coerceAtMost(SolanaIndexerRoutes.MAX_LIMIT)
 
-        return runCatching {
-            val page = historySync.history(
+        val page = try {
+            historySync.history(
                 wallet = accountAddress,
                 assetId = historyAsset.assetId,
                 isNative = historyAsset.isNative,
@@ -49,21 +51,27 @@ class SolanaHistorySource(
                 before = cursor,
                 limit = limit
             )
-            val operations = page.transactions.mapNotNull { transaction ->
-                transaction.toTransferOperation(accountAddress, chainAsset)
-            }
-
-            CursorPage(
-                nextCursor = page.pageInfo.nextCursor,
-                items = operations
-            )
-        }.getOrElse { error ->
-            when (error) {
-                is SolanaTransactionHistoryException,
-                is SolanaIndexerRoutes.SolanaIndexerRouteException -> CursorPage(null, emptyList())
-                else -> CursorPage(null, emptyList())
-            }
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: SolanaTransactionHistoryException) {
+            // A malformed local address has nothing to show anywhere; any other failure is the service's.
+            if (error.code == SolanaTransactionHistoryException.Code.INVALID_INPUT) return CursorPage(null, emptyList())
+            throw ExplorerOnlyHistoryException()
+        } catch (_: SolanaIndexerRoutes.SolanaIndexerRouteException) {
+            return CursorPage(null, emptyList())
+        } catch (_: Exception) {
+            // No indexer data: a 404 (no deployment for this cluster), a service for another cluster, an outage or
+            // an unreadable page. The explorer link replaces the list; cached operations stay as they are.
+            throw ExplorerOnlyHistoryException()
         }
+        val operations = page.transactions.mapNotNull { transaction ->
+            transaction.toTransferOperation(accountAddress, chainAsset)
+        }
+
+        return CursorPage(
+            nextCursor = page.pageInfo.nextCursor,
+            items = operations
+        )
     }
 
     private fun UniversalWalletIndexedTransaction.toTransferOperation(

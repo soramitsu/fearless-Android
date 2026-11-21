@@ -1,5 +1,8 @@
 package jp.co.soramitsu.common.base
 
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.LayerDrawable
+import androidx.core.content.ContextCompat
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
@@ -10,6 +13,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
 import jp.co.soramitsu.common.presentation.ErrorDialog
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.EventCollector
@@ -30,6 +34,15 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // The legacy page image was darkened with a tint; the sun-lit page is already its final light.
+        // Plain black page roots of XML screens get the same page light.
+        if (FwRestyle.paletteEnabled) {
+            val background = view.background
+            if (background is ColorDrawable && background.color == android.graphics.Color.BLACK) {
+                view.background = ContextCompat.getDrawable(view.context, R.drawable.fw_page_sunlit)
+            }
+            if (view.background is LayerDrawable) view.backgroundTintList = null
+        }
 
         initViews()
         subscribe(viewModel)
@@ -49,6 +62,9 @@ abstract class BaseFragment<T : BaseViewModel> : Fragment {
                 positiveButtonText = errorDialogState.positiveButtonText,
                 negativeButtonText = errorDialogState.negativeButtonText,
                 positiveClick = errorDialogState.positiveClick,
+                negativeClick = errorDialogState.negativeClick,
+                onBackClick = errorDialogState.onBackClick,
+                buttonsOrientation = errorDialogState.buttonsOrientation,
                 isHideable = errorDialogState.isHideable
             ).show(childFragmentManager)
         }

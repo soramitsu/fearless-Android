@@ -1,9 +1,11 @@
 package jp.co.soramitsu.staking.api.data
 
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
+import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.common.data.holders.ChainIdHolder
 import jp.co.soramitsu.common.data.storage.Preferences
+import jp.co.soramitsu.runtime.assethub.AssetHubStaking
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -124,7 +126,11 @@ class StakingSharedState(
                 }
             }.distinct()
             // Only an absent preference permits an ephemeral default. Invalid or unavailable bytes stay stored.
-            val selected = if (encoded == null) options.firstOrNull() else decodeStored(encoded)?.takeIf { it in options }
+            val selected = if (encoded == null) {
+                options.firstOrNull()
+            } else {
+                decodeStored(encoded, account, relevantChains)?.takeIf { it in options }
+            }
             val selectedAsset = selected?.let { choice ->
                 assets.firstOrNull { it.chain.id == choice.chainId && it.configuration.id == choice.chainAssetId }
             }
@@ -139,6 +145,17 @@ class StakingSharedState(
         .distinctUntilChanged()
 
     val selectionItem: Flow<StakingAssetSelection> = selectionItemAvailability.filterNotNull()
+
+    /**
+     * The choice of each completed catalog read: null when the stored choice is no longer offered, for example
+     * after its network or staking type left the catalog. Screens use it to offer the chooser instead of waiting.
+     */
+    val settledSelection: Flow<StakingAssetSelection?> = observation
+        .filterNotNull()
+        .map { it.selected }
+        .distinctUntilChanged()
+
+    suspend fun settledSelectionOrNull(): StakingAssetSelection? = observation.filterNotNull().first().selected
 
     val assetWithChainAvailability: Flow<SingleAssetSharedState.AssetWithChain?> = observation
         .map { state ->
@@ -177,11 +194,19 @@ class StakingSharedState(
         return "${item.chainId}$DELIMITER${item.chainAssetId}$DELIMITER${item.type.name}"
     }
 
-    private fun decodeStored(value: String): StakingAssetSelection? {
+    /**
+     * A choice saved on Polkadot, Kusama or Westend before the Asset Hub migration names the relay chain. It opens the
+     * relay's Hub only while the wallet uses the same account on both [chains]: the stake moved to the Hub with the
+     * relay account, so a different Hub account would show staking that is not the one the user chose. Otherwise the
+     * choice is not offered, the chooser opens, and the saved bytes stay as they are.
+     */
+    private fun decodeStored(value: String, account: MetaAccount, chains: Map<ChainId, Chain>): StakingAssetSelection? {
         val first = value.indexOf(DELIMITER)
         val last = value.lastIndexOf(DELIMITER)
         if (first <= 0 || last <= first + 1 || last == value.lastIndex) return null
-        val chainId = value.substring(0, first)
+        val storedChainId = value.substring(0, first)
+        val chainId = AssetHubStaking.destination(storedChainId)
+        if (chainId != storedChainId && !sameAccount(account, chains[storedChainId], chains[chainId])) return null
         val assetId = value.substring(first + 1, last)
         return when (value.substring(last + 1)) {
             StakingType.RELAYCHAIN.name -> StakingAssetSelection.RelayChainStaking(chainId, assetId)
@@ -189,6 +214,12 @@ class StakingSharedState(
             StakingType.POOL.name -> StakingAssetSelection.Pool(chainId, assetId)
             else -> null
         }
+    }
+
+    private fun sameAccount(account: MetaAccount, relay: Chain?, hub: Chain?): Boolean {
+        val relayAccount = relay?.let { account.accountId(it) } ?: return false
+        val hubAccount = hub?.let { account.accountId(it) } ?: return false
+        return relayAccount.contentEquals(hubAccount)
     }
 
     override suspend fun currentToken(): Token {

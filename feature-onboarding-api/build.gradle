@@ -26,4 +26,5 @@ android {
 
 dependencies {
     implementation project(':feature-account-api')
+    testImplementation libs.junit
 }

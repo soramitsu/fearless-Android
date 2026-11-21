@@ -1,0 +1,149 @@
+{
+ "source": "common/src/test/resources/crypto-golden/shared-features-1.1.1.44-FLW.json json_keyring: polkadot-js keyring 14.0.3 exports and exports written by the 4.2.0 production JsonSeedEncoder",
+ "backups": [
+  {
+   "input": "polkadotjs-ecdsa-legacy.json",
+   "source": "@polkadot/keyring 14.0.3 pkcs8 + legacy xsalsa20-poly1305 (no scrypt)",
+   "password": "fearless-parity-test",
+   "json": "{\"encoded\":\"TZbAqkbPkbDyvnpeNrDjLz0TGFwDwMXb+IoIUTZGZzQpSVifebHrvubni4dRz9M4gseVnunCE96fyatTA1qDNRxWJWKUREVsYHBGvr7Cm+MzOEHnXt12za9Eh2BGAGqxeDSqvqCY6xea/GjQ8klfPqwsKGQgVVD2nBArRL6S\",\"encoding\":{\"content\":[\"pkcs8\",\"ecdsa\"],\"type\":[\"xsalsa20-poly1305\"],\"version\":\"2\"},\"address\":\"0x023813d65a7a177f6c3bfb0cb6d4f12bcb229b199b01784fd6e6e4cb849ebfd1a5\",\"meta\":{\"name\":\"parity ecdsa\",\"genesisHash\":\"0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3\"}}",
+   "expected": {
+    "error": "encrypt.json.JsonSeedDecodingException$InvalidJsonException"
+   },
+   "expectedWrongPassword": {
+    "error": "encrypt.json.JsonSeedDecodingException$InvalidJsonException"
+   },
+   "rcEqual": true
+  },
+  {
+   "input": "polkadotjs-ecdsa-scrypt.json",
+   "source": "@polkadot/keyring 14.0.3 toJson (scrypt + xsalsa20-poly1305)",
+   "password": "fearless-parity-test",
+   "json": "{\"encoded\":\"CU7EObIXqHGAiJWAmoOmXVL8EuzeT3oeq/Rkoq4ktW0AAAIAAQAAAAgAAAD2iP7SpeOs6T8wP52VUDEeH3g3iFR2n9SoTq/MnLr+VxwTXQP8pA86rogknZj0+gmMfgj1+FuLvySg/DWimvXR7T+AaCZcIAC9AzaMDQfG09BpMzK8UtDFYok3H8tZFVIXwKWuncrdt193duW+MQkPtMM2Fmrzi2TPGbAYxV0\\u003d\",\"encoding\":{\"content\":[\"pkcs8\",\"ecdsa\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"address\":\"0x023813d65a7a177f6c3bfb0cb6d4f12bcb229b199b01784fd6e6e4cb849ebfd1a5\",\"meta\":{\"name\":\"parity ecdsa\",\"genesisHash\":\"0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3\"}}",
+   "expected": {
+    "encryption": "ECDSA",
+    "keypair": {
+     "privateKey": "0xf227cbf06b4b5180b67d1b96ecf75d3a36f67dcc6542a6ac073b47fc3f8900d8",
+     "publicKey": "0x023813d65a7a177f6c3bfb0cb6d4f12bcb229b199b01784fd6e6e4cb849ebfd1a5",
+     "nonce": null
+    },
+    "seed": "0xf227cbf06b4b5180b67d1b96ecf75d3a36f67dcc6542a6ac073b47fc3f8900d8",
+    "username": "parity ecdsa"
+   },
+   "expectedWrongPassword": {
+    "error": "encrypt.json.JsonSeedDecodingException$IncorrectPasswordException"
+   },
+   "rcEqual": true
+  },
+  {
+   "input": "polkadotjs-ed25519-legacy.json",
+   "source": "@polkadot/keyring 14.0.3 pkcs8 + legacy xsalsa20-poly1305 (no scrypt)",
+   "password": "fearless-parity-test",
+   "json": "{\"encoded\":\"mUvgpg0dzR8oGG6YZLF5nf44Ijuwjqx3BpO7UWwpc3ZwSze3p6YQqAwuaqeIlJrE72Nnfnrcx4VTwsLDTxGRN3ASKCfGux1Jgq04sb9omaWorcuaFN7KoRSf9PbwPgNtGHob3rfziZKPZJzSNjmHrSqY+DalmdAU+R67dCxOUO7WyGmK5Tv3m52ubeeo5UcArd8Vl6osOESjQnbixg\\u003d\\u003d\",\"encoding\":{\"content\":[\"pkcs8\",\"ed25519\"],\"type\":[\"xsalsa20-poly1305\"],\"version\":\"2\"},\"address\":\"16nQfprk4mjVHTjf4ZJrzNaAah1NvM3Z6o5e9EDQ5s5gZgQo\",\"meta\":{\"name\":\"parity ed25519\",\"genesisHash\":\"0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3\"}}",
+   "expected": {
+    "error": "encrypt.json.JsonSeedDecodingException$InvalidJsonException"
+   },
+   "expectedWrongPassword": {
+    "error": "encrypt.json.JsonSeedDecodingException$InvalidJsonException"
+   },
+   "rcEqual": true
+  },
+  {
+   "input": "polkadotjs-ed25519-scrypt.json",
+   "source": "@polkadot/keyring 14.0.3 toJson (scrypt + xsalsa20-poly1305)",
+   "password": "fearless-parity-test",
+   "json": "{\"encoded\":\"rF5bpEW9Fj5l2g+SSmigZRlJQzIqEj0xnOEb2FnKFzkAAAIAAQAAAAgAAADOjAPUuN0e0p/ZWgJHmTtKX2Sk6kLzWRVW2r+MukMJvzNoWqy146IQkhQA9nEfZKK+KKWeTlfO2w0C48ZnkN1JujNhzT5vwVXD19N5cPoISLAloeihgKg8f0cd226W9sTW59dEPCWpjWpLIM9cKeZnG5gHUmdVj+EYojyr+PqIXRu+QrAaqk8o+FQKNQ4v5uWtuNP9tfAGQhiO/i4O\",\"encoding\":{\"content\":[\"pkcs8\",\"ed25519\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"address\":\"16nQfprk4mjVHTjf4ZJrzNaAah1NvM3Z6o5e9EDQ5s5gZgQo\",\"meta\":{\"name\":\"parity ed25519\",\"genesisHash\":\"0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3\"}}",
+   "expected": {
+    "encryption": "ED25519",
+    "keypair": {
+     "privateKey": "0xffc925ac35ec13654094bbbcf71c698a96abf80227377801914d168230f6b33a",
+     "publicKey": "0xffcee385c9de9c11f2a26a6156b61d72ef12a64c4b81475a9eee9e4fa456da3d",
+     "nonce": null
+    },
+    "seed": "0xffc925ac35ec13654094bbbcf71c698a96abf80227377801914d168230f6b33a",
+    "username": "parity ed25519"
+   },
+   "expectedWrongPassword": {
+    "error": "encrypt.json.JsonSeedDecodingException$IncorrectPasswordException"
+   },
+   "rcEqual": true
+  },
+  {
+   "input": "polkadotjs-ethereum-scrypt.json",
+   "source": "@polkadot/keyring 14.0.3 toJson (scrypt + xsalsa20-poly1305)",
+   "password": "fearless-parity-test",
+   "json": "{\"encoded\":\"MFAsk4g2GxnWU4xLzXfkzSQtjhxCXTEerqHZcCKwHw8AAAIAAQAAAAgAAAAzpmaF4E/0Jej/+0MJ5pIqF1UuZ6TIl8QfYF93jv7inBgciZKXa1VAUUDzck7x71e2yeCAP65bVfXggJItygWRUo+jDf1mK/2cN47YvkpRbv+a28So8EJswds9SL01MsaQP0ZtVLXx+aW6QuOPluneyFVtB9iJYOcgq/pvHbs\\u003d\",\"encoding\":{\"content\":[\"pkcs8\",\"ethereum\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"address\":\"0x0237b0bb7a8288d38ed49a524b5dc98cff3eb5ca824c9f9dc0dfdb3d9cd600f299\",\"meta\":{\"name\":\"parity ethereum\"}}",
+   "expected": {
+    "encryption": "ethereum",
+    "keypair": {
+     "privateKey": "0x1ab42cc412b618bdea3a599e3c9bae199ebf030895b039e9db1e30dafb12b727",
+     "publicKey": "0x0237b0bb7a8288d38ed49a524b5dc98cff3eb5ca824c9f9dc0dfdb3d9cd600f299",
+     "nonce": null
+    },
+    "seed": null,
+    "username": "parity ethereum"
+   },
+   "expectedWrongPassword": {
+    "error": "encrypt.json.JsonSeedDecodingException$IncorrectPasswordException"
+   },
+   "rcEqual": true
+  },
+  {
+   "input": "polkadotjs-sr25519-legacy.json",
+   "source": "@polkadot/keyring 14.0.3 pkcs8 + legacy xsalsa20-poly1305 (no scrypt)",
+   "password": "fearless-parity-test",
+   "json": "{\"encoded\":\"Cy+nopbiiziH2mmdatfTnHDSqqghVSG/7G/xbjmoZnROErd2l4Bw++qrQ26Aa7uHIAhumN2c3ggvUJR1MHrghf3nED4zX/hNOzknmKkkf/XH5z04wriqR5i4f/G87yu+AKv/ksdiKBIR3izOHWLulTIVGjRIRnizuQ0ytqwCKOKfiHGtOv2kq5NXC409vU1L+ERIeF1CxDyprq6doA\\u003d\\u003d\",\"encoding\":{\"content\":[\"pkcs8\",\"sr25519\"],\"type\":[\"xsalsa20-poly1305\"],\"version\":\"2\"},\"address\":\"143Epgrghu1kDdRnDNkegsr6nUrEhCYG33ZLfh82gV7P8dhk\",\"meta\":{\"name\":\"parity sr25519\",\"genesisHash\":\"0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3\"}}",
+   "expected": {
+    "error": "encrypt.json.JsonSeedDecodingException$InvalidJsonException"
+   },
+   "expectedWrongPassword": {
+    "error": "encrypt.json.JsonSeedDecodingException$InvalidJsonException"
+   },
+   "rcEqual": true
+  },
+  {
+   "input": "fearless-4.2.0-encoder-ED25519",
+   "password": "pw-0-ED25519",
+   "json": "{\"address\":\"15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5\",\"encoded\":\"DqOeJTOPanCu6/kcjVHw02jA3ftYqFDirhqCUMDk874AgAAAAQAAAAgAAABr+BMI8tzLWf1K63EJBcXhR5I5unnvz88UhILUbDLXe9Y/tKst0j3VTZmc+ACBB4OZ8d9k2m51X8uJ/fr7Ed8OfFtIyGPf2LoLmPM+sq/VZy1U8VYxoOXR60YuTv0TcvqMbVE7pOqYUfLLgmotRHh/INBF7xYnKVGTSguJ1Q\\u003d\\u003d\",\"encoding\":{\"content\":[\"pkcs8\",\"ed25519\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"meta\":{\"name\":\"acc\",\"genesisHash\":\"0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3\",\"whenCreated\":1791591824652}}",
+   "expected": {
+    "encryption": "ED25519",
+    "keypair": {
+     "privateKey": "0x46485eaacdcf148c9e01786f1d4cf9a14801542102d2dea40387a7b7e582d0b3",
+     "publicKey": "0xcc0518ad568bdf25f03dae0583820bb269a2fadce6363b104718ab62636dc0d6",
+     "nonce": null
+    },
+    "seed": "0x46485eaacdcf148c9e01786f1d4cf9a14801542102d2dea40387a7b7e582d0b3",
+    "username": "acc"
+   }
+  },
+  {
+   "input": "fearless-4.2.0-encoder-ECDSA",
+   "password": "pw-0-ECDSA",
+   "json": "{\"address\":\"15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5\",\"encoded\":\"Z7R6bBUNL3Z+CyxR+JzDFir855QEgBWIzb+4GaDxxvoAgAAAAQAAAAgAAABnOU0xNlgum3rB95ZZBoHF/fiqabTx3T6qIHsUnOMFDUd2bLldiJz2KUw/upH3kc2+Vc4HuCvOjckyzFgSqFFjw1RTOSlfi8kju/9FDj5OTXhTspsd3lFGHpFfBPzmj0isobPKPacnMXcfno7+pCNVoQmMjHDcDyDZ50G1ock\\u003d\",\"encoding\":{\"content\":[\"pkcs8\",\"ecdsa\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"meta\":{\"name\":\"acc\",\"genesisHash\":\"0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3\",\"whenCreated\":1791591824929}}",
+   "expected": {
+    "encryption": "ECDSA",
+    "keypair": {
+     "privateKey": "0x46485eaacdcf148c9e01786f1d4cf9a14801542102d2dea40387a7b7e582d0b3",
+     "publicKey": "0x031cd77e16f8dfcee429343f623b15d453044eede53cecb520dc36754e309b45f0",
+     "nonce": null
+    },
+    "seed": "0x46485eaacdcf148c9e01786f1d4cf9a14801542102d2dea40387a7b7e582d0b3",
+    "username": "acc"
+   }
+  },
+  {
+   "input": "fearless-4.2.0-encoder-ETHEREUM",
+   "password": "pw-0-ETHEREUM",
+   "json": "{\"address\":\"0x0\",\"encoded\":\"kszoW2D72bvWit5MqPlX8O1jjTCto+Hm01UIfNvamhMAgAAAAQAAAAgAAAArb5itGOcF4jVTfJ/qkiLwXWbKAqwhaO+NJe2SkJLLzsUBZwdeZeyon3gui/B5zKm+jIsaET42pwGglCdYqm7zk8ksb5s6yg0Wdf1s4jvzk5unWgqZgCX0Ex7LBNsYio9iKQEu5zJJjcXXNKwW9xt7Z8MF5H2n6b0jKV8rca8\\u003d\",\"encoding\":{\"content\":[\"pkcs8\",\"ethereum\"],\"type\":[\"scrypt\",\"xsalsa20-poly1305\"],\"version\":\"3\"},\"meta\":{\"name\":\"eth\",\"genesisHash\":\"\",\"whenCreated\":1791591825206}}",
+   "expected": {
+    "encryption": "ethereum",
+    "keypair": {
+     "privateKey": "0x46485eaacdcf148c9e01786f1d4cf9a14801542102d2dea40387a7b7e582d0b3",
+     "publicKey": "0x031cd77e16f8dfcee429343f623b15d453044eede53cecb520dc36754e309b45f0",
+     "nonce": null
+    },
+    "seed": null,
+    "username": "eth"
+   }
+  }
+ ]
+}

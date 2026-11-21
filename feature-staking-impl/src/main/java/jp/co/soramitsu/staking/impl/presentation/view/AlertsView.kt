@@ -3,6 +3,7 @@ package jp.co.soramitsu.staking.impl.presentation.view
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.LinearLayout
+import jp.co.soramitsu.staking.impl.presentation.common.stakingCard
 import jp.co.soramitsu.common.utils.makeGone
 import jp.co.soramitsu.common.utils.makeVisible
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
@@ -27,9 +28,7 @@ class AlertsView @JvmOverloads constructor(
 
         orientation = VERTICAL
 
-        with(context) {
-            background = getCutCornerDrawable(R.color.blurColor)
-        }
+        stakingCard { context.getCutCornerDrawable(R.color.blurColor) }
 
         binding.alertsRecycler.adapter = alertsAdapter
     }

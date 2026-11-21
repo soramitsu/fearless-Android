@@ -30,7 +30,7 @@ class TernoaRewardCalculator(
             val validatorOwnStake = asset.amountFromPlanks(validator.totalStake).toDouble()
 
             val averageValidatorReward = averageValidatorPayout / validators.size
-            val result = averageValidatorReward / validatorOwnStake * (1 - validator.commission.toDouble())
+            val result = (averageValidatorReward / validatorOwnStake * (1 - validator.commission.toDouble())).validRewardRateOrZero()
 
             result * ERAS_PER_DAY * DAYS_IN_YEAR
         }
@@ -42,7 +42,7 @@ class TernoaRewardCalculator(
         val validatorOwnStake = asset.amountFromPlanks(validator.totalStake).toDouble()
 
         val averageValidatorReward = averageValidatorPayout / validators.size
-        val dailyPercentage = averageValidatorReward / validatorOwnStake * (1 - validator.commission.toDouble())
+        val dailyPercentage = (averageValidatorReward / validatorOwnStake * (1 - validator.commission.toDouble())).validRewardRateOrZero()
         return calculateYearlyCompoundReward(dailyPercentage).toDouble()
     }
 
@@ -70,7 +70,8 @@ class TernoaRewardCalculator(
         }
 
         val averageValidatorReward = averageValidatorPayout / validators.size
-        val dailyPercentage = averageValidatorReward / averageStake * (1 - medianCommission)
+        // No validators or no payout history make this NaN, and NaN.toBigDecimal() throws: estimate zero instead.
+        val dailyPercentage = (averageValidatorReward / averageStake * (1 - medianCommission)).validRewardRateOrZero()
         return calculateYearlyCompoundReward(dailyPercentage).toDouble()
     }
 

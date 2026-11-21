@@ -6,6 +6,9 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.fwListRow
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.common.utils.setTextColorRes
 import jp.co.soramitsu.common.view.startTimer
@@ -34,6 +37,10 @@ class PayoutAdapter(
 }
 
 class PayoutViewHolder(private val containerView: View) : RecyclerView.ViewHolder(containerView) {
+
+    init {
+        if (FwRestyle.isEnabled(FwSurface.Staking)) containerView.fwListRow(16)
+    }
 
     fun bind(payout: PendingPayoutModel, itemHandler: PayoutAdapter.ItemHandler) = with(containerView) {
         with(payout) {

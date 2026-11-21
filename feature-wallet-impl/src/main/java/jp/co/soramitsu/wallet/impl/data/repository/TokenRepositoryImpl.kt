@@ -33,7 +33,7 @@ class TokenRepositoryImpl(
 
     /** This one-shot result retains the selection captured before IO, even if selection changes. */
     override suspend fun getToken(chainAsset: Asset): Token {
-        val context = FiatValuationContext(selectedFiat.get())
+        val context = selectedFiat.get().let { FiatValuationContext(it, selectedFiat.metadata(it)) }
         return withContext(Dispatchers.Default) {
             val priceId = expectedFiatPriceId(chainAsset, context.currencyId).takeIf { context.isValid && !it.isNullOrBlank() }
             val price = priceId?.let { tokenPriceDao.getTokenPricesByIds(listOf(it)).singleOrNull() }
@@ -53,7 +53,7 @@ class TokenRepositoryImpl(
         var observation: Job? = null
         selectedFiat.flow().collect { currencyId ->
             val revision = generation.incrementAndGet()
-            val context = FiatValuationContext(currencyId)
+            val context = FiatValuationContext(currencyId, selectedFiat.metadata(currencyId))
             val previous = observation
             previous?.cancel()
             send(configuredFiatToken(chainAsset, null, hasTrustedPrice(chainAsset), context))

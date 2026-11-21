@@ -27,6 +27,8 @@ import java.math.BigInteger
 private val DEFAULT_TIP = BigInteger.ZERO
 private val DEFAULT_APP_ID = BigInteger.ZERO
 private val METADATA_HASH_DISABLED = BigInteger.ZERO
+private val METADATA_HASH_ENABLED = BigInteger.ONE
+private const val METADATA_HASH_SIZE = 32
 
 private const val PAYLOAD_HASH_THRESHOLD = 256
 
@@ -42,8 +44,18 @@ class ExtrinsicBuilder(
     private val era: Era = Era.Immortal,
     private val tip: BigInteger = DEFAULT_TIP,
     private val appId: BigInteger? = null,
-    private val signatureConstructor: Type.InstanceConstructor<SignatureWrapper> = SignatureInstanceConstructor
+    private val signatureConstructor: Type.InstanceConstructor<SignatureWrapper> = SignatureInstanceConstructor,
+    /**
+     * The RFC 78 hash of exactly [runtime]'s metadata. When set and the runtime lists `CheckMetadataHash`, the
+     * transaction is signed with Mode::Enabled and this hash; otherwise with Mode::Disabled. Callers that sign for a
+     * network decide which (see `ExtrinsicBuilderFactory`); this class only encodes the choice.
+     */
+    private val metadataHash: ByteArray? = null
 ) {
+
+    init {
+        require(metadataHash == null || metadataHash.size == METADATA_HASH_SIZE) { "A metadata hash is 32 bytes" }
+    }
 
     private val calls = mutableListOf<GenericCall.Instance>()
 
@@ -112,6 +124,9 @@ class ExtrinsicBuilder(
     // included and charged for without doing anything.
     private fun addCall(call: GenericCall.Instance): ExtrinsicBuilder {
         runtime.metadata.requireNotMovedToAssetHub(call)
+        // A call resolved against other metadata would be encoded with that metadata's indices and types, which the
+        // signed metadata hash does not cover.
+        requireCallsOf(runtime.metadata, call)
 
         calls.add(call)
 
@@ -168,7 +183,7 @@ class ExtrinsicBuilder(
         SignedExtras.ASSET_TX_PAYMENT to assetTxPayment(),
         SignedExtras.NONCE to nonce,
         SignedExtras.APP_ID to (appId ?: DEFAULT_APP_ID),
-        SignedExtras.CHECK_METADATA_HASH to METADATA_HASH_DISABLED
+        SignedExtras.CHECK_METADATA_HASH to if (metadataHash != null) METADATA_HASH_ENABLED else METADATA_HASH_DISABLED
     )
 
     private fun buildAdditionalExtras(): ExtrinsicPayloadExtrasInstance = mapOf(
@@ -176,7 +191,7 @@ class ExtrinsicBuilder(
         AdditionalExtras.GENESIS to genesisHash,
         AdditionalExtras.SPEC_VERSION to runtimeVersion.specVersion.toBigInteger(),
         AdditionalExtras.TX_VERSION to runtimeVersion.transactionVersion.toBigInteger(),
-        AdditionalExtras.CHECK_METADATA_HASH to METADATA_HASH_DISABLED
+        AdditionalExtras.CHECK_METADATA_HASH to (metadataHash?.copyOf() ?: METADATA_HASH_DISABLED)
     )
 
     // The tip travels in ChargeAssetTxPayment on asset-hub runtimes; the fee asset is always the native one (None).

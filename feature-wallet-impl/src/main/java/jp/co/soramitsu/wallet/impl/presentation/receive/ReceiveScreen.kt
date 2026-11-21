@@ -43,6 +43,14 @@ import jp.co.soramitsu.common.compose.component.Toolbar
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.presentation.LoadingState
 import jp.co.soramitsu.common.compose.theme.FearlessAppTheme
+import jp.co.soramitsu.common.compose.theme.fw.FwCopyChip
+import jp.co.soramitsu.common.compose.theme.fw.FwElevation
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwShape
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwEffects
+import jp.co.soramitsu.common.compose.theme.fw.fwSurface
 import jp.co.soramitsu.feature_wallet_impl.R
 import jp.co.soramitsu.wallet.impl.domain.model.WalletAccount
 import jp.co.soramitsu.wallet.impl.presentation.receive.model.ReceiveToggleType
@@ -150,7 +158,33 @@ private fun ReceiveContent(
         MarginVertical(12.dp)
         B0(text = stringResource(R.string.ux_receive_instruction, state.assetSymbol, state.networkName))
         MarginVertical(16.dp)
-        Surface(
+        val sunlit = FwRestyle.isEnabled(FwSurface.Receive)
+        if (sunlit) {
+            // The QR sits in a well pressed into the sheet; its field stays plain white for scanners.
+            Box(
+                modifier = Modifier
+                    .size(272.dp)
+                    .fwSurface(LocalFwEffects.current, LocalFwColors.current, FwShape.Hero, FwElevation.Inset)
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .background(LocalFwColors.current.qrField, FwShape.Button)
+                        .size(240.dp)
+                        .padding(20.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    state.qrCode?.let { qrCode ->
+                        Image(
+                            bitmap = qrCode.asImageBitmap(),
+                            contentDescription = stringResource(R.string.ux_receive_qr, state.assetSymbol, state.networkName),
+                            modifier = Modifier.size(200.dp)
+                        )
+                    } ?: CircularProgressIndicator(color = LocalFwColors.current.brand)
+                }
+            }
+        } else Surface(
             color = Color.Unspecified,
             modifier = Modifier
                 .background(Color.White, RoundedCornerShape(16.dp))
@@ -171,7 +205,10 @@ private fun ReceiveContent(
         MarginVertical(margin = 24.dp)
         H2(text = state.account.name.orEmpty())
         MarginVertical(margin = 8.dp)
-        SelectionContainer {
+        if (sunlit) {
+            // The whole address stays visible for checking; tapping copies it and the chip glows "Copied".
+            FwCopyChip(text = state.account.address, onCopy = copyClicked, maxLines = 3, modifier = Modifier.fillMaxWidth())
+        } else SelectionContainer {
             B0(text = state.account.address, color = Color.White)
         }
         MarginVertical(margin = 24.dp)

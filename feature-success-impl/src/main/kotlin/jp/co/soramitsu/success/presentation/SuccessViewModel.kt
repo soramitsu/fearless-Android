@@ -1,13 +1,11 @@
 package jp.co.soramitsu.success.presentation
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.success.api.presentation.SuccessRouter
 import javax.inject.Inject
-import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
 import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
@@ -22,7 +20,6 @@ import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.ChainId
-import jp.co.soramitsu.runtime.multiNetwork.chain.model.getSupportedExplorers
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.SharingStarted
@@ -39,20 +36,15 @@ class SuccessViewModel @Inject constructor(
     private val chainRegistry: ChainRegistry,
     savedStateHandle: SavedStateHandle,
     private val resourceManager: ResourceManager,
-    private val clipboardManager: ClipboardManager,
-    private val externalAccountActions: ExternalAccountActions.Presentation
+    private val clipboardManager: ClipboardManager
 ) : BaseViewModel(),
     Browserable,
-    ExternalAccountActions by externalAccountActions,
     SuccessScreenInterface {
 
-    val operationHash = savedStateHandle.get<String?>(SuccessFragment.KEY_OPERATION_HASH)
-    val chainId = savedStateHandle.get<ChainId>(SuccessFragment.KEY_CHAIN_ID)
+    private val operationHash = savedStateHandle.get<String?>(SuccessFragment.KEY_OPERATION_HASH)
+    private val chainId = savedStateHandle.get<ChainId>(SuccessFragment.KEY_CHAIN_ID)
     private val customMessage: String? = savedStateHandle[SuccessFragment.KEY_CUSTOM_MESSAGE]
     private val customTitle: String? = savedStateHandle[SuccessFragment.KEY_CUSTOM_TITLE]
-
-    private val _showHashActions = MutableLiveData<Event<Unit>>()
-    val showHashActions: LiveData<Event<Unit>> = _showHashActions
 
     private val _shareUrlEvent = MutableLiveData<Event<String>>()
     val shareUrlEvent = _shareUrlEvent
@@ -168,10 +160,7 @@ class SuccessViewModel @Inject constructor(
         }
     }
 
-    fun getSupportedExplorers(type: BlockExplorerUrlBuilder.Type, value: String) =
-        chainExplorers.replayCache.firstOrNull()?.getSupportedExplorers(type, value).orEmpty()
-
-    fun copyString(value: String) {
+    private fun copyString(value: String) {
         clipboardManager.addToClipboard(value)
 
         showMessage(resourceManager.getString(R.string.common_copied))
@@ -179,7 +168,7 @@ class SuccessViewModel @Inject constructor(
 
     override val openBrowserEvent: MutableLiveData<Event<String>> = MutableLiveData()
 
-    fun openUrl(url: String) {
+    private fun openUrl(url: String) {
         openBrowserEvent.value = Event(url)
     }
 }

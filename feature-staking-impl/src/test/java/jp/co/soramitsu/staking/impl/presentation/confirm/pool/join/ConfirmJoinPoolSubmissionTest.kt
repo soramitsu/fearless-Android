@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import java.math.BigDecimal
 import java.math.BigInteger
 import jp.co.soramitsu.common.data.storage.WalletSelectionEpoch
+import jp.co.soramitsu.common.feedback.TransferSeal
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.staking.api.domain.model.PoolInfo
@@ -84,6 +85,7 @@ class ConfirmJoinPoolSubmissionTest {
 
     @Before fun setup() { Dispatchers.setMain(dispatcher) }
     @After fun teardown() {
+        TransferSeal.clear()
         owned.forEach { it.viewModelScope.cancel() }
         dispatcher.scheduler.runCurrent()
         Dispatchers.resetMain()
@@ -481,6 +483,58 @@ class ConfirmJoinPoolSubmissionTest {
         assertNull(shared.joinFlowState.get())
         verify(router, never()).returnToMain()
         verify(router, never()).openOperationSuccess(anyOrNull(), anyOrNull(), anyOrNull(), anyOrNull())
+    }
+
+    // The seal (brand kit SPEC v4 part 3) on joining a pool.
+
+    @Test fun `seal lights ready at the hand-over and the rest with the hash, before the success screen opens`() = runTest(dispatcher) {
+        TransferSeal.clear()
+        val vm = viewModel()
+        vm.onConfirm()
+        runCurrent()
+        assertEquals(TransferSeal.Stage.Ready, TransferSeal.record.value.stage)
+        submission.complete(Result.success("local-fixture-hash"))
+        runCurrent()
+        val record = TransferSeal.record.value
+        assertEquals(TransferSeal.Stage.Accepted, record.stage)
+        assertEquals(record.acceptedAtMs, record.signedAtMs)
+        assertEquals(record.acceptedAtMs, record.sentAtMs)
+        verify(router, times(1)).openOperationSuccess("local-fixture-hash", "local-fixture")
+        assertTrue(!record.shownOver) // the sheet draws it on its own loader, not over the activity
+    }
+
+    @Test fun `a refusal with nothing retained breaks the seal beside the error`() = runTest(dispatcher) {
+        val vm = viewModel()
+        vm.onConfirm()
+        runCurrent()
+        submission.complete(Result.failure(IllegalStateException("local refusal")))
+        runCurrent()
+        assertEquals("local refusal", vm.errorLiveData.value?.peekContent())
+        assertEquals(TransferSeal.Stage.Failed, TransferSeal.record.value.stage)
+    }
+
+    @Test fun `a retained, unsettled join clears the seal instead of breaking it`() = runTest(dispatcher) {
+        val payment = jp.co.soramitsu.staking.impl.data.repository.PoolJoinJournal.Payment(
+            scope = mock(defaultAnswer = Answers.RETURNS_DEEP_STUBS), amount = "10000000000", poolId = "1",
+            signedExtrinsic = "0x00", intent = "public-fixture-intent", transactionHash = "0xfixture",
+            attemptId = "public-fixture-attempt", acknowledged = false
+        )
+        whenever(interactor.pendingJoin(any(), any(), any())).thenReturn(payment)
+        // The recovery view names the network.
+        whenever(requireNotNull(requireNotNull(shared.mainState.get()).chain).name).thenReturn("Local fixture network")
+        val vm = viewModel()
+        vm.onConfirm()
+        runCurrent()
+        submission.complete(Result.failure(IllegalStateException("socket closed")))
+        runCurrent()
+        assertEquals(TransferSeal.Stage.Idle, TransferSeal.record.value.stage)
+    }
+
+    @Test fun `opening the confirmation clears a seal left by an earlier operation`() {
+        TransferSeal.ready(1)
+        TransferSeal.accepted(2)
+        viewModel()
+        assertEquals(TransferSeal.Stage.Idle, TransferSeal.record.value.stage)
     }
 
     private fun viewModel() = ConfirmJoinPoolViewModel(resources, shared, interactor, router).also { owned += it }

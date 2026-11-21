@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.bond.select
 
+import jp.co.soramitsu.staking.impl.presentation.common.StakingSeal
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -223,8 +224,10 @@ class SelectBondMoreViewModel @Inject constructor(
         val token = assetFlow.first().token
         val amountInPlanks = token.planksFromAmount(payload.amount)
 
-        val result = bondMoreInteractor.bondMore(payload.stashAddress) {
-            stakingScenarioInteractor.stakeMore(this, amountInPlanks, this@SelectBondMoreViewModel.payload.collatorAddress)
+        val result = StakingSeal.submit {
+            bondMoreInteractor.bondMore(payload.stashAddress) {
+                stakingScenarioInteractor.stakeMore(this, amountInPlanks, this@SelectBondMoreViewModel.payload.collatorAddress)
+            }
         }
 
         _showNextProgress.value = false

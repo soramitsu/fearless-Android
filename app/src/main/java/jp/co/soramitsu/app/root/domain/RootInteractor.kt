@@ -1,8 +1,8 @@
 package jp.co.soramitsu.app.root.domain
 
-import com.reown.walletkit.client.WalletKit
 import java.util.concurrent.CancellationException
 import jp.co.soramitsu.wallet.impl.data.buyToken.ExternalProvider
+import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -12,7 +12,7 @@ class RootInteractor(
 
     suspend fun getPendingListOfSessionRequests(topic: String) = withContext(Dispatchers.Default) {
         try {
-            WalletKit.getPendingListOfSessionRequests(topic)
+            WCDelegate.getPendingListOfSessionRequests(topic)
         } catch (error: CancellationException) {
             throw error
         } catch (error: RuntimeException) {

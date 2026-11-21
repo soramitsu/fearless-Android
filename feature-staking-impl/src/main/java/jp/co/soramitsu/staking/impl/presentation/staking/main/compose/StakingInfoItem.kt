@@ -30,11 +30,11 @@ import jp.co.soramitsu.common.compose.component.Timer
 import jp.co.soramitsu.common.compose.component.TitleToValue
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
-import jp.co.soramitsu.common.compose.theme.blurColorLight
 import jp.co.soramitsu.common.compose.theme.customTypography
 import jp.co.soramitsu.common.compose.theme.white16
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.staking.impl.presentation.common.stakingCardColor
 
 internal sealed interface StakeStatusTrailingContent {
     data class Countdown(
@@ -66,7 +66,7 @@ private fun StakingInfoItem(
     onClick: () -> Unit
 ) {
     BackgroundCornered(
-        backgroundColor = blurColorLight,
+        backgroundColor = stakingCardColor,
         modifier = Modifier
             .fillMaxWidth()
     ) {

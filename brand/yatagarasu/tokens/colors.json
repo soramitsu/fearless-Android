@@ -1,0 +1,40 @@
+{
+  "colors": {
+    "ink": "#120A2E",
+    "night": "#1A0E3E",
+    "plum": "#3A1060",
+    "pink": "#E6006F",
+    "pinkActive": "#D6006A",
+    "ember": "#FF7A1A",
+    "gold": "#FFC24A",
+    "mint": "#4FF0B8",
+    "text": "#FAF6FF",
+    "textSoft": "#E9E2F5",
+    "textMuted": "#CFC4E6",
+    "line": "#76618E"
+  },
+  "appIconGradient": {
+    "type": "radial",
+    "cx": 0.5,
+    "cy": 0.42,
+    "r": 0.74,
+    "stops": [
+      [
+        0,
+        "#FF7A2E"
+      ],
+      [
+        0.3,
+        "#E0126E"
+      ],
+      [
+        0.66,
+        "#4A1160"
+      ],
+      [
+        1,
+        "#120A2E"
+      ]
+    ]
+  }
+}

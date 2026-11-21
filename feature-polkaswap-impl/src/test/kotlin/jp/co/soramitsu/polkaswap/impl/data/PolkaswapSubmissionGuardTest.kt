@@ -5,7 +5,6 @@ import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.network.config.ProductFeatureToggleStore
 import jp.co.soramitsu.common.data.network.config.RemoteConfigFetcher
-import jp.co.soramitsu.common.data.secrets.v3.SubstrateSecrets
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.core.extrinsic.ExtrinsicService
 import jp.co.soramitsu.core.models.Asset
@@ -14,7 +13,6 @@ import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
-import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.state.SocketStateMachine
 import jp.co.soramitsu.polkaswap.api.domain.PolkaswapInteractor
@@ -283,9 +281,7 @@ class PolkaswapSubmissionGuardTest {
                 metaAccountAfterFee
             )
             whenever(accountRepository.isSigningRecoveryRequired(any(), any<IChain>())).thenReturn(recoveryRequired)
-            whenever(accountRepository.getSubstrateSecrets(any())).thenReturn(
-                if (hasSigningMaterial) mock<EncodableStruct<SubstrateSecrets>>() else null
-            )
+            whenever(accountRepository.hasSigningMaterial(any(), any<IChain>())).thenReturn(hasSigningMaterial)
             whenever(
                 walletRepository.getAsset(any(), any(), any(), anyOrNull())
             ).thenAnswer { invocation ->

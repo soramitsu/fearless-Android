@@ -68,7 +68,7 @@ class CurrentAccountAssetReader(
 
     /** Captured historical snapshot; its currency must never be relabelled as a later selection. */
     suspend fun getSnapshot(metaId: Long): CurrentAccountAssetSnapshot {
-        val fiat = FiatValuationContext(selectedFiat.get())
+        val fiat = selectedFiat.get().let { FiatValuationContext(it, selectedFiat.metadata(it)) }
         val context = CurrentAccountAssetContext(accounts.getMetaAccount(metaId), fiat)
         val catalog = chains.getChainsById().toMap()
         val balances = selectBalances(context, catalog, assets.getPortfolioBalances(metaId))
@@ -88,7 +88,7 @@ class CurrentAccountAssetReader(
             val revision = generation.incrementAndGet()
             val prior = publisher
             prior?.cancel()
-            val context = meta?.let { CurrentAccountAssetContext(it, FiatValuationContext(fiat)) }
+            val context = meta?.let { CurrentAccountAssetContext(it, FiatValuationContext(fiat, selectedFiat.metadata(fiat))) }
             send(context?.let { SelectedAccountAssetSnapshot.Loading(it) } ?: SelectedAccountAssetSnapshot.AwaitingSelection)
             prior?.join()
             publisher = context?.let {

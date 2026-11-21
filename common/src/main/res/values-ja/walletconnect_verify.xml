@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="walletconnect_origin_unverified">このサイトは確認できませんでした。信頼できる場合のみ続行してください。</string>
+    <string name="walletconnect_origin_mismatch">このリクエストは %2$s ではなく %1$s から送信されています。偽サイトの可能性があります。</string>
+    <string name="walletconnect_scam_blocked">%1$s は既知の詐欺サイトです。Fearless がブロックしました。</string>
+    <string name="walletconnect_link_expired">このWalletConnectリンクは期限切れです。dAppで新しいリンクを表示してください。</string>
+    <string name="walletconnect_qr_invalid">無効なコードです。もう一度お試しください。</string>
+    <string name="walletconnect_message_signed_title">メッセージに署名しました</string>
+    <string name="walletconnect_message_signed_text">署名をdAppに送信しました。</string>
+    <string name="walletconnect_transaction_signed_title">トランザクションに署名しました</string>
+    <string name="walletconnect_transaction_signed_text">署名済みトランザクションをdAppに送信しました。ブロックチェーンへの送信はdAppが行います。</string>
+</resources>

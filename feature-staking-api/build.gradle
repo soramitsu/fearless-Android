@@ -36,4 +36,6 @@ dependencies {
     implementation project(':feature-account-api')
 
     api project(':core-api')
+
+    testImplementation libs.junit
 }

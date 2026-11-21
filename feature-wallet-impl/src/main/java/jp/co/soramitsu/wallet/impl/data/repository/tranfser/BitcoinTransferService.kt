@@ -53,8 +53,9 @@ class BitcoinTransferService(
         val rawAmount = transfer.amountInPlanks.toLongExact()
         if (!transfer.sendMax) require(rawAmount > 0)
         val create: suspend () -> NativeSendQuoteStore.Quote.Bitcoin = {
-            val mnemonic = guard.mnemonic(binding)
-            val account = BitcoinSpendableAccountScanner(client).scan(mnemonic, binding.sender, derivationNetwork, baseUrl)
+            val root = guard.root(binding)
+            val account = BitcoinSpendableAccountScanner(client).scan(root.mnemonic, binding.sender, derivationNetwork, baseUrl,
+                passphrase = root.passphrase)
             val plan = BitcoinSendPlanner(client).plan(rawAmount, account.sources,
                 binding.recipient, account.nextChangeAddress, network = network, baseUrl = baseUrl, sendMax = transfer.sendMax)
             guard.requireCurrent(binding)
@@ -72,13 +73,14 @@ class BitcoinTransferService(
             if (transfer.amount.compareTo(quoted.review.amount) != 0 || transfer.estimateFee?.compareTo(quoted.review.totalFee) != 0) {
                 throw NativeSendException(NativeSendException.Code.REVIEW_REQUIRED)
             }
-            val mnemonic = guard.mnemonic(binding)
+            val root = guard.root(binding)
             quoted.plan.changeAddress?.let { changeAddress ->
-                val change = BitcoinKeyDerivation.deriveKey(mnemonic, derivationPath = quoted.changePath, network = derivationNetwork)
+                val change = BitcoinKeyDerivation.deriveKey(root.mnemonic, root.passphrase, quoted.changePath, derivationNetwork)
                 require(change.address == changeAddress)
             }
-            val signed = BitcoinSendService(client).prepareConfirmedPlan(BitcoinSendRequest(mnemonic, quoted.plan.amountSats,
-                quoted.plan.selectedUtxos.map { jp.co.soramitsu.common.data.network.bitcoin.BitcoinUtxoSource(requireNotNull(it.address), it.derivationPath) }.distinct(), binding.recipient, changeAddress = quoted.plan.changeAddress, network = network, baseUrl = quoted.baseUrl), quoted.plan)
+            val signed = BitcoinSendService(client).prepareConfirmedPlan(BitcoinSendRequest(root.mnemonic, quoted.plan.amountSats,
+                quoted.plan.selectedUtxos.map { jp.co.soramitsu.common.data.network.bitcoin.BitcoinUtxoSource(requireNotNull(it.address), it.derivationPath) }.distinct(), binding.recipient,
+                passphrase = root.passphrase, changeAddress = quoted.plan.changeAddress, network = network, baseUrl = quoted.baseUrl), quoted.plan)
             guard.requireCurrent(binding)
             PendingWalletSend(WalletSendJournal.scopeHash(binding.scope), requireNotNull(transfer.quoteId), binding.fingerprint,
                 PendingWalletSend.Kind.Bitcoin, signed.transaction.txid, signed.transaction.txHex, quoted.plan.feeSats.toString(), "0", null,

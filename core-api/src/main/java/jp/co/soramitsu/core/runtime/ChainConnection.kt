@@ -33,7 +33,24 @@ class ChainConnection(
         val configuration: SocketService.Configuration,
         val current: () -> Boolean,
         val permission: ExternalRequirement
-    )
+    ) {
+        // Written only from the socket observer, which the service invokes one transition at a time.
+        private var lastTransition: SocketStateMachine.State? = null
+        @Volatile var failedAttempts = 0
+            private set
+
+        /** Each entry into WaitingForReconnect is one failed attempt; a connection clears the count. */
+        fun countTransition(state: SocketStateMachine.State) {
+            if (state === lastTransition) return
+            if (state is SocketStateMachine.State.Connected) {
+                failedAttempts = 0
+            } else if (state is SocketStateMachine.State.WaitingForReconnect &&
+                lastTransition !is SocketStateMachine.State.WaitingForReconnect) {
+                failedAttempts++
+            }
+            lastTransition = state
+        }
+    }
 
     @Volatile private var binding: Binding? = null
     @Volatile private var retired = false
@@ -48,7 +65,7 @@ class ChainConnection(
         .map { Unit }
 
     private val observer: StateObserver = {
-        publish(socketService.configurationSnapshot())
+        publish(socketService.configurationSnapshot(), transition = true)
     }
 
     init {
@@ -130,7 +147,8 @@ class ChainConnection(
         runtimeFlow.value = status(EndpointRuntimeStatus.Phase.NOT_IN_USE)
     }
 
-    private fun publish(snapshot: SocketService.ConfigurationSnapshot) {
+    /** Only a socket [transition] counts failed attempts; a configure reply can repeat or trail one. */
+    private fun publish(snapshot: SocketService.ConfigurationSnapshot, transition: Boolean = false) {
         val current = binding ?: return
         if (retired || snapshot.configuration !== current.configuration || !current.current() ||
             currentRequirement() != current.permission) return
@@ -143,6 +161,7 @@ class ChainConnection(
             SocketStateMachine.State.Disconnected -> null
         }
         val applied = snapshot.applied && actual == current.mappedUrl
+        if (transition && applied) current.countTransition(state)
         val phase = when {
             !applied -> EndpointRuntimeStatus.Phase.PENDING
             requirement != ExternalRequirement.ALLOWED -> EndpointRuntimeStatus.Phase.PAUSED
@@ -162,5 +181,5 @@ class ChainConnection(
                     socketService.configurationSnapshot().configuration === binding.configuration &&
                     (observed == null || observed.isCurrent())
             }
-        })
+        }, current?.failedAttempts ?: 0)
 }

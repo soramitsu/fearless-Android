@@ -67,6 +67,7 @@ dependencies {
 
     testImplementation libs.junit
     testImplementation libs.mockito.inline
+    testImplementation project(':test-shared')
 
     compileOnly project(':runtime-websocket')
 
@@ -74,7 +75,6 @@ dependencies {
     implementation libs.retrofit
 
     implementation libs.shimmer
-    implementation libs.storiesProgressView
 
     implementation libs.coil
 }

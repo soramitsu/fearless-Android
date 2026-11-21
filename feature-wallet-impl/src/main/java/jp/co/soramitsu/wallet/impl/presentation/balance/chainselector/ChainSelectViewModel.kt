@@ -229,15 +229,18 @@ class ChainSelectViewModel @Inject constructor(
 
         val resultingChains = chainItems
             ?.filter { searchQuery.isEmpty() || it.title.contains(searchQuery, true) }
-            ?.apply {
+            ?.let { items ->
+                // Popular keeps its rank order; the others put Polkadot and Kusama first, then sort by name.
                 if (filterInUse != ChainSelectorViewStateWithFilters.Filter.Popular) {
-                    sortedWith(
+                    items.sortedWith(
                         compareBy<ChainSelectScreenContract.State.ItemState> {
                             it.id.defaultChainSort()
                         }.thenBy {
                             it.title
                         }
                     )
+                } else {
+                    items
                 }
             }
 

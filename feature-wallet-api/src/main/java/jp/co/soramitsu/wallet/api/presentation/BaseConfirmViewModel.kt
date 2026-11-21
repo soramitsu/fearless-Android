@@ -1,8 +1,11 @@
 package jp.co.soramitsu.wallet.api.presentation
 
+import jp.co.soramitsu.common.feedback.TransferSeal
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.lifecycle.viewModelScope
+import jp.co.soramitsu.common.validation.MetadataHashUnverifiedException
+import jp.co.soramitsu.common.validation.isMetadataHashUnavailable
 import java.math.BigInteger
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
@@ -150,6 +153,11 @@ abstract class BaseConfirmViewModel(
         }.stateIn(viewModelScope, SharingStarted.Eagerly, defaultScreenState)
     }
 
+    init {
+        // A seal left by an earlier operation never shows on this screen's loader.
+        TransferSeal.clear()
+    }
+
     fun onConfirm() {
         val attempt = Any()
         if (confirmationConsumed.get() || !activeAttempt.compareAndSet(null, attempt)) return
@@ -215,7 +223,17 @@ abstract class BaseConfirmViewModel(
     private suspend fun executeValidatedOperation(): Result<String> {
         isValid().getOrThrow()
         currentCoroutineContext().ensureActive()
-        val result = executeOperation(address, amountInPlanks)
+        // The seal (brand kit SPEC v4 part 3): this screen knows only that the operation is handed over and whether
+        // it was accepted (its hash) or refused, so `ready` lights now and the rest together on acceptance.
+        val result = TransferSeal.track(submit = {
+            try {
+                executeOperation(address, amountInPlanks)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Result.failure(error)
+            }
+        })
         // Consume observed success before navigation or a reentrant success callback.
         if (result.isSuccess) confirmationConsumed.set(true)
         return result
@@ -223,6 +241,7 @@ abstract class BaseConfirmViewModel(
 
     override fun showError(throwable: Throwable) {
         if (throwable.isCallMovedToAssetHub()) return showError(MovedToAssetHubException(resourceManager))
+        if (throwable.isMetadataHashUnavailable()) return showError(MetadataHashUnverifiedException(resourceManager))
 
         val message =
             throwable.localizedMessage ?: throwable.message ?: resourceManager.getString(R.string.common_undefined_error_message)
