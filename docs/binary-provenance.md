@@ -25,6 +25,11 @@ strict release audit:
 
 ## Current Findings
 
+### AndroidX graphics-path 1.0.1
+
+The [AndroidX release notes](https://developer.android.com/jetpack/androidx/releases/graphics#graphics-path-1.0.1) identify the May 1, 2024 release and link its AOSP revision range, ending at [`8a05a22af450d589ef911d772a001a49dcb05b71`, `graphics/graphics-path`](https://android.googlesource.com/platform/frameworks/support/+/8a05a22af450d589ef911d772a001a49dcb05b71/graphics/graphics-path/).
+The verified `androidx.graphics:graphics-path:1.0.1` AAR (SHA-256 `8ca4032b6d79b351f0b59ad4b580eddbb9423e1652f7c958830687f1eee2ec03`) contains four `jni/<abi>/libandroidx.graphics.path.so` entries. The uncompressed bytes for armeabi-v7a, arm64-v8a, x86 and x86_64 match their individual `expected_native_sha256` pins in `scripts/verify-android-aab-identity.sh`. This identifies the published source revision and delivered bytes; it is not an independent reproducible-build attestation.
+
 ### Built From Source During Every Build
 
 `libsr25519java.so` holds every sr25519 key operation of the app (Polkadot,
