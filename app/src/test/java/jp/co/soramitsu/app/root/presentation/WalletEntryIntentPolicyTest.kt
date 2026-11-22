@@ -79,6 +79,32 @@ class WalletEntryIntentPolicyTest {
     }
 
     @Test
+    fun `Iroha Connect invitation is admitted only on the connect host without a path`() {
+        listOf(
+            "irohaconnect://connect?sid=s&network_id=n&app_pk=a&nonce=x&node=https%3A%2F%2Ftaira.sora.org&v=1&role=wallet&token=t&relay=r",
+            "iroha://connect?sid=s&v=1&role=wallet",
+            "irohaconnect://connect"
+        ).forEach { link ->
+            assertEquals(link, WalletEntryData.IROHA_CONNECT_LINK, admit(VIEW, uri(link), null))
+        }
+        assertNull(admit(MAIN, uri("irohaconnect://connect?sid=s"), null))
+        listOf(
+            "irohaconnect://connect/path?sid=s",
+            "irohaconnect://connect/?sid=s",
+            "irohaconnect://wallet?sid=s",
+            "irohaconnect://user@connect?sid=s",
+            "irohaconnect://connect:1?sid=s",
+            "IROHACONNECT://connect?sid=s",
+            "irohaconnect://CONNECT?sid=s",
+            "irohaconnect:connect?sid=s",
+            "irohaconnectx://connect?sid=s",
+            "https://connect?sid=s"
+        ).forEach { link ->
+            assertNull(link, admit(VIEW, uri(link), null))
+        }
+    }
+
+    @Test
     fun `JSON document needs a content URI and the JSON type`() {
         val document = uri("content://com.example.documents/root/wallet.json")
 
@@ -277,7 +303,9 @@ class WalletEntryIntentPolicyTest {
         val ADMITTED_ORIGINS = setOf<Pair<String?, String?>>(
             Pair("fearless", "buy-success"),
             Pair("http", "fearlesswallet.io"),
-            Pair("https", "fearlesswallet.io")
+            Pair("https", "fearlesswallet.io"),
+            Pair("irohaconnect", "connect"),
+            Pair("iroha", "connect")
         )
     }
 }

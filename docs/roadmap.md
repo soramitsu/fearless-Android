@@ -16,6 +16,20 @@ Local release qualification is complete. Submit the exact signed 238 artifact to
 
 # Roadmap & Technical Debt
 
+## IrohaConnect follow-ups — 21 November 2026
+
+- **Background sessions:** the session lives in the app process. On the same device the person switches to the browser
+  to use the dApp, and Android may freeze the wallet's process there, so pings stop and requests wait until the wallet is
+  in front again. A foreground service (with its notification) would keep the relay socket served; measure first whether
+  Torii keeps a frozen wallet's socket open.
+- **SORA Nexus:** links stay refused until Nexus's genesis NetworkId is pinned in both wallets (the browser's
+  `UNIVERSAL_WALLET_IROHA_NETWORKS.nexus` and `IrohaConnectProfiles.nexus`) and minamoto.sora.org serves a matching
+  certificate.
+- **Raw signing:** answered with `SIGNING_KEY_REQUIRED` until an SDK can register an off-chain signing key
+  (`SetAccountSigningKeyV1`); then sign raw requests only with that key, inside its envelope.
+- **More reviewable instructions:** only asset transfers and contract-call batches are reviewed; native instructions
+  need a decoder that does not depend on the SDK's native code.
+
 ## One-list wallet home: follow-ups — 16 November 2026
 
 - The home search covers the rows the portfolio shows (zero balances included once searched). Hidden assets and

@@ -16,6 +16,8 @@
 /feature-wallet-impl/ @soramitsu/fearless @soramitsu/android-developers
 /feature-walletconnect-api/ @soramitsu/fearless @soramitsu/android-developers
 /feature-walletconnect-impl/ @soramitsu/fearless @soramitsu/android-developers
+/feature-irohaconnect-api/ @soramitsu/fearless @soramitsu/android-developers
+/feature-irohaconnect-impl/ @soramitsu/fearless @soramitsu/android-developers
 
 /key/ @soramitsu/fearless @soramitsu/android-developers @soramitsu/security
 /common/src/main/java/jp/co/soramitsu/common/model/ @soramitsu/fearless @soramitsu/android-developers @soramitsu/security

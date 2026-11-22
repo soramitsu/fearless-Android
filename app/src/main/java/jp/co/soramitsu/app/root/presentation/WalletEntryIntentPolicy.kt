@@ -20,7 +20,13 @@ internal enum class WalletEntryData {
     TON_CONNECT_LINK,
 
     /** A `content://` document opened as `application/json`. */
-    JSON_DOCUMENT
+    JSON_DOCUMENT,
+
+    /**
+     * `irohaconnect://connect?…` or `iroha://connect?…`: a dApp's Iroha Connect wallet invitation. Only the
+     * session screen acts on it, after the PIN, and parses every field strictly before joining any relay.
+     */
+    IROHA_CONNECT_LINK
 }
 
 /**
@@ -44,6 +50,8 @@ internal object WalletEntryIntentPolicy {
     private const val TON_CONNECT_HOST = "fearlesswallet.io"
     private const val TON_CONNECT_PATH_PREFIX = "/ton-connect/"
     private const val DOCUMENT_SCHEME = "content"
+    private val IROHA_CONNECT_SCHEMES = setOf("irohaconnect", "iroha")
+    private const val IROHA_CONNECT_HOST = "connect"
 
     /**
      * Returns the admitted kind of entry data, or null when the Intent must
@@ -65,6 +73,11 @@ internal object WalletEntryIntentPolicy {
                 uri.encodedAuthority == TON_CONNECT_HOST &&
                 uri.encodedPath.orEmpty().startsWith(TON_CONNECT_PATH_PREFIX) ->
                 WalletEntryData.TON_CONNECT_LINK
+
+            uri.scheme in IROHA_CONNECT_SCHEMES &&
+                uri.encodedAuthority == IROHA_CONNECT_HOST &&
+                uri.encodedPath.isNullOrEmpty() ->
+                WalletEntryData.IROHA_CONNECT_LINK
 
             uri.scheme == DOCUMENT_SCHEME &&
                 !uri.encodedAuthority.isNullOrEmpty() &&

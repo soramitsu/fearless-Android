@@ -16,6 +16,7 @@ import jp.co.soramitsu.splash.SplashRouter
 import jp.co.soramitsu.staking.impl.presentation.StakingRouter
 import jp.co.soramitsu.success.api.presentation.SuccessRouter
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
+import jp.co.soramitsu.irohaconnect.api.IrohaConnectRouter
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import javax.inject.Singleton
 
@@ -66,6 +67,10 @@ class NavigationModule {
     @Singleton
     @Provides
     fun provideTonConnectRouter(navigator: Navigator): TonConnectRouter = navigator
+
+    @Singleton
+    @Provides
+    fun provideIrohaConnectRouter(navigator: Navigator): IrohaConnectRouter = navigator
 
     @Singleton
     @Provides

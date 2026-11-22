@@ -355,6 +355,8 @@ def unitTestTaskPaths = [
         ':feature-polkamarkt-impl:testDebugUnitTest',
         ':feature-polkaswap-impl:testDebugUnitTest',
         ':feature-staking-impl:testDebugUnitTest',
+        ':feature-irohaconnect-api:testDebugUnitTest',
+        ':feature-irohaconnect-impl:testDebugUnitTest',
         ':feature-tonconnect-api:testDebugUnitTest',
         ':feature-tonconnect-impl:testDebugUnitTest',
         ':feature-wallet-api:testDebugUnitTest',

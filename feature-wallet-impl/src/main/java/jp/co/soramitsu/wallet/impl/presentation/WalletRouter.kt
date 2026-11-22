@@ -32,6 +32,9 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openAssetDetails(assetPayload: AssetPayload)
 
+    /** Opens the IrohaConnect session screen for a scanned `iroha://connect` or `irohaconnect://connect` link. */
+    fun openIrohaConnect(link: String?)
+
     fun openAssetDetailsAndPopUpToBalancesList(assetPayload: AssetPayload)
 
     /**

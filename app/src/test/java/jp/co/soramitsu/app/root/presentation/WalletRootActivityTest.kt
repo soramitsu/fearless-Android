@@ -1,5 +1,7 @@
 package jp.co.soramitsu.app.root.presentation
 
+import jp.co.soramitsu.irohaconnect.impl.domain.IrohaConnectService
+import jp.co.soramitsu.irohaconnect.impl.domain.IrohaConnectSnapshot
 import android.app.Activity
 import android.app.Application
 import android.app.Dialog
@@ -123,7 +125,8 @@ class WalletRootActivityTest {
         HiltShim.inject(WalletRootActivity::class) { it.navigator = navigator }
         HiltShim.viewModel(RootViewModel::class) {
             RootViewModel(initializer, interactor, mockk(relaxed = true), connections, resources,
-                mockk(relaxed = true) { every { eventsFlow() } returns emptyFlow() })
+                mockk(relaxed = true) { every { eventsFlow() } returns emptyFlow() },
+                mockk<IrohaConnectService>(relaxed = true) { every { snapshot } returns MutableStateFlow(IrohaConnectSnapshot()) })
         }
     }
 

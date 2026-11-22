@@ -1,5 +1,7 @@
 package jp.co.soramitsu.app.root.presentation
 
+import jp.co.soramitsu.irohaconnect.impl.domain.IrohaConnectService
+import jp.co.soramitsu.irohaconnect.impl.domain.IrohaConnectSnapshot
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.ViewModelStore
 import io.mockk.coEvery
@@ -126,7 +128,8 @@ class RootViewModelTonConnectTest {
     }
 
     private fun model() = RootViewModel(initializer, mockk(relaxed = true), router,
-        MutableStateFlow(ChainConnection.ExternalRequirement.FORBIDDEN), mockk(relaxed = true), ton)
+        MutableStateFlow(ChainConnection.ExternalRequirement.FORBIDDEN), mockk(relaxed = true), ton,
+        mockk<IrohaConnectService>(relaxed = true) { every { snapshot } returns MutableStateFlow(IrohaConnectSnapshot()) })
         .also { store.put("root", it) }
 
     private companion object {

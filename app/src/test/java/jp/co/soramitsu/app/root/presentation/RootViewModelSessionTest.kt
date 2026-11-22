@@ -1,5 +1,7 @@
 package jp.co.soramitsu.app.root.presentation
 
+import jp.co.soramitsu.irohaconnect.impl.domain.IrohaConnectService
+import jp.co.soramitsu.irohaconnect.impl.domain.IrohaConnectSnapshot
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.ViewModelStore
 import co.jp.soramitsu.walletconnect.model.WalletConnectEvent
@@ -205,7 +207,8 @@ class RootViewModelSessionTest {
         verify(exactly = 0) { router.openWalletConnectSessionRequest("answered-topic") }
     }
 
-    private fun model() = RootViewModel(initializer, interactor, router, connections, resources, ton)
+    private fun model() = RootViewModel(initializer, interactor, router, connections, resources, ton,
+        mockk<IrohaConnectService>(relaxed = true) { every { snapshot } returns MutableStateFlow(IrohaConnectSnapshot()) })
         .also { store.put("root-${System.nanoTime()}", it) }
 
     private fun event(method: BridgeMethod) = BridgeEvent(

@@ -15,6 +15,9 @@ interface RootRouter {
     suspend fun awaitDappRoutes()
 
     fun openWalletConnectSessionProposal(pairingTopic: String?)
+
+    /** Opens the IrohaConnect session screen, joining the session behind [link] when one is given. */
+    fun openIrohaConnect(link: String?)
     fun openWalletConnectSessionRequest(sessionRequestTopic: String)
     suspend fun openTonSignRequestWithResult(dapp: DappModel, method: String, signRequest: TonConnectSignRequest): Result<Pair<String, String>>
     fun openOperationSuccess(operationHash: String?, chainId: ChainId?, customMessage: String?, customTitle: String?)

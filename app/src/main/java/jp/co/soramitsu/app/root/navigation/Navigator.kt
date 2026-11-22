@@ -124,6 +124,8 @@ import jp.co.soramitsu.staking.impl.presentation.validators.parcel.CollatorDetai
 import jp.co.soramitsu.success.presentation.SuccessFragment
 import jp.co.soramitsu.success.api.presentation.SuccessRouter
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectRouter
+import jp.co.soramitsu.irohaconnect.api.IrohaConnectRouter
+import jp.co.soramitsu.irohaconnect.impl.presentation.IrohaConnectFragment
 import jp.co.soramitsu.tonconnect.api.model.AppEntity
 import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
@@ -215,6 +217,7 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
     SuccessRouter,
     WalletConnectRouter,
     TonConnectRouter,
+    IrohaConnectRouter,
     NFTRouter,
     LiquidityPoolsRouter
 {
@@ -935,6 +938,24 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
         val bundle = SessionProposalFragment.getBundle(pairingTopic)
 
         controller.navigate(R.id.sessionProposalFragment, bundle)
+    }
+
+    override fun openIrohaConnect(link: String?) {
+        // Never over the PIN screen: RootViewModel holds IrohaConnect links and requests until the wallet is unlocked.
+        if (WalletSessionLock.isLocked()) return
+        val controller = navController ?: return
+        if (controller.currentDestination?.id == R.id.irohaConnectFragment) {
+            // The open screen already shows the session; a new link replaces the screen so it joins that session.
+            if (link == null) return
+            controller.popBackStack()
+        }
+        if (!controller.canReach(R.id.irohaConnectFragment)) return
+        controller.navigate(R.id.irohaConnectFragment, IrohaConnectFragment.getBundle(link))
+    }
+
+    override fun closeIrohaConnect() {
+        val controller = navController ?: return
+        if (controller.currentDestination?.id == R.id.irohaConnectFragment) controller.popBackStack()
     }
 
     override fun openWalletConnectSessionRequest(sessionRequestTopic: String) {
@@ -1918,6 +1939,7 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
 
 /** The screens RootViewModel opens for dApp requests. */
 private val DAPP_REQUEST_DESTINATIONS = listOf(
+    R.id.irohaConnectFragment,
     R.id.sessionProposalFragment,
     R.id.sessionRequestFragment,
     R.id.tonSignRequestFragment

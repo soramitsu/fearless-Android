@@ -320,6 +320,8 @@ include ':feature-success-api'
 include ':feature-success-impl'
 include ':runtime-permission'
 
+include ':feature-irohaconnect-api'
+include ':feature-irohaconnect-impl'
 include ':feature-tonconnect-api'
 include ':feature-tonconnect-impl'
 include ':feature-walletconnect-api'

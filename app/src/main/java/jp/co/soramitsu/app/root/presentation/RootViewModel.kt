@@ -18,6 +18,9 @@ import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.runtime.ChainConnection
+import jp.co.soramitsu.irohaconnect.api.IrohaConnectLinks
+import jp.co.soramitsu.irohaconnect.impl.domain.IrohaConnectPhase
+import jp.co.soramitsu.irohaconnect.impl.domain.IrohaConnectService
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonChainId
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.model.BridgeError
@@ -30,7 +33,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -50,7 +56,8 @@ class RootViewModel @Inject constructor(
     private val rootRouter: RootRouter,
     private val externalConnectionRequirementFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
     private val resourceManager: ResourceManager,
-    private val tonConnectInteractor: TonConnectInteractor
+    private val tonConnectInteractor: TonConnectInteractor,
+    private val irohaConnectService: IrohaConnectService
 ) : BaseViewModel() {
 
     companion object {
@@ -88,6 +95,7 @@ class RootViewModel @Inject constructor(
             connectionsObserved = true
             observeWalletConnectEvents()
             observeTonConnectEvents()
+            observeIrohaConnectEvents()
         }
         when(result) {
             is InitializeResult.ErrorCanRetry -> {
@@ -160,6 +168,33 @@ class RootViewModel @Inject constructor(
         if (interactor.isBuyProviderRedirectLink(uri)) {
             showMessage(resourceManager.getString(R.string.buy_completed))
         }
+        if (IrohaConnectLinks.isConnectLink(uri)) {
+            // A dApp's same-device "Open wallet" link: joined only after the PIN, on the session screen.
+            viewModelScope.launch {
+                awaitDappScreens()
+                rootRouter.openIrohaConnect(uri)
+            }
+        }
+    }
+
+    // The IrohaConnect session runs in the background; what needs the person (the dApp's Open, a transaction to
+    // review) brings its screen back once the wallet is unlocked.
+    private fun observeIrohaConnectEvents() {
+        irohaConnectService.snapshot
+            .map { snapshot ->
+                when (snapshot.phase) {
+                    IrohaConnectPhase.SESSION_APPROVAL -> "session:${snapshot.session?.networkId}:${snapshot.session?.appName}"
+                    IrohaConnectPhase.REQUEST_APPROVAL -> "request:${snapshot.request?.requestId}"
+                    else -> null
+                }
+            }
+            .distinctUntilChanged()
+            .filterNotNull()
+            .onEach {
+                awaitDappScreens()
+                rootRouter.openIrohaConnect(null)
+            }
+            .launchIn(viewModelScope)
     }
 
     fun updateAppClicked() {

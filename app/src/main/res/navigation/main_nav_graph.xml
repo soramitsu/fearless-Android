@@ -737,6 +737,11 @@
         android:name="jp.co.soramitsu.walletconnect.impl.presentation.connections.ConnectionsFragment"
         android:label="connectionsFragment" />
 
+    <dialog
+        android:id="@+id/irohaConnectFragment"
+        android:name="jp.co.soramitsu.irohaconnect.impl.presentation.IrohaConnectFragment"
+        android:label="irohaConnectFragment" />
+
    <dialog
         android:id="@+id/tonConnectionsFragment"
         android:name="jp.co.soramitsu.tonconnect.impl.presentation.connections.TonConnectionsFragment"
