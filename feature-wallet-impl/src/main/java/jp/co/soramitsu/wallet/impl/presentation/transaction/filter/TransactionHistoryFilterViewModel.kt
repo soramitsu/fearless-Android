@@ -31,9 +31,7 @@ class TransactionHistoryFilterViewModel @Inject constructor(
     val filtersEnabledMap = createFilterEnabledMap()
 
     private val modifiedFilters = combine(filtersEnabledMap.values) {
-        usedFilters.filterToSet {
-            filtersEnabledMap.checkEnabled(it)
-        }
+        selectedFilters()
     }.inBackground()
         .share()
 
@@ -68,12 +66,14 @@ class TransactionHistoryFilterViewModel @Inject constructor(
     private fun createFilterEnabledMap() = usedFilters.associateWith { MutableStateFlow(true) }
 
     fun applyClicked() {
-        viewModelScope.launch {
-            historyFiltersProvider.setCustomFilters(modifiedFilters.first())
+        // Read the checkboxes themselves: modifiedFilters is combined on a background dispatcher and can still hold
+        // the selection from before the latest tap, which would save a choice the screen no longer shows.
+        historyFiltersProvider.setCustomFilters(selectedFilters())
 
-            router.back()
-        }
+        router.back()
     }
+
+    private fun selectedFilters() = usedFilters.filterToSet { filtersEnabledMap.checkEnabled(it) }
 
     private fun <T> Map<out T, MutableStateFlow<Boolean>>.checkEnabled(key: T) = get(key)?.value ?: false
 }

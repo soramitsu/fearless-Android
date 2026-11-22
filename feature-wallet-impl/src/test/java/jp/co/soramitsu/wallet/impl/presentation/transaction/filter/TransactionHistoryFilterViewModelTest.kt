@@ -47,6 +47,21 @@ class TransactionHistoryFilterViewModelTest {
     }
 
     @Test
+    fun applyRightAfterATapSavesTheChoiceTheScreenShows() {
+        provider.setCustomFilters(setOf(TransactionFilter.TRANSFER))
+        val viewModel = TransactionHistoryFilterViewModel(router, provider, SavedStateHandle())
+
+        // No wait between the taps and Apply: the saved choice must be the checkboxes, not a background combine
+        // that may not have seen the taps yet.
+        viewModel.filtersEnabledMap.getValue(TransactionFilter.REWARD).value = true
+        viewModel.filtersEnabledMap.getValue(TransactionFilter.TRANSFER).value = false
+        viewModel.applyClicked()
+
+        assertEquals(setOf(TransactionFilter.REWARD), provider.currentFilters())
+        verify { router.back() }
+    }
+
+    @Test
     fun resetRestoresTheDefaultsAndAnEmptyChoiceCannotBeApplied() {
         val viewModel = TransactionHistoryFilterViewModel(
             router, provider, SavedStateHandle(mapOf(TransactionHistoryFilterFragment.KEY_FILTERS_TO_SHOW to setOf(TransactionFilter.TRANSFER)))
