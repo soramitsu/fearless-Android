@@ -488,6 +488,21 @@ abstract class WalletGateActivity : AppCompatActivity() {
     }
 }
 
+/** Whether this Intent carries a dApp's TON Connect link that the wallet would act on. */
+internal fun Intent.carriesTonConnectLink(): Boolean {
+    return WalletEntryIntentPolicy.admit(
+        action = action,
+        uri = data?.let { uri ->
+            WalletEntryUri(
+                scheme = uri.scheme,
+                encodedAuthority = uri.encodedAuthority,
+                encodedPath = uri.encodedPath
+            )
+        },
+        type = type
+    ) == WalletEntryData.TON_CONNECT_LINK
+}
+
 private const val WALLET_URI_GRANT_FLAGS =
     Intent.FLAG_GRANT_READ_URI_PERMISSION or
         Intent.FLAG_GRANT_WRITE_URI_PERMISSION or

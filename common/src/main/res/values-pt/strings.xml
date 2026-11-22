@@ -1479,6 +1479,7 @@
   <string name="ton_connect_alert_subtitle">Be sure to check the service address before connecting the wallet</string>
 
   <string name="ton_connect_alert_title">Review dApp info</string>
+  <string name="ton_connect_invalid_link">Este link do TON Connect não é válido. Abra um novo link no dApp.</string>
 
   <string name="ton_tonviewer_action_title">View in Tonviewer</string>
 

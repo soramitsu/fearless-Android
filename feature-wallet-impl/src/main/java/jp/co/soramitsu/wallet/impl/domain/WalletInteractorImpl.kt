@@ -93,7 +93,6 @@ import jp.co.soramitsu.core.models.Asset as CoreAsset
 
 private const val QR_PREFIX_SUBSTRATE = "substrate"
 const val QR_PREFIX_WALLET_CONNECT = "wc"
-const val QR_PREFIX_TON_CONNECT = "tc"
 private const val PREFS_WALLET_SELECTED_CHAIN_ID = "wallet_selected_chain_id"
 private const val CHAIN_SELECT_FILTER_APPLIED = "chain_select_filter_applied"
 private const val ASSET_SORTING_KEY = "ASSET_SORTING_KEY"

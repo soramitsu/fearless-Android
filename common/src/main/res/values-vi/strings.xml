@@ -1265,6 +1265,7 @@
   <string name="ton_connect_alert_description">Địa chỉ dịch vụ</string>
   <string name="ton_connect_alert_subtitle">Kiểm tra địa chỉ dịch vụ trước khi kết nối ví</string>
   <string name="ton_connect_alert_title">Đánh giá thông tin dApp</string>
+  <string name="ton_connect_invalid_link">Liên kết TON Connect này không hợp lệ. Hãy mở liên kết mới từ dApp.</string>
   <string name="ton_tonviewer_action_title">Xem trong Tonviewer</string>
   <string name="top_up">Nạp tiền</string>
   <string name="tranaction_history_others_tab_title">Khác</string>

@@ -1430,6 +1430,7 @@
   <string name="ton_connect_alert_subtitle">Be sure to check the service address before connecting the wallet</string>
 
   <string name="ton_connect_alert_title">Review dApp info</string>
+  <string name="ton_connect_invalid_link">Bu TON Connect bağlantısı geçerli değil. dApp üzerinden yeni bir bağlantı açın.</string>
 
   <string name="ton_tonviewer_action_title">View in Tonviewer</string>
 

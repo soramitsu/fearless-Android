@@ -1,7 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
 import jp.co.soramitsu.common.feedback.TransferSeal
-import android.net.Uri
 import android.util.Log
 import android.widget.LinearLayout
 import androidx.compose.material.ExperimentalMaterialApi
@@ -93,14 +92,13 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonMainnetChainId
 import jp.co.soramitsu.runtime.multiNetwork.tokengroups.PortfolioVisibility
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
-import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
-import jp.co.soramitsu.tonconnect.api.model.TonConnectException
+import jp.co.soramitsu.tonconnect.api.domain.connectFromLink
+import jp.co.soramitsu.tonconnect.api.model.TonConnectLink
 import jp.co.soramitsu.wallet.api.presentation.WalletRouter as WalletRouterApi
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.balance.NetworkScanStateStore
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.updaters.BalanceUpdateTrigger
 import jp.co.soramitsu.wallet.impl.domain.ChainInteractor
 import jp.co.soramitsu.wallet.impl.domain.CurrentAccountAddressUseCase
-import jp.co.soramitsu.wallet.impl.domain.QR_PREFIX_TON_CONNECT
 import jp.co.soramitsu.wallet.impl.domain.QR_PREFIX_WALLET_CONNECT
 import jp.co.soramitsu.wallet.impl.domain.SendPausePolicy
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletInteractor
@@ -1450,10 +1448,8 @@ class BalanceListViewModel @Inject constructor(
                     sendWalletConnectPair(pairingUri = content)
                 }
 
-                content.startsWith(QR_PREFIX_TON_CONNECT) -> {
-                    try { readTonQrContent(qrContent = content) } catch (e: Exception){
-                        showError(e)
-                    }
+                TonConnectLink.isCandidate(content) -> {
+                    readTonQrContent(qrContent = content)
                 }
 
                 else -> {
@@ -1499,32 +1495,17 @@ class BalanceListViewModel @Inject constructor(
     }
 
     private suspend fun readTonQrContent(qrContent: String) {
-        val uri = kotlin.runCatching { Uri.parse(qrContent) }.getOrNull() ?: return
-        val clientId = uri.getQueryParameter("id")
-        if (!isValidClientId(clientId)) {
-            throw TonConnectException.WrongClientId(clientId)
-        }
-        val request = ConnectRequest.parse(uri.getQueryParameter("r"))
-
-        if (request.items.isEmpty()) {
-            showError(resourceManager.getString(R.string.common_undefined_error_message))
-        }
-
-        val app = kotlin.runCatching {
-            tonConnectInteractor.readManifest(request.manifestUrl)
-        }.getOrElse {
-            showError(it)
+        val link = runCatching { TonConnectLink.parse(qrContent) }.getOrElse {
+            showError(resourceManager.getString(R.string.ton_connect_invalid_link))
             return
         }
-
-        val signedRequest = router.openTonConnectionAndWaitForResult(app, request.proofPayload)
-        kotlin.runCatching { tonConnectInteractor.respondDappConnectRequest(clientId!!, request, signedRequest, app) }
-            .onFailure { showError(it) }
-
-    }
-
-    private fun isValidClientId(clientId: String?): Boolean {
-        return !clientId.isNullOrBlank() && clientId.length == 64
+        try {
+            tonConnectInteractor.connectFromLink(link, router::openTonConnectionAndWaitForResult)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (failure: Exception) {
+            showError(failure)
+        }
     }
 
     private fun sendWalletConnectPair(pairingUri: String) {

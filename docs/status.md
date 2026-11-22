@@ -4,6 +4,17 @@ The app no longer sends wallet or recipient addresses to the Nomis API (`api.nom
 
 Local unit tests (debug): common 1,502, account API 106, account 1,438, wallet 1,579, TON Connect 260, app 451; no failures or skips. One wallet run failed `SwapDetailFragmentRobolectricTest` on an exception leaked by the earlier `TransactionDetailFragmentsRobolectricTest`; that class alone and the full wallet module then passed. `:app:assembleDebug`, the app, common and account androidTest compiles, `detektAll` and `scripts/test-android-play-release-guards.sh` (4 positive, 128 negative cases) pass. No device run.
 
+## TON Connect links start the connection — 21 November 2026
+
+A dApp's TON Connect link now opens the same connect flow as the scanner (manifest, `TonConnectionDetails` approval, reply over the bridge), from both ways a listed wallet is reached:
+
+- **Links opened in the app:** `https://fearlesswallet.io/ton-connect/?v=2&id=…&r=…` (the universal link of the wallets-list entry, a verified App Link) and `tc://?v=2&id=…&r=…` (new manifest filter, admitted by `WalletEntryIntentPolicy` only with nothing before the query). `RootViewModel` acts on them only once the wallet is unlocked and the PIN screen is gone; nothing is fetched for a link before that, and the approval waits for the PIN again if the wallet locks while the manifest loads. A link delivered again while its approval is open is ignored. A host restored after process death or a configuration change does not hand its link on again.
+- **Scanners:** the TON Connect connections scanner and the wallet's QR scanner accept the universal link as well as `tc://`. Before, the wallet scanner opened Send with the universal link as the address.
+- **One strict parser,** `TonConnectLink.parse`: `tc://` or exactly the universal link, protocol version 2, one 64-hex client id, one ConnectRequest naming at least one item; the query is form-decoded (`+` is a space) and a repeated parameter is rejected. `ret` is ignored: the wallet does not switch back to the dApp. An invalid link shows "This TON Connect link is not valid. Open a new one from the dApp." (8 locales). Before, a wrong client id or empty request was reported and the flow carried on to `clientId!!`.
+- The reply still goes to the catalog's `tonBridgeUrl`; production needs #1284 (connect.ton.org) for any TON Connect connection to complete.
+
+Tests: `TonConnectLinkTest` (both link forms, the `trace_id` and `ret` that SDK 4 adds, form decoding, case, rejected bases, versions, client ids, requests, percent-encoding), `TonConnectLinkConnectionTest`, `RootViewModelTonConnectLinkTest` (PIN first, PIN screen replaced, relock during the manifest read, invalid links, repeated delivery), `WalletEntryIntentPolicyTest`, `WalletRootActivityTest` (a restored host drops its link), and both scanners' tests. Local unit tests (debug): TON Connect API 44, TON Connect 266, app 464, wallet `BalanceList*` 60; no failures or skips. `detektAll` passes. The branch merges cleanly with #1285 (Iroha Connect).
+
 ## Story progress — 20 November 2026
 
 The stories screen uses an app-owned segmented progress view. Neither the app nor legacy crowdloan recovery declares the former JitPack library. Its AAR had no Android manifest components; the release component inventory is unchanged.

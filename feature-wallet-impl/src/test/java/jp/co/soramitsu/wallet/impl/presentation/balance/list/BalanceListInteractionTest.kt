@@ -291,10 +291,24 @@ class BalanceListInteractionTest {
 
     @Test fun invalidTonClientIsRejectedBeforeReadingAManifest() {
         val vm = model()
-        vm.qrCodeScanned("tc://?id=short")
+        vm.qrCodeScanned("tc://?v=2&id=short")
         await { vm.errorLiveData.value != null }
-        assertTrue(vm.errorLiveData.value!!.peekContent().isNotBlank())
+        assertEquals("res:" + R.string.ton_connect_invalid_link, vm.errorLiveData.value!!.peekContent())
         coVerify(exactly = 0) { tonConnect.readManifest(any()) }
+        verify(exactly = 0) { router.openSend(any(), any(), any(), any()) }
+    }
+
+    @Test fun universalTonConnectLinkQrIsConnectedNotSentTo() {
+        val app = AppEntity("https://dapp.test", "Example", "https://dapp.test/icon.png", null, null)
+        val response = JSONObject().put("reviewed", true)
+        coEvery { tonConnect.readManifest("https://dapp.test/manifest.json") } returns app
+        coEvery { router.openTonConnectionAndWaitForResult(app, "proof") } returns response
+        val vm = model()
+        vm.qrCodeScanned(tonQr(base = "https://fearlesswallet.io/ton-connect/"))
+        main.dispatcher.scheduler.runCurrent()
+        coVerify { tonConnect.respondDappConnectRequest("a".repeat(64), match { it.proofPayload == "proof" }, response, app) }
+        verify(exactly = 0) { router.openSend(any(), any(), any(), any()) }
+        assertNull(vm.errorLiveData.value)
     }
 
     @Test fun passwordNoticeCanBeReviewedSwitchedAndDismissed() {
@@ -349,9 +363,9 @@ class BalanceListInteractionTest {
         assertFalse(vm.state.value.assetsState is WalletAssetsState.NftAssets)
     }
 
-    private fun tonQr(): String {
+    private fun tonQr(base: String = "tc://"): String {
         val request = """{"manifestUrl":"https://dapp.test/manifest.json","items":[{"name":"ton_addr"},{"name":"ton_proof","payload":"proof"}]}"""
-        return "tc://?id=${"a".repeat(64)}&r=${Uri.encode(request)}"
+        return "$base?v=2&id=${"a".repeat(64)}&r=${Uri.encode(request)}"
     }
 
     private fun model(): BalanceListViewModel {

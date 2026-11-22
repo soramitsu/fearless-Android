@@ -100,6 +100,28 @@ class WalletEntryIntentPolicyTest {
     }
 
     @Test
+    fun `TON Connect tc link is admitted only with nothing before its query`() {
+        listOf(
+            "tc://?v=2&id=1&r=x",
+            "tc://?v=2&id=1&r=x&ret=none",
+            "tc://"
+        ).forEach { link ->
+            assertEquals(link, WalletEntryData.TON_CONNECT_LINK, admit(VIEW, uri(link), null))
+        }
+        assertNull(admit(MAIN, uri("tc://?v=2&id=1&r=x"), null))
+        listOf(
+            "tc://connect?v=2&id=1&r=x",
+            "tc:///?v=2&id=1&r=x",
+            "tc:///connect?v=2",
+            "tc://user@?v=2",
+            "TC://?v=2&id=1&r=x",
+            "tcp://?v=2&id=1&r=x"
+        ).forEach { link ->
+            assertNull(link, admit(VIEW, uri(link), null))
+        }
+    }
+
+    @Test
     fun `navigation deep links and look-alike URIs are rejected`() {
         listOf(
             "fearless-wallet-wc://request",
@@ -276,6 +298,8 @@ class WalletEntryIntentPolicyTest {
 
         val ADMITTED_ORIGINS = setOf<Pair<String?, String?>>(
             Pair("fearless", "buy-success"),
+            Pair("tc", null),
+            Pair("tc", ""),
             Pair("http", "fearlesswallet.io"),
             Pair("https", "fearlesswallet.io")
         )

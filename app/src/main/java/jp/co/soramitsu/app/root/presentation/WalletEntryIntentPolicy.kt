@@ -16,7 +16,10 @@ internal enum class WalletEntryData {
     /** `fearless://buy-success`: a buy provider returning to the wallet. */
     BUY_PROVIDER_REDIRECT,
 
-    /** `https://fearlesswallet.io/ton-connect/...`: the verified app link. */
+    /**
+     * A dApp's TON Connect connect link: `https://fearlesswallet.io/ton-connect/...` (the verified app link) or
+     * `tc://?...`. Only RootViewModel acts on it, after the PIN, and parses every field strictly first.
+     */
     TON_CONNECT_LINK,
 
     /** A `content://` document opened as `application/json`. */
@@ -43,6 +46,7 @@ internal object WalletEntryIntentPolicy {
     private const val TON_CONNECT_SCHEME = "https"
     private const val TON_CONNECT_HOST = "fearlesswallet.io"
     private const val TON_CONNECT_PATH_PREFIX = "/ton-connect/"
+    private const val TON_CONNECT_LINK_SCHEME = "tc"
     private const val DOCUMENT_SCHEME = "content"
 
     /**
@@ -61,9 +65,7 @@ internal object WalletEntryIntentPolicy {
                 uri.encodedAuthority == BUY_REDIRECT_HOST ->
                 WalletEntryData.BUY_PROVIDER_REDIRECT
 
-            uri.scheme == TON_CONNECT_SCHEME &&
-                uri.encodedAuthority == TON_CONNECT_HOST &&
-                uri.encodedPath.orEmpty().startsWith(TON_CONNECT_PATH_PREFIX) ->
+            isTonConnectLink(uri) ->
                 WalletEntryData.TON_CONNECT_LINK
 
             uri.scheme == DOCUMENT_SCHEME &&
@@ -73,5 +75,16 @@ internal object WalletEntryIntentPolicy {
 
             else -> null
         }
+    }
+
+    // The verified app link under /ton-connect/, or `tc://?v=2&id=…&r=…` with nothing between the scheme and the query.
+    private fun isTonConnectLink(uri: WalletEntryUri): Boolean {
+        val appLink = uri.scheme == TON_CONNECT_SCHEME &&
+            uri.encodedAuthority == TON_CONNECT_HOST &&
+            uri.encodedPath.orEmpty().startsWith(TON_CONNECT_PATH_PREFIX)
+        val tcLink = uri.scheme == TON_CONNECT_LINK_SCHEME &&
+            uri.encodedAuthority.isNullOrEmpty() &&
+            uri.encodedPath.isNullOrEmpty()
+        return appLink || tcLink
     }
 }

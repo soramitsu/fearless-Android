@@ -121,7 +121,15 @@ class WalletRootActivity : BaseActivity<RootViewModel>(), LifecycleObserver {
             intent.toWalletInternalHandoff(
                 context = this,
                 target = WalletRootActivity::class.java
-            )
+            ).apply {
+                // A restored host's TON Connect link was handled by the process that first showed it. Handing it
+                // on again (here, or to the startup gate after process death) would ask to approve a connection
+                // the dApp has stopped waiting for.
+                if (savedInstanceState != null && carriesTonConnectLink()) {
+                    action = Intent.ACTION_MAIN
+                    data = null
+                }
+            }
         )
         super.onCreate(savedInstanceState)
         window.hideOtherAppsOverlays()

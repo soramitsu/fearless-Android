@@ -1,3 +1,7 @@
+## TON Connect wallets list: Android
+
+Android reaches the connect flow from the wallets-list universal link and `tc://` (21 November 2026). Ship it in a Play release, with #1284's connect.ton.org bridge live in the catalog, then add `android` to `platforms` in the Fearless entry of ton-connect/wallets-list#370. Not done: returning to the dApp's app after a reply (`ret`), and SignData (the device features advertise SendTransaction only).
+
 ## Story progress release checks
 
 Exercise timed advance, press-and-hold, both tap directions and completion on the next release candidate. Keep production and IAS locks paired without adding another repository for this view.

@@ -55,6 +55,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -147,6 +148,42 @@ class WalletRootActivityTest {
         assertEquals(WalletStartupActivity::class.java.name, gate.component?.className)
         assertEquals(Uri.parse("fearless://buy-success"), gate.data)
         verify(exactly = 0) { navigator.attach(any(), any()) }
+    }
+
+    @Test
+    fun aNewHostHandsATonConnectLinkToTheGate() {
+        launch(Intent(Intent.ACTION_VIEW, Uri.parse(tonLink)))
+        val gate = shadowOf(activity).nextStartedActivity
+        assertEquals(WalletStartupActivity::class.java.name, gate.component?.className)
+        assertEquals(Uri.parse(tonLink), gate.data)
+    }
+
+    @Test
+    fun aRestoredHostDoesNotReplayItsTonConnectLink() {
+        // After process death the restored host goes back to the startup gate; the link was handled before.
+        listOf(tonLink, "tc://?v=2&id=${"a".repeat(64)}&r=%7B%7D").forEach { link ->
+            WalletStartupSession.resetForTest()
+            controller = Robolectric.buildActivity(
+                WalletRootActivity::class.java,
+                Intent(Intent.ACTION_VIEW, Uri.parse(link)).setClass(app, WalletRootActivity::class.java)
+            ).setup(Bundle())
+            idle()
+            val gate = shadowOf(activity).nextStartedActivity
+            assertEquals(link, WalletStartupActivity::class.java.name, gate.component?.className)
+            assertEquals(link, Intent.ACTION_MAIN, gate.action)
+            assertNull(link, gate.data)
+            controller.pause().stop().destroy()
+        }
+    }
+
+    @Test
+    fun aRestoredHostStillHandsOnOtherEntryData() {
+        controller = Robolectric.buildActivity(
+            WalletRootActivity::class.java,
+            Intent(Intent.ACTION_VIEW, Uri.parse("fearless://buy-success")).setClass(app, WalletRootActivity::class.java)
+        ).setup(Bundle())
+        idle()
+        assertEquals(Uri.parse("fearless://buy-success"), shadowOf(activity).nextStartedActivity.data)
     }
 
     @Test
@@ -298,6 +335,7 @@ class WalletRootActivityTest {
     }
 
     private fun main() = Intent(Intent.ACTION_MAIN)
+    private val tonLink = "https://fearlesswallet.io/ton-connect/?v=2&id=${"a".repeat(64)}&r=%7B%7D"
     private fun bar(): TextView = activity.findViewById(R.id.rootNetworkBar)
     private fun idle() = shadowOf(Looper.getMainLooper()).idle()
 

@@ -20,9 +20,11 @@ import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.runtime.ChainConnection
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonChainId
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
+import jp.co.soramitsu.tonconnect.api.domain.connectFromLink
 import jp.co.soramitsu.tonconnect.api.model.BridgeError
 import jp.co.soramitsu.tonconnect.api.model.BridgeMethod
 import jp.co.soramitsu.tonconnect.api.model.DappModel
+import jp.co.soramitsu.tonconnect.api.model.TonConnectLink
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -40,6 +42,7 @@ import java.util.Timer
 import java.util.TimerTask
 import javax.inject.Inject
 import kotlin.concurrent.timerTask
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -75,6 +78,8 @@ class RootViewModel @Inject constructor(
 
     private var timer = Timer()
     private var timerTask: TimerTask? = null
+
+    private val tonConnectLinksInFlight = mutableSetOf<String>()
 
     init {
         viewModelScope.launch {
@@ -157,6 +162,10 @@ class RootViewModel @Inject constructor(
     }
 
     fun externalUrlOpened(uri: String) {
+        if (TonConnectLink.isCandidate(uri)) {
+            tonConnectLinkOpened(uri)
+            return
+        }
         if (interactor.isBuyProviderRedirectLink(uri)) {
             showMessage(resourceManager.getString(R.string.buy_completed))
         }
@@ -251,6 +260,36 @@ class RootViewModel @Inject constructor(
                 showError(e)
             }
         }.launchIn(this)
+    }
+
+    // A dApp's connect link opened in the app (the universal link or tc://) takes the scanner's connect flow, but
+    // only once the wallet is unlocked: nothing is fetched for it before the PIN, and an invalid link is reported
+    // over the wallet, not the PIN screen. A link delivered again while its approval is open is ignored.
+    private fun tonConnectLinkOpened(uri: String) {
+        val link = runCatching { TonConnectLink.parse(uri) }
+        val clientId = link.getOrNull()?.clientId
+        if (clientId != null && !tonConnectLinksInFlight.add(clientId)) return
+
+        viewModelScope.launch {
+            try {
+                awaitDappScreens()
+                val parsed = link.getOrElse {
+                    showError(resourceManager.getString(R.string.ton_connect_invalid_link))
+                    return@launch
+                }
+                tonConnectInteractor.connectFromLink(parsed) { app, proofPayload ->
+                    // Reading the manifest can outlast the unlock; the approval never opens over the PIN.
+                    awaitDappScreens()
+                    rootRouter.openTonConnectionAndWaitForResult(app, proofPayload)
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                showError(failure)
+            } finally {
+                clientId?.let(tonConnectLinksInFlight::remove)
+            }
+        }
     }
 
     private fun observeWalletConnectEvents() {

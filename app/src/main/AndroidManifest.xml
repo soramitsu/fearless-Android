@@ -79,6 +79,16 @@
                 <data android:host="buy-success" />
             </intent-filter>
 
+            <!-- TON Connect links from dApps on the same device: tc://?v=2&id=…&r=… -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="tc" />
+            </intent-filter>
+
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 
