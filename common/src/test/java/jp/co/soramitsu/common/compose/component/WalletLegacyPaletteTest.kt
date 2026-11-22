@@ -50,8 +50,7 @@ class WalletLegacyPaletteTest {
         changeBalanceViewState = ChangeBalanceViewState(percentChange = "+1%", fiatChange = "$0.88"),
         title = "Legacy wallet",
         walletIcon = R.drawable.ic_wallet,
-        isSelected = true,
-        score = 40
+        isSelected = true
     )
 
     @Before
@@ -77,8 +76,7 @@ class WalletLegacyPaletteTest {
                         state = wallet,
                         onOptionsClick = { events += "options" },
                         onSelected = { events += "selected" },
-                        onLongClick = { events += "long" },
-                        onScoreClick = { events += "score" }
+                        onLongClick = { events += "long" }
                     )
                 }
             }
@@ -89,13 +87,12 @@ class WalletLegacyPaletteTest {
         compose.onNodeWithTag("balance_change_fiat", useUnmergedTree = true).assertTextEquals("($0.88)")
 
         compose.onNodeWithContentDescription(context.getString(R.string.ux_more)).performClick()
-        compose.onNodeWithText("40", useUnmergedTree = true).performClick()
         compose.mainClock.advanceTimeBy(1_000)
         compose.onNodeWithText("Legacy wallet").performTouchInput { click() }
         compose.mainClock.advanceTimeBy(1_000)
         compose.waitForIdle()
 
-        assertTrue(events.toString(), events.containsAll(listOf("options", "score", "selected")))
+        assertTrue(events.toString(), events.containsAll(listOf("options", "selected")))
     }
 
     @Test
@@ -104,7 +101,7 @@ class WalletLegacyPaletteTest {
         compose.setContent {
             FearlessAppTheme {
                 Column {
-                    WalletItem(state = wallet.copy(isSelected = false, balance = null, changeBalanceViewState = null, score = null))
+                    WalletItem(state = wallet.copy(isSelected = false, balance = null, changeBalanceViewState = null))
                     WalletItem(state = wallet.copy(id = 10, title = "Captioned", balance = null, changeBalanceViewState = null, balanceCaption = "incl. hidden"))
                 }
             }
@@ -155,7 +152,7 @@ class WalletLegacyPaletteTest {
             FearlessAppTheme {
                 WalletSelectorScreen(
                     state = WalletSelectorViewState(
-                        wallets = listOf(wallet.copy(id = 1, title = "One", score = null), wallet.copy(id = 2, title = "Two", score = null)),
+                        wallets = listOf(wallet.copy(id = 1, title = "One"), wallet.copy(id = 2, title = "Two")),
                         selectedWallet = wallet.copy(id = 2)
                     ),
                     onWalletSelected = { picked += it.id },

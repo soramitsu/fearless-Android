@@ -191,7 +191,6 @@ class SendSetupPausedSendTest {
         savedStateHandle = SavedStateHandle(mapOf(SendSetupFragment.KEY_PAYLOAD to payload)),
         resourceManager = resourceManager,
         walletInteractor = walletInteractor,
-        nomisScoreInteractor = mockk(relaxed = true),
         polkaswapInteractor = mockk(relaxed = true),
         // A relaxed mock cannot build the Result the use case returns.
         existentialDepositUseCase = object : ExistentialDepositUseCase {

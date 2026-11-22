@@ -23,7 +23,6 @@ import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.common.utils.substrateAccountId
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
-import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
@@ -224,7 +223,6 @@ class AccountRepositoryVerifiedRecoveryTest {
         jsonSeedEncoder = mock<JsonSeedEncoder>(),
         languagesHolder = mock<LanguagesHolder>(),
         chainsRepository = mock<ChainsRepository>(),
-        nomisScoresDao = mock<NomisScoresDao>(),
         substrateSecretStore = SubstrateSecretStore(preferences),
         ethereumSecretStore = EthereumSecretStore(preferences),
         tonSecretStore = TonSecretStore(preferences),

@@ -58,7 +58,6 @@ class OptionsWalletViewModelTest {
 
         val state = viewModel.state.awaitFirst { it.showOldAddressesButton }
         assertTrue(state.isSelected)
-        assertTrue(state.showScoreButton)
         assertTrue(state.showDetailsButton)
 
         viewModel.onOldAddressesClick()
@@ -68,14 +67,12 @@ class OptionsWalletViewModelTest {
         viewModel.onUniversalPasswordNoticeClosed()
         viewModel.onWalletDetailsClick()
         viewModel.onBackupWalletClick()
-        viewModel.onShowWalletScoreClick()
         viewModel.onDeleteWalletClick()
         viewModel.onCloseClick()
 
         verify { notice.dismiss(1L) }
         verify { router.openAccountDetails(1L) }
         verify { router.openBackupWalletScreen(1L) }
-        verify { router.openScoreDetailsScreen(1L) }
         assertEquals(1L, viewModel.deleteWalletConfirmation.value!!.peekContent())
         verify { router.back() }
     }
@@ -85,7 +82,6 @@ class OptionsWalletViewModelTest {
         val viewModel = viewModel(2L, UniversalWalletPasswordNotice.NONE, allowDetails = false)
 
         val state = viewModel.state.awaitFirst { !it.isSelected }
-        assertFalse(state.showScoreButton)
         assertFalse(state.showDetailsButton)
         viewModel.onOldAddressesClick()
         assertEquals(null, viewModel.showUniversalPasswordNotice.value)
@@ -104,7 +100,7 @@ class OptionsWalletViewModelTest {
         val failing = mockk<UniversalWalletPasswordNotice>(relaxed = true) { coEvery { rows(any()) } throws IllegalStateException("locked") }
         val viewModel = viewModel(1L, failing)
 
-        assertFalse(viewModel.state.awaitFirst { it.showScoreButton }.showOldAddressesButton)
+        assertFalse(viewModel.state.awaitFirst { it.showDetailsButton }.showOldAddressesButton)
     }
 
     @Test

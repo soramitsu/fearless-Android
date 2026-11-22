@@ -21,7 +21,6 @@ import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 import jp.co.soramitsu.account.api.presentation.create_backup_password.SaveBackupPayload
 import jp.co.soramitsu.account.impl.presentation.create_backup_password.CreateBackupPasswordDialog
-import jp.co.soramitsu.account.impl.presentation.nomis_scoring.ScoreDetailsFragment
 import jp.co.soramitsu.account.impl.presentation.pincode.PinCodeAction
 import jp.co.soramitsu.account.impl.presentation.pincode.PincodeFragment
 import jp.co.soramitsu.app.R
@@ -175,7 +174,6 @@ class DappSheetNavigationTest {
             R.id.mainFragment,
             page(R.id.mainFragment),
             page(R.id.aboutFragment),
-            page(R.id.scoreDetailsFragment),
             Sheet(R.id.sessionProposalFragment),
             Sheet(R.id.sessionRequestFragment),
             Sheet(R.id.requestPreviewFragment),
@@ -204,7 +202,6 @@ class DappSheetNavigationTest {
             Sheet(R.id.tonConnectionDetails)
         ),
         graph(R.id.portfolioGraph, R.id.walletFragment, page(R.id.walletFragment)),
-        Sheet(R.id.scoreDetailsFragment),
         Sheet(R.id.successSheetFragment)
     )
 
@@ -227,8 +224,7 @@ class DappSheetNavigationTest {
         ChainChooseFragment.Companion,
         SessionProposalFragment.Companion,
         WalletConnectSignMessageFragment.Companion,
-        SuccessFragment.Companion,
-        ScoreDetailsFragment.Companion
+        SuccessFragment.Companion
     )
 
     @Before
@@ -242,7 +238,6 @@ class DappSheetNavigationTest {
         every { SessionProposalFragment.getBundle(any()) } returns mockk()
         every { WalletConnectSignMessageFragment.getBundle(any()) } returns mockk()
         every { SuccessFragment.getBundle(any(), any(), any(), any()) } returns mockk()
-        every { ScoreDetailsFragment.getBundle(any()) } returns mockk()
         every { TonSignRequestFragment.getBundle(any(), any(), any()) } returns mockk()
         every { TonConnectionDetailsFragment.getBundle(any(), any()) } returns mockk()
         every { CreateBackupPasswordDialog.getBundle(any()) } returns mockk()
@@ -454,18 +449,6 @@ class DappSheetNavigationTest {
     }
 
     @Test
-    fun `a tab sheet that is a full page in the root's graph keeps the tab stack`() {
-        openRequestSheet()
-
-        navigator.openScoreDetailsScreen(1)
-
-        assertStacks(
-            listOf(R.id.mainFragment, R.id.sessionRequestFragment),
-            listOf(R.id.profileFragment, R.id.scoreDetailsFragment)
-        )
-    }
-
-    @Test
     fun `TON pairing from portfolio keeps that tab and returns the connection from its root dialog`() = runTest {
         val connectionPayload = "{\"event\":\"connect\"}"
         // Android JSONObject methods are stubs in host tests. Verify the exact constructor payload
@@ -639,10 +622,9 @@ class DappSheetNavigationTest {
         val rootSheets = dialogs("main_nav_graph.xml").map { it.destinationName }.toSet()
         val tabSheets = dialogs("bottom_nav_graph.xml").map { it.destinationName }
 
-        // Opens only from the wallet's own pages; in the root's graph it is a full page.
         val notJoining = tabSheets.filterNot { it in rootSheets }
 
-        assertEquals(listOf("scoreDetailsFragment"), notJoining)
+        assertEquals(emptyList<String>(), notJoining)
     }
 
     @Test

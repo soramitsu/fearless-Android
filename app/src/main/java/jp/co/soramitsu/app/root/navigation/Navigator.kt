@@ -46,7 +46,6 @@ import jp.co.soramitsu.account.impl.presentation.node.add.AddNodeFragment
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsFragment
 import jp.co.soramitsu.account.impl.presentation.node.details.NodeDetailsPayload
 import jp.co.soramitsu.account.impl.presentation.node.list.NodesFragment
-import jp.co.soramitsu.account.impl.presentation.nomis_scoring.ScoreDetailsFragment
 import jp.co.soramitsu.account.impl.presentation.options_ecosystem_accounts.OptionsEcosystemAccountsFragment
 import jp.co.soramitsu.account.impl.presentation.options_switch_node.OptionsSwitchNodeFragment
 import jp.co.soramitsu.account.impl.presentation.optionsaddaccount.OptionsAddAccountFragment
@@ -1874,10 +1873,6 @@ class Navigator(private val savedEndpointAccess: jp.co.soramitsu.account.impl.do
 
     override fun openServiceScreen() {
         navigateInMainTabOrRoot(R.id.serviceFragment)
-    }
-
-    override fun openScoreDetailsScreen(metaId: Long) {
-        navigateInMainTabOrRoot(R.id.scoreDetailsFragment, ScoreDetailsFragment.getBundle(metaId))
     }
 
     override fun openPools() {

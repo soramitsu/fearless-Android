@@ -34,7 +34,6 @@
   <string name="account_export_password_change">Ganti Password</string>
   <string name="account_export_warning_message">Membagikan atau menyalin rahasia Anda adalah operasi berisiko tinggi, jangan kirimkan kepada siapa pun. Apakah Anda ingin melanjutkan proses berbagi / menyalin?</string>
   <string name="account_export_warning_title">Hati-hati</string>
-  <string name="account_stats_avg_transaction_time_title">Waktu transaksi rata-rata</string>
   <string name="account_import_ethereum_raw_seed_placeholder">Akun ETH benih mentah (64 simbol hex)</string>
   <string name="account_import_invalid_keystore">Pemulihan json tidak valid. Harap pastikan bahwa masukan berisi json yang valid.</string>
   <string name="account_import_invalid_seed">Benih tidak valid. Harap pastikan bahwa masukan Anda berisi 64 simbol hex.</string>
@@ -44,19 +43,6 @@
   <string name="account_import_wrong_network" formatted="false">Jaringan di JSON adalah %s , tidak cocok dengan %s . Yang terakhir akan digunakan untuk mengimpor akun.</string>
   <string name="account_info_title">Akun</string>
   <string name="account_needed_message">Anda tidak memiliki akun untuk jaringan ini, Anda bisa membuat atau mengimpor akun.</string>
-  <string name="account_stats_description_text">Skor Multichain Anda didasarkan pada perjalanan on-chain Anda melalui 3 ekosistem: Ethereum, Polygon, dan Binance Smart Chain</string>
-  <string name="account_stats_error_message">Tidak dapat mengambil informasi skor akun. Silakan coba lagi nanti.</string>
-  <string name="account_stats_hold_tokens_usd_title">Token yang dimiliki (USD)</string>
-  <string name="account_stats_max_transaction_time_title">Waktu transaksi maksimum</string>
-  <string name="account_stats_min_transaction_time_title">Waktu transaksi minimum</string>
-  <string name="account_stats_native_balance_usd_title">Saldo native dalam USD</string>
-  <string name="account_stats_rejected_transactions_title">Transaksi yang ditolak</string>
-  <string name="account_stats_title">Skor Anda</string>
-  <string name="account_stats_total_transactions_title">Total transaksi</string>
-  <string name="account_stats_unavailable_text">Anda tidak memiliki akun yang kompatibel dengan EVM. Jika ingin melihat skor, tambahkan melalui opsi \"Impor dompet\".</string>
-  <string name="account_stats_updated_title">Diperbarui</string>
-  <string name="account_stats_wallet_age_title">Usia dompet</string>
-  <string name="account_stats_wallet_option_title">Tampilkan skor dompet</string>
   <string name="account_needed_title">Akun dibutuhkan</string>
   <string name="account_no_chain_projection">Ditemukan</string>
   <string name="account_option">Opsi akun</string>
@@ -1309,10 +1295,6 @@
 
   <string name="banners_demeter_title">Demeter Protocol</string>
 
-  <plurals name="common_months_format">
-    <item quantity="one">%d month</item>
-    <item quantity="other">%d months</item>
-  </plurals>
 
   <string name="common_more">More</string>
 
@@ -1446,17 +1428,12 @@
 
   <string name="onboarding_banner_ton_ecosystem_title">Connect to the fastest growing ecosystem ever</string>
 
-  <string name="profile_account_score_title">Nomis multichain score</string>
 
   <string name="profile_tonconnect_title">Ton connect</string>
 
-  <string name="scam_description_lowscore_text">The address you are about to transfer to has low onchain activity, which may indicate a potential scammer or sybil attacker</string>
 
-  <string name="scam_info_nomis_name">Nomis multi-chain score</string>
 
-  <string name="scam_info_nomis_reason_text">Low network activity</string>
 
-  <string name="scam_info_nomis_subtype_text">Proceed with caution</string>
 
   <string name="sora_bridge_low_amount_format_alert_2">Currently, there\'s a min. amount %s for bridging to ensure the stability and security. We appreciate your understanding.</string>
 

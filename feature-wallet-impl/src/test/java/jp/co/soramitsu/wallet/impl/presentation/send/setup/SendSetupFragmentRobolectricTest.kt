@@ -14,10 +14,10 @@ import io.mockk.mockk
 import io.mockk.verify
 import java.math.BigDecimal
 import jp.co.soramitsu.common.base.errors.ValidationWarning
-import jp.co.soramitsu.common.compose.component.AddressInputWithScore
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
+import jp.co.soramitsu.common.compose.component.RecipientAddressInput
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
@@ -191,7 +191,7 @@ class SendSetupFragmentRobolectricTest {
 
     private fun setupState() = SendSetupViewState(
         toolbarState = ToolbarViewState("Send", R.drawable.ic_arrow_left_24),
-        addressInputState = AddressInputWithScore.Empty("Send to", "Paste a Polkadot address"),
+        addressInputState = RecipientAddressInput.Empty("Send to", "Paste a Polkadot address"),
         amountInputState = AmountInputViewState(
             tokenName = "DOT",
             tokenImage = "",

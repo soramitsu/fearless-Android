@@ -38,12 +38,10 @@ class ProfileScreenTest {
         override fun currencyClicked() { calls += "currency" }
         override fun languagesClicked() { calls += "languages" }
         override fun appearanceClicked() { calls += "appearance" }
-        override fun onNomisMultichainScoreContainerClick() { calls += "nomis" }
         override fun polkaswapDisclaimerClicked() { calls += "polkaswap" }
         override fun changePinCodeClicked() { calls += "pin" }
         override fun recoveryClicked() { calls += "recovery" }
         override fun aboutClicked() { calls += "about" }
-        override fun onScoreClick(item: WalletItemViewState) { calls += "score" }
     }
 
     private fun wallet(ecosystems: Set<WalletEcosystem>) = WalletItemViewState(
@@ -56,13 +54,12 @@ class ProfileScreenTest {
         supportedEcosystems = ecosystems
     )
 
-    private fun render(ecosystems: Set<WalletEcosystem>, nomisChecked: Boolean = true) {
+    private fun render(ecosystems: Set<WalletEcosystem>) {
         val state = ProfileScreenState(
             walletState = wallet(ecosystems),
             walletsItemAction = SettingsItemAction.Transition,
             currency = "USD",
-            language = "English",
-            nomisChecked = nomisChecked
+            language = "English"
         )
         compose.setContent {
             FearlessAppTheme { ProfileScreen(scrollState = rememberScrollState(), state = state, callback = callback) }
@@ -89,7 +86,6 @@ class ProfileScreenTest {
             R.string.profile_pincode_change_title,
             R.string.profile_language_title,
             R.string.appearance_title,
-            R.string.profile_account_score_title,
             R.string.polkaswap_disclaimer_settings_item
         ).forEach { compose.onNodeWithText(string(it)).tap() }
         // "About" is both the section heading and the row; the row is the second node.
@@ -99,7 +95,7 @@ class ProfileScreenTest {
         assertEquals(
             listOf(
                 "options", "wallets", "manageAssets", "currency", "tonconnect", "walletconnect", "recovery", "pin",
-                "languages", "appearance", "nomis", "polkaswap", "about"
+                "languages", "appearance", "polkaswap", "about"
             ),
             calls
         )
@@ -110,20 +106,18 @@ class ProfileScreenTest {
 
     @Test
     fun walletWithoutTonAsksForATonAccountBeforeTonConnect() {
-        render(setOf(WalletEcosystem.Substrate), nomisChecked = false)
+        render(setOf(WalletEcosystem.Substrate))
 
         compose.onNodeWithText(string(R.string.connection_add_ton_account)).assertIsDisplayed()
         compose.onNodeWithText(string(R.string.connection_add_signing_account)).assertDoesNotExist()
-        compose.onNodeWithText(string(R.string.profile_account_score_title)).assertIsDisplayed()
     }
 
     @Test
-    fun tonOnlyWalletHidesScoreAndPolkaswapAndAsksForASigningAccount() {
+    fun tonOnlyWalletHidesPolkaswapAndAsksForASigningAccount() {
         render(setOf(WalletEcosystem.Ton))
 
         compose.onNodeWithText(string(R.string.connection_add_signing_account)).assertIsDisplayed()
         compose.onNodeWithText(string(R.string.connection_add_ton_account)).assertDoesNotExist()
-        compose.onNodeWithText(string(R.string.profile_account_score_title)).assertDoesNotExist()
         compose.onNodeWithText(string(R.string.polkaswap_disclaimer_settings_item)).assertDoesNotExist()
         // A TON-only wallet has no wallet options here.
         compose.onNodeWithContentDescription(string(R.string.ux_more)).assertDoesNotExist()

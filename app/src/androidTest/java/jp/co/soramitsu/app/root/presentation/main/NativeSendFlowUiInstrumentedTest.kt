@@ -63,7 +63,7 @@ class NativeSendFlowUiInstrumentedTest {
     @Test fun bitcoinSetupKeepsExactNetworkRecipientGuidanceAmountAndMaxReachable() {
         var next = 0; var maximum = 0; var entered: BigDecimal? = null
         val base = SendSetupViewState(ToolbarViewState("Send", jp.co.soramitsu.common.R.drawable.ic_arrow_left_24),
-            AddressInputWithScore.Filled("Send to", "tb1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu", "", 100),
+            RecipientAddressInput.Filled("Send to", "tb1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu", ""),
             AmountInputViewState("BTC", "", "0.0044 BTC", "$422.13", BigDecimal("0.00439718"), "Amount", isFocused = true),
             SelectorState("Network", "Bitcoin Testnet", null), FeeInfoViewState(caption = "Transfer fee", feeAmount = "0.00000282 BTC", feeAmountFiat = "$0.27"),
             null, ButtonViewState("Continue", true), true, false,

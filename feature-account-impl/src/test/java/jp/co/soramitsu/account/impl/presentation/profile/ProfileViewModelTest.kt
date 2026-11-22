@@ -7,10 +7,8 @@ import io.mockk.mockk
 import io.mockk.verify
 import java.math.BigDecimal
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.account.api.domain.model.PortfolioBalance
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
@@ -28,7 +26,6 @@ import jp.co.soramitsu.feature_account_impl.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -37,7 +34,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -51,12 +47,10 @@ class ProfileViewModelTest {
     private val dispatcher = StandardTestDispatcher()
     private val interactor = mockk<AccountInteractor>()
     private val details = mockk<AccountDetailsInteractor>()
-    private val nomis = mockk<NomisScoreInteractor>(relaxed = true)
     private val router = mockk<AccountRouter>(relaxed = true)
     private val totalBalance = mockk<TotalBalanceUseCase>()
     private val fiatCurrencies = mockk<GetAvailableFiatCurrencies>()
     private val selectedFiat = mockk<SelectedFiat>(relaxed = true)
-    private val scores = MutableStateFlow<NomisScoreData?>(null)
     private val usd = FiatCurrency("usd", "$", "US Dollar", "")
     private val eur = FiatCurrency("eur", "€", "Euro", "")
 
@@ -70,10 +64,8 @@ class ProfileViewModelTest {
         coEvery { interactor.getSelectedLanguage() } returns Language("en")
         every { selectedFiat.get() } returns "usd"
         every { selectedFiat.flow() } returns flowOf("eur")
-        every { nomis.observeNomisMultichainScoreEnabled() } returns flowOf(false)
-        every { nomis.observeCurrentAccountScore() } returns scores
         return ProfileViewModel(
-            interactor, details, nomis, router, mockk<AddressIconGenerator>(relaxed = true),
+            interactor, details, router, mockk<AddressIconGenerator>(relaxed = true),
             mockk<ExternalAccountActions.Presentation>(relaxed = true), totalBalance, fiatCurrencies, selectedFiat,
             VmTestFixtures.resourceManager()
         )
@@ -93,7 +85,7 @@ class ProfileViewModelTest {
     )
 
     @Test
-    fun `settings rows follow language, currency, nomis toggle and chains without accounts`() = runTest(dispatcher) {
+    fun `settings rows follow language, currency and chains without accounts`() = runTest(dispatcher) {
         val vm = viewModel(flowOf(TotalBalance.AwaitingSelection), hasChainsWithNoAccount = true)
         assertEquals("usd", vm.state.value.currency)
         runCurrent()
@@ -101,7 +93,6 @@ class ProfileViewModelTest {
         val state = vm.state.value
         assertEquals("EUR", state.currency)
         assertEquals(java.util.Locale.ENGLISH.displayLanguage.replaceFirstChar { it.uppercase() }, state.language)
-        assertFalse(state.nomisChecked)
         assertEquals(SettingsItemAction.TransitionWithIcon(R.drawable.ic_status_warning_16), state.walletsItemAction)
         assertEquals(0, state.walletState.id)
 
@@ -111,51 +102,39 @@ class ProfileViewModelTest {
     }
 
     @Test
-    fun `the selected wallet card shows its name and only its own nomis score`() = runTest(dispatcher) {
+    fun `the selected wallet card shows its name and ecosystems`() = runTest(dispatcher) {
         val vm = viewModel(flowOf(ready()))
         runCurrent()
         assertEquals(7, vm.state.value.walletState.id)
         assertEquals("Main wallet", vm.state.value.walletState.title)
         assertTrue(WalletEcosystem.Substrate in vm.state.value.walletState.supportedEcosystems)
-        assertNull(vm.state.value.walletState.score)
-
-        scores.value = score(metaId = 7, score = 83); runCurrent()
-        assertEquals(83, vm.state.value.walletState.score)
-
-        scores.value = score(metaId = 8, score = 12); runCurrent()
-        assertNull(vm.state.value.walletState.score)
     }
 
     @Test
-    fun `a loading wallet keeps its id but no options or score navigation`() = runTest(dispatcher) {
+    fun `a loading wallet keeps its id but no options navigation`() = runTest(dispatcher) {
         val vm = viewModel(flowOf(TotalBalance.Loading(7, "usd")))
         runCurrent()
         assertEquals(7, vm.state.value.walletState.id)
 
         vm.onWalletOptionsClick(vm.state.value.walletState)
-        vm.onScoreClick(vm.state.value.walletState)
         vm.onWalletConnectClick()
         vm.onTonConnectClick()
 
         verify(exactly = 0) { router.openAccountDetails(any()) }
-        verify(exactly = 0) { router.openScoreDetailsScreen(any()) }
         verify(exactly = 0) { router.openConnectionsScreen() }
         verify(exactly = 0) { router.openOptionsAddAccount(any(), any()) }
     }
 
     @Test
-    fun `options and score open only for the card of the selected wallet`() = runTest(dispatcher) {
+    fun `options open only for the card of the selected wallet`() = runTest(dispatcher) {
         val vm = viewModel(flowOf(ready()))
         runCurrent()
         val card = vm.state.value.walletState
 
         vm.onWalletOptionsClick(card)
-        vm.onScoreClick(card)
         vm.onWalletOptionsClick(card.copy(id = 99))
-        vm.onScoreClick(card.copy(id = 99))
 
         verify(exactly = 1) { router.openAccountDetails(7) }
-        verify(exactly = 1) { router.openScoreDetailsScreen(7) }
     }
 
     @Test
@@ -201,14 +180,6 @@ class ProfileViewModelTest {
     }
 
     @Test
-    fun `the nomis row toggles the multichain score setting`() = runTest(dispatcher) {
-        every { nomis.nomisMultichainScoreEnabled } returns true
-        val vm = viewModel(flowOf(TotalBalance.AwaitingSelection))
-        vm.onNomisMultichainScoreContainerClick()
-        verify { nomis.nomisMultichainScoreEnabled = false }
-    }
-
-    @Test
     fun `settings rows open their screens`() = runTest(dispatcher) {
         val vm = viewModel(flowOf(TotalBalance.AwaitingSelection))
         vm.recoveryClicked()
@@ -231,8 +202,4 @@ class ProfileViewModelTest {
             router.openManageAssets()
         }
     }
-
-    private fun score(metaId: Long, score: Int) = NomisScoreData(
-        metaId, score, 0, BigDecimal.ONE, BigDecimal.ONE, 1, 1, 0, 1.0, 1.0, 1.0, null
-    )
 }

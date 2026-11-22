@@ -25,9 +25,6 @@ import jp.co.soramitsu.common.data.network.bitcoin.RetrofitBitcoinIndexerClient
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiApi
 import jp.co.soramitsu.common.data.network.iroha.IrohaToriiClient
 import jp.co.soramitsu.common.data.network.iroha.RetrofitIrohaToriiClient
-import jp.co.soramitsu.common.data.network.nomis.NomisApi
-import jp.co.soramitsu.common.data.network.nomis.NomisHeadersInterceptor
-import jp.co.soramitsu.common.data.network.nomis.PreferenceAwareNomisApi
 import jp.co.soramitsu.common.data.network.rpc.SocketSingleRequestExecutor
 import jp.co.soramitsu.common.data.network.solana.RetrofitSolanaIndexerClient
 import jp.co.soramitsu.common.data.network.solana.RetrofitSolanaRpcClient
@@ -41,7 +38,6 @@ import jp.co.soramitsu.common.data.network.ton.RetrofitTonIndexerClient
 import jp.co.soramitsu.common.data.network.ton.TonApi
 import jp.co.soramitsu.common.data.network.ton.TonIndexerApi
 import jp.co.soramitsu.common.data.network.ton.TonIndexerClient
-import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.fearless_utils.wsrpc.SocketService
 import jp.co.soramitsu.fearless_utils.wsrpc.logging.Logger
@@ -64,7 +60,6 @@ import jp.co.soramitsu.xnetworking.lib.engines.rest.api.models.AbstractRestClien
 import jp.co.soramitsu.xnetworking.lib.engines.rest.impl.RestClientImpl
 import kotlinx.serialization.json.Json
 import okhttp3.Cache
-import okhttp3.CacheControl
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -81,11 +76,9 @@ import javax.inject.Singleton
 
 private const val HTTP_CACHE = "http_cache"
 private const val REMOTE_CONFIG_STORE = "remote-config-verified"
-private const val NOMIS_CACHE = "nomis_cache"
 private const val CACHE_SIZE = 50L * 1024L * 1024L // 50 MiB
 private const val TIMEOUT_SECONDS = 60L
 private const val TON_SSE_TIMEOUT_SECONDS = 120L
-private const val NOMIS_TIMEOUT_MINUTES = 2L
 private const val TON_API_HOST = "tonapi.io"
 
 internal fun isTonApiHost(host: String): Boolean {
@@ -209,39 +202,6 @@ class NetworkModule {
         }
 
         return builder.build()
-    }
-
-    @Provides
-    @Singleton
-    fun provideNomisHttpClient(context: Context, preferences: Preferences): NomisApi {
-        val builder = OkHttpClient.Builder()
-            .connectTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
-            .writeTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
-            .readTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
-            .callTimeout(NOMIS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
-            .cache(Cache(File(context.cacheDir, NOMIS_CACHE), CACHE_SIZE))
-            .addInterceptor(NomisHeadersInterceptor(BuildConfig.NOMIS_API_KEY, BuildConfig.NOMIS_CLIENT_ID))
-            .addInterceptor { chain ->
-                val request = chain.request().newBuilder()
-                    .cacheControl(
-                        CacheControl.Builder()
-                        .maxAge(24, TimeUnit.HOURS)
-                        .build())
-                    .build()
-                chain.proceed(request)
-            }
-            .retryOnConnectionFailure(true)
-
-        val gson = Gson()
-
-        val retrofit = Retrofit.Builder()
-            .client(builder.build())
-            .baseUrl("https://api.nomis.cc/api/v1/multichain-score/")
-            .addConverterFactory(ScalarsConverterFactory.create())
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
-
-        return PreferenceAwareNomisApi(retrofit.create(NomisApi::class.java), preferences)
     }
 
     @Provides

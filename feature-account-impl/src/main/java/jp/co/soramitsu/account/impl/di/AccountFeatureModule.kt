@@ -12,7 +12,6 @@ import javax.inject.Singleton
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.interfaces.AssetNotNeedAccountUseCase
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.updaters.AccountUpdateScope
 import jp.co.soramitsu.account.api.presentation.account.AddressDisplayUseCase
 import jp.co.soramitsu.account.api.presentation.actions.ExternalAccountActions
@@ -33,7 +32,6 @@ import jp.co.soramitsu.account.impl.data.repository.datasource.AccountDataSource
 import jp.co.soramitsu.account.impl.domain.AccountInteractorImpl
 import jp.co.soramitsu.account.impl.domain.AssetNotNeedAccountUseCaseImpl
 import jp.co.soramitsu.account.impl.domain.NodeHostValidator
-import jp.co.soramitsu.account.impl.domain.NomisScoreInteractorImpl
 import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
 import jp.co.soramitsu.account.impl.presentation.common.mixin.api.CryptoTypeChooserMixin
 import jp.co.soramitsu.account.impl.presentation.common.mixin.impl.CryptoTypeChooser
@@ -49,7 +47,6 @@ import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.data.network.AppLinksProvider
 import jp.co.soramitsu.common.data.network.NetworkApiCreator
 import jp.co.soramitsu.common.data.network.coingecko.CoingeckoApi
-import jp.co.soramitsu.common.data.network.nomis.NomisApi
 import jp.co.soramitsu.common.data.secrets.v1.SecretStoreV1
 import jp.co.soramitsu.common.data.secrets.v2.SecretStoreV2
 import jp.co.soramitsu.common.data.secrets.v3.EthereumSecretStore
@@ -72,7 +69,6 @@ import jp.co.soramitsu.core.extrinsic.keypair_provider.KeypairProvider
 import jp.co.soramitsu.coredb.AppDatabase
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
-import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.dao.TokenPriceDao
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
@@ -108,7 +104,6 @@ class AccountFeatureModule {
         jsonSeedEncoder: JsonSeedEncoder,
         languagesHolder: LanguagesHolder,
         chainsRepository: ChainsRepository,
-        nomisScoresDao: NomisScoresDao,
         substrateSecretStore: SubstrateSecretStore,
         ethereumSecretStore: EthereumSecretStore,
         tonSecretStore: TonSecretStore,
@@ -126,7 +121,6 @@ class AccountFeatureModule {
             jsonSeedEncoder,
             languagesHolder,
             chainsRepository,
-            nomisScoresDao,
             substrateSecretStore,
             ethereumSecretStore,
             tonSecretStore,
@@ -280,16 +274,6 @@ class AccountFeatureModule {
         return BackupService.create(authorization, transport) { prompt ->
             GoogleDriveSignInActivity.intent(context, prompt)
         }
-    }
-
-    @Provides
-    @Singleton
-    fun provideNomisScoresInteractor(
-        accountRepository: AccountRepository,
-        preferences: Preferences,
-        nomisApi: NomisApi
-    ): NomisScoreInteractor {
-        return NomisScoreInteractorImpl(accountRepository, preferences, nomisApi)
     }
 
     @Provides

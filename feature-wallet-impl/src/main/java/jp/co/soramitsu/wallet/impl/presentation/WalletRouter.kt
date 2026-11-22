@@ -198,8 +198,6 @@ interface WalletRouter : SecureRouter, WalletRouterApi {
 
     fun openServiceScreen()
 
-    fun openScoreDetailsScreen(metaId: Long)
-
     fun openCreateSubstrateOrEvmAccountScreen()
     fun openCreateTonAccountScreen()
 

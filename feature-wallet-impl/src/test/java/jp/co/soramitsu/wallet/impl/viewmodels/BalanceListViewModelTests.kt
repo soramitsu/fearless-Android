@@ -23,11 +23,9 @@ import io.mockk.runs
 import io.mockk.verify
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.account.api.domain.model.PortfolioBalance
 import jp.co.soramitsu.wallet.impl.domain.model.AssetAmountState
@@ -135,9 +133,6 @@ class BalanceListViewModelTests {
     private lateinit var accountInteractor: AccountInteractor
 
     @MockK
-    private lateinit var nomisScoreInteractor: NomisScoreInteractor
-
-    @MockK
     private lateinit var resourceManager: ResourceManager
 
     @MockK
@@ -241,7 +236,6 @@ class BalanceListViewModelTests {
         every { totalBalanceUseCase.observe(any()) } returns flowOf(
             portfolioTotal()
         )
-        every { nomisScoreInteractor.observeCurrentAccountScore() } returns flowOf(createNomis())
         every { walletInteractor.networkIssuesFlow() } returns flowOf(emptyMap())
         every { networkScanStateStore.states } returns MutableStateFlow(emptyMap())
         every { assetMetadataDescriptorStore.get(any()) } returns null
@@ -282,7 +276,6 @@ class BalanceListViewModelTests {
             getAvailableFiatCurrencies = getAvailableFiatCurrencies,
             selectedFiat = selectedFiat,
             accountInteractor = accountInteractor,
-            nomisScoreInteractor = nomisScoreInteractor,
             resourceManager = resourceManager,
             clipboardManager = clipboardManager,
             currentAccountAddress = currentAccountAddressUseCase,
@@ -1122,21 +1115,6 @@ class BalanceListViewModelTests {
         return TotalBalance.Ready(createMetaAccount(), emptyMap(), "usd", "$", true,
             holdings(shown, shownCount), holdings(hidden, hiddenCount), holdings(shown + hidden, shownCount + hiddenCount))
     }
-
-    private fun createNomis() = NomisScoreData(
-        metaId = 1,
-        score = 3,
-        updated = 4,
-        nativeBalanceUsd = BigDecimal.ZERO,
-        holdTokensUsd = BigDecimal.ZERO,
-        walletAgeInMonths = 4,
-        totalTransactions = 9,
-        rejectedTransactions = 5,
-        avgTransactionTimeInHours = 8.3,
-        maxTransactionTimeInHours = 4.7,
-        minTransactionTimeInHours = 3.7,
-        scoredAt = 33,
-    )
 
     private fun createLightMetaAccount(id: Long = 13) = LightMetaAccount(
         id = id,

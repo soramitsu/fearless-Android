@@ -4,7 +4,6 @@ import android.graphics.drawable.Drawable
 import androidx.annotation.StringRes
 import androidx.compose.ui.res.stringResource
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Arrangement.spacedBy
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -34,9 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -52,7 +47,6 @@ import jp.co.soramitsu.common.compose.theme.fw.FwIconButton
 import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
 import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
 import jp.co.soramitsu.common.compose.theme.white
-import jp.co.soramitsu.common.utils.clickableWithNoIndication
 
 data class MainToolbarViewState(
     val title: String,
@@ -72,8 +66,7 @@ data class MainToolbarViewStateWithFilters(
 
 sealed interface ToolbarHomeIconState{
     data class Wallet(
-        val walletIcon: Drawable,
-        val score: Int? = null,
+        val walletIcon: Drawable
     ): ToolbarHomeIconState
     data class Navigation(
         @DrawableRes val navigationIcon: Int,
@@ -164,7 +157,6 @@ fun MainToolbar(
     state: MainToolbarViewStateWithFilters,
     onChangeChainClick: () -> Unit,
     onNavigationClick: () -> Unit = {},
-    onScoreClick: () -> Unit,
     menuItems: List<MenuIconItem>? = null,
     modifier: Modifier = Modifier
 ) {
@@ -175,8 +167,7 @@ fun MainToolbar(
             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
         ) {
             ToolbarHomeIcon(
-                state = (state.homeIconState as? ToolbarHomeIconState.Wallet)?.copy(score = null)
-                    ?: state.homeIconState,
+                state = state.homeIconState,
                 onClick = onNavigationClick
             )
             Box(Modifier.weight(1f)) {
@@ -195,31 +186,11 @@ fun MainToolbar(
                 ToolbarMenuButton(menuItem)
             }
         }
-        Row(
-            verticalAlignment = CenterVertically,
-            horizontalArrangement = spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Box(Modifier.weight(1f)) {
-                if (state.selectorViewState != null) {
-                    ChainSelector(state.selectorViewState, onChangeChainClick)
-                } else {
-                    Shimmer(Modifier.fillMaxWidth().height(48.dp))
-                }
-            }
-            (state.homeIconState as? ToolbarHomeIconState.Wallet)?.score?.let { score ->
-                val scoreLabel = stringResource(R.string.account_stats_wallet_option_title)
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-                        .clickable(role = Role.Button, onClickLabel = scoreLabel, onClick = onScoreClick)
-                        .padding(horizontal = 8.dp)
-                ) {
-                    ScoreStar(score, Modifier.clearAndSetSemantics {
-                        contentDescription = scoreLabel + if (score >= 0) ": $score" else ""
-                    })
-                }
+        Box(Modifier.fillMaxWidth()) {
+            if (state.selectorViewState != null) {
+                ChainSelector(state.selectorViewState, onChangeChainClick)
+            } else {
+                Shimmer(Modifier.fillMaxWidth().height(48.dp))
             }
         }
     }
@@ -281,7 +252,7 @@ fun MainToolbarShimmer(
 }
 
 @Composable
-fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit, onScoreClick: () -> Unit = {}) {
+fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit) {
     when (state) {
         is ToolbarHomeIconState.Navigation -> {
             IconButton(
@@ -293,21 +264,13 @@ fun ToolbarHomeIcon(state: ToolbarHomeIconState, onClick: () -> Unit, onScoreCli
         }
 
         is ToolbarHomeIconState.Wallet -> {
-            Column(horizontalAlignment = CenterHorizontally) {
-                IconButton(
-                    painter = rememberAsyncImagePainter(model = state.walletIcon),
-                    contentDescription = stringResource(R.string.ux_switch_wallet),
-                    // The avatar is the button's face: it fills the raised circle instead of sitting in it as an icon.
-                    sunlitIconSize = 40.dp,
-                    onClick = onClick
-                )
-                state.score?.let {
-                    MarginVertical(margin = 6.dp)
-                    Box(modifier = Modifier.clickableWithNoIndication { onScoreClick() }) {
-                        ScoreStar(score = it)
-                    }
-                }
-            }
+            IconButton(
+                painter = rememberAsyncImagePainter(model = state.walletIcon),
+                contentDescription = stringResource(R.string.ux_switch_wallet),
+                // The avatar is the button's face: it fills the raised circle instead of sitting in it as an icon.
+                sunlitIconSize = 40.dp,
+                onClick = onClick
+            )
         }
     }
 }

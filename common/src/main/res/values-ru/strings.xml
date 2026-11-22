@@ -47,20 +47,6 @@
   <string name="account_no_chain_projection">Аккаунт не найден</string>
   <string name="account_option">Опция учетной записи</string>
   <string name="account_shared_secret">Аккаунты с общим секретом</string>
-  <string name="account_stats_avg_transaction_time_title">Среднее время транзакции</string>
-  <string name="account_stats_description_text">Ваш мультицепной счет основан на вашем пути в блокчейне через три экосистемы: Ethereum, Polygon и Binance Smart Chain.</string>
-  <string name="account_stats_error_message">Не удалось получить информацию о счете аккаунта. Пожалуйста, попробуйте позже.</string>
-  <string name="account_stats_hold_tokens_usd_title">Удерживать токены USD</string>
-  <string name="account_stats_max_transaction_time_title">Максимальное время транзакции</string>
-  <string name="account_stats_min_transaction_time_title">Минимальное время транзакции</string>
-  <string name="account_stats_native_balance_usd_title">Основной баланс в USD</string>
-  <string name="account_stats_rejected_transactions_title">Отклоненные транзакции</string>
-  <string name="account_stats_title">Ваш счет</string>
-  <string name="account_stats_total_transactions_title">Всего транзакций</string>
-  <string name="account_stats_unavailable_text">У вас нет совместимого с EVM аккаунта. Если вы хотите увидеть счет, добавьте его через опцию \"Импортировать кошелек\"</string>
-  <string name="account_stats_updated_title">Обновлено</string>
-  <string name="account_stats_wallet_age_title">Возраст кошелька</string>
-  <string name="account_stats_wallet_option_title">Показать счет кошелька</string>
   <string name="account_template">%s аккаунт</string>
   <string name="accounts_add_account">Добавить аккаунт</string>
   <string name="accounts_for_export">Аккаунты для экспорта</string>
@@ -245,12 +231,6 @@
     <item quantity="few">%d часа</item>
     <item quantity="many">%d часов</item>
     <item quantity="other">%d час</item>
-  </plurals>
-  <plurals name="common_months_format">
-    <item quantity="one">%d месяц</item>
-    <item quantity="few">%d месяца</item>
-    <item quantity="many">%d месяцев</item>
-    <item quantity="other">%d месяц</item>
   </plurals>
   <string name="common_import_wallet">Импорт кошелька</string>
   <string name="common_important">Важно</string>
@@ -831,7 +811,6 @@
   <string name="pool_your_total_stake">Всего застейкано</string>
   <string name="pools_limit_has_reached_error_message">Лимит пуллов в этой сети был достигнут</string>
   <string name="pools_limit_has_reached_error_title">Вы не можете создать больше пулов</string>
-  <string name="profile_account_score_title">Мультичейн счет Nomis</string>
   <string name="profile_accounts_title">Аккаунты</string>
   <string name="profile_language_title">Язык</string>
   <string name="profile_logout_description">Это действие приведет к удалению всех учетных записей с этого устройства. Прежде чем продолжить, убедитесь, что вы сделали резервную копию своей парольной фразы.</string>
@@ -880,10 +859,6 @@
   <string name="scam_additional_stub">Дополнительно:</string>
   <string name="scam_alert_message_format">Мы настоятельно рекомендуем не отправлять %s на это аккаунт.</string>
   <string name="scam_alert_title">Этот адрес был помечен в связи с доказательствами мошенничества.</string>
-  <string name="scam_description_lowscore_text">Адрес, на который вы собираетесь перевести средства, имеет низкую активность в блокчейне, что может указывать на потенциального мошенника или на атаку Сивиллы.</string>
-  <string name="scam_info_nomis_name">Мультичейн счет Nomis</string>
-  <string name="scam_info_nomis_reason_text">Низкая активность сети</string>
-  <string name="scam_info_nomis_subtype_text">Действуйте с осторожностью</string>
   <string name="scam_warning_message">Этот адрес был помечен в связи с доказательствами мошенничества. Мы настоятельно рекомендуем вам не отправлять %s на этот аккаунт.</string>
   <string name="scan_qr_subtitle">Поднесите QR код получателя</string>
   <string name="scan_qr_title">QR Код</string>

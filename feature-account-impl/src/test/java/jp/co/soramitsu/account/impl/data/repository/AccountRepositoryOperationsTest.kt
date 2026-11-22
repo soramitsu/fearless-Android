@@ -18,8 +18,6 @@ import jp.co.soramitsu.common.resources.LanguagesHolder
 import jp.co.soramitsu.core.model.Language
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
-import jp.co.soramitsu.coredb.dao.NomisScoresDao
-import jp.co.soramitsu.coredb.model.NomisWalletScoreLocal
 import jp.co.soramitsu.coredb.model.chain.FavoriteChainLocal
 import jp.co.soramitsu.fearless_utils.encrypt.MultiChainEncryption
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
@@ -37,7 +35,6 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -48,13 +45,12 @@ class AccountRepositoryOperationsTest {
     private val decoder = mockk<JsonSeedDecoder>()
     private val languages = mockk<LanguagesHolder>()
     private val chains = mockk<ChainsRepository>()
-    private val scores = mockk<NomisScoresDao>()
     private val mutations = mockk<WalletSecretMutationCoordinator>(relaxed = true)
     private val roots = mockk<UniversalWalletFreshRoots>(relaxed = true)
     private val watchList = mockk<UniversalWalletWatchList>(relaxed = true)
     private val wallet = VmTestFixtures.meta()
     private val repo = AccountRepositoryImpl(
-        source, dao, mockk(), decoder, mockk(), languages, chains, scores, mockk(), mockk(),
+        source, dao, mockk(), decoder, mockk(), languages, chains, mockk(), mockk(),
         mockk(), mockk(), mutations, mockk(), UnconfinedTestDispatcher(), roots, watchList
     )
 
@@ -179,16 +175,6 @@ class AccountRepositoryOperationsTest {
             FavoriteChainLocal(7, "dot", true), FavoriteChainLocal(7, "eth", false)
         ))
         assertEquals(mapOf("dot" to true, "eth" to false), repo.observeFavoriteChains(7).first())
-    }
-
-    @Test
-    fun scoreFlowsMapMissingLoadingAndErrorStates() = runTest {
-        every { scores.observeScores() } returns flowOf(listOf(NomisWalletScoreLocal.loading(7), NomisWalletScoreLocal.error(8)))
-        every { scores.observeScore(7) } returns flowOf(null)
-        assertEquals(listOf(-1, -2), repo.observeNomisScores().first().map { it.score })
-        assertNull(repo.observeNomisScore(7).first())
-        every { scores.observeScore(7) } returns flowOf(NomisWalletScoreLocal.error(7))
-        assertEquals(-2, repo.observeNomisScore(7).first()?.score)
     }
 
     @Test

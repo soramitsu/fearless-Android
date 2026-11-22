@@ -6,7 +6,6 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.coredb.model.ConnectionSource
@@ -48,9 +47,6 @@ class DiscoverDappViewModelTest {
     }
     private val chains = mockk<ChainInteractor> {
         every { getChainsFlow() } returns flowOf(emptyList())
-    }
-    private val scores = mockk<NomisScoreInteractor> {
-        every { observeCurrentAccountScore() } returns emptyFlow()
     }
     private val resources = mockk<ResourceManager> {
         every { getString(any()) } returns "Search"
@@ -142,6 +138,6 @@ class DiscoverDappViewModelTest {
     }
 
     private fun viewModel() = DiscoverDappViewModel(
-        wallet, chains, mockk(), router, scores, resources, ton
+        wallet, chains, mockk(), router, resources, ton
     ).also { viewModels += it }
 }

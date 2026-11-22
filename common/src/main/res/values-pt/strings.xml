@@ -34,20 +34,6 @@
   <string name="account_export_password_change">Alterar senha</string>
   <string name="account_export_warning_message">Partilhar ou copiar o seu segredo é uma operação de alto risco, não o envie a ninguém. Gostaria de continuar com o processo de partilhar/copiar?</string>
   <string name="account_export_warning_title">Seja cuidadoso</string>
-  <string name="account_stats_description_text">Sua Pontuação Multichain é baseada na sua jornada on-chain através de 3 ecossistemas: Ethereum, Polygon e Binance Smart Chain</string>
-  <string name="account_stats_error_message">Não foi possível obter a pontuação da conta. Tente novamente mais tarde.</string>
-  <string name="account_stats_hold_tokens_usd_title">Tokens mantidos em USD</string>
-  <string name="account_stats_avg_transaction_time_title">Tempo médio de transação</string>
-  <string name="account_stats_max_transaction_time_title">Tempo máximo de transação</string>
-  <string name="account_stats_min_transaction_time_title">Tempo mínimo de transação</string>
-  <string name="account_stats_native_balance_usd_title">Saldo nativo em USD</string>
-  <string name="account_stats_rejected_transactions_title">Transações rejeitadas</string>
-  <string name="account_stats_title">Sua pontuação</string>
-  <string name="account_stats_total_transactions_title">Total de transações</string>
-  <string name="account_stats_unavailable_text">Você não possui uma conta compatível com EVM. Se quiser ver a pontuação, adicione-a pela opção \"Importar carteira\".</string>
-  <string name="account_stats_updated_title">Atualizado</string>
-  <string name="account_stats_wallet_age_title">Idade da carteira</string>
-  <string name="account_stats_wallet_option_title">Mostrar pontuação da carteira</string>
   <string name="account_import_ethereum_raw_seed_placeholder">A seed original para contas da ETH (64 símbolos hexadecimais)</string>
   <string name="account_import_invalid_keystore">Restauro do JSON inválido. Por favor, certifique-se de que a entrada contém um JSON válido.</string>
   <string name="account_import_invalid_seed">A seed é inválida. Por favor, certifique-se de que a sua entrada contém 64 símbolos hexadecimais.</string>
@@ -1300,10 +1286,6 @@
 
   <string name="common_host">Host</string>
 
-  <plurals name="common_months_format">
-    <item quantity="one">%d month</item>
-    <item quantity="other">%d months</item>
-  </plurals>
 
   <string name="common_more">More</string>
 
@@ -1459,19 +1441,14 @@
 
   <string name="onboarding_banner_ton_ecosystem_title">Connect to the fastest growing ecosystem ever</string>
 
-  <string name="profile_account_score_title">Nomis multichain score</string>
 
   <string name="profile_tonconnect_title">Ton connect</string>
 
   <string name="profile_walletconnect_title">WalletConnect</string>
 
-  <string name="scam_description_lowscore_text">The address you are about to transfer to has low onchain activity, which may indicate a potential scammer or sybil attacker</string>
 
-  <string name="scam_info_nomis_name">Nomis multi-chain score</string>
 
-  <string name="scam_info_nomis_reason_text">Low network activity</string>
 
-  <string name="scam_info_nomis_subtype_text">Proceed with caution</string>
 
   <string name="send_all_and_reap_account">Send all tokens and reap the account</string>
 

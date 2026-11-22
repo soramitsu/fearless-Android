@@ -197,7 +197,7 @@ class SunlitSurfacesInstrumentedTest {
             show("pickers-chains-$suffix", scale) { ChainSelectContent(chainPicker, noOp<ChainSelectScreenContract>()) }
             show("pickers-assets-$suffix", scale) { AssetSelectContent(assetPicker, noOp<AssetSelectContentInterface>()) }
             show("pickers-wallets-$suffix", scale) {
-                SelectWalletContent(walletPicker, {}, {}, {}, {}, {})
+                SelectWalletContent(walletPicker, {}, {}, {}, {})
             }
             show("pickers-wallet-sheet-$suffix", scale) { WalletSelectorScreen(walletPicker, {}, {}) }
             show("manage-assets-$suffix", scale) { ManageAssetsContent(manageAssets, noOp<ManageAssetsContentInterface>()) }

@@ -2,7 +2,6 @@ package jp.co.soramitsu.tonconnect.impl.presentation.discoverdapp
 
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.AddressModel
@@ -31,7 +30,6 @@ import jp.co.soramitsu.wallet.impl.presentation.balance.chainselector.toChainIte
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -46,7 +44,6 @@ class DiscoverDappViewModel @Inject constructor(
     private val chainInteractor: ChainInteractor,
     private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter,
-    private val nomisScoreInteractor: NomisScoreInteractor,
     private val resourceManager: ResourceManager,
     private val tonConnectInteractor: TonConnectInteractor,
 ) : BaseViewModel(), DiscoverDappScreenInterface {
@@ -68,8 +65,6 @@ class DiscoverDappViewModel @Inject constructor(
                 chains.firstOrNull { it.id == selectedChainId }
             }
         }
-
-    private val currentMetaAccountFlow = interactor.selectedLightMetaAccountFlow()
 
     private val dappListTypeSelectorState = MutableStateFlow(
         MultiToggleButtonState(
@@ -159,17 +154,6 @@ class DiscoverDappViewModel @Inject constructor(
                 )
             }
         }.launchIn(viewModelScope)
-
-        nomisScoreInteractor.observeCurrentAccountScore()
-            .onEach { score ->
-                toolbarState.update { prevState ->
-                    val newWalletIconState = (prevState.homeIconState as? ToolbarHomeIconState.Wallet)?.copy(score = score?.score)
-                    newWalletIconState?.let {
-                        prevState.copy(homeIconState = newWalletIconState)
-                    } ?: prevState
-                }
-            }
-            .launchIn(viewModelScope)
     }
 
     @Suppress("MagicNumber")
@@ -246,13 +230,6 @@ class DiscoverDappViewModel @Inject constructor(
 
     fun openSelectChain() {
         router.openSelectChain(selectedChainId.value, isFilteringEnabled = true)
-    }
-
-    fun onScoreClick() {
-        viewModelScope.launch {
-            val currentAccount = currentMetaAccountFlow.first()
-            router.openScoreDetailsScreen(currentAccount.id)
-        }
     }
 
     override fun bottomSheetDappSelected(dapp: DappModel) {

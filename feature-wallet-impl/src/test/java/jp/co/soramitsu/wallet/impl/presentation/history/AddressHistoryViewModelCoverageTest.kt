@@ -5,11 +5,8 @@ import android.graphics.drawable.PictureDrawable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
-import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.androidfoundation.testing.MainCoroutineRule
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.presentation.LoadingState
@@ -31,7 +28,7 @@ import org.junit.Test
 
 /**
  * The address-history sheet lists the network's contacts (grouped by initial) and its recent
- * recipients. Rows get their address icons asynchronously, and on EVM networks a Nomis score.
+ * recipients. Rows get their address icons asynchronously.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class AddressHistoryViewModelCoverageTest {
@@ -42,7 +39,6 @@ class AddressHistoryViewModelCoverageTest {
     private val placeholder = mockk<Drawable>()
     private val icon = mockk<PictureDrawable>()
     private val addressBook = MutableStateFlow<List<AddressBookContact>>(emptyList())
-    private val nomis = mockk<NomisScoreInteractor>(relaxed = true)
     private val iconGenerator = mockk<AddressIconGenerator> {
         coEvery { createAddressIcon(any(), any(), any()) } returns icon
         coEvery { createEthereumAddressIcon(any(), any(), any()) } returns icon
@@ -68,31 +64,25 @@ class AddressHistoryViewModelCoverageTest {
         val data = loaded(viewModel) { it.recentAddresses.size == 2 && it.allRows().all { row -> row.image === icon } }
 
         assertEquals(setOf("A", null), data.addressBookAddresses.keys)
-        assertEquals(listOf(Address("alice", ALICE, icon, CHAIN_ID, true, null)), data.addressBookAddresses["A"])
-        assertEquals(listOf(Address("", CHARLIE, icon, CHAIN_ID, true, null)), data.addressBookAddresses[null])
+        assertEquals(listOf(Address("alice", ALICE, icon, CHAIN_ID, true)), data.addressBookAddresses["A"])
+        assertEquals(listOf(Address("", CHARLIE, icon, CHAIN_ID, true)), data.addressBookAddresses[null])
         assertEquals(
             setOf(
-                Address("alice", ALICE, icon, CHAIN_ID, true, null),
-                Address("", BOB, icon, CHAIN_ID, false, null)
+                Address("alice", ALICE, icon, CHAIN_ID, true),
+                Address("", BOB, icon, CHAIN_ID, false)
             ),
             data.recentAddresses
         )
-        coVerify(exactly = 0) { nomis.getNomisScore(any()) }
     }
 
     @Test
-    fun ethereumRowsReplaceTheLoadingScoreWithTheFetchedOne() {
-        stubScores()
+    fun ethereumRowsAreListedWithTheirIconsAndContactState() {
         addressBook.value = listOf(AddressBookContact(ETH_A, "alice", CHAIN_ID))
         val viewModel = viewModel(ethereum = true, recentAddresses = setOf(ETH_A, ETH_B))
 
-        val data = loaded(viewModel, ::scoresAndIconsSettled)
+        val data = loaded(viewModel, ::iconsSettled)
 
-        assertEquals(70, data.addressBookAddresses.getValue("A").single().score)
-        assertEquals(
-            mapOf(ETH_A to 70, ETH_B to NomisScoreData.ERROR_CODE),
-            data.recentAddresses.associate { it.address to it.score }
-        )
+        assertEquals(Address("alice", ETH_A, icon, CHAIN_ID, true), data.addressBookAddresses.getValue("A").single())
         assertEquals(
             mapOf(ETH_A to true, ETH_B to false),
             data.recentAddresses.associate { it.address to it.isSavedToContacts }
@@ -100,11 +90,10 @@ class AddressHistoryViewModelCoverageTest {
     }
 
     @Test
-    fun anUpdatedAddressBookKeepsKnownScoresAndRenamesRecentRows() {
-        stubScores()
+    fun anUpdatedAddressBookRenamesContactsAndRecentRows() {
         addressBook.value = listOf(AddressBookContact(ETH_A, "alice", CHAIN_ID))
         val viewModel = viewModel(ethereum = true, recentAddresses = setOf(ETH_A, ETH_B))
-        loaded(viewModel, ::scoresAndIconsSettled)
+        loaded(viewModel, ::iconsSettled)
 
         addressBook.value = listOf(
             AddressBookContact(ETH_A, "Alicia", CHAIN_ID),
@@ -114,31 +103,16 @@ class AddressHistoryViewModelCoverageTest {
         val data = loaded(viewModel) {
             it.addressBookAddresses.keys == setOf("A", "B") && it.recentAddresses.all { row -> row.isSavedToContacts }
         }
-        // The renamed contact keeps its fetched score; the new one takes the score its recent row already had.
-        assertEquals(Address("Alicia", ETH_A, icon, CHAIN_ID, true, 70), data.addressBookAddresses.getValue("A").single())
-        assertEquals(
-            Address("bob", ETH_B, icon, CHAIN_ID, true, NomisScoreData.ERROR_CODE),
-            data.addressBookAddresses.getValue("B").single()
-        )
+        assertEquals(Address("Alicia", ETH_A, icon, CHAIN_ID, true), data.addressBookAddresses.getValue("A").single())
+        assertEquals(Address("bob", ETH_B, icon, CHAIN_ID, true), data.addressBookAddresses.getValue("B").single())
         assertEquals(
             mapOf(ETH_A to "Alicia", ETH_B to "bob"),
             data.recentAddresses.associate { it.address to it.name }
         )
     }
 
-    private fun stubScores() {
-        val seventy = score(70)
-        every { nomis.getNomisScoreFromMemoryCache(any()) } returns null
-        coEvery { nomis.getNomisScore(ETH_A) } returns seventy
-        coEvery { nomis.getNomisScore(ETH_B) } returns null
-    }
-
-    private fun scoresAndIconsSettled(data: AddressHistoryViewState): Boolean =
-        data.recentAddresses.size == 2 &&
-            data.allRows().none { it.score == NomisScoreData.LOADING_CODE } &&
-            data.allRows().all { it.image === icon }
-
-    private fun score(value: Int) = mockk<NomisScoreData> { every { score } returns value }
+    private fun iconsSettled(data: AddressHistoryViewState): Boolean =
+        data.recentAddresses.size == 2 && data.allRows().all { it.image === icon }
 
     private fun AddressHistoryViewState.allRows(): List<Address> =
         addressBookAddresses.values.flatten() + recentAddresses
@@ -169,7 +143,6 @@ class AddressHistoryViewModelCoverageTest {
             SendSharedState(),
             walletInteractor,
             chainsRepository,
-            nomis,
             resourceManager,
             iconGenerator,
             mockk(relaxed = true)

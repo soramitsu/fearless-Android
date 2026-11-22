@@ -9,10 +9,10 @@ import io.mockk.every
 import io.mockk.mockkObject
 import io.mockk.unmockkObject
 import java.math.BigDecimal
-import jp.co.soramitsu.common.compose.component.AddressInputWithScore
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
+import jp.co.soramitsu.common.compose.component.RecipientAddressInput
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
@@ -111,7 +111,7 @@ class SendSetupContentRobolectricTest(private val sunlit: Boolean) {
 
     @Test
     fun lockedInputHidesTheChipsAndCrossChain() {
-        render(state(locked = true, sendAll = false, address = AddressInputWithScore.Filled("To", "5Grwva", "", 80)))
+        render(state(locked = true, sendAll = false, address = RecipientAddressInput.Filled("To", "5Grwva", "")))
 
         assertEquals(0, compose.onAllNodes(hasText(string(R.string.chip_qr))).fetchSemanticsNodes().size)
         assertEquals(0, compose.onAllNodes(hasText(string(R.string.ux_network_transfer))).fetchSemanticsNodes().size)
@@ -155,7 +155,7 @@ class SendSetupContentRobolectricTest(private val sunlit: Boolean) {
         sendAll: Boolean = true,
         focused: Boolean = false,
         fee: FeeInfoViewState = FeeInfoViewState("Network fee", "0.01 DOT", "$0.06"),
-        address: AddressInputWithScore = AddressInputWithScore.Empty("Send to", "Paste a Polkadot address")
+        address: RecipientAddressInput = RecipientAddressInput.Empty("Send to", "Paste a Polkadot address")
     ) = SendSetupViewState(
         toolbarState = ToolbarViewState("Send", R.drawable.ic_arrow_left_24),
         addressInputState = address,

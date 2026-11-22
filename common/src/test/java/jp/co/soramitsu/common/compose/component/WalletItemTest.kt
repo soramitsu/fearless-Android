@@ -47,8 +47,7 @@ class WalletItemTest {
         changeBalanceViewState = ChangeBalanceViewState(percentChange = "+2.5%", fiatChange = "$30.10"),
         title = "Main wallet",
         walletIcon = R.drawable.ic_wallet,
-        isSelected = true,
-        score = 80
+        isSelected = true
     )
 
     @Before
@@ -57,7 +56,7 @@ class WalletItemTest {
     }
 
     @Test
-    fun selectedWalletShowsBalanceChangeScoreAndRoutesEveryGesture() {
+    fun selectedWalletShowsBalanceChangeAndRoutesEveryGesture() {
         val events = mutableListOf<String>()
         compose.setContent {
             FearlessAppTheme {
@@ -65,8 +64,7 @@ class WalletItemTest {
                     state = wallet,
                     onOptionsClick = { events += "options:${it.id}" },
                     onSelected = { events += "selected:${it.id}" },
-                    onLongClick = { events += "long:${it.id}" },
-                    onScoreClick = { events += "score:${it.id}" }
+                    onLongClick = { events += "long:${it.id}" }
                 )
             }
         }
@@ -78,12 +76,11 @@ class WalletItemTest {
         compose.onNodeWithText("Main wallet").assertIsSelected()
 
         compose.onNodeWithText("Main wallet").performClick()
-        compose.onNodeWithText("80").performClick()
         compose.onNodeWithContentDescription(context.getString(R.string.ux_more)).performClick()
         compose.onNodeWithText("Main wallet").performTouchInput { longClick() }
         compose.waitForIdle()
 
-        assertEquals(listOf("selected:7", "score:7", "options:7", "long:7"), events)
+        assertEquals(listOf("selected:7", "options:7", "long:7"), events)
     }
 
     @Test
@@ -96,8 +93,7 @@ class WalletItemTest {
                             isSelected = false,
                             balance = null,
                             changeBalanceViewState = null,
-                            balanceCaption = "incl. hidden",
-                            score = -2
+                            balanceCaption = "incl. hidden"
                         )
                     )
                 }
@@ -107,7 +103,6 @@ class WalletItemTest {
         compose.onNodeWithText("Main wallet").assert(isSelected().not())
         compose.onNodeWithText("—", useUnmergedTree = true).assertIsDisplayed()
         compose.onNodeWithTag("WalletItem_balance_caption", useUnmergedTree = true).assertTextEquals("incl. hidden")
-        compose.onNodeWithText("N/A", useUnmergedTree = true).assertIsDisplayed()
         compose.onAllNodesWithContentDescription(context.getString(R.string.ux_more)).assertCountEquals(0)
         compose.onAllNodesWithTag("balance_change_percent", useUnmergedTree = true).assertCountEquals(0)
     }
@@ -117,7 +112,7 @@ class WalletItemTest {
         compose.mainClock.autoAdvance = false
         compose.setContent {
             FearlessAppTheme {
-                WalletItem(state = wallet.copy(balance = null, changeBalanceViewState = null, score = null))
+                WalletItem(state = wallet.copy(balance = null, changeBalanceViewState = null))
             }
         }
         compose.mainClock.advanceTimeBy(300)

@@ -220,8 +220,6 @@ class WalletUxScreensInstrumentedTest {
     @Test
     fun walletHeaderAndNetworkSectionFitAtDoubleTextSize() {
         val networkName = "SORA test"
-        val scoreLabel = compose.activity.getString(jp.co.soramitsu.common.R.string.account_stats_wallet_option_title)
-        var scoreClicks = 0
         compose.setContent {
             CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, 2f)) {
                 FearlessAppTheme {
@@ -230,10 +228,10 @@ class WalletUxScreensInstrumentedTest {
                             jp.co.soramitsu.common.compose.component.MainToolbarViewStateWithFilters(
                                 "QA wallet",
                                 jp.co.soramitsu.common.compose.component.ToolbarHomeIconState.Wallet(
-                                    android.graphics.drawable.ColorDrawable(android.graphics.Color.GRAY), -2),
+                                    android.graphics.drawable.ColorDrawable(android.graphics.Color.GRAY)),
                                 jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters(
                                     selectedChainName = networkName, allowChainSelection = true)),
-                            onChangeChainClick = {}, onScoreClick = { scoreClicks++ },
+                            onChangeChainClick = {},
                             menuItems = listOf(
                                 jp.co.soramitsu.common.compose.component.MenuIconItem(jp.co.soramitsu.common.R.drawable.ic_scan, {}),
                                 jp.co.soramitsu.common.compose.component.MenuIconItem(jp.co.soramitsu.common.R.drawable.ic_search, {})))
@@ -264,11 +262,6 @@ class WalletUxScreensInstrumentedTest {
                 assertTrue("$text must not collapse into character-wide lines", it.lineCount <= 2)
             }
         }
-        val score = compose.onNodeWithContentDescription(scoreLabel).assertIsDisplayed()
-        val bounds = score.getUnclippedBoundsInRoot()
-        assertTrue("Score is a full touch target", bounds.right - bounds.left >= 48.dp && bounds.bottom - bounds.top >= 48.dp)
-        score.performClick()
-        compose.runOnIdle { org.junit.Assert.assertEquals(1, scoreClicks) }
         save("wallet-header-network-320dp-font200")
     }
 
@@ -323,7 +316,7 @@ class WalletUxScreensInstrumentedTest {
                     Box(Modifier.requiredWidth(320.dp).fillMaxHeight().background(Color.Black).testTag("fixture")) {
                         jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletContent(
                             jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletScreenViewState(
-                                isSelected = false, showScoreButton = true, showDetailsButton = true),
+                                isSelected = false, showDetailsButton = true),
                             callbacks(jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletCallback::class.java))
                     }
                 }
@@ -338,8 +331,7 @@ class WalletUxScreensInstrumentedTest {
         assertTrue(close.right - close.left >= 48.dp && close.bottom - close.top >= 48.dp)
         save("wallet-options-320dp-font200-top")
         for (id in listOf(jp.co.soramitsu.common.R.string.export_wallet, jp.co.soramitsu.common.R.string.common_details_wallet,
-            jp.co.soramitsu.common.R.string.change_wallet_name, jp.co.soramitsu.common.R.string.account_stats_wallet_option_title,
-            jp.co.soramitsu.common.R.string.common_delete_wallet)) {
+            jp.co.soramitsu.common.R.string.change_wallet_name, jp.co.soramitsu.common.R.string.common_delete_wallet)) {
             val label = compose.activity.getString(id)
             assertFullyVisible(label)
             val layouts = mutableListOf<TextLayoutResult>()

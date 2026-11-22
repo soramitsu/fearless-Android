@@ -22,25 +22,24 @@ import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.common.compose.theme.white50
 import jp.co.soramitsu.common.utils.withNoFontPadding
 
-sealed interface AddressInputWithScore {
+sealed interface RecipientAddressInput {
     val title: String
 
     data class Filled(
         override val title: String,
         val address: String,
-        val image: Any,
-        val score: Int?
-    ) : AddressInputWithScore
+        val image: Any
+    ) : RecipientAddressInput
 
     data class Empty(
         override val title: String,
         val hint: String
-    ) : AddressInputWithScore
+    ) : RecipientAddressInput
 }
 
 @Composable
-fun AddressInputWithScore(
-    state: AddressInputWithScore,
+fun RecipientAddressInput(
+    state: RecipientAddressInput,
     onPaste: () -> Unit,
     onClear: () -> Unit
 ) {
@@ -53,7 +52,7 @@ fun AddressInputWithScore(
     ) {
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             AsyncImage(
-                model = (state as? AddressInputWithScore.Filled)?.image
+                model = (state as? RecipientAddressInput.Filled)?.image
                     ?: R.drawable.ic_address_placeholder,
                 contentDescription = null,
                 modifier = Modifier.size(32.dp)
@@ -65,29 +64,23 @@ fun AddressInputWithScore(
                     color = black2
                 )
                 when (state) {
-                    is AddressInputWithScore.Empty -> {
+                    is RecipientAddressInput.Empty -> {
                         B1(text = state.hint, color = black1)
                     }
 
-                    is AddressInputWithScore.Filled -> {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            B1(
-                                text = state.address,
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = 1,
-                                modifier = Modifier.weight(1f, fill = false),
-                                color = white50
-                            )
-                            MarginHorizontal(margin = 8.dp)
-                            state.score?.let { ScoreStar(score = it) }
-                        }
-
+                    is RecipientAddressInput.Filled -> {
+                        B1(
+                            text = state.address,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1,
+                            color = white50
+                        )
                     }
                 }
             }
             MarginHorizontal(margin = 8.dp)
             when (state) {
-                is AddressInputWithScore.Empty -> {
+                is RecipientAddressInput.Empty -> {
                     Badge(
                         iconResId = R.drawable.ic_copy_16,
                         labelResId = R.string.chip_paste,
@@ -95,7 +88,7 @@ fun AddressInputWithScore(
                     )
                 }
 
-                is AddressInputWithScore.Filled -> {
+                is RecipientAddressInput.Filled -> {
                     Image(
                         res = R.drawable.ic_close_16_circle,
                         modifier = Modifier
@@ -111,17 +104,16 @@ fun AddressInputWithScore(
 @Preview
 @Composable
 private fun AccountInputPreview() {
-    val filled = AddressInputWithScore.Filled(
+    val filled = RecipientAddressInput.Filled(
         "Send to",
         "BlueBird",
-        "0x23d2ef23...23d23f23",
-        100
+        "0x23d2ef23...23d23f23"
     )
-    val empty = AddressInputWithScore.Empty("Send to", "Public address")
+    val empty = RecipientAddressInput.Empty("Send to", "Public address")
     Column {
-        AddressInputWithScore(filled, onClear = {}, onPaste = {})
+        RecipientAddressInput(filled, onClear = {}, onPaste = {})
         MarginVertical(margin = 6.dp)
-        AddressInputWithScore(empty, onClear = {}, onPaste = {})
+        RecipientAddressInput(empty, onClear = {}, onPaste = {})
         MarginVertical(margin = 6.dp)
     }
 }

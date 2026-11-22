@@ -1,14 +1,7 @@
 package jp.co.soramitsu.common.data.storage
 
 import android.content.SharedPreferences
-import jp.co.soramitsu.common.data.network.nomis.NOMIS_SCORING_ENABLED_KEY
-import jp.co.soramitsu.common.data.network.nomis.NomisApi
-import jp.co.soramitsu.common.data.network.nomis.NomisResponse
-import jp.co.soramitsu.common.data.network.nomis.PreferenceAwareNomisApi
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -34,7 +27,7 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.concurrent.thread
 
 class PreferencesBooleanObservationTest {
-    private val key = NOMIS_SCORING_ENABLED_KEY
+    private val key = "observed_boolean_preference"
 
     private inner class Store(initial: Boolean? = null) {
         val values = ConcurrentHashMap<String, Boolean>()
@@ -176,40 +169,5 @@ class PreferencesBooleanObservationTest {
             observer.cancelAndJoin()
         }
         assertTrue(store.listeners.isEmpty())
-    }
-
-    @Test
-    fun realPreferenceOptOutCancelsProviderRequestAndRemovesListener() = runBlocking {
-        val store = Store(true)
-        val entered = CompletableDeferred<Unit>()
-        val cancelled = CompletableDeferred<Unit>()
-        val api = PreferenceAwareNomisApi(
-            object : NomisApi {
-                override suspend fun getNomisScore(address: String): NomisResponse {
-                    entered.complete(Unit)
-                    try {
-                        awaitCancellation()
-                    } finally {
-                        cancelled.complete(Unit)
-                    }
-                }
-            },
-            store.preferences
-        )
-        val request = async { api.getNomisScore("synthetic-wallet-address") }
-        try {
-            withTimeout(1000) {
-                entered.await()
-                while (store.listeners.isEmpty()) delay(5)
-                store.write(false)
-                cancelled.await()
-                request.join()
-            }
-            assertTrue(request.isCancelled)
-            assertTrue(store.listeners.isEmpty())
-            assertTrue(store.writes.isEmpty())
-        } finally {
-            request.cancelAndJoin()
-        }
     }
 }

@@ -46,8 +46,8 @@ class AddressHistoryContentRobolectricTest {
 
     @Test
     fun recentAndSavedAddressesAreListedByGroup() {
-        val recent = Address("", "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", "", "polkadot", isSavedToContacts = false, score = 80)
-        val saved = Address("Alice", "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty", "", "polkadot", isSavedToContacts = true, score = null)
+        val recent = Address("", "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", "", "polkadot", isSavedToContacts = false)
+        val saved = Address("Alice", "5FHneW46xGXgs5mUiveU4sbTyGBzmstUspZC92UhjJM694ty", "", "polkadot", isSavedToContacts = true)
         render(LoadingState.Loaded(AddressHistoryViewState(setOf(recent), mapOf("A" to listOf(saved)))))
 
         compose.onNodeWithText(string(R.string.common_history)).assertIsDisplayed()

@@ -6,10 +6,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
-import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystemWithIconAddress
 import jp.co.soramitsu.account.api.domain.model.supportedEcosystems
 import jp.co.soramitsu.account.api.presentation.account.withPortfolioBalance
@@ -44,7 +42,6 @@ private const val AVATAR_SIZE_DP = 32
 class ProfileViewModel @Inject constructor(
     private val interactor: AccountInteractor,
     accountDetailsInteractor: AccountDetailsInteractor,
-    private val nomisScoreInteractor: NomisScoreInteractor,
     private val router: AccountRouter,
     private val addressIconGenerator: AddressIconGenerator,
     private val externalAccountActions: ExternalAccountActions.Presentation,
@@ -55,7 +52,6 @@ class ProfileViewModel @Inject constructor(
 ) : BaseViewModel(), ProfileScreenInterface, ExternalAccountActions by externalAccountActions {
 
     private var profileSource: TotalBalance = TotalBalance.AwaitingSelection
-    private var latestScore: NomisScoreData? = null
 
     private val _showFiatChooser = MutableLiveData<FiatChooserEvent>()
     val showFiatChooser: LiveData<FiatChooserEvent> = _showFiatChooser
@@ -68,8 +64,7 @@ class ProfileViewModel @Inject constructor(
         title = "",
         walletIcon = resourceManager.getDrawable(R.drawable.ic_wallet),
         isSelected = false,
-        additionalMetadata = "",
-        score = null
+        additionalMetadata = ""
     )
 
     val state: MutableStateFlow<ProfileScreenState> = MutableStateFlow(
@@ -77,8 +72,7 @@ class ProfileViewModel @Inject constructor(
             walletState = defaultWalletItemViewState,
             walletsItemAction = SettingsItemAction.Transition,
             currency = selectedFiat.get(),
-            language = "",
-            nomisChecked = true,
+            language = ""
         )
     )
 
@@ -98,32 +92,13 @@ class ProfileViewModel @Inject constructor(
                 id = ready?.meta?.id ?: (presentation.source as? TotalBalance.Loading)?.metaId ?: 0,
                 title = ready?.meta?.name.orEmpty(),
                 walletIcon = presentation.icon ?: defaultWalletItemViewState.walletIcon,
-                supportedEcosystems = ready?.meta?.supportedEcosystems().orEmpty(),
-                score = latestScore?.takeIf { it.metaId == ready?.meta?.id }?.score
+                supportedEcosystems = ready?.meta?.supportedEcosystems().orEmpty()
             ).withPortfolioBalance(presentation.source, resourceManager)
             state.update { it.copy(walletState = wallet) }
         }.launchIn(viewModelScope)
 
         selectedFiat.flow().onEach { fiat ->
             state.update { it.copy(currency = fiat.uppercase()) }
-        }.launchIn(viewModelScope)
-
-        nomisScoreInteractor.observeNomisMultichainScoreEnabled()
-            .onEach {
-                state.update { prev ->
-                    prev.copy(nomisChecked = it)
-                }
-            }
-            .launchIn(viewModelScope)
-
-        nomisScoreInteractor.observeCurrentAccountScore().onEach { score ->
-            latestScore = score
-            val ready = profileSource as? TotalBalance.Ready
-            state.update { previous ->
-                previous.copy(walletState = previous.walletState.copy(
-                    score = score?.takeIf { it.metaId == ready?.meta?.id }?.score
-                ))
-            }
         }.launchIn(viewModelScope)
 
         accountDetailsInteractor.hasChainsWithNoAccount()
@@ -222,16 +197,6 @@ class ProfileViewModel @Inject constructor(
 
     override fun onManageAssetsClick() {
         router.openManageAssets()
-    }
-
-    override fun onNomisMultichainScoreContainerClick() {
-        nomisScoreInteractor.nomisMultichainScoreEnabled =
-            !nomisScoreInteractor.nomisMultichainScoreEnabled
-    }
-
-    override fun onScoreClick(item: WalletItemViewState) {
-        val ready = profileSource as? TotalBalance.Ready ?: return
-        if (item.id == ready.meta.id) router.openScoreDetailsScreen(item.id)
     }
 
 }

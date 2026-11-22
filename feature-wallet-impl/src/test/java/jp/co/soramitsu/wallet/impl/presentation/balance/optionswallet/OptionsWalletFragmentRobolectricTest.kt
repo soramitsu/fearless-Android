@@ -58,7 +58,7 @@ class OptionsWalletFragmentRobolectricTest {
     fun setUp() {
         ComposeFixtures.prepareUiTest()
         every { viewModel.state } returns MutableStateFlow(
-            OptionsWalletScreenViewState(isSelected = false, showScoreButton = true, showDetailsButton = true, showOldAddressesButton = true)
+            OptionsWalletScreenViewState(isSelected = false, showDetailsButton = true, showOldAddressesButton = true)
         )
         every { viewModel.deleteWalletConfirmation } returns deleteConfirmation
         every { viewModel.showUniversalPasswordNotice } returns passwordNotice

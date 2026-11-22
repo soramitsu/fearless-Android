@@ -55,7 +55,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AccentDarkDisabledButton
-import jp.co.soramitsu.common.compose.component.AddressInputWithScore
 import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.B1
@@ -70,6 +69,7 @@ import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.compose.component.QuickInput
+import jp.co.soramitsu.common.compose.component.RecipientAddressInput
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.SelectorWithBorder
 import jp.co.soramitsu.common.compose.component.TextInput
@@ -93,7 +93,7 @@ import jp.co.soramitsu.feature_wallet_impl.R
 
 data class SendSetupViewState(
     val toolbarState: ToolbarViewState,
-    val addressInputState: AddressInputWithScore,
+    val addressInputState: RecipientAddressInput,
     val amountInputState: AmountInputViewState,
     val chainSelectorState: SelectorState,
     val feeInfoState: FeeInfoViewState,
@@ -183,7 +183,7 @@ fun SendSetupContent(
                 )
                 MarginVertical(margin = 16.dp)
                 state.recipientHint?.let { B1(text = it, modifier = Modifier.padding(bottom = 8.dp)) }
-                AddressInputWithScore(
+                RecipientAddressInput(
                     state = state.addressInputState,
                     onClear = callback::onAddressInputClear,
                     onPaste = callback::onPasteClick
@@ -368,7 +368,7 @@ private fun Badge(
 private fun SendSetupPreview() {
     val state = SendSetupViewState(
         toolbarState = ToolbarViewState("Send Fund", R.drawable.ic_arrow_left_24),
-        addressInputState = AddressInputWithScore.Filled("Send to...", "0x23j2rf3bh8384j938", "", 100),
+        addressInputState = RecipientAddressInput.Filled("Send to...", "0x23j2rf3bh8384j938", ""),
         amountInputState = AmountInputViewState(
             "KSM",
             "",

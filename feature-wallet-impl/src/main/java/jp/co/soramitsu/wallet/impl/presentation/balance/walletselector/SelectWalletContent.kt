@@ -36,8 +36,7 @@ fun SelectWalletContent(
     onWalletSelected: (WalletItemViewState) -> Unit,
     onWalletOptionsClick: (WalletItemViewState) -> Unit,
     addNewWallet: () -> Unit,
-    onBackClicked: () -> Unit,
-    onScoreClick: (WalletItemViewState) -> Unit
+    onBackClicked: () -> Unit
 ) {
     // The list keeps the page gutter as content padding, so its cards' light is not cut at its edges.
     val sunlit = FwRestyle.isEnabled(FwSurface.Pickers)
@@ -68,8 +67,7 @@ fun SelectWalletContent(
                         WalletItem(
                             state = walletItemState,
                             onOptionsClick = onWalletOptionsClick,
-                            onSelected = onWalletSelected,
-                            onScoreClick = onScoreClick
+                            onSelected = onWalletSelected
                         )
                     }
                     item {
@@ -126,8 +124,7 @@ private fun SelectWalletScreenPreview() {
             onWalletSelected = {},
             addNewWallet = {},
             onBackClicked = {},
-            onWalletOptionsClick = {},
-            onScoreClick = {}
+            onWalletOptionsClick = {}
         )
     }
 }
