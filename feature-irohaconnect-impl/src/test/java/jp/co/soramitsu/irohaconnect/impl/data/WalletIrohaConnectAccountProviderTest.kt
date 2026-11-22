@@ -6,10 +6,14 @@ import io.mockk.mockk
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
+import jp.co.soramitsu.common.data.secrets.v3.EthereumSecrets
 import jp.co.soramitsu.common.data.storage.envelope.WalletSecretLockedException
 import jp.co.soramitsu.common.data.storage.pin.WalletViewOnlyAccess
 import jp.co.soramitsu.common.model.UniversalWalletRegistry
+import jp.co.soramitsu.common.utils.IrohaAddressCodec
+import jp.co.soramitsu.common.utils.IrohaKeyDerivation
 import jp.co.soramitsu.core.models.CryptoType
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.irohaconnect.impl.WebVectors
 import jp.co.soramitsu.irohaconnect.impl.domain.IrohaConnectAccount
@@ -29,6 +33,10 @@ class WalletIrohaConnectAccountProviderTest {
     private val publicKey = IrohaConnectEncoding.unhex(WebVectors.accountPublicKeyHex)
     private val taira = UniversalWalletRegistry.taira
     private val account = IrohaConnectAccount(1, WebVectors.accountAddress, "Wallet 1", WebVectors.accountPublicKeyHex)
+    private val rootAccount: IrohaConnectAccount by lazy {
+        val derived = IrohaKeyDerivation.deriveAccount(MnemonicCreator.fromEntropy(ROOT_3_ENTROPY.clone()).words)
+        IrohaConnectAccount(3, IrohaAddressCodec.encode(derived.publicKeyHex, taira.chainDiscriminant), "Wallet 3", derived.publicKeyHex)
+    }
 
     private fun meta(id: Long, key: ByteArray? = publicKey) = MetaAccount(
         id = id,
@@ -51,8 +59,9 @@ class WalletIrohaConnectAccountProviderTest {
 
     private fun repository(entropy: ByteArray? = ByteArray(16), secretsFailure: Exception? = null) =
         mockk<AccountRepository> {
-        coEvery { allMetaAccounts() } returns listOf(meta(1), meta(2, null))
+        coEvery { allMetaAccounts() } returns listOf(meta(1), meta(2, null), meta(3, null))
         coEvery { getMetaAccount(1) } returns meta(1)
+        coEvery { getMetaAccount(3) } returns meta(3, null)
         coEvery { getChainAccountSecrets(1, taira.id) } answers {
             secretsFailure?.let { throw it }
             entropy?.let { value ->
@@ -61,6 +70,11 @@ class WalletIrohaConnectAccountProviderTest {
         }
         coEvery { getSubstrateSecrets(any()) } returns null
         coEvery { getEthereumSecrets(any()) } returns null
+        // Wallet 3 has no Taira row: its account comes from its universal root (Ethereum entropy, no password).
+        coEvery { getEthereumSecrets(3) } returns mockk<EncodableStruct<EthereumSecrets>> {
+            every { get(EthereumSecrets.Entropy) } answers { ROOT_3_ENTROPY.clone() }
+            every { get(EthereumSecrets.EthereumDerivationPath) } returns "m/44'/60'/0'/0/0"
+        }
         coEvery { getTonSecrets(any()) } returns null
     }
 
@@ -70,10 +84,16 @@ class WalletIrohaConnectAccountProviderTest {
     }
 
     @Test
-    fun shouldListOnlyWalletsWithATairaAccount() = runTest {
+    fun shouldListStoredOrRootDerivedTairaAccounts() = runTest {
         val provider = WalletIrohaConnectAccountProvider(repository())
-        assertEquals(listOf(account), provider.accounts(taira.chainDiscriminant))
+        assertEquals(listOf(account, rootAccount), provider.accounts(taira.chainDiscriminant))
         assertEquals(emptyList<IrohaConnectAccount>(), provider.accounts(UniversalWalletRegistry.nexus.chainDiscriminant))
+    }
+
+    @Test
+    fun shouldSignForARootDerivedAccount_whenTheWalletHasNoTairaRow() = runTest {
+        val signed = WalletIrohaConnectAccountProvider(repository()).sign(rootAccount, taira.chainDiscriminant, byteArrayOf(7))
+        assertTrue(IrohaConnectCrypto.ed25519Verify(IrohaConnectEncoding.unhex(rootAccount.publicKeyHex), byteArrayOf(7), signed.signature))
     }
 
     @Test
@@ -112,5 +132,9 @@ class WalletIrohaConnectAccountProviderTest {
         } catch (failure: IrohaConnectActionException) {
             assertEquals(error, failure.error)
         }
+    }
+
+    private companion object {
+        val ROOT_3_ENTROPY = ByteArray(16) { 2 }
     }
 }

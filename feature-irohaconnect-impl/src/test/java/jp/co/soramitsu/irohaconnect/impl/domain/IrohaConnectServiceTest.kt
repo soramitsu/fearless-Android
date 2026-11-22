@@ -6,12 +6,14 @@ import jp.co.soramitsu.irohaconnect.impl.WebVectors.array
 import jp.co.soramitsu.irohaconnect.impl.WebVectors.bytes
 import jp.co.soramitsu.irohaconnect.impl.WebVectors.objects
 import jp.co.soramitsu.irohaconnect.impl.WebVectors.str
+import jp.co.soramitsu.irohaconnect.impl.protocol.IrohaConnectControl
 import jp.co.soramitsu.irohaconnect.impl.protocol.IrohaConnectCrypto
 import jp.co.soramitsu.irohaconnect.impl.protocol.IrohaConnectEncoding
 import jp.co.soramitsu.irohaconnect.impl.protocol.IrohaConnectFrame
 import jp.co.soramitsu.irohaconnect.impl.protocol.IrohaConnectWire
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
@@ -42,7 +44,10 @@ class IrohaConnectServiceTest {
         }
     }
 
-    private class Accounts(private val failure: IrohaConnectActionError? = null) : IrohaConnectAccountProvider {
+    private class Accounts(
+        private val failure: IrohaConnectActionError? = null,
+        private val signingDelayMs: Long = 0
+    ) : IrohaConnectAccountProvider {
         private val derived = IrohaKeyDerivation.deriveAccount(WebVectors.mnemonic)
         val account = IrohaConnectAccount(1, WebVectors.accountAddress, "Sakura", derived.publicKeyHex)
         var signatures = 0
@@ -53,6 +58,7 @@ class IrohaConnectServiceTest {
             message: ByteArray
         ): IrohaConnectSignature {
             failure?.let { throw IrohaConnectActionException(it) }
+            if (signingDelayMs > 0) delay(signingDelayMs)
             signatures += 1
             return IrohaConnectSignature(derived.publicKeyHex, IrohaConnectCrypto.ed25519Sign(derived.privateKey, message))
         }
@@ -228,6 +234,28 @@ class IrohaConnectServiceTest {
         } catch (error: IrohaConnectActionException) {
             assertEquals(IrohaConnectActionError.NOT_AVAILABLE, error.error)
         }
+    }
+
+    @Test
+    fun shouldKeepPingingWhileASlowSignatureIsMade() = runTest {
+        val harness = Harness(this, Accounts(signingDelayMs = 3 * IrohaConnectService.KEEP_ALIVE_INTERVAL_MS))
+        act { harness.service.connect(uri) }
+        harness.listener!!.onBinary(appFrames[0])
+        runCurrent()
+        val approval = backgroundScope.async { runCatching { harness.service.approveSession(WebVectors.accountAddress) } }
+        runCurrent()
+        advanceTimeBy(IrohaConnectService.KEEP_ALIVE_INTERVAL_MS)
+        runCurrent()
+        // The Connect Ping went out while the account key was still being derived.
+        val ping = IrohaConnectWire.decodeFrame(harness.socket.sent.single(), sid) as IrohaConnectFrame.Control
+        assertTrue(ping.control is IrohaConnectControl.Ping)
+        advanceTimeBy(3 * IrohaConnectService.KEEP_ALIVE_INTERVAL_MS)
+        runCurrent()
+        approval.await().getOrThrow()
+        assertEquals(IrohaConnectPhase.CONNECTED, harness.service.snapshot.value.phase)
+        // The approval took the next sequence number after the pings sent meanwhile.
+        val approve = IrohaConnectWire.decodeFrame(harness.socket.sent.last(), sid)
+        assertEquals(harness.socket.sent.size.toLong(), approve.sequence)
     }
 
     @Test

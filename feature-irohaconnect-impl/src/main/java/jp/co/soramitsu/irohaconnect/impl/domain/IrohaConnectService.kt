@@ -36,7 +36,7 @@ import java.net.URI
  * through one serial event loop, so frames are handled strictly in order and sequence numbers never race. A port of
  * the browser wallet's `IrohaConnectService` (fearless-wallet-web PR #1122).
  */
-@Suppress("LargeClass", "TooManyFunctions", "MagicNumber", "UnnecessaryParentheses") // The browser wallet's IrohaConnectService, one session state machine.
+@Suppress("LargeClass", "TooManyFunctions", "MagicNumber", "UnnecessaryParentheses", "ThrowsCount") // The browser wallet's IrohaConnectService, one session state machine.
 class IrohaConnectService(
     private val scope: CoroutineScope,
     private val socketFactory: IrohaConnectSocketFactory,
@@ -61,7 +61,7 @@ class IrohaConnectService(
         class ConnectTimeout(val generation: Int) : Event()
         class KeepAlive(val generation: Int) : Event()
         class RequestExpired(val requestId: String) : Event()
-        class Action(val run: suspend () -> Unit, val result: CompletableDeferred<Unit>) : Event()
+        class Action(val run: suspend () -> Any?, val result: CompletableDeferred<Any?>) : Event()
     }
 
     private class PendingSignature(
@@ -70,6 +70,15 @@ class IrohaConnectService(
         val expiresAt: Long,
         val payloadHash: ByteArray,
         val timer: Job
+    )
+
+    private class ApprovalDraft(
+        val session: Session,
+        val account: IrohaConnectAccount,
+        val permissionsField: ByteArray,
+        val walletPrivateKey: ByteArray,
+        val walletPublicKey: ByteArray,
+        val preimage: ByteArray
     )
 
     private class Session(val link: IrohaConnectLink, var pingNonce: Long) {
@@ -117,15 +126,23 @@ class IrohaConnectService(
         return result.await()
     }
 
-    suspend fun approveSession(accountId: String) = action {
-        val current = requireSession(IrohaConnectPhase.SESSION_APPROVAL)
-        val account = state.value.accounts.firstOrNull { it.address == accountId }
-            ?: throw IrohaConnectActionException(IrohaConnectActionError.ACCOUNT_UNAVAILABLE)
-        val permissionsField = current.permissionsField ?: throw IrohaConnectActionException(IrohaConnectActionError.NOT_AVAILABLE)
-        val (walletPrivateKey, walletPublicKey) = makeWalletKeyPair()
-        var keys: IrohaConnectDirectionKeys? = null
-        try {
-            check(walletPrivateKey.size == 32 && walletPublicKey.size == 32) { "Unable to create the session key" }
+    /**
+     * Signing reads the wallet's secrets and re-derives the key, which can take seconds on a busy device, so it runs
+     * outside the event loop: keepalive pings and incoming frames go on meanwhile, and the session is checked again
+     * before the approval is sent.
+     */
+    suspend fun approveSession(accountId: String) {
+        val draft = action {
+            val current = requireSession(IrohaConnectPhase.SESSION_APPROVAL)
+            val account = state.value.accounts.firstOrNull { it.address == accountId }
+                ?: throw IrohaConnectActionException(IrohaConnectActionError.ACCOUNT_UNAVAILABLE)
+            val permissionsField = current.permissionsField ?: throw IrohaConnectActionException(IrohaConnectActionError.NOT_AVAILABLE)
+            val (walletPrivateKey, walletPublicKey) = makeWalletKeyPair()
+            if (walletPrivateKey.size != 32 || walletPublicKey.size != 32) {
+                walletPrivateKey.fill(0)
+                throw IrohaConnectActionException(IrohaConnectActionError.NOT_AVAILABLE)
+            }
+            // The approval stays with the account's controller key; its preimage is wallet-built, never dApp bytes.
             val preimage = IrohaConnectWire.approvalPreimage(
                 sidBytes = current.link.sidBytes,
                 networkIdBytes = current.link.networkIdBytes,
@@ -135,31 +152,42 @@ class IrohaConnectService(
                 permissionsField = permissionsField,
                 relayToken = current.link.relayToken
             )
-            // The approval stays with the account's controller key; its preimage is wallet-built, never dApp bytes.
-            val signed = accountProvider.sign(account, current.link.profile.networkPrefix, preimage)
-            if (signed.publicKeyHex != account.publicKeyHex) throw IrohaConnectActionException(IrohaConnectActionError.KEY_MISMATCH)
-            if (session !== current || state.value.phase != IrohaConnectPhase.SESSION_APPROVAL) {
-                throw IrohaConnectActionException(IrohaConnectActionError.NOT_AVAILABLE)
-            }
-            keys = IrohaConnectWire.deriveDirectionKeys(walletPrivateKey, current.link.appPublicKey, current.link.sidBytes)
+            ApprovalDraft(current, account, permissionsField, walletPrivateKey, walletPublicKey, preimage)
+        }
+        try {
+            val signed = accountProvider.sign(draft.account, draft.session.link.profile.networkPrefix, draft.preimage)
+            if (signed.publicKeyHex != draft.account.publicKeyHex) throw IrohaConnectActionException(IrohaConnectActionError.KEY_MISMATCH)
+            action { sendApproval(draft, signed.signature) }
+        } finally {
+            draft.walletPrivateKey.fill(0)
+        }
+    }
+
+    private fun sendApproval(draft: ApprovalDraft, signature: ByteArray) {
+        val current = draft.session
+        if (session !== current || state.value.phase != IrohaConnectPhase.SESSION_APPROVAL) {
+            throw IrohaConnectActionException(IrohaConnectActionError.NOT_AVAILABLE)
+        }
+        var keys: IrohaConnectDirectionKeys? = IrohaConnectWire.deriveDirectionKeys(draft.walletPrivateKey, current.link.appPublicKey, current.link.sidBytes)
+        try {
             send(
                 IrohaConnectWire.encodeApproveFrame(
                     sidBytes = current.link.sidBytes,
                     sequence = current.walletSequence,
-                    walletPublicKey = walletPublicKey,
-                    accountId = account.address,
-                    permissionsField = permissionsField,
-                    signature = signed.signature
+                    walletPublicKey = draft.walletPublicKey,
+                    accountId = draft.account.address,
+                    permissionsField = draft.permissionsField,
+                    signature = signature
                 )
             )
             current.walletSequence += 1
             current.keys = keys
             keys = null
-            selectedAccount = account
+            selectedAccount = draft.account
             publish(
                 state.value.copy(
                     phase = IrohaConnectPhase.CONNECTED,
-                    selectedAccountId = account.address,
+                    selectedAccountId = draft.account.address,
                     failure = null,
                     notice = null,
                     session = state.value.session?.copy(connectedAt = now())
@@ -167,7 +195,6 @@ class IrohaConnectService(
             )
             scheduleKeepAlive()
         } finally {
-            walletPrivateKey.fill(0)
             keys?.wipe()
         }
     }
@@ -178,21 +205,30 @@ class IrohaConnectService(
         closeSocket(publishIdle = true)
     }
 
-    suspend fun approveRequest(requestId: String) = action {
-        val current = requireSession(IrohaConnectPhase.REQUEST_APPROVAL)
-        val request = requirePending(requestId)
-        if (request.expiresAt <= now()) {
-            expire(request.requestId)
-            throw IrohaConnectActionException(IrohaConnectActionError.REQUEST_EXPIRED)
+    suspend fun approveRequest(requestId: String) {
+        val (current, request, payloadHash) = action {
+            val current = requireSession(IrohaConnectPhase.REQUEST_APPROVAL)
+            val request = requirePending(requestId)
+            if (request.expiresAt <= now()) {
+                expire(request.requestId)
+                throw IrohaConnectActionException(IrohaConnectActionError.REQUEST_EXPIRED)
+            }
+            Triple(current, request, request.payloadHash.copyOf())
         }
-        // A transaction signature covers the marked hash of the payload the person just reviewed, exactly as the
-        // wallet's own transfers sign.
-        val signed = accountProvider.sign(request.account, current.link.profile.networkPrefix, request.payloadHash)
-        if (signed.publicKeyHex != request.account.publicKeyHex) throw IrohaConnectActionException(IrohaConnectActionError.KEY_MISMATCH)
-        if (pending !== request || session !== current) throw IrohaConnectActionException(IrohaConnectActionError.NOT_AVAILABLE)
-        sendEncrypted(IrohaConnectWalletPayload.SignResultOk(signed.signature))
-        clearPending()
-        publishConnected()
+        try {
+            // A transaction signature covers the marked hash of the payload the person just reviewed, exactly as the
+            // wallet's own transfers sign. Like the approval, it is made outside the event loop.
+            val signed = accountProvider.sign(request.account, current.link.profile.networkPrefix, payloadHash)
+            if (signed.publicKeyHex != request.account.publicKeyHex) throw IrohaConnectActionException(IrohaConnectActionError.KEY_MISMATCH)
+            action {
+                if (pending !== request || session !== current) throw IrohaConnectActionException(IrohaConnectActionError.NOT_AVAILABLE)
+                sendEncrypted(IrohaConnectWalletPayload.SignResultOk(signed.signature))
+                clearPending()
+                publishConnected()
+            }
+        } finally {
+            payloadHash.fill(0)
+        }
     }
 
     suspend fun rejectRequest(requestId: String) = action {
@@ -225,10 +261,11 @@ class IrohaConnectService(
         }
     }
 
-    private suspend fun action(run: suspend () -> Unit) {
-        val result = CompletableDeferred<Unit>()
+    private suspend fun <T> action(run: suspend () -> T): T {
+        val result = CompletableDeferred<Any?>()
         events.send(Event.Action(run, result))
-        result.await()
+        @Suppress("UNCHECKED_CAST")
+        return result.await() as T
     }
 
     @Suppress("CyclomaticComplexMethod") // One branch per event kind.
@@ -245,8 +282,7 @@ class IrohaConnectService(
             is Event.KeepAlive -> if (event.generation == generation) keepAlive()
             is Event.RequestExpired -> expire(event.requestId)
             is Event.Action -> try {
-                event.run()
-                event.result.complete(Unit)
+                event.result.complete(event.run())
             } catch (error: CancellationException) {
                 event.result.cancel(error)
                 throw error

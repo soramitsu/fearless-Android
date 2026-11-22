@@ -19,3 +19,14 @@ wallet's browser binding exactly as the web build does.
 ```
 WEB=~/dev/fearless/fearless-wallet-web bash generate.sh
 ```
+
+## Live Taira pairing
+
+`live.sh` runs `live-taira-dapp.ts`: the upstream app SDK registers a session with https://taira.sora.org, launches the
+widget's same-device `irohaconnect://connect?…` link on an emulator with the debug build, waits for the person to
+approve, asks for a transfer and a contract-call signature (each verified against its payload hash), waits 45 s for
+the wallet's Connect pings, asks for a raw signature (expects `SIGNING_KEY_REQUIRED`) and closes the session.
+
+```
+ADB=~/Library/Android/sdk/platform-tools/adb WEB=~/dev/fearless/fearless-wallet-web bash live.sh evidence.json emulator-5996
+```

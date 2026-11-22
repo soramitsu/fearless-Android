@@ -1,5 +1,6 @@
 package jp.co.soramitsu.irohaconnect.impl.data
 
+import android.util.Log
 import jp.co.soramitsu.irohaconnect.impl.domain.IrohaConnectSocket
 import jp.co.soramitsu.irohaconnect.impl.domain.IrohaConnectSocketFactory
 import jp.co.soramitsu.irohaconnect.impl.domain.IrohaConnectSocketListener
@@ -41,7 +42,9 @@ internal class OkHttpIrohaConnectSocketFactory(baseClient: OkHttpClient) : Iroha
     }
 
     private class OkHttpSocket(private val webSocket: WebSocket) : IrohaConnectSocket {
-        override fun send(frame: ByteArray): Boolean = webSocket.send(frame.toByteString())
+        override fun send(frame: ByteArray): Boolean = webSocket.send(frame.toByteString()).also { queued ->
+            Log.d(TAG, "sent ${frame.size} bytes, queued=$queued, pending=${webSocket.queueSize()}")
+        }
 
         override fun close(code: Int, reason: String) {
             if (!webSocket.close(code, reason)) webSocket.cancel()
@@ -51,9 +54,15 @@ internal class OkHttpIrohaConnectSocketFactory(baseClient: OkHttpClient) : Iroha
     private class Adapter(private val listener: IrohaConnectSocketListener) : WebSocketListener() {
         private var closedReported = false
 
-        override fun onOpen(webSocket: WebSocket, response: Response) = listener.onOpen()
+        override fun onOpen(webSocket: WebSocket, response: Response) {
+            Log.i(TAG, "relay open, protocol=${response.header(PROTOCOL_HEADER) != null}")
+            listener.onOpen()
+        }
 
-        override fun onMessage(webSocket: WebSocket, bytes: ByteString) = listener.onBinary(bytes.toByteArray())
+        override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
+            Log.d(TAG, "received ${bytes.size} bytes")
+            listener.onBinary(bytes.toByteArray())
+        }
 
         override fun onMessage(webSocket: WebSocket, text: String) = listener.onText()
 
@@ -94,6 +103,8 @@ internal class OkHttpIrohaConnectSocketFactory(baseClient: OkHttpClient) : Iroha
     }
 
     private companion object {
+        // Sizes, close codes and failure types only: frames and the session token are never logged.
+        const val TAG = "IrohaConnect"
         const val PROTOCOL_HEADER = "Sec-WebSocket-Protocol"
         const val CONNECT_TIMEOUT_SECONDS = 20L
         const val NORMAL_CLOSURE = 1000

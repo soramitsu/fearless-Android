@@ -27,7 +27,25 @@ after the PIN.
 - **Not yet:** a background session lives only while the process runs (no foreground service), so on the same device
   Android may freeze the socket while the person is in the browser; Nexus stays refused until its NetworkId is pinned.
 
-Validation: see the PR.
+- **Accounts:** a wallet's stored Taira row when it has one; otherwise the account its universal root derives
+  (`UniversalWalletSlot.TAIRA`), as the browser wallet does. No Android chain catalog lists Taira yet, so the account
+  upgrade never adds that row and imported wallets would otherwise offer no account.
+- **Threads:** the session runs on its own thread, and signing (secret reads and key derivation) runs outside its
+  event loop. On the shared IO pool the app's chain sync starved the keepalive, and Torii dropped the session.
+
+Validation (local; this project has no CI):
+
+- Unit tests: 45 in the two new modules, plus the touched app and wallet classes (RootViewModel, WalletEntryIntent,
+  WalletRootActivity, BalanceListViewModel: 75). The vectors (`src/test/resources/irohaconnect/web-vectors.json`) come
+  from the browser wallet's own code at 6f1fc6b5 and the upstream iroha-js 0.0.3 SDK (`src/test/vector-generator`):
+  29 links, frames, keys and envelopes, 72 transaction payloads (reviewed or refused with the same code), and four
+  complete app-SDK sessions that the Android service replays byte for byte. `detektAll` is clean.
+- Live, 21 November 2026, on an API 34 emulator with the debug build and the public `abandon … about` phrase
+  (`live.sh`): the upstream SDK registered a session on https://taira.sora.org and launched `irohaconnect://` on the
+  unlocked wallet (an earlier cold start through the link stopped at the PIN first and opened the session screen after
+  it); the SDK verified the approval for `testuﾛ1Pc…687Y`, the transfer (0.001 XOR) and
+  contract-call signatures verified against their payload hashes, the session stayed up across 45 s of Connect pings,
+  the raw request was answered `SIGNING_KEY_REQUIRED`, and the dApp's close showed as such. Nothing was submitted.
 
 ## Story progress — 20 November 2026
 

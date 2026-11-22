@@ -22,7 +22,7 @@ import kotlinx.coroutines.CancellationException
 
 /**
  * The wallets' Taira accounts, and signing with their Iroha keys. A key is re-derived from the wallet's root for
- * every signature (the universal BIP39 root, or a Taira account's own imported entropy) and must reproduce the stored
+ * every signature (the universal BIP39 root, or a Taira account's own imported entropy) and must reproduce the listed
  * public key and address before anything is signed; the private key is wiped right after.
  */
 internal class WalletIrohaConnectAccountProvider(
@@ -32,14 +32,25 @@ internal class WalletIrohaConnectAccountProvider(
     override suspend fun accounts(networkPrefix: Int): List<IrohaConnectAccount> {
         if (networkPrefix != UniversalWalletRegistry.taira.chainDiscriminant) return emptyList()
         return accountRepository.allMetaAccounts().mapNotNull { meta ->
-            val (_, publicKey) = meta.universalWalletSlotAccount(UniversalWalletSlot.TAIRA) ?: return@mapNotNull null
-            if (publicKey.size != IrohaConnectCrypto.KEY_BYTES) return@mapNotNull null
+            // A stored Taira row wins. Without one (no chain catalog lists Taira yet, so the account upgrade never adds
+            // the row) the account is the one the wallet's universal root derives, as in the browser wallet.
+            val publicKey = meta.universalWalletSlotAccount(UniversalWalletSlot.TAIRA)?.second ?: rootTairaKey(meta.id)
+            if (publicKey == null || publicKey.size != IrohaConnectCrypto.KEY_BYTES) return@mapNotNull null
             val publicKeyHex = IrohaConnectEncoding.hex(publicKey)
             val address = runCatching {
                 IrohaAddressCodec.encode(publicKeyHex, networkPrefix)
             }.getOrNull() ?: return@mapNotNull null
             IrohaConnectAccount(metaId = meta.id, address = address, name = meta.name, publicKeyHex = publicKeyHex)
         }.distinctBy { it.address }
+    }
+
+    // The Taira key UniversalWalletSlot.TAIRA would add for this wallet, or null without readable root material.
+    private suspend fun rootTairaKey(metaId: Long): ByteArray? = try {
+        accountRepository.universalWalletRoot(metaId)?.let { root -> UniversalWalletSlot.TAIRA.publicKey(root.mnemonic, root.passphrase) }
+    } catch (error: CancellationException) {
+        throw error
+    } catch (_: Exception) {
+        null
     }
 
     @Suppress("NestedBlockDepth", "LoopWithTooManyJumpStatements") // Try each root until one reproduces the account.
@@ -81,11 +92,11 @@ internal class WalletIrohaConnectAccountProvider(
     @Suppress("ThrowsCount")
     private suspend fun signingRoots(account: IrohaConnectAccount): List<Pair<String, String>> {
         val meta = accountRepository.getMetaAccount(account.metaId)
-        val (chainId, storedKey) = meta.universalWalletSlotAccount(UniversalWalletSlot.TAIRA)
-            ?: throw IrohaConnectActionException(IrohaConnectActionError.ACCOUNT_UNAVAILABLE)
-        if (IrohaConnectEncoding.hex(storedKey) != account.publicKeyHex) {
+        val stored = meta.universalWalletSlotAccount(UniversalWalletSlot.TAIRA)
+        if (stored != null && IrohaConnectEncoding.hex(stored.second) != account.publicKeyHex) {
             throw IrohaConnectActionException(IrohaConnectActionError.ACCOUNT_UNAVAILABLE)
         }
+        val chainId = stored?.first
         val roots = mutableListOf<Pair<String, String>>()
         chainId?.let {
             accountRepository.getChainAccountSecrets(meta.id, it)?.get(ChainAccountSecrets.Entropy)
