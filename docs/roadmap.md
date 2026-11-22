@@ -2,6 +2,14 @@
 
 # Roadmap & Technical Debt
 
+## EVM catalog refresh on installed wallets
+
+Play 4.3.7 can keep an open Atleta Olympia connection on a retired WebSocket
+after fetching an updated node list. Restarting the wallet applies the saved
+list. When qualifying the next Android release, keep Atleta connected during a
+catalog refresh and confirm that the next block read uses the surviving HTTPS
+node in the same process.
+
 ## Local app instrumentation profiles — 26 October 2026
 
 The full local runner now distinguishes ordinary portable tests, mandatory

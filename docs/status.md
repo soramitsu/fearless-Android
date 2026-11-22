@@ -2,6 +2,14 @@
 
 # Status Summary
 
+## EVM connections after a catalog refresh
+
+The EVM connection pool compares the ordered RPC URLs when the registry reloads a
+chain. A changed list replaces the active connection. A catalog replay with the
+same effective URLs keeps it. The runtime tests exercise reads through the new
+node, pending requests at retired nodes, concurrent refreshes, and WebSocket
+handshakes that finish after a node is retired.
+
 ## Local app instrumentation profiles — 26 October 2026
 
 The full local runner now distinguishes ordinary portable tests, mandatory
