@@ -91,6 +91,7 @@ import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraMainChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.soraTestChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonMainnetChainId
 import jp.co.soramitsu.runtime.multiNetwork.tokengroups.PortfolioVisibility
+import jp.co.soramitsu.irohaconnect.api.IrohaConnectLinks
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.domain.connectFromLink
 import jp.co.soramitsu.tonconnect.api.model.TonConnectLink
@@ -1444,6 +1445,8 @@ class BalanceListViewModel @Inject constructor(
     fun qrCodeScanned(content: String) {
         viewModelScope.launch {
             when {
+                IrohaConnectLinks.isConnectLink(content) -> router.openIrohaConnect(content)
+
                 content.startsWith(QR_PREFIX_WALLET_CONNECT) -> {
                     sendWalletConnectPair(pairingUri = content)
                 }

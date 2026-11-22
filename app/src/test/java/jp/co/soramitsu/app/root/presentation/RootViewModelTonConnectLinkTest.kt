@@ -19,6 +19,8 @@ import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.core.runtime.ChainConnection
+import jp.co.soramitsu.irohaconnect.impl.domain.IrohaConnectService
+import jp.co.soramitsu.irohaconnect.impl.domain.IrohaConnectSnapshot
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.tonconnect.api.model.AppEntity
 import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
@@ -194,7 +196,8 @@ class RootViewModelTonConnectLinkTest {
     }
 
     private fun model() = RootViewModel(initializer, interactor, router,
-        MutableStateFlow(ChainConnection.ExternalRequirement.ALLOWED), resources, ton)
+        MutableStateFlow(ChainConnection.ExternalRequirement.ALLOWED), resources, ton,
+        mockk<IrohaConnectService>(relaxed = true) { every { snapshot } returns MutableStateFlow(IrohaConnectSnapshot()) })
         .also { store.put("root", it) }
 
     private fun link(

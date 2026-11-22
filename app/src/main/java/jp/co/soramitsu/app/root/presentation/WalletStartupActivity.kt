@@ -77,7 +77,8 @@ internal fun Intent.toWalletInternalHandoff(
                 addFlags(sourceFlags and WALLET_URI_GRANT_FLAGS)
             }
             WalletEntryData.BUY_PROVIDER_REDIRECT,
-            WalletEntryData.TON_CONNECT_LINK -> {
+            WalletEntryData.TON_CONNECT_LINK,
+            WalletEntryData.IROHA_CONNECT_LINK -> {
                 action = Intent.ACTION_VIEW
                 data = sourceData
             }

@@ -46,6 +46,7 @@ This document explains how the Android app is structured, how modules interact, 
   `docs/walletconnect-reown-migration.md`) on a background thread; the old SDK's files are deleted
   only after it reports `IMPORTED` or `NOTHING_TO_IMPORT`, and are kept without an importer.
 - TON Connect: Dedicated feature modules `feature-tonconnect-api` and `feature-tonconnect-impl` with persistence in `core-db` (`TonConnectDao`).
+- IrohaConnect: `feature-irohaconnect-api` (link detection, router) and `feature-irohaconnect-impl` (Iroha Connect v1 wire, BouncyCastle crypto, OkHttp relay socket, transaction review, one in-memory session in `IrohaConnectService`). No persistence: a session lasts as long as the process. Links arrive by QR on the wallet screen or as `irohaconnect://connect` / `iroha://connect` VIEW intents admitted by `WalletEntryIntentPolicy`, and open only after the PIN.
 
 ## Build Types & Tooling
 - Build types: `debug`, `release`, `staging`, `develop`, `pr`. R8/shrinker is enabled on remote builds for closer prod parity.

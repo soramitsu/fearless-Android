@@ -327,6 +327,20 @@ class BalanceListViewModelTests {
     }
 
     @Test
+    fun `scanned Iroha Connect invitation opens the session screen and nothing else`() = runTest {
+        val link = "irohaconnect://connect?sid=s&network_id=n&v=1&role=wallet"
+        every { walletRouter.openIrohaConnect(any()) } just runs
+
+        vm.qrCodeScanned(link)
+        vm.qrCodeScanned(link.replaceFirst("irohaconnect://", "iroha://"))
+        advanceUntilIdle()
+
+        verify(exactly = 1) { walletRouter.openIrohaConnect(link) }
+        verify(exactly = 1) { walletRouter.openIrohaConnect(link.replaceFirst("irohaconnect://", "iroha://")) }
+        verify(exactly = 0) { walletRouter.openSend(any(), any(), any(), any()) }
+    }
+
+    @Test
     fun `default state check`() = runTest {
         advanceUntilIdle()
         val state = vm.state.value

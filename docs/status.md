@@ -1,3 +1,52 @@
+## IrohaConnect wallet (Iroha Connect v1, SORA Taira) — 21 November 2026
+
+Branch `feature/iroha-connect-android` (from `release/consolidated-20261110` @`b9ec33e15`). New modules
+`feature-irohaconnect-api` and `feature-irohaconnect-impl`; a port of the browser wallet's IrohaConnect
+(fearless-wallet-web PR #1122). A dApp that uses `@iroha/connect-widget` on Taira can pair with Android through a QR
+scanned on the wallet screen, or through the widget's same-device "Open wallet" link (`irohaconnect://connect?…`, also
+`iroha://connect?…`), which a new intent filter and `WalletEntryIntentPolicy` admit. The session screen opens only
+after the PIN.
+
+- **Links** are parsed strictly: exactly the nine fields, `v=1`, `role=wallet`, the pinned Taira NetworkId and its own
+  Torii root, canonical unpadded base64url, and `sid = blake2b-256("iroha-connect|sid|" || NetworkId || app_pk ||
+  nonce)`. Retired Uranai links, unknown networks, SORA Nexus (NetworkId still unpinned) and foreign relays get their
+  own messages.
+- **Relay:** OkHttp WebSocket to `wss://taira.sora.org/v1/connect/ws?sid=…&role=wallet` with the token in the
+  `iroha-connect.token.v1.*` subprotocol; interceptors are dropped so no logger sees it. Only binary frames are sent
+  (Torii closes a socket on any text frame); the keepalive is a sequenced Connect Ping every 20 s.
+- **Approval** signs the tagged preimage (domain, NetworkId, constraints hash, sid, app key, wallet key, account,
+  permissions hash, relay auth hash) with the account's Ed25519 key, re-derived from the wallet root and checked
+  against the stored key and address first. Session keys: X25519 + HKDF-SHA256, sid-salted, one key per direction;
+  every envelope is a ChaCha20-Poly1305 Norito `EnvelopeV1`, in strict sequence.
+- **Transactions:** a `SignRequestTx` is decoded field by field (LEB128 lengths, u64 counts, the transfer frame's u64
+  container), checked against the iroha-js 0.0.3 codec's canonical rules and re-encoded to the exact bytes before
+  anything is shown. Asset transfers and contract-call batches are reviewable; anything else is refused
+  (`UNSUPPORTED_TRANSACTION`, `INVALID_TRANSACTION`, `WRONG_ACCOUNT`, `WRONG_NETWORK`) and never signed. Approval signs
+  `irohaHash(payload)`. Requests expire after 120 s; a second request while one is open, or one the session did not
+  ask permission for, is refused. Raw requests get `SIGNING_KEY_REQUIRED`.
+- **Not yet:** a background session lives only while the process runs (no foreground service), so on the same device
+  Android may freeze the socket while the person is in the browser; Nexus stays refused until its NetworkId is pinned.
+
+- **Accounts:** a wallet's stored Taira row when it has one; otherwise the account its universal root derives
+  (`UniversalWalletSlot.TAIRA`), as the browser wallet does. No Android chain catalog lists Taira yet, so the account
+  upgrade never adds that row and imported wallets would otherwise offer no account.
+- **Threads:** the session runs on its own thread, and signing (secret reads and key derivation) runs outside its
+  event loop. On the shared IO pool the app's chain sync starved the keepalive, and Torii dropped the session.
+
+Validation (local; this project has no CI):
+
+- Unit tests: 45 in the two new modules, plus the touched app and wallet classes (RootViewModel, WalletEntryIntent,
+  WalletRootActivity, BalanceListViewModel: 75). The vectors (`src/test/resources/irohaconnect/web-vectors.json`) come
+  from the browser wallet's own code at 6f1fc6b5 and the upstream iroha-js 0.0.3 SDK (`src/test/vector-generator`):
+  29 links, frames, keys and envelopes, 72 transaction payloads (reviewed or refused with the same code), and four
+  complete app-SDK sessions that the Android service replays byte for byte. `detektAll` is clean.
+- Live, 21 November 2026, on an API 34 emulator with the debug build and the public `abandon … about` phrase
+  (`live.sh`): the upstream SDK registered a session on https://taira.sora.org and launched `irohaconnect://` on the
+  unlocked wallet (an earlier cold start through the link stopped at the PIN first and opened the session screen after
+  it); the SDK verified the approval for `testuﾛ1Pc…687Y`, the transfer (0.001 XOR) and
+  contract-call signatures verified against their payload hashes, the session stayed up across 45 s of Connect pings,
+  the raw request was answered `SIGNING_KEY_REQUIRED`, and the dApp's close showed as such. Nothing was submitted.
+
 ## Nomis scoring removed — 21 November 2026
 
 The app no longer sends wallet or recipient addresses to the Nomis API (`api.nomis.cc`). Removed: the score star on wallets, toolbars, the send recipient and address history; the wallet score sheet and its wallet-options button; the settings switch; the low-score warning on send; the 12-hourly background score sync; and the client with its `NOMIS_*` BuildConfig fields and the release workflow's `FL_NOMIS_*` secrets. The phishing-list warning on send is unchanged. The `nomis_wallet_score` table and `NomisScoresDao` stay, unused, so schema 84 and its identity hash do not change.
