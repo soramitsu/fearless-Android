@@ -125,6 +125,19 @@ class StakingFragmentTest {
         compose.waitForIdle()
     }
 
+    /**
+     * Settles until [condition] holds or [timeoutMs] of real time passes. The alerts list is a ListAdapter, which
+     * diffs a non-empty list against the shown one on a background thread, so its rows land after a later frame.
+     */
+    private fun settleUntil(timeoutMs: Long = 5_000, condition: () -> Boolean) {
+        val deadline = System.currentTimeMillis() + timeoutMs
+        while (!condition() && System.currentTimeMillis() < deadline) {
+            Thread.sleep(10)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(16))
+            settle()
+        }
+    }
+
     private fun texts(view: View): List<String> = when (view) {
         is TextView -> listOf(view.text.toString())
         is ViewGroup -> (0 until view.childCount).flatMap { texts(view.getChildAt(it)) }
@@ -193,6 +206,7 @@ class StakingFragmentTest {
         alerts.value = LoadingState.Loaded(listOf(AlertModel(R.drawable.ic_info_16, "Claim rewards", "Ready to claim", AlertModel.Type.Info)))
         settle()
         assertEquals(View.VISIBLE, root.findViewById<View>(R.id.stakingAlertsInfo).visibility)
+        settleUntil { texts(root).contains("Claim rewards") }
         assertTrue(texts(root).contains("Claim rewards"))
         root.findViewById<View>(R.id.stakingAvatar).performClick()
         val story = StakingStoryModel(R.string.staking_manage_title, "DOT", emptyList())
