@@ -154,6 +154,12 @@ class ChainRegistry @Inject constructor(
 
     private val syncStarted = AtomicBoolean()
 
+    // Chains that background sync has set up, or is setting up, and still selects. claimLock guards the record and
+    // covers every stop, so a stop cannot fall between the registry taking a claim and starting its setup. Lock order:
+    // claimLock, then the connection pools' own locks; nothing holding a pool lock calls back into this registry.
+    private val claimLock = Any()
+    private val claims = mutableSetOf<ChainId>()
+
     // Note: call `syncUp()` to start observing/maintaining chain connections.
 
     /**
@@ -168,19 +174,27 @@ class ChainRegistry @Inject constructor(
                 val removedTrue = removed.filterNot { it.id in addedIds } // skip chains that are just updated
 
                 val removedDeferred = removedTrue.map {
-                    async { stopChain(it) }
+                    async { releaseClaimAndStop(it) }
                 }
 
                 val syncDeferred = addedOrModified.map { chain ->
                     async {
+                        // Claimed before setup, so a temporary owner's stop either lands first or not at all.
+                        val tookClaim = claim(chain.id)
+                        var configured = false
                         try {
                             setupChain(chain)
+                            configured = true
                             networkStateService.notifyChainSyncSuccess(chain.id)
                         } catch (cancelled: CancellationException) {
                             throw cancelled
                         } catch (error: Exception) {
                             networkStateService.notifyChainSyncProblem(chain.id)
                             Log.e("ChainRegistry", "Chain setup failed: ${error.javaClass.simpleName}")
+                        } finally {
+                            // A failed, throwing or cancelled setup gives back a claim it took, so the claim cannot
+                            // keep what it left alive. A claim from an earlier successful setup stays with that setup.
+                            if (!configured && tookClaim) releaseClaim(chain.id)
                         }
                     }
                 }
@@ -196,7 +210,11 @@ class ChainRegistry @Inject constructor(
 
         }
                 .launchIn(scope)
-                .invokeOnCompletion { syncStarted.set(false) }
+                .invokeOnCompletion {
+                    // Nothing maintains the claimed chains any more, so no claim may outlive background sync.
+                    synchronized(claimLock) { claims.clear() }
+                    syncStarted.set(false)
+                }
         } catch (error: Exception) {
             syncStarted.set(false)
             throw error
@@ -204,9 +222,34 @@ class ChainRegistry @Inject constructor(
     }
 
     /**
-     * Stops and removes all resources for the given chain (EVM or Substrate).
+     * Stops and removes all resources for the given chain (EVM or Substrate), unless background sync claims it.
+     *
+     * A caller that opened a temporary connection, such as the asset discovery sweep, can therefore never tear down a
+     * chain the registry has claimed meanwhile. Background sync gives its claim back before stopping a chain it drops.
      */
     fun stopChain(chain: Chain) {
+        synchronized(claimLock) {
+            if (chain.id in claims) return
+            stopChainResources(chain)
+        }
+    }
+
+    private fun claim(chainId: ChainId): Boolean = synchronized(claimLock) { claims.add(chainId) }
+
+    private fun releaseClaim(chainId: ChainId) {
+        synchronized(claimLock) { claims.remove(chainId) }
+    }
+
+    /** A chain background sync no longer selects is stopped whatever claim it had. */
+    private fun releaseClaimAndStop(chain: Chain) {
+        synchronized(claimLock) {
+            claims.remove(chain.id)
+            stopChainResources(chain)
+        }
+    }
+
+    /** Called under [claimLock]. */
+    private fun stopChainResources(chain: Chain) {
         val chainId = chain.id
         if (chain.isEthereumChain) {
             ethereumConnectionPool.stop(chainId)

@@ -157,9 +157,10 @@ class ChainRegistryModule {
     @Provides
     @Singleton
     fun provideEthereumPool(
-        networkStateService: NetworkStateService
+        networkStateService: NetworkStateService,
+        chainDao: ChainDao
     ) =
-        EthereumConnectionPool(networkStateService)
+        EthereumConnectionPool(networkStateService, chainDao)
 
 
     @Provides

@@ -5,6 +5,9 @@ import jp.co.soramitsu.common.BuildConfig
 import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.common.utils.cycle
 import jp.co.soramitsu.core.models.ChainNode
+import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.coredb.recovery.selection.EndpointMutationLane
+import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainLocalToChainOrNull
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.BSCTestnetChainId
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -20,7 +23,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -45,14 +50,27 @@ import okhttp3.ConnectionPool as HttpConnectionPool
 
 private const val EVM_CONNECTION_TAG = "EVM Connection"
 
-class EthereumConnectionPool(
+/**
+ * EVM connections, one per chain.
+ *
+ * With [chainDao], production setup goes through [setupCurrentConnection], which takes the endpoints from the catalog
+ * as Room holds it rather than from the caller's snapshot. Without it (tests, tools) the caller's chain is used.
+ */
+class EthereumConnectionPool @JvmOverloads constructor(
     private val networkStateService: NetworkStateService,
+    private val chainDao: ChainDao? = null,
 ) {
+    private companion object {
+        // A read is retried only when an endpoint write for the same chain lands between the read and the install.
+        const val MAX_CATALOG_READS = 3
+    }
+
     private val poolStateFlow = MutableStateFlow<Map<String, EthereumChainConnection>>(emptyMap())
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     // Serializes setup, replacement and stop, so a chain never has two live connections and the last call wins.
-    // statusJobs is used only under it. Connections are closed after it is released.
+    // statusJobs is used only under it. Connections are closed after it is released. Lock order: this lock, then the
+    // endpoint lane's state lock (its isCurrent check); the lane never calls back into this pool.
     private val lock = Any()
     private val statusJobs = mutableMapOf<String, Job>()
 
@@ -78,10 +96,50 @@ class EthereumConnectionPool(
     fun setupConnection(
         chain: Chain,
         onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit
+    ): EthereumChainConnection = checkNotNull(install(chain, onSelectedNodeChange) { true })
+
+    /**
+     * The chain's connection, set up from the catalog as Room holds it now. [chain] only names the chain: a caller's
+     * snapshot may be older than one already installed, for example a discovery batch read before a catalog refresh.
+     *
+     * The read carries the endpoint lane's version, which every endpoint write for the chain retires. It is checked
+     * under the pool lock at install time, so an install can never put older URLs over newer ones: a read overtaken by
+     * a write is read again. Equal endpoints keep the live connection, as in [setupConnection]. A chain the catalog no
+     * longer lists as an EVM chain has its connection closed, and the call fails.
+     */
+    suspend fun setupCurrentConnection(
+        chain: Chain,
+        onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit
     ): EthereumChainConnection {
+        val dao = chainDao ?: return setupConnection(chain, onSelectedNodeChange)
+        repeat(MAX_CATALOG_READS) {
+            val read = try {
+                dao.readEndpointRuntime(chain.id)
+            } catch (_: EndpointMutationLane.RuntimeReadSuperseded) {
+                return@repeat
+            }
+            currentCoroutineContext().ensureActive()
+            val isCurrentRead = { dao.endpointMutationLane.isCurrent(read.version) }
+            val current = read.value?.let(::mapChainLocalToChainOrNull)
+            if (current == null || current.id != chain.id || !current.isEthereumChain) {
+                // Its endpoints are retired with it. Only a read that is still current may decide that.
+                if (retire(chain.id, isCurrentRead)) error("The catalog no longer lists this chain as an EVM chain")
+                return@repeat
+            }
+            install(current, onSelectedNodeChange, isCurrentRead)?.let { return it }
+        }
+        throw IllegalStateException("EVM endpoint read was superseded by newer endpoint writes")
+    }
+
+    private fun install(
+        chain: Chain,
+        onSelectedNodeChange: (chainId: ChainId, newNodeUrl: String) -> Unit,
+        isFresh: () -> Boolean
+    ): EthereumChainConnection? {
         var replaced: EthereumChainConnection? = null
         try {
             return synchronized(lock) {
+                if (!isFresh()) return null
                 val existing = poolStateFlow.value[chain.id]
                 if (existing != null && !existing.isClosed &&
                     existing.endpoints == EthereumChainConnection.effectiveEndpoints(chain)
@@ -105,11 +163,17 @@ class EthereumConnectionPool(
 
     /** Removes the chain's connection and closes it for good: no reconnect, no further node attempts. */
     fun stop(chainId: String) {
+        retire(chainId) { true }
+    }
+
+    private fun retire(chainId: String, isFresh: () -> Boolean): Boolean {
         val removed = synchronized(lock) {
+            if (!isFresh()) return false
             statusJobs.remove(chainId)?.cancel()
             poolStateFlow.value[chainId]?.also { poolStateFlow.value = poolStateFlow.value - chainId }
         }
         removed?.close()
+        return true
     }
 
     // Called with the pool lock held. Publish before starting the status collector.

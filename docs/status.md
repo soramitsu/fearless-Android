@@ -10,6 +10,10 @@ same effective URLs keeps it. The runtime tests exercise reads through the new
 node, pending requests at retired nodes, concurrent refreshes, and WebSocket
 handshakes that finish after a node is retired.
 
+Asset discovery checks the current endpoints in Room before connecting. A
+discovery batch that started before a refresh can reuse the new connection.
+Finishing that batch keeps connections that background sync has already claimed.
+
 ## Local app instrumentation profiles — 26 October 2026
 
 The full local runner now distinguishes ordinary portable tests, mandatory

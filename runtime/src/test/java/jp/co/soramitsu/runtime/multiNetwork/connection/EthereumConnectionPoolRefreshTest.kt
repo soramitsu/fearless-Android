@@ -1,12 +1,18 @@
 package jp.co.soramitsu.runtime.multiNetwork.connection
 
 import android.util.Log
+import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockkStatic
+import io.mockk.spyk
 import io.mockk.unmockkStatic
 import jp.co.soramitsu.common.domain.NetworkStateService
 import jp.co.soramitsu.core.models.ChainNode
 import jp.co.soramitsu.core.models.Ecosystem
+import jp.co.soramitsu.coredb.dao.ChainDao
+import jp.co.soramitsu.coredb.model.chain.JoinedChainInfo
+import jp.co.soramitsu.runtime.multiNetwork.chain.mapChainToChainLocal
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.runtime.multiNetwork.configurator.EthereumEnvironmentConfigurator
 import kotlinx.coroutines.flow.first
@@ -18,6 +24,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -312,6 +319,122 @@ class EthereumConnectionPoolRefreshTest {
         )
     }
 
+    @Test
+    fun `stale discovery snapshots keep the current catalog connection`() = withCatalogPool { dao, currentPool ->
+        val old = node(OLD_BLOCK)
+        val live = node(NEW_BLOCK)
+        val stale = chain(old.url)
+        val updated = chain(live.url)
+        var catalog = mapChainToChainLocal(stale)
+        coEvery { dao.getJoinChainInfo(CHAIN_ID) } coAnswers { catalog }
+        val configurator = EthereumEnvironmentConfigurator(currentPool)
+        configurator.configure(stale)
+        val first = checkNotNull(currentPool.getOrNull(CHAIN_ID))
+
+        catalog = mapChainToChainLocal(updated)
+        val lane = dao.endpointMutationLane
+        lane.abandon(lane.admit(listOf(CHAIN_ID)))
+        configurator.configure(updated)
+        val replacement = checkNotNull(currentPool.getOrNull(CHAIN_ID))
+        assertTrue(first.isClosed)
+        assertNotSame(first, replacement)
+
+        configurator.configure(stale)
+        assertSame(replacement, currentPool.getOrNull(CHAIN_ID))
+        assertEquals(listOf(live.url), replacement.endpoints)
+        assertTrue(eventually { readBlock(currentPool) == NEW_BLOCK })
+    }
+
+    @Test
+    fun `a catalog read superseded during lookup is retried`() = withCatalogPool { dao, currentPool ->
+        val stale = chain(node(OLD_BLOCK).url)
+        val current = chain(node(NEW_BLOCK).url)
+        val lane = dao.endpointMutationLane
+        var reads = 0
+        coEvery { dao.getJoinChainInfo(CHAIN_ID) } coAnswers {
+            if (++reads == 1) {
+                // Advance the real ordering lane while returning an older row from the DAO stub.
+                lane.abandon(lane.admit(listOf(CHAIN_ID)))
+                mapChainToChainLocal(stale)
+            } else {
+                mapChainToChainLocal(current)
+            }
+        }
+
+        val installed = currentPool.setupCurrentConnection(stale, ignoreSelection)
+
+        assertEquals(2, reads)
+        assertEquals(current.nodes.map { it.url }, installed.endpoints)
+    }
+
+    @Test
+    fun `a stale row overtaken before install cannot displace the current connection`() = withCatalogPool { dao, currentPool ->
+        val stale = chain(node(OLD_BLOCK).url)
+        val chain = chain(node(NEW_BLOCK).url)
+        val live = currentPool.setupConnection(chain, ignoreSelection)
+        supersedeFirstRowBeforeInstall(dao, mapChainToChainLocal(stale), mapChainToChainLocal(chain))
+
+        assertSame(live, currentPool.setupCurrentConnection(stale, ignoreSelection))
+        coVerify(exactly = 2) { dao.getJoinChainInfo(CHAIN_ID) }
+        assertFalse(live.isClosed)
+    }
+
+    @Test
+    fun `a superseded missing row cannot retire the current connection`() = withCatalogPool { dao, currentPool ->
+        val chain = chain(node(NEW_BLOCK).url)
+        val live = currentPool.setupConnection(chain, ignoreSelection)
+        supersedeFirstRowBeforeInstall(dao, null, mapChainToChainLocal(chain))
+
+        assertSame(live, currentPool.setupCurrentConnection(chain, ignoreSelection))
+        coVerify(exactly = 2) { dao.getJoinChainInfo(CHAIN_ID) }
+        assertFalse(live.isClosed)
+    }
+
+    private fun supersedeFirstRowBeforeInstall(dao: ChainDao, first: JoinedChainInfo?, current: JoinedChainInfo) {
+        val lane = dao.endpointMutationLane
+        var reads = 0
+        var invalidateAfterRead = false
+        coEvery { dao.getJoinChainInfo(CHAIN_ID) } coAnswers {
+            if (++reads == 1) {
+                invalidateAfterRead = true
+                first
+            } else {
+                current
+            }
+        }
+        // Advance the real lane at the pool's version check, after readEndpointRuntime returns the stubbed row.
+        every { dao.endpointMutationLane } answers {
+            if (invalidateAfterRead) {
+                invalidateAfterRead = false
+                lane.abandon(lane.admit(listOf(CHAIN_ID)))
+            }
+            lane
+        }
+    }
+
+    @Test
+    fun `a current missing catalog row retires the connection`() = withCatalogPool { dao, currentPool ->
+        val chain = chain(node(OLD_BLOCK).url)
+        val live = currentPool.setupConnection(chain, ignoreSelection)
+        coEvery { dao.getJoinChainInfo(CHAIN_ID) } returns null
+
+        assertThrows(IllegalStateException::class.java) {
+            runBlocking { currentPool.setupCurrentConnection(chain, ignoreSelection) }
+        }
+        assertTrue(live.isClosed)
+        assertNull(currentPool.getOrNull(CHAIN_ID))
+    }
+
+    private fun withCatalogPool(test: suspend (ChainDao, EthereumConnectionPool) -> Unit) = runBlocking {
+        val dao = spyk<ChainDao>()
+        val currentPool = EthereumConnectionPool(networkState, dao)
+        try {
+            test(dao, currentPool)
+        } finally {
+            currentPool.stop(CHAIN_ID)
+        }
+    }
+
     private fun assertRefreshMovesReads(
         before: Chain,
         after: Chain,
@@ -366,8 +489,8 @@ class EthereumConnectionPoolRefreshTest {
         remoteAssetsSource = null
     )
 
-    private fun readBlock(): Long? {
-        val web3j = pool.getOrNull(CHAIN_ID)?.web3j ?: return null
+    private fun readBlock(source: EthereumConnectionPool = pool): Long? {
+        val web3j = source.getOrNull(CHAIN_ID)?.web3j ?: return null
         return runCatching { web3j.ethBlockNumber().send().blockNumber.toLong() }.getOrNull()
     }
 

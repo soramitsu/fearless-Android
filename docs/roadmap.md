@@ -9,6 +9,8 @@ after fetching an updated node list. Restarting the wallet applies the saved
 list. When qualifying the next Android release, keep Atleta connected during a
 catalog refresh and confirm that the next block read uses the surviving HTTPS
 node in the same process.
+Repeat this check with asset discovery already in progress and confirm that its
+cleanup leaves the connection available to background sync.
 
 ## Local app instrumentation profiles — 26 October 2026
 
