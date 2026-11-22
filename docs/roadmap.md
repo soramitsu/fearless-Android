@@ -6,6 +6,10 @@ Exercise timed advance, press-and-hold, both tap directions and completion on th
 
 Coordinate issuer revocation and check older clients first. Only `remote-config/production/crowdloan/polkadot.json` contains nonempty provider keys (lines 14–15 and 36–37). Remove those fields and update its `ownedSha256` record in `config/remote-config-imports.json` (retain the original import hash). Sign the next sequence of `remote-config/remote-config-manifest.json` with the existing owner key: `manifest.files["production/crowdloan/polkadot.json"]` must hash the sanitized bytes. Kusama's fields are empty; its digest need not change unless removing the empty fields too. Publish the manifest and files together; removing a public value does not revoke it.
 
+## Nomis removal follow-ups
+
+Revoke the Nomis client ID and API key with Nomis and delete the `FL_NOMIS_API_KEY` and `FL_NOMIS_CLIENT_ID` repository secrets; no build reads them now. Drop the unused `nomis_wallet_score` table only in a planned schema change with its own migration. Installed apps keep the old `nomis_cache` HTTP cache and the `nomis_multichain_score_enabled` preference until Android clears the cache or the user clears app data; nothing reads either.
+
 ## Android 4.3.6 release preparation — 17 November 2026
 
 The 238 candidate includes the integrated 16 November source and the signed Liberland fallback configuration. Its release ledger records the unchanged database schema 84. A release test caught a stale “Connected” banner during rapid network loss; the fix refreshes its text and prevents obsolete recovery animations from hiding it. Exact local release validation and store receipts are retained in the parent workspace under `output/production-release-20261117/android/`. See `docs/releases/4.3.6.md`.
@@ -441,7 +445,8 @@ configuration excludes common, core modules, account, staking, wallet, runtime a
 so of the changed modules it checks only TON Connect and core-backup.
 
 Open: the replaced Play upload certificate is not pinned on master (owner decision);
-the Nomis key that was in the source should be rotated; no device or emulator run
+the Nomis key that was in the source should be revoked (Nomis was removed on
+21 November 2026); no device or emulator run
 covers this port. The Taira balance paging defect is fixed in the follow-up above.
 
 ## dApp signing and cross-chain hardening — 29 October 2026

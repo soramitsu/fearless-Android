@@ -1,3 +1,9 @@
+## Nomis scoring removed — 21 November 2026
+
+The app no longer sends wallet or recipient addresses to the Nomis API (`api.nomis.cc`). Removed: the score star on wallets, toolbars, the send recipient and address history; the wallet score sheet and its wallet-options button; the settings switch; the low-score warning on send; the 12-hourly background score sync; and the client with its `NOMIS_*` BuildConfig fields and the release workflow's `FL_NOMIS_*` secrets. The phishing-list warning on send is unchanged. The `nomis_wallet_score` table and `NomisScoresDao` stay, unused, so schema 84 and its identity hash do not change.
+
+Local unit tests (debug): common 1,502, account API 106, account 1,438, wallet 1,579, TON Connect 260, app 451; no failures or skips. One wallet run failed `SwapDetailFragmentRobolectricTest` on an exception leaked by the earlier `TransactionDetailFragmentsRobolectricTest`; that class alone and the full wallet module then passed. `:app:assembleDebug`, the app, common and account androidTest compiles, `detektAll` and `scripts/test-android-play-release-guards.sh` (4 positive, 128 negative cases) pass. No device run.
+
 ## Story progress — 20 November 2026
 
 The stories screen uses an app-owned segmented progress view. Neither the app nor legacy crowdloan recovery declares the former JitPack library. Its AAR had no Android manifest components; the release component inventory is unchanged.
@@ -1130,7 +1136,8 @@ configuration excludes common, core modules, account, staking, wallet, runtime a
 so of the changed modules it checks only TON Connect and core-backup.
 
 Open: the replaced Play upload certificate is not pinned on master (owner decision);
-the Nomis key that was in the source should be rotated; no device or emulator run
+the Nomis key that was in the source should be revoked (Nomis was removed on
+21 November 2026); no device or emulator run
 covers this port. The Taira balance paging defect is fixed in the follow-up above.
 
 ## dApp signing and cross-chain hardening — 29 October 2026
