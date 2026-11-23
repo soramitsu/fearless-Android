@@ -1,5 +1,6 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
+import java.io.File
 import jp.co.soramitsu.common.model.UniversalWalletRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import org.junit.Assert.assertEquals
@@ -16,6 +17,20 @@ class NativeWalletChainsTest {
             assertEquals(expected, chain.icon)
             assertEquals(expected, chain.assets.single().iconUrl)
             assertEquals(expected, chain.assets.single().chainIcon)
+        }
+    }
+
+    @Test
+    fun `bundled native icons are the network logos, not letter placeholders`() {
+        val brandColours = mapOf("bitcoin" to listOf("#F7931A"), "solana" to listOf("#00FFA3", "#DC1FFF"))
+        val names = nativeWalletChains().map { requireNotNull(it.assets.single().priceId) }
+        assertEquals(brandColours.keys.toList(), names)
+        names.forEach { name ->
+            val svg = listOf("src/main/assets", "runtime/src/main/assets")
+                .map { File(it, "native-icons/$name.svg") }
+                .firstOrNull(File::isFile)?.readText() ?: error("native-icons/$name.svg is not bundled")
+            assertFalse("$name.svg draws letters instead of the logo", svg.contains("<text"))
+            brandColours.getValue(name).forEach { assertTrue("$name.svg lacks $it", svg.contains(it, ignoreCase = true)) }
         }
     }
 

@@ -1,3 +1,15 @@
+## Bitcoin and Solana logos; 4.3.7 on the consolidated line — 23 November 2026
+
+- `runtime/src/main/assets/native-icons/bitcoin.svg` and `solana.svg` were grey circles with the letters "BT" and "SO".
+  The wallet home, Receive and Send showed those letters (4.3.7 and earlier). They are now the network logos:
+  Bitcoin is this repository's `remote-config/assets/icons/tokens/coloured/BTC.svg` (SHA-256 `b34e548b…97b9`), Solana
+  the web extension's `public/icons/tokens/coloured/SOL.svg` at fearless-wallet-web `4689df2d` (`fb1dcf2e…e27b`). No
+  digest pins these files. `NativeWalletChainsTest` rejects letter placeholders; `AndroidBrandAssetsInstrumentedTest`
+  checks the rendered logo colours instead of white letters.
+- Google Play's 4.3.7 (239), at 100% of production since 19 November, was built from `ca0928f0f`, which existed only
+  on a local branch. Its Switch node fix is now on this line, so the source version here is 4.3.7 (239). The Play
+  screenshots of 23 November show the new logos, which 4.3.7 does not have.
+
 ## IrohaConnect wallet (Iroha Connect v1, SORA Taira) — 21 November 2026
 
 Branch `feature/iroha-connect-android` (from `release/consolidated-20261110` @`b9ec33e15`). New modules

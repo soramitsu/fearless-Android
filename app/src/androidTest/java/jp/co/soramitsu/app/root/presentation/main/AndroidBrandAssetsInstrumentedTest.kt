@@ -88,21 +88,32 @@ class AndroidBrandAssetsInstrumentedTest {
         }
     }
 
-    @Test fun nativeNetworkMonogramsLoadThroughProductionCoilRequestWithoutNetwork() = runBlocking {
+    @Test fun nativeNetworkLogosLoadThroughProductionCoilRequestWithoutNetwork() = runBlocking {
+        // The former grey "BT"/"SO" letter placeholders have none of these brand colours.
+        val orange = { r: Int, g: Int, b: Int -> r > 220 && g in 111..179 && b < 80 } // Bitcoin #F7931A
+        val white = { r: Int, g: Int, b: Int -> r > 200 && g > 200 && b > 200 } // the Bitcoin glyph
+        val green = { r: Int, g: Int, b: Int -> g > 180 && r < 100 } // Solana gradient start #00FFA3
+        val magenta = { r: Int, g: Int, b: Int -> r > 160 && b > 200 && g < 120 } // Solana gradient end #DC1FFF
+        val minimumPixels = mapOf(
+            "bitcoin" to listOf(Triple("orange disc", orange, 6000), Triple("white glyph", white, 1200)),
+            "solana" to listOf(Triple("green bars", green, 300), Triple("magenta bars", magenta, 300))
+        )
         val loader = ImageLoader(context)
         try {
-            for (name in listOf("bitcoin", "solana")) {
+            for ((name, colours) in minimumPixels) {
                 val request = getImageRequest(context, "file:///android_asset/native-icons/$name.svg")
                     .newBuilder().allowHardware(false).size(128).build()
                 val result = loader.execute(request)
                 assertTrue("$name local asset did not load: $result", result is SuccessResult)
                 val bitmap = render((result as SuccessResult).drawable, 128, 128)
-                val bright = (0 until 128).sumOf { y -> (0 until 128).count { x ->
-                    val pixel = bitmap.getPixel(x, y)
-                    Color.alpha(pixel) > 200 && Color.red(pixel) > 200 && Color.green(pixel) > 200 && Color.blue(pixel) > 200
-                } }
-                assertTrue("$name monogram text is missing", bright > 150)
-                save("offline-$name-monogram", bitmap)
+                for ((label, matches, minimum) in colours) {
+                    val count = (0 until 128).sumOf { y -> (0 until 128).count { x ->
+                        val pixel = bitmap.getPixel(x, y)
+                        Color.alpha(pixel) > 200 && matches(Color.red(pixel), Color.green(pixel), Color.blue(pixel))
+                    } }
+                    assertTrue("$name logo lacks its $label ($count pixels)", count > minimum)
+                }
+                save("offline-$name-logo", bitmap)
             }
         } finally { loader.shutdown() }
     }

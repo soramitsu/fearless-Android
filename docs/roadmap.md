@@ -1,3 +1,9 @@
+## Next Android Play release (after 4.3.7)
+
+Play already has version code 239: cut the next release at 240 or higher and update the IAS `-ias` hardcodes with it.
+Its changelog says Bitcoin and Solana show their logos instead of "BT" and "SO". Run
+`AndroidBrandAssetsInstrumentedTest` on a device for that candidate.
+
 ## TON Connect wallets list: Android
 
 Android reaches the connect flow from the wallets-list universal link and `tc://` (21 November 2026). Ship it in a Play release, with #1284's connect.ton.org bridge live in the catalog, then add `android` to `platforms` in the Fearless entry of ton-connect/wallets-list#370. Not done: returning to the dApp's app after a reply (`ret`), and SignData (the device features advertise SendTransaction only).
