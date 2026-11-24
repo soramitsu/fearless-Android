@@ -46,6 +46,20 @@ class IconGeneratorRobolectricTest {
     }
 
     @Test
+    fun ethereumIconsAcceptIdsOfAnyLength() {
+        // 4.3.x drew EVM-only wallets from the 19-byte seed "fearless-wallet-evm" and crashed reading byte 31.
+        val evmWalletSeed = "fearless-wallet-evm".encodeToByteArray()
+        for (size in listOf(0, 1, 8, 19, 20, 31, 32, 33, 42, 64)) {
+            val id = ByteArray(size) { (it * 13 + 5).toByte() }
+            val drawable = generator.generateEthereumAddressIcon(id, 48)
+            assertEquals(48, drawable.intrinsicWidth)
+            assertTrue("size $size", pixels(render(drawable)).any { it ushr 24 != 0 })
+        }
+        val seedIcon = render(generator.generateEthereumAddressIcon(evmWalletSeed, 48))
+        assertTrue(seedIcon.sameAs(render(generator.generateEthereumAddressIcon(evmWalletSeed.copyOf(), 48))))
+    }
+
+    @Test
     fun drawableFitsItsBoundsAndRestoresTheCanvas() {
         val drawable = generator.getSvgImage(ByteArray(32) { it.toByte() }, 64)
         val target = Bitmap.createBitmap(80, 80, Bitmap.Config.ARGB_8888)
