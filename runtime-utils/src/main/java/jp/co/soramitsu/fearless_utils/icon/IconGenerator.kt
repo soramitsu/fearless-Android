@@ -45,6 +45,7 @@ class IconGenerator {
         private const val MAIN_RADIUS = 32.0
         private const val RADIUS = 20
         private const val SQUARE_SIDE_SIZE = 32.0
+        private const val ETHEREUM_LAYOUT_BYTES = 32
     }
 
     fun getSvgImage(
@@ -190,14 +191,20 @@ class IconGenerator {
         throw RuntimeException()
     }
 
+    /**
+     * Draws the square identicon for [id], which may have any length: a 20-byte EVM account id, a 32-byte
+     * key, address text or a short seed. The squares read bytes 0-7 and byte 31, so a shorter id is read as
+     * if zero-padded to 32 bytes; an id of 32 bytes or more draws exactly as it always has.
+     */
     fun generateEthereumAddressIcon(
         id: ByteArray,
         sizeInPixels: Int,
         backgroundColor: Int = "eeeeee".toInt(radix = 16)
     ): PictureDrawable {
+        val layoutBytes = if (id.size >= ETHEREUM_LAYOUT_BYTES) id else id.copyOf(ETHEREUM_LAYOUT_BYTES)
         val colors = getEthereumColors(id)
-        val rotation = generateSquaresRotation(id)
-        val squares = generateSquares(id, colors, rotation)
+        val rotation = generateSquaresRotation(layoutBytes)
+        val squares = generateSquares(layoutBytes, colors, rotation)
 
         val stringBuilder = java.lang.StringBuilder()
         stringBuilder.append("<svg ")
