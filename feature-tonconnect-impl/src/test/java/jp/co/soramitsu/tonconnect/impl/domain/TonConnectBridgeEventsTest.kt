@@ -5,6 +5,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.common.data.Keypair
@@ -25,7 +26,14 @@ import jp.co.soramitsu.tonconnect.api.model.ConnectRequest
 import jp.co.soramitsu.tonconnect.api.model.JsonBuilder
 import jp.co.soramitsu.tonconnect.api.model.TonDappConnection
 import jp.co.soramitsu.tonconnect.impl.data.TonConnectBridgeEventLedger
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -78,6 +86,7 @@ class TonConnectBridgeEventsTest {
     }
     private val chains = mockk<ChainsRepository> {
         coEvery { getChain(tonMainnetChainId) } returns chain
+        every { chainsByIdFlow() } returns flowOf(mapOf(tonMainnetChainId to chain))
     }
     private val connection = TonDappConnection(TonConnectionLocal(7, clientId, "Bird Swap", "", "https://dapp.example", ConnectionSource.QR))
     private val repository = mockk<TonConnectRepository>(relaxed = true) {
@@ -146,13 +155,104 @@ class TonConnectBridgeEventsTest {
     }
 
     @Test
-    fun aNetworkWithoutABridgeCannotStream(): Unit = runBlocking {
+    fun aNetworkWithoutABridgeOpensNoStreamAndDoesNotFail(): Unit = runBlocking {
         every { chain.tonBridgeUrl } returns null
 
-        val failure = runCatching { withTimeout(10_000) { interactor.eventsFlow().toList() } }.exceptionOrNull()
+        val events = withTimeout(10_000) { interactor.eventsFlow().toList() }
 
-        assertTrue(failure is IllegalStateException)
-        assertEquals("Chain TON doesn't support Ton Connect", failure!!.message)
+        assertTrue(events.isEmpty())
+        assertTrue(streamRequests.isEmpty())
+    }
+
+    @Test
+    fun aCatalogWithoutTonWaitsWithoutTheStrictLookupAndSubscribesWhenTonArrives(): Unit = runBlocking {
+        // 4.3.7 crashed here: the strict 60-second getChain threw while the catalog had no TON.
+        val catalog = MutableStateFlow<Map<String, Chain>>(emptyMap())
+        val sawEmptyCatalog = CompletableDeferred<Unit>()
+        every { chains.chainsByIdFlow() } returns catalog.onEach { if (it.isEmpty()) sawEmptyCatalog.complete(Unit) }
+        streams += event(1, request(5))
+
+        val delivered = async(Dispatchers.Default) { withTimeout(20_000) { interactor.eventsFlow().first() } }
+        withTimeout(10_000) { sawEmptyCatalog.await() }
+        assertTrue(streamRequests.isEmpty())
+        // No stored session key is read while TON has no bridge address.
+        verify(exactly = 0) { repository.observeConnections(any(), any()) }
+        coVerify(exactly = 0) { repository.getConnectionKeypair(any()) }
+        catalog.value = mapOf(tonMainnetChainId to chain)
+
+        assertEquals(5L, delivered.await().requestId)
+        coVerify(exactly = 0) { chains.getChain(any()) }
+    }
+
+    @Test
+    fun aBlankBridgeAddressOpensNoStreamAndReadsNoSessionKey(): Unit = runBlocking {
+        every { chain.tonBridgeUrl } returns "  "
+
+        val events = withTimeout(10_000) { interactor.eventsFlow().toList() }
+
+        assertTrue(events.isEmpty())
+        assertTrue(streamRequests.isEmpty())
+        verify(exactly = 0) { repository.observeConnections(any(), any()) }
+        coVerify(exactly = 0) { repository.getConnectionKeypair(any()) }
+    }
+
+    @Test
+    fun oneWalletsUnreadableSessionKeyDoesNotStopTheBridgeForTheNextWallet(): Unit = runBlocking {
+        val firstFailed = CompletableDeferred<Unit>()
+        val other = mockk<MetaAccount> {
+            every { id } returns 8L
+            every { tonPublicKey } returns walletPublicKey
+        }
+        val otherConnection = TonDappConnection(
+            TonConnectionLocal(8, clientId, "Bird Swap", "", "https://dapp.example", ConnectionSource.QR)
+        )
+        every { accounts.selectedMetaAccountFlow() } returns flow {
+            emit(wallet)
+            firstFailed.await()
+            emit(other)
+        }
+        every { repository.observeConnections(7, ConnectionSource.QR) } returns flow {
+            firstFailed.complete(Unit)
+            error("key")
+        }
+        every { repository.observeConnections(8, ConnectionSource.QR) } returns flowOf(listOf(otherConnection))
+        coEvery { repository.getConnectionKeypair(otherConnection.identity()) } returns Keypair(sessionPublic, sessionPrivate)
+        streams += event(1, request(5))
+
+        val delivered = withTimeout(20_000) { interactor.eventsFlow().first() }
+
+        assertEquals(5L, delivered.requestId)
+        assertEquals(otherConnection, delivered.connection)
+    }
+
+    @Test
+    fun aConnectionSourceThatFailsBeforeEmittingStopsOnlyTheBridge(): Unit = runBlocking {
+        // The repository verifies stored session keys before its first emission and can throw there.
+        every { repository.observeConnections(7, ConnectionSource.QR) } returns flow { throw IllegalStateException("key") }
+
+        val events = withTimeout(10_000) { interactor.eventsFlow().toList() }
+
+        assertTrue(events.isEmpty())
+        assertTrue(streamRequests.isEmpty())
+    }
+
+    @Test
+    fun aCatalogFailureStopsOnlyTheBridge(): Unit = runBlocking {
+        every { chains.chainsByIdFlow() } returns flow { throw IllegalStateException("database") }
+
+        val events = withTimeout(10_000) { interactor.eventsFlow().toList() }
+
+        assertTrue(events.isEmpty())
+    }
+
+    @Test
+    fun aFailingSessionKeyReadStopsTheBridgeWithoutFailingTheCollector(): Unit = runBlocking {
+        coEvery { repository.getConnectionKeypair(connection.identity()) } throws IllegalStateException("keystore")
+
+        val events = withTimeout(10_000) { interactor.eventsFlow().toList() }
+
+        assertTrue(events.isEmpty())
+        assertTrue(streamRequests.isEmpty())
     }
 
     @Test

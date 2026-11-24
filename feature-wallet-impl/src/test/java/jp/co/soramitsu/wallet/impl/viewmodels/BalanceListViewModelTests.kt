@@ -442,6 +442,42 @@ class BalanceListViewModelTests {
         assertEquals("network disabled", inactive.errorMessage)
     }
 
+    @Test
+    fun `a TON-only wallet opens its home with an empty asset catalog`() = runTest {
+        // 4.3.7 threw NoSuchElementException from the TON placeholder when the catalog had no assets yet.
+        val walletId = 21L
+        val tonOnly = LightMetaAccount(
+            id = walletId,
+            substratePublicKey = null,
+            substrateCryptoType = null,
+            substrateAccountId = null,
+            ethereumAddress = null,
+            ethereumPublicKey = null,
+            tonPublicKey = ByteArray(32) { 1 },
+            isSelected = true,
+            name = "TON",
+            isBackedUp = true,
+            initialized = true,
+        )
+        val metaAccount = createMetaAccount(walletId)
+        coEvery { chainInteractor.getChainAssets() } returns emptyList()
+        every { walletInteractor.assetsFlowAndAccount() } returns flowOf(walletId to emptyList())
+        every { walletInteractor.selectedMetaAccountFlow() } returns flowOf(metaAccount)
+        coEvery { walletInteractor.getSelectedMetaAccount() } returns metaAccount
+        every { walletInteractor.selectedLightMetaAccountFlow() } returns flowOf(tonOnly)
+        every { accountInteractor.selectedLightMetaAccountFlow() } returns flowOf(tonOnly)
+        coEvery { accountInteractor.selectedLightMetaAccount() } returns tonOnly
+        coEvery { accountInteractor.lightMetaAccountsFlow() } returns flowOf(listOf(tonOnly))
+        coEvery { walletInteractor.getSavedChainId(walletId) } returns null
+        coEvery { addressIconGenerator.createWalletIcon(any(), any()) } returns picture
+
+        val viewModel = createViewModel(networkScanStateStore)
+        advanceUntilIdle()
+
+        val assets = (viewModel.state.value.assetsState as WalletAssetsState.Assets).assets
+        assertTrue("assets: $assets", assets is AssetsLoadingState.Loaded)
+    }
+
     @OptIn(ExperimentalMaterialApi::class)
     @Test
     fun `swipe send on a vetoed bitcoin row shows the paused sheet instead of the send flow`() = runTest {

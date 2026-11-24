@@ -808,12 +808,15 @@ class BalanceListViewModel @Inject constructor(
 
             val shimmers = when {
                 currentMetaAccount.supportedEcosystems() == setOf(WalletEcosystem.Ton) -> {
-                    val tonAsset = assets.firstOrNull { it.chainId == tonMainnetChainId || it.chainName.contains("ton", true) || it.name?.contains("ton", true) == true} ?: assets.first()
-                    listOf(
-                        AssetListItemShimmerViewState(
-                            assetIconUrl = tonAsset.iconUrl,
-                            assetChainUrls = listOf(tonAsset.chainIcon ?: tonAsset.iconUrl)
-                        )
+                    // An empty catalog (first start offline) shows no placeholder rather than failing the home screen.
+                    val tonAsset = assets.firstOrNull { it.chainId == tonMainnetChainId || it.chainName.contains("ton", true) || it.name?.contains("ton", true) == true} ?: assets.firstOrNull()
+                    listOfNotNull(
+                        tonAsset?.let {
+                            AssetListItemShimmerViewState(
+                                assetIconUrl = it.iconUrl,
+                                assetChainUrls = listOf(it.chainIcon ?: it.iconUrl)
+                            )
+                        }
                     )
                 }
                 else -> {
