@@ -27,11 +27,11 @@ class CollectionsMappingAdapterTest {
         every { id } returns "1"
         every { name } returns "Ethereum"
     }
-    private val chains = mockk<ChainsRepository> { coEvery { getChain("1") } returns chain }
+    private val chains = mockk<ChainsRepository> { coEvery { getChainsById() } returns mapOf("1" to chain) }
     private val adapter = CollectionsMappingAdapter(chains)
 
     @Test
-    fun contractsRetainCollectionMetadataAndReuseChainLookupWithinSubscription(): Unit = runBlocking {
+    fun contractsRetainCollectionMetadataAndReadOneCatalogSnapshotPerBatch(): Unit = runBlocking {
         val contract = ContractInfo("contract", 2, 2, false, null, null, "Birds", "NFT", 20, "ERC721", null, null, null, null)
         val response = page(Result.success(NFTResponse.UserOwnedContracts(sequenceOf(contract), "next")))
         val result = withTimeout(10_000) { adapter { flowOf(listOf(response), listOf(response)) }.map { it.toList() }.toList() }
@@ -43,9 +43,9 @@ class CollectionsMappingAdapterTest {
         assertEquals(20, collection.collectionSize)
         assertEquals("1", collection.chainId)
         assertEquals("Ethereum", collection.chainName)
-        coVerify(exactly = 1) { chains.getChain("1") }
-        withTimeout(10_000) { adapter { flowOf(listOf(response)) }.first() }
-        coVerify(exactly = 2) { chains.getChain("1") }
+        coVerify(exactly = 2) { chains.getChainsById() }
+        withTimeout(10_000) { adapter { flowOf(emptyList()) }.first() }
+        coVerify(exactly = 2) { chains.getChainsById() }
     }
 
     @Test
@@ -64,6 +64,30 @@ class CollectionsMappingAdapterTest {
         assertSame(failure, (result as NFTCollection.Loaded.WithFailure).throwable)
         assertEquals("1", result.chainId)
         assertTrue(withTimeout(10_000) { adapter { flowOf(emptyList()) }.first().none() })
+    }
+
+    @Test
+    fun aPageForAChainNoLongerInTheCatalogIsDroppedWithoutTheStrictLookup(): Unit = runBlocking {
+        coEvery { chains.getChainsById() } returns emptyMap()
+        val contract = ContractInfo("contract", 2, 2, false, null, null, "Birds", "NFT", 20, "ERC721", null, null, null, null)
+        val response = page(Result.success(NFTResponse.UserOwnedContracts(sequenceOf(contract), null)))
+        val failedResponse = page(Result.failure(IllegalStateException("offline")))
+
+        val result = withTimeout(10_000) { adapter { flowOf(listOf(response, failedResponse)) }.first().toList() }
+
+        assertTrue(result.isEmpty())
+        coVerify(exactly = 0) { chains.getChain(any()) }
+    }
+
+    @Test
+    fun aChainRemovedBetweenBatchesIsNotShownFromAnEarlierSnapshot(): Unit = runBlocking {
+        coEvery { chains.getChainsById() } returnsMany listOf(mapOf("1" to chain), emptyMap())
+        val response = page(Result.success(NFTResponse.UserOwnedContracts(emptySequence(), null)))
+
+        val result = withTimeout(10_000) { adapter { flowOf(listOf(response), listOf(response)) }.map { it.toList() }.toList() }
+
+        assertEquals(1, result[0].size)
+        assertTrue(result[1].isEmpty())
     }
 
     private fun page(result: Result<PageBackStack.PageResult<ContractInfo>>) =

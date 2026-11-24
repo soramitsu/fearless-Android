@@ -1,6 +1,7 @@
 package jp.co.soramitsu.tonconnect.impl.domain
 
 import android.util.Base64
+import android.util.Log
 import io.ktor.util.encodeBase64
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.common.data.Keypair
@@ -51,9 +52,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -266,37 +271,65 @@ class TonConnectInteractorImpl(
         )
     }
 
+    /**
+     * Requests from QR-connected dApps. The bridge is optional: it starts only while the local catalog has TON
+     * with a bridge address, and nothing in it may stop the app. 4.3.0-4.3.7 looked TON up with the strict
+     * 60-second [getChain] here and crashed the app at start when the catalog had no TON yet.
+     */
     override fun eventsFlow(): Flow<BridgeEvent> {
         return accountRepository.selectedMetaAccountFlow()
-            .flatMapLatest { metaAccount ->
-                tonConnectRepository.observeConnections(
-                    metaId = metaAccount.id,
-                    source = ConnectionSource.QR
-                )
+            .map { metaAccount -> metaAccount.id }
+            .distinctUntilChanged()
+            .flatMapLatest { metaId ->
+                // Per wallet: a switch never subscribes the previous wallet's connections, and one wallet's
+                // unreadable session key leaves the bridge working for the next selected wallet. Stored keys are
+                // read only once TON has a bridge address; an unrelated catalog update does not reopen the stream.
+                tonBridgeUrlFlow()
+                    .flatMapLatest { bridgeUrl ->
+                        if (bridgeUrl == null) {
+                            emptyFlow()
+                        } else {
+                            tonConnectRepository.observeConnections(metaId = metaId, source = ConnectionSource.QR)
+                                .flatMapLatest { connections -> bridgeEvents(connections, bridgeUrl) }
+                        }
+                    }
+                    .catch { failure -> stopBridge(failure) }
             }
-            .flatMapLatest { connections -> bridgeEvents(connections) }
+            .catch { failure -> stopBridge(failure) }
             .flowOn(Dispatchers.Default)
     }
 
-    private suspend fun bridgeEvents(connections: List<TonDappConnection>): Flow<BridgeEvent> {
-        val subscribed = connections.mapNotNull { connection ->
-            tonConnectRepository.getConnectionKeypair(connection.identity())?.let { keypair ->
-                connection to keypair.publicKey.toHexString(false)
-            }
-        }
-        if (subscribed.isEmpty()) {
-            return emptyFlow()
-        }
-        val chain = getChain()
-        val bridgeUrl = chain.tonBridgeUrl ?: error("Chain ${chain.name} doesn't support Ton Connect")
-        val url = "$bridgeUrl/events?client_id=${subscribed.joinToString(",") { it.second }}"
-        val subscribedConnections = subscribed.map { it.first }
-        val clientIds = subscribedConnections.map { it.clientId }
+    // TON's bridge address in the local catalog, or null while TON is missing there or has no usable bridge.
+    private fun tonBridgeUrlFlow(): Flow<String?> = chainsRepository.chainsByIdFlow()
+        .map { chains -> chains[tonMainnetChainId]?.tonBridgeUrl?.takeIf { it.isNotBlank() } }
+        .distinctUntilChanged()
 
-        // Every (re)connect resumes after the last recorded event instead of replaying the queue.
-        return tonSseClient.sse(url) { bridgeEventLedger.resumeEventId(bridgeUrl, clientIds) }
-            .filter { it.type == "message" }
-            .mapNotNull { event -> admitBridgeEvent(bridgeUrl, event, subscribedConnections) }
+    // A failed bridge stops without failing its collector; cancellation still propagates.
+    private fun stopBridge(failure: Throwable) {
+        if (failure is CancellationException) throw failure
+        Log.w(LOG_TAG, "TON Connect bridge stopped: ${failure.javaClass.simpleName}")
+    }
+
+    private fun bridgeEvents(connections: List<TonDappConnection>, bridgeUrl: String): Flow<BridgeEvent> {
+        if (connections.isEmpty()) return emptyFlow()
+        return flow {
+            val subscribed = connections.mapNotNull { connection ->
+                tonConnectRepository.getConnectionKeypair(connection.identity())?.let { keypair ->
+                    connection to keypair.publicKey.toHexString(false)
+                }
+            }
+            if (subscribed.isEmpty()) return@flow
+            val url = "$bridgeUrl/events?client_id=${subscribed.joinToString(",") { it.second }}"
+            val subscribedConnections = subscribed.map { it.first }
+            val clientIds = subscribedConnections.map { it.clientId }
+
+            // Every (re)connect resumes after the last recorded event instead of replaying the queue.
+            emitAll(
+                tonSseClient.sse(url) { bridgeEventLedger.resumeEventId(bridgeUrl, clientIds) }
+                    .filter { it.type == "message" }
+                    .mapNotNull { event -> admitBridgeEvent(bridgeUrl, event, subscribedConnections) }
+            )
+        }.catch { failure -> stopBridge(failure) } // until the connections or the bridge address change
     }
 
     // A bridge event becomes a request for the wallet at most once per connection: events at
@@ -533,5 +566,6 @@ class TonConnectInteractorImpl(
         const val CONNECT_ERROR_EVENT = "connect_error"
         const val TON_ADDRESS_ITEM = "ton_addr"
         const val MILLIS_PER_SECOND = 1_000L
+        const val LOG_TAG = "TonConnect"
     }
 }
