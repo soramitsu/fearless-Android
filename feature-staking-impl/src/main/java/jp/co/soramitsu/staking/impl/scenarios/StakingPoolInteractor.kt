@@ -268,7 +268,8 @@ class StakingPoolInteractor(
                 val map = identities.mapNotNull {
                     chain.accountFromMapKey(it.key) to it.value?.display
                 }.toMap()
-                map[address]
+                // Identities are keyed by hex account id, never by the SS58 address.
+                map[accountId.toHexString(false)]
             }
         }
     }

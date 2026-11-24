@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.rewardDestination.confirm
 
+import jp.co.soramitsu.staking.impl.presentation.common.StakingSeal
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -162,7 +163,7 @@ class ConfirmRewardDestinationViewModel @Inject constructor(
         stashState: StakingState.Stash,
         rewardDestination: RewardDestination
     ) = launch {
-        val setupResult = rewardDestinationInteractor.changeRewardDestination(stashState, rewardDestination)
+        val setupResult = StakingSeal.submit { rewardDestinationInteractor.changeRewardDestination(stashState, rewardDestination) }
 
         _showNextProgress.value = false
 

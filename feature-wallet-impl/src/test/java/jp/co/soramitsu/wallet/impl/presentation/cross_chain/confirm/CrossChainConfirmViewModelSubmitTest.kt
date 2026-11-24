@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm
 
+import jp.co.soramitsu.common.feedback.TransferSeal
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.SavedStateHandle
 import io.mockk.coEvery
@@ -63,6 +64,9 @@ class CrossChainConfirmViewModelSubmitTest {
     @get:Rule
     val mainCoroutineRule = MainCoroutineRule()
 
+    @org.junit.After
+    fun clearSeal() = TransferSeal.clear()
+
     private class Harness(
         val viewModel: CrossChainConfirmViewModel,
         val validations: AtomicInteger,
@@ -99,6 +103,76 @@ class CrossChainConfirmViewModelSubmitTest {
 
         verify { harness.router.finishSendFlow() }
         assertEquals(0, harness.validations.get())
+        assertEquals(0, harness.submissions.get())
+    }
+
+    @Test
+    fun `a screen restored after the included record was released still shows the transfer as sent`() = runTest {
+        // The first restore checked the status (Included: the unsettled record was released), then the process died
+        // again before Done. Only the included record is left.
+        val dismissed = AtomicInteger()
+        val harness = harness(submissionResult = Result.success("0xabc"), included = { THIS_TRANSFER }, onDismiss = { dismissed.incrementAndGet() })
+        settle(harness) {
+            harness.viewModel.state.value.pendingMessage == text(R.string.cross_chain_pending_included) &&
+                harness.viewModel.state.value.buttonState.text == text(R.string.common_done)
+        }
+        assertEquals(true, harness.viewModel.state.value.sendAgainVisible)
+
+        harness.viewModel.onNextClick()
+        settle(harness) { dismissed.get() == 1 }
+        advanceUntilIdle()
+
+        verify { harness.router.finishSendFlow() }
+        assertEquals(0, harness.validations.get())
+        assertEquals(0, harness.submissions.get())
+    }
+
+    @Test
+    fun `sending an included transfer again takes the explicit choice`() = runTest {
+        val dismissed = AtomicInteger()
+        val harness = harness(submissionResult = Result.success("0xabc"), included = { THIS_TRANSFER }, onDismiss = { dismissed.incrementAndGet() })
+        settle(harness) { harness.viewModel.state.value.sendAgainVisible }
+
+        harness.viewModel.onSendAgainClick()
+        settle(harness) { harness.submissions.get() >= 1 }
+
+        assertEquals(1, dismissed.get())
+        assertEquals(1, harness.validations.get())
+        assertEquals(1, harness.submissions.get())
+    }
+
+    @Test
+    fun `an included record of another draft does not hold this one back`() = runTest {
+        val other = THIS_TRANSFER.copy(details = THIS_TRANSFER.details.copy(amountInPlanks = BigInteger.TEN))
+        val harness = harness(submissionResult = Result.success("0xabc"), included = { other })
+        settle(harness) { harness.viewModel.state.value.buttonState.text == text(R.string.common_confirm) }
+        assertEquals(null, harness.viewModel.state.value.pendingMessage)
+        assertEquals(false, harness.viewModel.state.value.sendAgainVisible)
+
+        harness.viewModel.onNextClick()
+        settle(harness) { harness.submissions.get() >= 1 }
+
+        assertEquals(1, harness.submissions.get())
+    }
+
+    @Test
+    fun `a status check that finds the record settled elsewhere shows the inclusion recorded there`() = runTest {
+        var kept: CrossChainSubmissionJournal.Submission? = THIS_TRANSFER
+        val harness = harness(
+            submissionResult = Result.success("0xabc"),
+            pending = { kept },
+            outcome = {
+                kept = null
+                CrossChainSubmissionReconciler.Outcome.Settled
+            },
+            included = { if (kept == null) THIS_TRANSFER else null }
+        )
+
+        settle(harness) {
+            harness.viewModel.state.value.pendingMessage == text(R.string.cross_chain_pending_included) &&
+                harness.viewModel.state.value.buttonState.text == text(R.string.common_done)
+        }
+
         assertEquals(0, harness.submissions.get())
     }
 
@@ -220,6 +294,55 @@ class CrossChainConfirmViewModelSubmitTest {
         assertEquals(0, harness.submissions.get())
     }
 
+    // The seal (brand kit SPEC v4 part 3): which real event of a cross-chain transfer lights which stage.
+
+    @Test
+    fun `the seal lights ready at submission and the rest together with the hash, before the success screen`() = runTest {
+        var readyAtSubmit: TransferSeal.Stage? = null
+        val harness = harness(submissionResult = Result.success("0xabc"), onSubmit = { readyAtSubmit = TransferSeal.record.value.stage })
+        harness.viewModel.onNextClick()
+        settle(harness) { TransferSeal.record.value.stage == TransferSeal.Stage.Accepted }
+        assertEquals(TransferSeal.Stage.Ready, readyAtSubmit)
+        val record = TransferSeal.record.value
+        assertEquals(record.acceptedAtMs, record.signedAtMs)
+        assertEquals(record.acceptedAtMs, record.sentAtMs)
+        settle(harness) { runCatching { verify { harness.router.openOperationSuccess("0xabc", "origin") } }.isSuccess }
+    }
+
+    @Test
+    fun `a failure with nothing retained breaks the seal beside the error`() = runTest {
+        val harness = harness(submissionResult = Result.failure(IllegalStateException("socket closed")))
+        harness.viewModel.onNextClick()
+        settle(harness) { TransferSeal.record.value.stage == TransferSeal.Stage.Failed }
+    }
+
+    @Test
+    fun `an ambiguous failure clears the seal instead of breaking it`() = runTest {
+        var kept: CrossChainSubmissionJournal.Submission? = null
+        val harness = harness(
+            submissionResult = Result.failure(IllegalStateException("socket closed")),
+            pending = { kept },
+            outcome = { CrossChainSubmissionReconciler.Outcome.Unsettled(THIS_TRANSFER, BigInteger.valueOf(1_065)) },
+            onSubmit = { kept = THIS_TRANSFER }
+        )
+        harness.viewModel.onNextClick()
+        settle(harness) { harness.viewModel.state.value.pendingMessage == text(R.string.cross_chain_pending_message) }
+        assertEquals(TransferSeal.Stage.Idle, TransferSeal.record.value.stage)
+    }
+
+    @Test
+    fun `a validation that stops the transfer lights nothing`() = runTest {
+        val harness = harness(
+            submissionResult = Result.success("0xabc"),
+            validationResult = Result.failure(IllegalStateException("destination runtime unavailable"))
+        )
+        harness.viewModel.onNextClick()
+        settle(harness) { harness.validations.get() >= 1 }
+        Thread.sleep(100)
+        advanceUntilIdle()
+        assertEquals(TransferSeal.Stage.Idle, TransferSeal.record.value.stage)
+    }
+
     /** Submission hops to a real thread (Dispatchers.Default); the validation delay is virtual. */
     private fun TestScope.settle(harness: Harness, done: () -> Boolean) {
         repeat(200) {
@@ -238,6 +361,8 @@ class CrossChainConfirmViewModelSubmitTest {
         selectedWalletId: Long = 1L,
         pending: () -> CrossChainSubmissionJournal.Submission? = { null },
         outcome: () -> CrossChainSubmissionReconciler.Outcome = { CrossChainSubmissionReconciler.Outcome.Settled },
+        included: () -> CrossChainSubmissionJournal.Submission? = { null },
+        onDismiss: () -> Unit = {},
         onSubmit: () -> Unit = {},
         destinationFeeIncluded: Boolean = false
     ): Harness {
@@ -272,6 +397,8 @@ class CrossChainConfirmViewModelSubmitTest {
         every { submissions.scope(1L, origin, any()) } returns SCOPE
         coEvery { submissions.pending(SCOPE) } answers { pending() }
         coEvery { submissions.check(SCOPE, any()) } answers { outcome() }
+        coEvery { submissions.included(SCOPE) } answers { included() }
+        coEvery { submissions.dismissIncluded(any()) } answers { onDismiss() }
 
         val submissionCount = AtomicInteger()
         val xcm = mockk<XcmInteractor>()

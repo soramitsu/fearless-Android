@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_title">Appearance</string>
+    <string name="appearance_effects_title">Visual effects</string>
+    <string name="appearance_effects_automatic">Automatic</string>
+    <string name="appearance_effects_reduced">Reduced</string>
+    <string name="appearance_effects_automatic_description">Full light and shadows, unless your device asks for more contrast.</string>
+    <string name="appearance_effects_reduced_description">Solid, flat surfaces with no glow or shadows.</string>
+    <string name="appearance_effects_kept_reduced">Your device\'s contrast setting keeps effects reduced.</string>
+    <string name="appearance_contrast_title">Increase contrast</string>
+    <string name="appearance_contrast_description">Brighter text and solid outlines. Effects stay reduced while this is on.</string>
+    <string name="appearance_preview_title">Preview</string>
+    <string name="appearance_save_failed">This choice could not be saved.</string>
+</resources>

@@ -11,7 +11,7 @@ open class MakePayoutPayload(
     val token: Token,
     val payoutStakersCalls: List<PayoutStakersPayload>
 ) {
-    data class PayoutStakersPayload(val era: BigInteger, val validatorAddress: String)
+    data class PayoutStakersPayload(val era: BigInteger, val validatorAddress: String, val page: BigInteger? = null)
 }
 
 class SoraPayoutsPayload(

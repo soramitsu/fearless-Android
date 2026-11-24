@@ -31,8 +31,8 @@ import jp.co.soramitsu.feature_wallet_impl.R
 
 data class OptionsWalletScreenViewState(
     val isSelected: Boolean,
-    val showScoreButton: Boolean,
-    val showDetailsButton: Boolean
+    val showDetailsButton: Boolean,
+    val showOldAddressesButton: Boolean = false
 )
 
 interface OptionsWalletCallback {
@@ -47,7 +47,8 @@ interface OptionsWalletCallback {
 
     fun onCloseClick()
 
-    fun onShowWalletScoreClick()
+    /** Reopens the notice about addresses the recovery words alone open. */
+    fun onOldAddressesClick() = Unit
 }
 
 @Composable
@@ -102,14 +103,14 @@ fun OptionsWalletContent(
                 text = stringResource(id = R.string.change_wallet_name),
                 onClick = callback::onChangeWalletNameClick
             )
-            if (state.showScoreButton) {
+            if (state.showOldAddressesButton) {
                 MarginVertical(margin = 12.dp)
                 GrayButton(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 48.dp),
-                    text = stringResource(id = R.string.account_stats_wallet_option_title),
-                    onClick = callback::onShowWalletScoreClick
+                    text = stringResource(id = R.string.universal_password_notice_options),
+                    onClick = callback::onOldAddressesClick
                 )
             }
             if (!state.isSelected) {
@@ -135,7 +136,6 @@ private fun OptionsWalletScreenPreview() {
         OptionsWalletContent(
             state = OptionsWalletScreenViewState(
                 isSelected = false,
-                showScoreButton = true,
                 showDetailsButton = true
             ),
             callback = object : OptionsWalletCallback {
@@ -144,7 +144,6 @@ private fun OptionsWalletScreenPreview() {
                 override fun onBackupWalletClick() {}
                 override fun onDeleteWalletClick() {}
                 override fun onCloseClick() {}
-                override fun onShowWalletScoreClick() {}
             }
         )
     }

@@ -3,6 +3,7 @@ package jp.co.soramitsu.staking.impl.presentation.staking.balance.view
 import android.content.Context
 import android.util.AttributeSet
 import androidx.constraintlayout.widget.ConstraintLayout
+import jp.co.soramitsu.staking.impl.presentation.common.stakingCard
 import jp.co.soramitsu.common.view.shape.getCutCornerDrawable
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.feature_staking_impl.databinding.ViewStakingBalanceBinding
@@ -28,6 +29,6 @@ class StakingBalanceView @JvmOverloads constructor(
         inflate(context, R.layout.view_staking_balance, this)
         binding = ViewStakingBalanceBinding.bind(this)
 
-        background = context.getCutCornerDrawable(fillColorRes = R.color.blurColor)
+        stakingCard { context.getCutCornerDrawable(fillColorRes = R.color.blurColor) }
     }
 }

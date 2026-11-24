@@ -11,20 +11,19 @@ cd "$(dirname "$0")/.."
 
 mode="${RELEASE_OVERLAY_MODE:-}"
 case "$mode" in
-  firebase|signing) ;;
-  *) fail "RELEASE_OVERLAY_MODE must be exactly firebase or signing." ;;
+  signing) ;;
+  firebase)
+    fail "RELEASE_OVERLAY_MODE=firebase was removed: the app carries no Firebase or Google Services configuration."
+    ;;
+  *) fail "RELEASE_OVERLAY_MODE must be exactly signing." ;;
 esac
 
 overlay_dir="${RELEASE_OVERLAY_DIR:-${RUNNER_TEMP:-$PWD/.release-overlays}}"
-release_google_services="${GOOGLE_SERVICES_RELEASE_PATH:-app/src/release/google-services.json}"
 release_keystore="$overlay_dir/fearless-upload.jks"
-release_backup="$overlay_dir/release-google-services.backup"
-release_sentinel="$overlay_dir/.release-overlay-active"
 signing_sentinel="$overlay_dir/.signing-overlay-active"
 secret_temporary_dir="$overlay_dir/secret-temporary"
 test_checkpoint_marker="$overlay_dir/.overlay-test-checkpoint"
 temporary_files=()
-owns_firebase_transaction=false
 owns_signing_transaction=false
 
 require_env() {
@@ -34,28 +33,6 @@ require_env() {
 
 file_size() {
   wc -c < "$1" | tr -d '[:space:]'
-}
-
-file_sha256() {
-  if command -v sha256sum >/dev/null 2>&1; then
-    sha256sum "$1" | awk '{print $1}'
-  elif command -v shasum >/dev/null 2>&1; then
-    shasum -a 256 "$1" | awk '{print $1}'
-  else
-    fail "sha256sum or shasum is required to validate release backups."
-  fi
-}
-
-file_mode() {
-  local mode
-
-  if mode="$(stat -c '%a' "$1" 2>/dev/null)"; then
-    printf '%s\n' "$mode"
-  elif mode="$(stat -f '%Lp' "$1" 2>/dev/null)"; then
-    printf '%s\n' "$mode"
-  else
-    fail "Unable to inspect release backup permissions."
-  fi
 }
 
 assert_no_symlink_components() {
@@ -73,21 +50,6 @@ assert_no_symlink_components() {
     [[ ! -L "$current" ]] || fail "Overlay paths must not traverse symlinks."
     current="$(dirname "$current")"
   done
-}
-
-prepare_parent() {
-  local file_path="$1"
-  local parent
-
-  parent="$(dirname "$file_path")"
-  assert_no_symlink_components "$parent"
-  mkdir -p "$parent"
-  assert_no_symlink_components "$parent"
-  [[ -d "$parent" ]] || fail "Overlay parent must be a directory."
-  if [[ -e "$file_path" || -L "$file_path" ]]; then
-    [[ -f "$file_path" && ! -L "$file_path" ]] ||
-      fail "Overlay destination must be a regular file."
-  fi
 }
 
 cleanup_temporary_files() {
@@ -112,16 +74,6 @@ cleanup_temporary_files() {
   fi
 }
 
-rollback_firebase() {
-  if [[ -e "$release_backup" || -L "$release_backup" ]]; then
-    [[ -f "$release_backup" && ! -L "$release_backup" ]] ||
-      fail "Release Firebase backup is unsafe."
-    prepare_parent "$release_google_services"
-    mv -f "$release_backup" "$release_google_services"
-  fi
-  rm -f "$release_sentinel"
-}
-
 rollback_signing() {
   rm -f "$release_keystore" "$signing_sentinel"
 }
@@ -130,7 +82,6 @@ on_exit() {
   local status="$?"
   trap - EXIT HUP INT TERM
   if (( status != 0 )); then
-    [[ "$owns_firebase_transaction" == "false" ]] || rollback_firebase
     [[ "$owns_signing_transaction" == "false" ]] || rollback_signing
   fi
   cleanup_temporary_files
@@ -151,86 +102,6 @@ test_checkpoint() {
   while true; do
     sleep 1
   done
-}
-
-create_release_backup() {
-  local source="$1"
-  local destination="$2"
-  local source_size_before
-  local source_size_after
-  local source_sha_before
-  local source_sha_after
-  local backup_size
-  local backup_sha
-  local backup_mode
-  local partial_bytes
-  local temporary
-
-  source_size_before="$(file_size "$source")"
-  [[ "$source_size_before" =~ ^[1-9][0-9]*$ ]] ||
-    fail "The checked-in release Firebase placeholder is empty."
-  source_sha_before="$(file_sha256 "$source")"
-
-  temporary="$(mktemp "$overlay_dir/.release-google-services.backup.tmp.XXXXXX")"
-  temporary_files+=("$temporary")
-  chmod 600 "$temporary"
-
-  if [[ "${RELEASE_OVERLAY_TEST_CHECKPOINT:-}" == "during-release-backup-copy" ]]; then
-    [[ "${RELEASE_OVERLAY_TEST_MODE:-}" == "true" && "${CI:-}" == "true" ]] ||
-      fail "Release-overlay test checkpoints are restricted to explicit CI tests."
-    partial_bytes=$((source_size_before / 2))
-    (( partial_bytes > 0 )) || partial_bytes=1
-    dd if="$source" of="$temporary" bs=1 count="$partial_bytes" \
-      2>/dev/null ||
-      fail "Unable to construct the release Firebase backup fixture."
-    chmod 600 "$temporary"
-    test_checkpoint during-release-backup-copy
-  fi
-
-  cp "$source" "$temporary" ||
-    fail "Unable to copy the release Firebase placeholder to a temporary backup."
-  chmod 600 "$temporary"
-  test_checkpoint after-release-backup-copy
-
-  case "${RELEASE_OVERLAY_TEST_BACKUP_MUTATION:-}" in
-    "")
-      ;;
-    content)
-      [[ "${RELEASE_OVERLAY_TEST_MODE:-}" == "true" && "${CI:-}" == "true" ]] ||
-        fail "Release-overlay test mutations are restricted to explicit CI tests."
-      printf 'X' | dd of="$temporary" bs=1 seek=0 count=1 conv=notrunc \
-        2>/dev/null
-      ;;
-    permissions)
-      [[ "${RELEASE_OVERLAY_TEST_MODE:-}" == "true" && "${CI:-}" == "true" ]] ||
-        fail "Release-overlay test mutations are restricted to explicit CI tests."
-      chmod 640 "$temporary"
-      ;;
-    *)
-      fail "Unsupported release-overlay test backup mutation."
-      ;;
-  esac
-
-  source_size_after="$(file_size "$source")"
-  source_sha_after="$(file_sha256 "$source")"
-  backup_size="$(file_size "$temporary")"
-  backup_sha="$(file_sha256 "$temporary")"
-  backup_mode="$(file_mode "$temporary")"
-
-  [[ "$source_size_before" == "$source_size_after" &&
-    "$source_size_before" == "$backup_size" ]] ||
-    fail "Release Firebase placeholder changed while its backup was constructed."
-  [[ "$source_sha_before" == "$source_sha_after" &&
-    "$source_sha_before" == "$backup_sha" ]] ||
-    fail "Release Firebase backup failed its SHA-256 integrity check."
-  [[ "$backup_mode" == "600" ]] ||
-    fail "Release Firebase backup permissions must be exactly 0600."
-  test_checkpoint after-release-backup-validation
-
-  [[ ! -e "$destination" && ! -L "$destination" ]] ||
-    fail "A stale release Firebase backup appeared during preparation."
-  mv "$temporary" "$destination" ||
-    fail "Unable to atomically publish the validated release Firebase backup."
 }
 
 decode_to_temporary_file() {
@@ -273,64 +144,7 @@ else
 fi
 chmod 700 "$secret_temporary_dir"
 
-if [[ "$mode" == "firebase" ]]; then
-  command -v jq >/dev/null 2>&1 ||
-    fail "jq is required to validate the Firebase release overlay."
-  for forbidden_signing_input in \
-    ANDROID_RELEASE_KEYSTORE_B64 \
-    CI_KEYSTORE_PATH \
-    CI_KEYSTORE_PASS \
-    CI_KEYSTORE_KEY_ALIAS \
-    CI_KEYSTORE_KEY_PASS \
-    PLAY_SERVICE_ACCOUNT_JSON_B64 \
-    CI_PLAY_KEY; do
-    [[ -z "${!forbidden_signing_input:-}" ]] ||
-      fail "The Firebase-only overlay forbids signing and Play credentials."
-  done
-  require_env ANDROID_RELEASE_FIREBASE_JSON_SHA256
-  [[ "$ANDROID_RELEASE_FIREBASE_JSON_SHA256" =~ ^[0-9a-f]{64}$ ]] ||
-    fail "ANDROID_RELEASE_FIREBASE_JSON_SHA256 must be an exact lowercase SHA-256 digest."
-  [[ ! -e "$release_sentinel" && ! -L "$release_sentinel" ]] ||
-    fail "A Firebase release overlay is already active."
-  [[ ! -e "$release_backup" && ! -L "$release_backup" ]] ||
-    fail "A stale release Firebase backup exists."
-  [[ -f "$release_google_services" && ! -L "$release_google_services" ]] ||
-    fail "The checked-in release Firebase placeholder is missing or unsafe."
-  prepare_parent "$release_google_services"
-  owns_firebase_transaction=true
-
-  google_temporary=""
-  decode_to_temporary_file \
-    GOOGLE_SERVICES_RELEASE_JSON_B64 \
-    262144 \
-    google_temporary
-  test_checkpoint after-google-decode
-
-  jq -e '
-    type == "object" and
-    (.project_info.project_id | type == "string" and . != "fearless-public") and
-    ([.client[]?.client_info.android_client_info.package_name] |
-      map(select(. == "jp.co.soramitsu.fearless")) | length == 1)
-  ' "$google_temporary" >/dev/null 2>&1 ||
-    fail "GOOGLE_SERVICES_RELEASE_JSON_B64 is not the production Fearless Firebase configuration."
-  [[ "$(file_sha256 "$google_temporary")" == \
-    "$ANDROID_RELEASE_FIREBASE_JSON_SHA256" ]] ||
-    fail "GOOGLE_SERVICES_RELEASE_JSON_B64 does not match the approved Firebase SHA-256 digest."
-
-  create_release_backup "$release_google_services" "$release_backup"
-  test_checkpoint after-release-backup
-  printf 'prepared\n' > "$release_sentinel"
-  chmod 600 "$release_sentinel"
-  test_checkpoint after-release-sentinel
-
-  mv -f "$google_temporary" "$release_google_services"
-  google_temporary=""
-  test_checkpoint after-google-move
-  chmod 600 "$release_google_services"
-  printf 'active\n' > "$release_sentinel"
-  chmod 600 "$release_sentinel"
-
-elif [[ "$mode" == "signing" ]]; then
+if [[ "$mode" == "signing" ]]; then
   [[ "${CI:-}" == "true" ]] ||
     fail "The signing overlay is restricted to an explicit CI environment."
   for forbidden_build_or_play_input in \

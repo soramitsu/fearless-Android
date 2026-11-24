@@ -16,6 +16,8 @@
 /feature-wallet-impl/ @soramitsu/fearless @soramitsu/android-developers
 /feature-walletconnect-api/ @soramitsu/fearless @soramitsu/android-developers
 /feature-walletconnect-impl/ @soramitsu/fearless @soramitsu/android-developers
+/feature-irohaconnect-api/ @soramitsu/fearless @soramitsu/android-developers
+/feature-irohaconnect-impl/ @soramitsu/fearless @soramitsu/android-developers
 
 /key/ @soramitsu/fearless @soramitsu/android-developers @soramitsu/security
 /common/src/main/java/jp/co/soramitsu/common/model/ @soramitsu/fearless @soramitsu/android-developers @soramitsu/security
@@ -23,3 +25,10 @@
 /**/*Key* @soramitsu/fearless @soramitsu/android-developers @soramitsu/security
 /**/*Keystore* @soramitsu/fearless @soramitsu/android-developers @soramitsu/security
 /**/*Signer* @soramitsu/fearless @soramitsu/android-developers @soramitsu/security
+
+# Every install reads the production chain catalog and app configuration from master within minutes, so changes
+# to them also request the security team, as does the reviewed XCM route snapshot that guards the catalog. The
+# app owners stay listed beside it, so an urgent catalog repair never waits on a single team.
+/remote-config/production/chains/ @soramitsu/fearless @soramitsu/security
+/remote-config/production/appConfigs/ @soramitsu/fearless @soramitsu/security
+/runtime/src/test/resources/reviewed-production-xcm-routes.tsv @soramitsu/fearless @soramitsu/android-developers @soramitsu/security

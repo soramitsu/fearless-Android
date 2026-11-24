@@ -1,6 +1,7 @@
 package jp.co.soramitsu.tonconnect.impl.presentation.tonsignrequest
 
 import android.widget.FrameLayout
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -10,6 +11,7 @@ import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
+import jp.co.soramitsu.common.navigation.KeepSheetOpenOnBack
 import jp.co.soramitsu.tonconnect.api.model.DappModel
 import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
 
@@ -18,9 +20,14 @@ class TonSignRequestFragment : BaseComposeBottomSheetDialogFragment<TonSignReque
 
     override val viewModel: TonSignRequestViewModel by viewModels()
 
+    override val secureSurface = true
+
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
+        // Same as the close icon: the dApp is told the request was declined. Material could only collapse the sheet.
+        BackHandler(onBack = viewModel::onClose)
+        KeepSheetOpenOnBack(submitting = (state as? TonSignPreviewViewState)?.loading == true)
         TonSignRequestFlow(
             state = state,
             callback = viewModel,

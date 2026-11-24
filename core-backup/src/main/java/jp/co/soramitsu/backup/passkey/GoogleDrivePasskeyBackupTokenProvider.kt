@@ -1,17 +1,11 @@
 package jp.co.soramitsu.backup.passkey
 
-import android.accounts.Account
-import android.content.Context
-import com.google.android.gms.auth.GoogleAuthUtil
-import com.google.android.gms.auth.UserRecoverableAuthException
-import jp.co.soramitsu.backup.domain.exceptions.AuthConsentException
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
+import jp.co.soramitsu.backup.domain.exceptions.UnauthorizedException
+import jp.co.soramitsu.backup.oauth.GoogleDriveAuthorization
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 
 fun interface GoogleDriveAccountNameProvider {
     suspend fun accountName(): String
@@ -58,22 +52,33 @@ class GoogleDrivePasskeyBackupTokenProvider(
     }
 }
 
-class GoogleAuthUtilDriveOAuthTokenFetcher(
-    private val context: Context,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+/**
+ * Access tokens from the app's own Google sign-in ([GoogleDriveAuthorization]). The identity check
+ * above reads Google's UserInfo endpoint, so passkey backup needs a sign-in that was granted
+ * `openid email` as well as Drive app data; the wallet backup sign-in asks only for Drive app data.
+ */
+class GoogleDriveAuthorizationTokenFetcher(
+    private val authorization: GoogleDriveAuthorization
 ) : GoogleDriveOAuthTokenFetcher {
     override suspend fun fetchAccessToken(accountName: String, oauthScope: String): String {
-        return withContext(dispatcher) {
-            try {
-                GoogleAuthUtil.getToken(
-                    context,
-                    Account(accountName, GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE),
-                    oauthScope
-                )
-            } catch (e: UserRecoverableAuthException) {
-                val consentIntent = e.intent ?: throw e
-                throw AuthConsentException(consentIntent)
-            }
+        val required = requiredScopes(oauthScope)
+        if (!authorization.grantedScopes().containsAll(required)) throw UnauthorizedException()
+        return authorization.accessToken()
+    }
+
+    companion object {
+        private const val SCOPE_PREFIX = "oauth2:"
+        private val SHORT_SCOPES = mapOf(
+            "email" to "https://www.googleapis.com/auth/userinfo.email",
+            "profile" to "https://www.googleapis.com/auth/userinfo.profile"
+        )
+
+        /** "oauth2:<scope> <scope>" as [GoogleDrivePasskeyBackup] writes it, with Google's short names expanded. */
+        fun requiredScopes(oauthScope: String): Set<String> {
+            require(oauthScope.startsWith(SCOPE_PREFIX)) { "OAuth scope must use the oauth2: form" }
+            val scopes = oauthScope.removePrefix(SCOPE_PREFIX).split(' ').filter { it.isNotEmpty() }
+            require(scopes.isNotEmpty()) { "OAuth scope is empty" }
+            return scopes.map { SHORT_SCOPES[it] ?: it }.toSet()
         }
     }
 }

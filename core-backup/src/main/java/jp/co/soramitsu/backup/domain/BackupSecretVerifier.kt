@@ -3,6 +3,8 @@ package jp.co.soramitsu.backup.domain
 import jp.co.soramitsu.backup.domain.exceptions.BackupSecretNotVerifiedException
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.backup.domain.models.DecryptedBackupAccount
+import jp.co.soramitsu.core.crypto.SubstratePasswordRule
+import jp.co.soramitsu.core.crypto.substrateMiniSecret
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
@@ -11,7 +13,6 @@ import jp.co.soramitsu.fearless_utils.encrypt.junction.SubstrateJunctionDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.ethereum.EthereumKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.SubstrateKeypairFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
-import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
 import jp.co.soramitsu.fearless_utils.ss58.SS58Encoder
@@ -69,7 +70,7 @@ internal class BackupSecretVerifier(
 
         val path = account.substrateDerivationPath
         val passphraseRestores = account.mnemonicPhrase?.let { mnemonic ->
-            restores { derivation.substrateAccountIdFromMnemonic(mnemonic, path, account.cryptoType).contentEquals(accountId) }
+            restores { passphraseRule(mnemonic, path, account.cryptoType, accountId) != null }
         } == true
         val seedRestores = account.seed?.substrateSeed?.let { seed ->
             restores { derivation.substrateAccountIdFromSeed(seed.fromHex(), path, account.cryptoType).contentEquals(accountId) }
@@ -81,6 +82,32 @@ internal class BackupSecretVerifier(
         }
     }
 
+    /**
+     * For importers of a PASSPHRASE backup: how the path's password must be read to restore the account
+     * the backup is filed under (an earlier browser extension's rule, see SubstratePasswordRule), or null
+     * when the phrase restores no account under any rule or the address cannot be checked.
+     */
+    fun restoringSubstratePasswordRule(account: DecryptedBackupAccount): SubstratePasswordRule? {
+        val accountId = runCatching { SS58Encoder.decode(account.address) }.getOrNull() ?: return null
+        val mnemonic = account.mnemonicPhrase ?: return null
+        return runCatching {
+            passphraseRule(mnemonic, account.substrateDerivationPath, account.cryptoType, accountId)
+        }.getOrNull()
+    }
+
+    // The first rule, current one first, under which the phrase and path derive the account.
+    private fun passphraseRule(
+        mnemonic: String,
+        path: String?,
+        cryptoType: CryptoType,
+        accountId: ByteArray
+    ): SubstratePasswordRule? {
+        val password = path?.takeIf(String::isNotEmpty)?.let(SubstrateJunctionDecoder::decode)?.password
+        return SubstratePasswordRule.distinctFor(password).firstOrNull { rule ->
+            derivation.substrateAccountIdFromMnemonic(mnemonic, path, cryptoType, rule).contentEquals(accountId)
+        }
+    }
+
     // Material that cannot be derived at all (bad path, not BIP39, wrong seed length) restores nothing.
     private inline fun restores(derivesAccount: () -> Boolean): Boolean {
         return runCatching(derivesAccount).getOrDefault(false)
@@ -89,12 +116,10 @@ internal class BackupSecretVerifier(
     private fun verifyPassphrase(account: DecryptedBackupAccount, accountId: ByteArray) =
         verifying(BackupAccountType.PASSPHRASE) {
             val mnemonic = requireNotNull(account.mnemonicPhrase)
-            val restoredAccountId = derivation.substrateAccountIdFromMnemonic(
-                mnemonic = mnemonic,
-                derivationPath = account.substrateDerivationPath,
-                cryptoType = account.cryptoType
-            )
-            restoredAccountId.contentEquals(accountId) && passphraseRestoresEthereumKey(account, mnemonic)
+            // An import may have opened the account an earlier browser extension made from the path's
+            // password; importers read the rule back the same way (restoringSubstratePasswordRule).
+            val rule = passphraseRule(mnemonic, account.substrateDerivationPath, account.cryptoType, accountId)
+            rule != null && passphraseRestoresEthereumKey(account, mnemonic)
         }
 
     // The wallet's Ethereum key travels in the seed. Unless the SEED type carries it along, the
@@ -149,7 +174,8 @@ internal interface BackupKeyDerivation {
     fun substrateAccountIdFromMnemonic(
         mnemonic: String,
         derivationPath: String?,
-        cryptoType: CryptoType
+        cryptoType: CryptoType,
+        passwordRule: SubstratePasswordRule = SubstratePasswordRule.NFKD
     ): ByteArray
 
     fun substrateAccountIdFromSeed(
@@ -163,17 +189,17 @@ internal interface BackupKeyDerivation {
 
 internal object FearlessUtilsBackupKeyDerivation : BackupKeyDerivation {
 
-    private const val SUBSTRATE_SEED_SIZE = 32
     private const val ACCOUNT_ID_SIZE = 32
 
-    // As SubstrateOrEvmAccountRepository.create: the path's password salts the seed.
+    // As SubstrateOrEvmAccountRepository.create: the path's password, read by the rule, salts the seed.
     override fun substrateAccountIdFromMnemonic(
         mnemonic: String,
         derivationPath: String?,
-        cryptoType: CryptoType
+        cryptoType: CryptoType,
+        passwordRule: SubstratePasswordRule
     ): ByteArray {
         val decodedPath = derivationPath?.takeIf(String::isNotEmpty)?.let(SubstrateJunctionDecoder::decode)
-        val seed = SubstrateSeedFactory.deriveSeed(mnemonic, decodedPath?.password).seed.copyOfRange(0, SUBSTRATE_SEED_SIZE)
+        val seed = substrateMiniSecret(mnemonic, decodedPath?.password, passwordRule)
         return substrateAccountId(seed, decodedPath?.junctions.orEmpty(), cryptoType)
     }
 

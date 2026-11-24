@@ -256,7 +256,6 @@ class ErrorDialogRestorationParentTestFragment : Fragment() {
 
         private fun positiveOnlyContracts() = listOf(
             TransferValidationDialogContract.CONFIRM_SEND,
-            TransferValidationDialogContract.CBDC_SEND_SETUP,
             TransferValidationDialogContract.CROSS_CHAIN_CONFIRM,
             TransferValidationDialogContract.CROSS_CHAIN_SETUP
         )

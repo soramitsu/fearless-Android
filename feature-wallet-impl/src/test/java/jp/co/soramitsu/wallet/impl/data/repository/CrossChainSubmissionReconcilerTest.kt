@@ -45,6 +45,8 @@ class CrossChainSubmissionReconcilerTest {
 
         assertEquals(CrossChainSubmissionReconciler.Outcome.Included(retained, inclusion), outcome)
         assertNull(journal.read(SCOPE))
+        // Kept as sent, so a screen restored after another restart does not offer to send it again.
+        assertEquals(retained, journal.readIncluded(SCOPE))
     }
 
     @Test

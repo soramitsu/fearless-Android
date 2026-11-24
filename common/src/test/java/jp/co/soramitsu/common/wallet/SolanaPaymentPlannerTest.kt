@@ -43,6 +43,28 @@ class SolanaPaymentPlannerTest {
     }
 
     @Test
+    fun `SOL to an existing off-curve System account is quoted while tokens to it and SOL to a missing one are refused`() = runBlocking {
+        // An off-curve program-derived address that none of the fixture accounts use.
+        val vault = SolanaTransferTransactionBuilder.deriveAssociatedTokenAccountAddress(RECIPIENT, MINT)
+        assertEquals(false, vault in listOf(SENDER, RECIPIENT, MINT, SOURCE, SECOND_SOURCE))
+        val rpc = Client()
+        val planner = SolanaPaymentPlanner(rpc)
+        val missing = assertThrows(SolanaAccountPreflightException::class.java) { runBlocking { planner.native(SENDER, vault, 1000000) } }
+        assertEquals(SolanaAccountPreflightException.Code.RECIPIENT_CANNOT_SIGN, missing.code)
+        rpc.destination = info(ByteArray(0), SYSTEM)
+        val quote = planner.native(SENDER, vault, 1000000)
+        assertEquals(vault, quote.recipient)
+        planner.revalidate(quote)
+        val token = assertThrows(SolanaAccountPreflightException::class.java) {
+            runBlocking { planner.token(SENDER, vault, MINT, 6, BigInteger.ONE) }
+        }
+        assertEquals(SolanaAccountPreflightException.Code.RECIPIENT_CANNOT_SIGN, token.code)
+        rpc.destination = info(tokenData(MINT, SENDER, BigInteger.ONE))
+        val tokenAccount = assertThrows(SolanaAccountPreflightException::class.java) { runBlocking { planner.native(SENDER, vault, 1000000) } }
+        assertEquals(SolanaAccountPreflightException.Code.RECIPIENT_IS_NOT_WALLET, tokenAccount.code)
+    }
+
+    @Test
     fun `SPL quote allocates multiple exact accounts in full-u64 range and separates creation rent`() = runBlocking {
         val rpc = Client()
         val planner = SolanaPaymentPlanner(rpc)
@@ -99,7 +121,29 @@ class SolanaPaymentPlannerTest {
         Unit
     }
 
+    @Test
+    fun `a Token-2022 mint is refused with its own code before wallet checks token reads or a message`() = runBlocking {
+        val rpc = Client()
+        rpc.mintProgram = TOKEN2022
+        for (sendMax in listOf(false, true)) {
+            val error = assertThrows(SolanaPaymentQuoteException::class.java) {
+                runBlocking { SolanaPaymentPlanner(rpc).token(SENDER, RECIPIENT, MINT, 6, BigInteger.ONE, sendMax = sendMax) }
+            }
+            assertEquals(SolanaPaymentQuoteException.Code.UNSUPPORTED_TOKEN, error.code)
+        }
+        assertEquals(listOf(MINT, MINT), rpc.accountReads)
+        assertEquals(0, rpc.tokenAccountReads)
+        assertEquals(0, rpc.blockhashReads)
+        assertEquals(emptyList<String>(), rpc.feeMessages)
+        // A standard SPL mint still quotes normally.
+        rpc.mintProgram = SPL
+        assertEquals(BigInteger.ONE, SolanaPaymentPlanner(rpc).token(SENDER, RECIPIENT, MINT, 6, BigInteger.ONE).amount)
+    }
+
     private class Client : SolanaRpcClient by mock(SolanaRpcClient::class.java) {
+        var mintProgram = SPL
+        val accountReads = mutableListOf<String>()
+        var tokenAccountReads = 0
         var nativeBalance = 10000000L
         var fee = 5000L
         var height = 100L
@@ -111,15 +155,16 @@ class SolanaPaymentPlannerTest {
             SolanaRpcTokenAccount(SOURCE, SENDER, MINT, SPL, BigInteger.ONE.shiftLeft(63), 6, false),
             SolanaRpcTokenAccount(SECOND_SOURCE, SENDER, MINT, SPL, BigInteger.ONE.shiftLeft(63) - BigInteger.ONE, 6, false)
         )
-        override suspend fun accountInfo(address: String, commitment: SolanaRpcCommitment, rpcUrl: String?): SolanaRpcAccountInfo? = when (address) {
+        override suspend fun accountInfo(address: String, commitment: SolanaRpcCommitment, rpcUrl: String?): SolanaRpcAccountInfo? = when (address.also { accountReads += it }) {
             SENDER -> info(ByteArray(0), SYSTEM).copy(lamports = nativeBalance)
             RECIPIENT -> null
-            MINT -> info(ByteArray(82).also { it[44] = 6; it[45] = 1 })
+            MINT -> info(ByteArray(82).also { it[44] = 6; it[45] = 1 }, mintProgram)
             SOURCE, SECOND_SOURCE -> info(tokenData(MINT, SENDER, sourceAmountOverride ?: sources.single { it.address == address }.amount))
             else -> destination
         }
         override suspend fun balance(address: String, commitment: SolanaRpcCommitment, rpcUrl: String?) = nativeBalance
-        override suspend fun tokenAccounts(address: String, programAddress: String, commitment: SolanaRpcCommitment, rpcUrl: String?) = sources
+        override suspend fun tokenAccounts(address: String, programAddress: String, commitment: SolanaRpcCommitment, rpcUrl: String?) =
+            sources.also { tokenAccountReads++ }
         override suspend fun minimumBalanceForRentExemption(dataLength: Int, commitment: SolanaRpcCommitment, rpcUrl: String?) = if (dataLength == 0) 890880L else 2039280L
         override suspend fun recentPrioritizationFees(rpcUrl: String?) = listOf(1000L, 1250L, 2000L)
         override suspend fun latestBlockhash(commitment: SolanaRpcCommitment, rpcUrl: String?): SolanaLatestBlockhashResponse {

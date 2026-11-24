@@ -35,26 +35,16 @@ android {
     }
 }
 
-// The Drive client only uses NetHttpTransport. Apache HttpClient duplicates platform classes on
-// Android, and guava-jdk5 duplicates Guava.
-def withoutUnusedGoogleHttpTransports = {
-    exclude group: 'org.apache.httpcomponents'
-    exclude group: 'com.google.guava', module: 'guava-jdk5'
-}
-
+// Google Drive backup talks to Google's OAuth 2.0 and Drive v3 REST endpoints itself, over OkHttp
+// and Gson. No Google Play services, Play Core, Firebase or Google API client library is used.
 dependencies {
     api libs.kotlin.stdlib.jdk7
     api libs.activity
+    // Open-source AndroidX Credential Manager; the passkey ceremony uses it on Android 14+ only.
     api libs.credentials
-    api libs.credentials.play.services.auth
     implementation libs.coroutines.core
     implementation libs.gson
     implementation libs.okhttp
-    implementation libs.play.services.auth
-    implementation libs.play.integrity
-    implementation libs.google.api.services.drive, withoutUnusedGoogleHttpTransports
-    implementation libs.google.api.client.android, withoutUnusedGoogleHttpTransports
-    implementation libs.google.http.client.gson, withoutUnusedGoogleHttpTransports
     api project(':core-api')
 
     testImplementation libs.junit

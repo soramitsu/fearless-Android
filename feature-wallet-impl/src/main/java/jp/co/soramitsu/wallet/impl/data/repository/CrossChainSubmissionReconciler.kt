@@ -34,7 +34,7 @@ class CrossChainSubmissionReconciler(
         repeat(MAX_PAGES) {
             val search = reader.search(scope.chainId, submission.signedExtrinsic, before, PAGE_SIZE, submission.anchor)
             search.inclusion?.let { inclusion ->
-                journal.release(submission)
+                journal.settleIncluded(submission)
                 progress.remove(attemptId)
                 return@withScope Outcome.Included(submission, inclusion)
             }

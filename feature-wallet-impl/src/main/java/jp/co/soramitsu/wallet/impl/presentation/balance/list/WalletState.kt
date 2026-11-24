@@ -24,6 +24,8 @@ data class WalletState(
     val showCurrenciesOrNftSelector: Boolean,
     val scrollToTopEvent: Event<Unit>?,
     val scrollToBottomEvent: Event<Unit>?,
+    /** The sync dial's counts (SPEC v4 part 2): networks answered, given up, started since the sync began. */
+    val syncCounts: WalletSyncCounts = WalletSyncCounts.None,
 ) {
     companion object {
         val default = WalletState(

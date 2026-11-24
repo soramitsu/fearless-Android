@@ -159,7 +159,9 @@ must be non-empty human-readable strings without control characters, native asse
 symbols must be uppercase, decimals must be in `0...255`, and derivation paths
 must be rooted at `m`.
 
-Endpoint kinds are `indexer`, `rpc`, `torii-mcp`, and `explorer`. Public URLs
+Endpoint kinds are `indexer`, `rpc`, `torii`, `torii-mcp`, and `explorer`.
+`torii` is a Torii REST base URL; Android calls Torii REST routes directly and
+only reads `torii-mcp` from older registries. Public URLs
 must be HTTPS; local development URLs may use `http://localhost` or
 `http://127.0.0.1`. Public indexer endpoints are read-only. Broadcasts,
 transaction simulation, and other write operations must use RPC or Torii

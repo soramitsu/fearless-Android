@@ -6,6 +6,11 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
 import android.widget.FrameLayout
+import jp.co.soramitsu.common.compose.theme.fw.FwElevation
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwShape
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.FwViews
 import jp.co.soramitsu.feature_account_impl.R
 
 class MnemonicContainerView @JvmOverloads constructor(
@@ -30,7 +35,12 @@ class MnemonicContainerView @JvmOverloads constructor(
 
     init {
         View.inflate(context, R.layout.view_mnemonic_container, this)
-        setBackgroundResource(R.drawable.bg_mnemonic_container)
+        val sunlit = FwRestyle.isEnabled(FwSurface.Mnemonic)
+        if (sunlit) {
+            background = FwViews.surface(context, FwElevation.Inset, FwShape.CARD.value)
+        } else {
+            setBackgroundResource(R.drawable.bg_mnemonic_container)
+        }
         applyAttributes(attrs)
 
         layoutTransition.apply {
@@ -38,6 +48,11 @@ class MnemonicContainerView @JvmOverloads constructor(
             disableTransitionType(LayoutTransition.CHANGING)
             disableTransitionType(LayoutTransition.CHANGE_APPEARING)
             disableTransitionType(LayoutTransition.CHANGE_DISAPPEARING)
+            if (sunlit) {
+                // Nothing moves on a recovery-phrase page: words appear and leave in place.
+                disableTransitionType(LayoutTransition.APPEARING)
+                disableTransitionType(LayoutTransition.DISAPPEARING)
+            }
         }
     }
 

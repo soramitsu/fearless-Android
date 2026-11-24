@@ -16,6 +16,8 @@ class SessionProposalFragment : BaseComposeBottomSheetDialogFragment<SessionProp
 
     override val viewModel: SessionProposalViewModel by viewModels()
 
+    override val secureSurface = true
+
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()

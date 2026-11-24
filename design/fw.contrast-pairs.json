@@ -2,7 +2,7 @@
   "format": "fearless.contrast-pairs",
   "version": 1,
   "method": "WCAG 2.x sRGB rounded source-over; compare unrounded ratios. All group Cartesian pairs and all backdrop variants are mandatory. Run standard/high contrast with source and 8-bit alpha.",
-  "source": "design-system.md sections 3.4, 3.5 and 14.0",
+  "source": "design-system.md sections 3.4, 3.5 and 14.0; sun-lit neumorphism DESIGN-SPEC 2026-11-08 section 3",
   "recipes": {
     "white": {
       "token": "textOnAccent"
@@ -13,9 +13,6 @@
     "auroraMagenta": {
       "aurora": "magenta"
     },
-    "auroraCyan": {
-      "aurora": "cyan"
-    },
     "auroraViolet": {
       "aurora": "violet"
     },
@@ -23,21 +20,13 @@
       "over": "auroraMagenta",
       "background": "base"
     },
-    "peakCyan": {
-      "over": "auroraCyan",
-      "background": "base"
-    },
     "peakViolet": {
       "over": "auroraViolet",
       "background": "base"
     },
-    "peakMagentaCyan": {
-      "over": "auroraCyan",
-      "background": "peakMagenta"
-    },
     "peakAll": {
       "over": "auroraViolet",
-      "background": "peakMagentaCyan"
+      "background": "peakMagenta"
     },
     "peakAllDither": {
       "over": "white",
@@ -48,9 +37,8 @@
       "variants": [
         "base",
         "peakMagenta",
-        "peakCyan",
         "peakViolet",
-        "peakMagentaCyan",
+        "peakAll",
         "peakAllDither"
       ]
     },
@@ -683,8 +671,7 @@
   "constraints": {
     "auroraMaximumAlpha": {
       "magenta": 0.18,
-      "cyan": 0.12,
-      "violet": 0.16
+      "violet": 0.1
     },
     "whiteDitherMaximumAlpha": 0.02,
     "selectedState": "Labels require a check glyph or filled icon; hue alone is insufficient.",

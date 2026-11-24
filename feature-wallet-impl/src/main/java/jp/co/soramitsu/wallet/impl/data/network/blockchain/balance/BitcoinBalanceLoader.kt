@@ -13,6 +13,9 @@ import jp.co.soramitsu.common.data.network.bitcoin.BitcoinEsploraAddress
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinEsploraStats
 import jp.co.soramitsu.common.data.network.bitcoin.BitcoinIndexerClient
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretLockedException
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
+import jp.co.soramitsu.common.data.storage.pin.WalletViewOnlyAccess
 import jp.co.soramitsu.common.model.AssetDiscoveryCoverage
 import jp.co.soramitsu.common.utils.BitcoinKeyDerivation
 import jp.co.soramitsu.core.models.Asset
@@ -28,6 +31,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.supervisorScope
@@ -85,11 +90,21 @@ class BitcoinBalanceLoader(
         val network = chain.universalWalletBitcoinIndexerNetwork() ?: return null
         val baseUrl = chain.externalApi?.history?.url
 
+        // Wallet secrets are sealed under the PIN (4.3.2): read the root only in an unlocked session.
+        // A view-only session never reads it, so it keeps the address-only balance.
+        val canReadSecrets = accountRepository != null && awaitSecretAccess()
         val entropy = try {
-            accountRepository?.getChainAccountSecrets(metaAccount.id, chain.id)
-                ?.get(ChainAccountSecrets.Entropy)
+            if (canReadSecrets) {
+                accountRepository?.getChainAccountSecrets(metaAccount.id, chain.id)
+                    ?.get(ChainAccountSecrets.Entropy)
+            } else {
+                null
+            }
         } catch (error: CancellationException) {
             throw error
+        } catch (error: WalletSecretLockedException) {
+            // Locked again meanwhile: skip this round instead of recording a limited scan.
+            return null
         } catch (error: Exception) {
             runCatching { Log.d(tag, "bitcoin root secret unavailable") }
             null
@@ -142,6 +157,13 @@ class BitcoinBalanceLoader(
             miscFrozenInPlanks = balance.first - balance.second,
             feeFrozenInPlanks = balance.first - balance.second
         )
+    }
+
+    /** Suspends until the PIN unlocked the session; false right away for a view-only session. */
+    private suspend fun awaitSecretAccess(): Boolean {
+        combine(WalletSessionLock.locked, WalletViewOnlyAccess.enabled) { locked, viewOnly -> !locked || viewOnly }
+            .first { it }
+        return !WalletSessionLock.isLocked()
     }
 
     private fun nativeBitcoinAsset(): Asset? {

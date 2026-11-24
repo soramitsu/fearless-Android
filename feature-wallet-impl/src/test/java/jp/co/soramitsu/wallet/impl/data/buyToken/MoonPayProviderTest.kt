@@ -33,6 +33,40 @@ class MoonPayProviderTest {
     }
 
     @Test
+    fun `returns to the wallet through its own buy-success link`() {
+        // The integrator always passes the app's registered fearless://buy-success redirect; refusing it made every
+        // MoonPay purchase fail with "Invalid MoonPay redirect URL" before the page opened.
+        val url = validLink(redirectUrl = ExternalProvider.REDIRECT_URL_BASE)
+
+        assertEquals(
+            "https://buy.moonpay.com/?" +
+                "apiKey=pk_live_public&" +
+                "currencyCode=DOT&" +
+                "colorCode=%23123456&" +
+                "showWalletAddressForm=true&" +
+                "redirectURL=fearless%3A%2F%2Fbuy-success",
+            url
+        )
+        assertFalse(Regex("[?&]signature=", RegexOption.IGNORE_CASE).containsMatchIn(url))
+    }
+
+    @Test
+    fun `accepts no other custom-scheme redirect`() {
+        listOf(
+            "fearless://buy-success.evil.example",
+            "fearless://buy-success@evil.example",
+            "fearless://onboarding/importAccountFragment/0",
+            "FEARLESS://buy-success",
+            "intent://buy-success#Intent;scheme=fearless;end",
+            "javascript:alert(1)"
+        ).forEach { redirect ->
+            assertThrows(redirect, IllegalArgumentException::class.java) {
+                validLink(redirectUrl = redirect)
+            }
+        }
+    }
+
+    @Test
     fun `supports only the production and sandbox MoonPay hosts`() {
         listOf(
             "buy.moonpay.com.evil.example",

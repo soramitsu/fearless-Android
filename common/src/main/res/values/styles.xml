@@ -152,13 +152,14 @@
     </style>
 
     <style name="BottomSheetDialog" parent="Theme.MaterialComponents.BottomSheetDialog">
+        <item name="android:windowIsFloating">@bool/fw_sheet_window_floating</item>
         <item name="bottomSheetStyle">@style/bottomSheetStyleWrapper</item>
         <item name="android:windowBackground">@color/backgroundBlurColor</item>
     </style>
 
     <style name="bottomSheetStyleWrapper" parent="Widget.MaterialComponents.BottomSheet.Modal">
         <item name="behavior_peekHeight">600dp</item>
-        <item name="backgroundTint">@color/bottom_bar_grey</item>
+        <item name="backgroundTint">@color/fw_list_sheet_background</item>
         <item name="shapeAppearanceOverlay">@style/CustomShapeAppearanceBottomSheetDialog</item>
     </style>
 
@@ -209,6 +210,7 @@
     </style>
 
     <style name="CustomBottomSheetDialogThemeNoIme" parent="Theme.MaterialComponents.BottomSheetDialog">
+        <item name="android:windowIsFloating">@bool/fw_sheet_window_floating</item>
         <item name="bottomSheetStyle">@style/CustomBottomSheetStyle</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>

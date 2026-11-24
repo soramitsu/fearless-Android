@@ -1,6 +1,7 @@
 package jp.co.soramitsu.walletconnect.impl.presentation.sessionrequest
 
 import android.widget.FrameLayout
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -16,9 +17,13 @@ class WalletConnectSignMessageFragment : BaseComposeBottomSheetDialogFragment<Wa
 
     override val viewModel: WalletConnectSignMessageViewModel by viewModels()
 
+    override val secureSurface = true
+
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.state.collectAsState()
+        // Same as the close icon: the dApp is told the request was rejected. Material could only collapse the sheet.
+        BackHandler(onBack = viewModel::onClose)
         SessionRequestContent(
             state = state,
             callback = viewModel

@@ -1,5 +1,8 @@
 package jp.co.soramitsu.staking.impl.presentation.confirm.pool.join
 
+import jp.co.soramitsu.core.extrinsic.SigningRuntime
+import jp.co.soramitsu.core.extrinsic.SigningRuntimeSource
+import jp.co.soramitsu.core.runtime.IChainRegistry
 import jp.co.soramitsu.staking.impl.data.repository.PoolJoinPreferencesFixture
 import jp.co.soramitsu.fearless_utils.extensions.fromHex
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
@@ -10,7 +13,6 @@ import jp.co.soramitsu.core.extrinsic.mortality.Mortality
 import jp.co.soramitsu.core.extrinsic.mortality.MortalityConstructor
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.core.rpc.RpcCalls
-import jp.co.soramitsu.core.runtime.IChainRegistry
 import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.definitions.dynamic.DynamicTypeResolver
 import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.TypeRegistry
@@ -600,7 +602,7 @@ class ConfirmJoinPoolExecutionOwnershipTest {
         val runtime = runtime(POLKADOT_EXTENSIONS, listOf(POOL))
         val registry = mock<IChainRegistry>()
         private val mortality = mock<MortalityConstructor>()
-        private val service = ExtrinsicService(rpc, wallets, ExtrinsicBuilderFactory(rpc, registry, mortality))
+        private val service = ExtrinsicService(rpc, wallets, ExtrinsicBuilderFactory(rpc, registry, mortality, fixtureSigningRuntimes(registry)))
         private val finality = mock<jp.co.soramitsu.core.rpc.FinalizedExtrinsicReader> {
             onBlocking { anchor(any()) } doSuspendableAnswer {
                 hold("anchor")
@@ -759,4 +761,9 @@ class ConfirmJoinPoolExecutionOwnershipTest {
             )
         }
     }
+}
+
+// These fixtures pin Mode::Disabled encodings; the metadata hash path has its own tests.
+private fun fixtureSigningRuntimes(registry: IChainRegistry) = SigningRuntimeSource { chain, _ ->
+    SigningRuntime.MetadataHashExempt(registry.getRuntime(chain.id), "test fixture signs Mode::Disabled")
 }

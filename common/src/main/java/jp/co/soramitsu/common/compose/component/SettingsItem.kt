@@ -18,7 +18,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.Modifier
+import jp.co.soramitsu.common.compose.theme.fw.FwElevation
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwEffects
+import jp.co.soramitsu.common.compose.theme.fw.fwSurface
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
@@ -51,6 +58,7 @@ fun SettingsItem(
     action: SettingsItemAction = SettingsItemAction.Transition,
     onClick: () -> Unit = {}
 ) {
+    val sunlit = FwRestyle.paletteEnabled
     Row(
         modifier = modifier
             .clickableSingle(
@@ -58,7 +66,18 @@ fun SettingsItem(
             ) { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
+        if (sunlit) {
+            // The icon sits in a small well pressed into the page, lit in brand pink.
+            Box(
+                modifier = Modifier
+                    .padding(start = 16.dp, top = 6.dp, bottom = 6.dp)
+                    .size(36.dp)
+                    .fwSurface(LocalFwEffects.current, LocalFwColors.current, CircleShape, FwElevation.Inset),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(modifier = Modifier.size(20.dp), painter = icon, contentDescription = null, tint = LocalFwColors.current.textBrand)
+            }
+        } else Icon(
             modifier = Modifier
                 .padding(start = 16.dp)
                 .size(24.dp),
@@ -79,7 +98,7 @@ fun SettingsItem(
         )
         when (action) {
             is SettingsItemAction.Selector -> {
-                B1(text = action.text, color = white)
+                B1(text = action.text, color = if (sunlit) LocalFwColors.current.textSecondary else white)
                 MarginHorizontal(margin = 16.dp)
                 Icon(
                     modifier = Modifier
@@ -87,7 +106,7 @@ fun SettingsItem(
                         .size(24.dp),
                     painter = painterResource(R.drawable.ic_arrow_right_24),
                     contentDescription = null,
-                    tint = MaterialTheme.customColors.white
+                    tint = if (sunlit) LocalFwColors.current.textTertiary else MaterialTheme.customColors.white
                 )
             }
 
@@ -103,7 +122,7 @@ fun SettingsItem(
                         .size(24.dp),
                     painter = painterResource(R.drawable.ic_arrow_right_24),
                     contentDescription = null,
-                    tint = MaterialTheme.customColors.white
+                    tint = if (sunlit) LocalFwColors.current.textTertiary else MaterialTheme.customColors.white
                 )
             }
 
@@ -120,7 +139,7 @@ fun SettingsItem(
                         .size(24.dp),
                     painter = painterResource(R.drawable.ic_arrow_right_24),
                     contentDescription = null,
-                    tint = MaterialTheme.customColors.white
+                    tint = if (sunlit) LocalFwColors.current.textTertiary else MaterialTheme.customColors.white
                 )
             }
         }
@@ -129,6 +148,10 @@ fun SettingsItem(
 
 @Composable
 fun FearlessSwitch(isChecked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    if (jp.co.soramitsu.common.compose.theme.fw.FwRestyle.paletteEnabled) {
+        jp.co.soramitsu.common.compose.theme.fw.FwSwitch(checked = isChecked, onCheckedChange = onCheckedChange)
+        return
+    }
     val trackColor = when {
         isChecked -> colorAccentDark
         else -> black3

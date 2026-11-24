@@ -14,10 +14,6 @@
         "type": "subsquid",
         "url": "https://squid.subsquid.io/fearless-polkadot/v/v3/graphql"
       },
-      "crowdloans": {
-        "type": "github",
-        "url": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/polkadot.json"
-      },
       "explorers": [
         {
           "type": "subscan",
@@ -250,10 +246,6 @@
     "name": "Westend",
     "ecosystem": "substrate",
     "externalApi": {
-      "crowdloans": {
-        "type": "github",
-        "url": "https://raw.githubusercontent.com/soramitsu/fearless-Android/master/remote-config/production/crowdloan/westend.json"
-      },
       "explorers": [
         {
           "type": "subscan",

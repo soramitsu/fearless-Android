@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="walletconnect_origin_unverified">This site could not be verified. Continue only if you trust it.</string>
+    <string name="walletconnect_origin_mismatch">This request comes from %1$s, not %2$s. It may be a fake site.</string>
+    <string name="walletconnect_scam_blocked">%1$s is a known scam site. Fearless blocked it.</string>
+    <string name="walletconnect_link_expired">This WalletConnect link has expired. Ask the dApp for a new one.</string>
+    <string name="walletconnect_qr_invalid">Invalid code. Please try again.</string>
+    <string name="walletconnect_message_signed_title">Message signed</string>
+    <string name="walletconnect_message_signed_text">The signature was sent to the dApp.</string>
+    <string name="walletconnect_transaction_signed_title">Transaction signed</string>
+    <string name="walletconnect_transaction_signed_text">The signed transaction was sent to the dApp, which submits it to the blockchain.</string>
+</resources>

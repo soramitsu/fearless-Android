@@ -1,5 +1,11 @@
 package jp.co.soramitsu.polkaswap.impl.presentation.swap_preview
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import jp.co.soramitsu.common.compose.theme.fw.FwSealBreakOverlay
+import jp.co.soramitsu.common.compose.theme.fw.fwSealIndicator
+import jp.co.soramitsu.common.feedback.TransferSeal
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -74,7 +80,10 @@ fun SwapPreviewContent(
                 textAlign = TextAlign.Center
             )
         }
-        FullScreenLoading(isLoading = state.isLoading) {
+        // The seal takes the loader's place while the swap is submitted (brand kit SPEC v4 part 3).
+        val seal by TransferSeal.record.collectAsState()
+        Box {
+        FullScreenLoading(isLoading = state.isLoading, indicator = fwSealIndicator(seal)) {
             Column {
                 Column(
                     modifier = Modifier
@@ -136,6 +145,9 @@ fun SwapPreviewContent(
 
                 MarginVertical(margin = 8.dp)
             }
+        }
+        // A refused swap breaks the seal over the screen while the app's own error appears.
+        FwSealBreakOverlay(seal, Modifier.matchParentSize())
         }
     }
 }

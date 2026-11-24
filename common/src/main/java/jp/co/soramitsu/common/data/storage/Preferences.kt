@@ -130,5 +130,6 @@ interface Preferences {
 
     fun intFlow(field: String, initialValue: Int): Flow<Int>
 
+    /** Observes the current value, using [initialValue] when absent without persisting it. */
     fun booleanFlow(field: String, initialValue: Boolean): Flow<Boolean>
 }

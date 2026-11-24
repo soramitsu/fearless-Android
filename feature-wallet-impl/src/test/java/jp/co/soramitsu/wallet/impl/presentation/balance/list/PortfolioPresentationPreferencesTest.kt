@@ -86,20 +86,23 @@ class PortfolioPresentationPreferencesTest {
         preferences.setLens(WALLET, PortfolioLens.ByNetwork)
         assertEquals(PortfolioLens.ByNetwork, PortfolioPresentationPreferences(store).observeLens(WALLET).first())
         assertEquals(PortfolioLens.ByToken, preferences.observeLens(OTHER_WALLET).first())
-        assertEquals(PortfolioLens.ByNetwork, preferences.observeUi(WALLET).first().lens)
+        // The home is one list: a saved By network only asks for the one-time note, until it is closed.
+        assertEquals(PortfolioLens.ByToken, preferences.observeUi(WALLET).first().lens)
+        assertTrue(preferences.observeUi(WALLET).first().showOneListNotice)
+        assertFalse(preferences.observeUi(OTHER_WALLET).first().showOneListNotice)
         assertEquals(PortfolioLens.ByToken, preferences.observeUi(OTHER_WALLET).first().lens)
+        preferences.setLens(WALLET, PortfolioLens.ByToken)
+        assertFalse(PortfolioPresentationPreferences(store).observeUi(WALLET).first().showOneListNotice)
         store.putString(PortfolioPresentationPreferences.viewModeKey(WALLET), "bad")
         assertEquals(PortfolioLens.ByToken, preferences.observeLens(WALLET).first())
     }
 
     @Test fun `collapse and expansion are wallet scoped and survive reconstruction`() = runTest {
         preferences.toggleGroup(WALLET, "dot")
-        preferences.toggleNetwork(WALLET, "polkadot")
         preferences.toggleZeroGroup(WALLET, "dot")
         preferences.setZeroSummaryExpanded(WALLET, true)
         val restored = PortfolioPresentationPreferences(store).observeUi(WALLET).first()
         assertEquals(setOf("dot"), restored.expandedGroups)
-        assertEquals(setOf("polkadot"), restored.collapsedNetworks)
         assertEquals(setOf("dot"), restored.expandedZeroGroups)
         assertTrue(restored.zeroSummaryExpanded)
         assertEquals(PortfolioUiState(), preferences.observeUi(OTHER_WALLET).first())

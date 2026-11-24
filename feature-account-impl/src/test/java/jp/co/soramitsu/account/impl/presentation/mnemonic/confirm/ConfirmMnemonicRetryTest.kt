@@ -92,7 +92,7 @@ class ConfirmMnemonicRetryTest {
         coVerify(exactly = 2) {
             interactor.createAccount(AddAccountPayload.SubstrateOrEvm(
                 "Retry fixture", words.joinToString(" "), CryptoType.SR25519,
-                "//test", "m/44'/60'/0'/0/0", null, true
+                "//test", "m/44'/60'/0'/0/0", null, true, freshlyGenerated = true
             ))
         }
         verify(exactly = 1) { router.openMain() }

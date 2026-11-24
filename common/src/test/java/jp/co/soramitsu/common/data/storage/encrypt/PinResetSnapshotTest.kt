@@ -46,4 +46,36 @@ class PinResetSnapshotTest {
         assertEquals("unreadable-old-record", store.getDecryptedString(WalletSecretArchive.keyFor("pin_code", 0)))
         assertFalse(proof.matches(store.capturePinResetSnapshot()))
     }
+
+    @Test fun aChangedPinWrapInvalidatesAnOtherwiseEqualSnapshot() {
+        val base = PinResetSnapshot(typed = PinPreferenceSnapshot(null))
+        assertTrue(base.withKeyringPinRecord("wrap-a").matches(base.withKeyringPinRecord("wrap-a")))
+        assertFalse(base.withKeyringPinRecord("wrap-a").matches(base.withKeyringPinRecord("wrap-b")))
+        assertFalse(base.withKeyringPinRecord("wrap-a").matches(base))
+    }
+
+    @Test fun aForgottenReadablePinIsReplacedOnlyAgainstItsExactSnapshot() {
+        val store = HashMapEncryptedPreferences()
+        store.putEncryptedString("pin_code", "123456")
+        val proof = store.capturePinResetSnapshot()
+        store.saveForgottenPinCodeDurably("654321", proof)
+        assertEquals("654321", store.getDecryptedString("pin_code"))
+        assertThrows(WalletSecretConcurrentMutationException::class.java) { store.saveForgottenPinCodeDurably("111111", proof) }
+        store.putEncryptedString("pin_code", "unreadable")
+        val unreadable = store.capturePinResetSnapshot()
+        assertThrows(WalletSecretConcurrentMutationException::class.java) { store.saveForgottenPinCodeDurably("111111", unreadable) }
+    }
+
+    @Test fun theLegacyPinAndItsHistoryAreRemovedTogether() {
+        val store = HashMapEncryptedPreferences()
+        store.putEncryptedString("pin_code", "123456")
+        store.putEncryptedString(WalletSecretArchive.keyFor("pin_code", 0), "old")
+        store.putEncryptedString(WalletSecretArchive.keyFor("pin_code", 3), "older")
+        store.putEncryptedString("7:SUBSTRATE_SECRETS", "kept")
+        store.removeLegacyPinDurably()
+        assertFalse(store.hasKey("pin_code"))
+        assertFalse(store.hasKey(WalletSecretArchive.keyFor("pin_code", 0)))
+        assertFalse(store.hasKey(WalletSecretArchive.keyFor("pin_code", 3)))
+        assertEquals("kept", store.getDecryptedString("7:SUBSTRATE_SECRETS"))
+    }
 }

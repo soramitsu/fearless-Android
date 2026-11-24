@@ -34,7 +34,6 @@ import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.models.IChain
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
-import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.fearless_utils.encrypt.EncryptionType
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
@@ -74,6 +73,13 @@ import org.ton.mnemonic.Mnemonic
  * reports each item with its key.
  */
 class AccountRepositoryImplRecoveryStatusTest {
+
+    // Background upgrades read secrets only in an unlocked session (4.3.2); these tests run unlocked.
+    @org.junit.Before
+    fun unlockWalletSession() = jp.co.soramitsu.common.data.storage.pin.WalletSessionLock.unlock()
+
+    @org.junit.After
+    fun lockWalletSession() = jp.co.soramitsu.common.data.storage.pin.WalletSessionLock.lock()
 
     private val preferences = HashMapEncryptedPreferences()
     private val accountDataSource = mock<AccountDataSource>()
@@ -325,7 +331,6 @@ class AccountRepositoryImplRecoveryStatusTest {
         jsonSeedEncoder = mock<JsonSeedEncoder>(),
         languagesHolder = mock<LanguagesHolder>(),
         chainsRepository = mock<ChainsRepository>(),
-        nomisScoresDao = mock<NomisScoresDao>(),
         substrateSecretStore = SubstrateSecretStore(preferences),
         ethereumSecretStore = EthereumSecretStore(preferences),
         tonSecretStore = TonSecretStore(preferences),

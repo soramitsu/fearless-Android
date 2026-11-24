@@ -3,6 +3,8 @@ package jp.co.soramitsu.common.data.storage.encrypt
 import java.security.MessageDigest
 import javax.inject.Inject
 import javax.inject.Singleton
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelopes
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretLockedException
 import kotlinx.coroutines.flow.StateFlow
 import org.bouncycastle.util.encoders.Hex
 
@@ -430,7 +432,9 @@ internal inline fun <T> EncryptedPreferences.readWalletSecretOrQuarantine(
     ) {
         "A wallet secret disappeared during validation"
     }
-    val encodedSecret = snapshot.plaintext
+    // Opened before validation and outside the corruption catch: a sealed
+    // value this session cannot open is locked, never corrupt.
+    val encodedSecret = WalletSecretEnvelopes.open(snapshot.plaintext)
     return try {
         check(
             encodedSecret.isNotEmpty() &&
@@ -442,6 +446,8 @@ internal inline fun <T> EncryptedPreferences.readWalletSecretOrQuarantine(
     } catch (failure: WalletSecureStorageUnavailableException) {
         throw failure
     } catch (failure: WalletRecoveryRequiredException) {
+        throw failure
+    } catch (failure: WalletSecretLockedException) {
         throw failure
     } catch (failure: Exception) {
         quarantineEncryptedStringSnapshotDurably(
@@ -476,12 +482,16 @@ internal inline fun <T> EncryptedPreferences
     ) {
         "A wallet secret disappeared during validation"
     }
-    val encodedSecret = snapshot.plaintext
+    // Opened before validation and outside the corruption catch: a sealed
+    // value this session cannot open is locked, never corrupt.
+    val encodedSecret = WalletSecretEnvelopes.open(snapshot.plaintext)
     val validated = try {
         decodeAndValidate(encodedSecret)
     } catch (failure: WalletSecureStorageUnavailableException) {
         throw failure
     } catch (failure: WalletRecoveryRequiredException) {
+        throw failure
+    } catch (failure: WalletSecretLockedException) {
         throw failure
     } catch (failure: Exception) {
         if (isLocalCorruption(failure)) {

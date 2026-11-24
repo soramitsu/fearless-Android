@@ -23,9 +23,12 @@ import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.TitleValueViewState
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.black2
-import jp.co.soramitsu.common.compose.theme.blurColorLight
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.white24
 import jp.co.soramitsu.common.utils.clickableWithNoIndication
 import jp.co.soramitsu.feature_staking_impl.R
+import jp.co.soramitsu.staking.impl.presentation.common.stakingCardColor
 
 data class EstimatedEarningsViewState(
     val monthlyChange: TitleValueViewState?,
@@ -43,7 +46,7 @@ fun EstimatedEarnings(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     BackgroundCornered(
-        backgroundColor = blurColorLight,
+        backgroundColor = stakingCardColor,
         modifier = Modifier
             .fillMaxWidth()
     ) {
@@ -83,8 +86,8 @@ fun EstimatedEarnings(
             AmountInput(
                 state = state.amountInputViewState,
                 modifier = Modifier.padding(horizontal = 16.dp),
-                backgroundColor = blurColorLight,
-                borderColor = black2,
+                backgroundColor = stakingCardColor,
+                borderColor = if (FwRestyle.isEnabled(FwSurface.Staking)) white24 else black2,
                 onInput = onAmountInput,
                 onInputFocusChange = onInputFocusChange
             )

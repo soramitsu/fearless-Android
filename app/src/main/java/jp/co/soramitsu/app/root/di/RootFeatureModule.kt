@@ -1,6 +1,10 @@
 package jp.co.soramitsu.app.root.di
 
+import jp.co.soramitsu.account.api.domain.UniversalWalletFundsProbe
+import jp.co.soramitsu.account.api.domain.UniversalWalletPasswordNotice
 import jp.co.soramitsu.account.impl.domain.LegacyNetworkAccountUpgrade
+import jp.co.soramitsu.account.impl.domain.UniversalWalletFreshRoots
+import jp.co.soramitsu.account.impl.domain.UniversalWalletWatchList
 import jp.co.soramitsu.account.impl.data.repository.WalletSecretMutationCoordinator
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
 
@@ -15,6 +19,7 @@ import jp.co.soramitsu.app.root.domain.AppInitializer
 import jp.co.soramitsu.app.root.domain.AssetDiscoveryService
 import jp.co.soramitsu.app.root.domain.ProductionAssetDiscoverySweep
 import jp.co.soramitsu.app.root.domain.RootInteractor
+import jp.co.soramitsu.app.root.domain.WalletUnlockMaintenance
 import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.domain.GetAvailableFiatCurrencies
 import jp.co.soramitsu.core.updater.UpdateSystem
@@ -61,7 +66,12 @@ class RootFeatureModule {
         productionAssetDiscoverySweep: AssetDiscoveryService,
         chainsRepository: ChainsRepository,
         metaAccountDao: MetaAccountDao,
-        mutationCoordinator: WalletSecretMutationCoordinator
+        mutationCoordinator: WalletSecretMutationCoordinator,
+        universalWalletFundsProbe: UniversalWalletFundsProbe,
+        universalWalletFreshRoots: UniversalWalletFreshRoots,
+        universalWalletWatchList: UniversalWalletWatchList,
+        universalWalletPasswordNotice: UniversalWalletPasswordNotice,
+        unlockMaintenance: WalletUnlockMaintenance
     ): AppInitializer {
         return AppInitializer(
             chainRegistry,
@@ -78,9 +88,13 @@ class RootFeatureModule {
             pricesService,
             productionAssetDiscoverySweep,
             chainsRepository,
-            legacyNetworkAccountUpgrade = LegacyNetworkAccountUpgrade(accountRepository, metaAccountDao, mutationCoordinator) {
+            legacyNetworkAccountUpgrade = LegacyNetworkAccountUpgrade(
+                accountRepository, metaAccountDao, mutationCoordinator, universalWalletFundsProbe, universalWalletFreshRoots,
+                universalWalletWatchList, universalWalletPasswordNotice
+            ) {
                 chainsRepository.getChains().map { it.id }.toSet()
-            }
+            },
+            unlockMaintenance = unlockMaintenance
         )
     }
 }

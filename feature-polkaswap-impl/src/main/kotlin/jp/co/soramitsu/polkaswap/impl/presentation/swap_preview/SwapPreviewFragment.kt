@@ -21,6 +21,8 @@ import jp.co.soramitsu.polkaswap.api.presentation.models.SwapDetailsViewState
 @AndroidEntryPoint
 class SwapPreviewFragment : BaseComposeFragment<SwapPreviewViewModel>() {
 
+    override val secureSurface = true
+
     companion object {
 
         const val KEY_SWAP_DETAILS = "KEY_SWAP_DETAILS"

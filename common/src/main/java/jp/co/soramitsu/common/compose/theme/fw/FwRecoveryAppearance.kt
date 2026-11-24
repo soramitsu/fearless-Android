@@ -4,7 +4,10 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -23,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -31,8 +35,8 @@ import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
-import jp.co.soramitsu.common.compose.component.FearlessCorneredShape
 
 /** Recovery uses opaque Calm presentation. Both compile-time rollback controls preserve legacy content. */
 @Composable
@@ -65,25 +69,45 @@ fun FwRecoveryAppearance(content: @Composable () -> Unit) {
 
 /** An explicit secondary action; repeated recovery controls have no shadow or glow. */
 @Composable
-fun FwRecoveryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun FwRecoveryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     val c = LocalFwColors.current
     val interactions = remember { MutableInteractionSource() }
     val pressed by interactions.collectIsPressedAsState()
     var focused by remember { mutableStateOf(false) }
-    val shape = remember { FearlessCorneredShape(8.dp, 10.dp) }
+    val shape = FwShape.Button
     Box(
         modifier = modifier.fillMaxWidth().heightIn(min = 48.dp)
             .onFocusChanged { focused = it.isFocused }
             .fwRecoveryFocus(focused, c.focus, shape)
-            .fwNeuRaised(LocalFwEffects.current, c.copy(surfaceRaised = c.surfaceRaised2), shape, pressed = pressed, elevated = false)
+            .fwSurface(LocalFwEffects.current, c, shape, FwElevation.Raised1, pressed = pressed,
+                fill = if (pressed) c.surfacePressed else c.surfaceRaised2, interactive = true)
+            .clip(shape)
             // This control paints its own pressed/focus states. A Material overlay would
             // lighten the declared fill and reduce the inside rim below 3:1.
-            .clickable(interactionSource = interactions, indication = null, role = Role.Button, onClick = onClick)
+            .clickable(interactionSource = interactions, indication = null, enabled = enabled, role = Role.Button, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text, modifier = Modifier.fillMaxWidth(), style = fwTextStyle(FwTextRole.LabelL), color = c.textPrimary, textAlign = TextAlign.Center)
+        // Keep painting and accessibility on the same paragraph layout. Compose 1.7's
+        // String fast path reconstructs different Japanese line breaks for semantics.
+        Text(AnnotatedString(text), modifier = Modifier.fillMaxWidth(), style = fwTextStyle(FwTextRole.LabelL),
+            color = if (enabled) c.textPrimary else c.textDisabled, textAlign = TextAlign.Center)
     }
+}
+
+/**
+ * A group of recovery facts and actions. Recovery stays opaque and still: inside [FwRecoveryAppearance]
+ * this is a flat card with a solid edge, with no shadow, glow or page light.
+ */
+@Composable
+fun FwRecoveryCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier = modifier.fillMaxWidth()
+            .fwSurface(LocalFwEffects.current, LocalFwColors.current, FwShape.Card, FwElevation.Raised2)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        content = content
+    )
 }
 
 /** Tertiary navigation retains an explicit keyboard focus boundary without a filled surface. */

@@ -277,6 +277,11 @@
         android:label="LanguagesFragment"
         tools:layout="@layout/fragment_languages" />
 
+    <fragment
+        android:id="@+id/appearanceFragment"
+        android:name="jp.co.soramitsu.account.impl.presentation.appearance.AppearanceFragment"
+        android:label="AppearanceFragment" />
+
     <action
         android:id="@+id/action_open_nodesFragment"
         app:destination="@+id/nodesFragment"
@@ -687,11 +692,6 @@
         android:name="jp.co.soramitsu.wallet.impl.presentation.send.setup.SendSetupFragment"
         android:label="sendSetupFragment" />
 
-    <dialog
-        android:id="@+id/cbdcSendSetupFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.send.setupcbdc.CBDCSendSetupFragment"
-        android:label="cbdcSendSetupFragment" />
-
     <fragment
         android:id="@+id/crossChainFragment"
         android:name="jp.co.soramitsu.wallet.impl.presentation.cross_chain.setup.CrossChainSetupFragment"
@@ -736,6 +736,11 @@
         android:id="@+id/connectionsFragment"
         android:name="jp.co.soramitsu.walletconnect.impl.presentation.connections.ConnectionsFragment"
         android:label="connectionsFragment" />
+
+    <dialog
+        android:id="@+id/irohaConnectFragment"
+        android:name="jp.co.soramitsu.irohaconnect.impl.presentation.IrohaConnectFragment"
+        android:label="irohaConnectFragment" />
 
    <dialog
         android:id="@+id/tonConnectionsFragment"
@@ -1305,56 +1310,5 @@
         android:id="@+id/confirmRewardDestinationFragment"
         android:name="jp.co.soramitsu.staking.impl.presentation.staking.rewardDestination.confirm.ConfirmRewardDestinationFragment"
         android:label="ConfirmRewardDestinationFragment" />
-
-    <action
-        android:id="@+id/actionOpenBeaconFragment"
-        app:destination="@id/beaconFragment"
-        app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-        app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-        app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-        app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-
-    <fragment
-        android:id="@+id/beaconFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.beacon.main.BeaconFragment"
-        android:label="BeaconFragment"
-        tools:layout="@layout/fragment_beacon">
-
-        <action
-            android:id="@+id/action_beaconFragment_to_signBeaconTransactionFragment"
-            app:destination="@id/signBeaconTransactionFragment"
-            app:enterAnim="?android:attr/fragmentOpenEnterAnimation"
-            app:exitAnim="?android:attr/fragmentOpenExitAnimation"
-            app:popEnterAnim="?android:attr/fragmentCloseEnterAnimation"
-            app:popExitAnim="?android:attr/fragmentCloseExitAnimation" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/signBeaconTransactionFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.beacon.sign.SignBeaconTransactionFragment"
-        android:label="SignBeaconTransactionFragment"
-        tools:layout="@layout/fragment_beacon" />
-
-    <fragment
-        android:id="@+id/experimentalFragment"
-        android:name="jp.co.soramitsu.account.impl.presentation.experimental.ExperimentalFragment"
-        android:label="ExperimentalFragment"
-        tools:layout="@layout/fragment_experimental" />
-
-    <fragment
-        android:id="@+id/successFragment"
-        android:name="jp.co.soramitsu.account.impl.presentation.experimental.SuccessfulFragment"
-        android:label="SuccessfulFragment"
-        tools:layout="@layout/fragment_succesful" />
-
-    <fragment
-        android:id="@+id/transactionRawDataFragment"
-        android:name="jp.co.soramitsu.wallet.impl.presentation.beacon.sign.TransactionRawDataFragment"
-        android:label="TransactionRawDataFragment" />
-
-    <fragment
-        android:id="@+id/scoreDetailsFragment"
-        android:name="jp.co.soramitsu.account.impl.presentation.nomis_scoring.ScoreDetailsFragment"
-        android:label="ScoreDetailsFragment" />
 
 </navigation>

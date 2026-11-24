@@ -2,10 +2,9 @@ package jp.co.soramitsu.tonconnect.api.model
 
 import android.os.Parcel
 import android.os.Parcelable
-import org.ton.api.pk.PrivateKeyEd25519
+import jp.co.soramitsu.fearless_utils.encrypt.ton.TonEd25519
 import org.ton.block.AddrStd
-import org.ton.crypto.digest.sha256
-import org.ton.crypto.hex
+import java.security.MessageDigest
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -13,24 +12,28 @@ object TONProof {
 
     private const val tonProofPrefix = "ton-proof-item-v2/"
     private const val tonConnectPrefix = "ton-connect"
-    private val prefixMessage = hex("ffff") + tonConnectPrefix.toByteArray()
+    private const val MILLIS_PER_SECOND = 1000L
+    private val prefixMessage = byteArrayOf(0xff.toByte(), 0xff.toByte()) + tonConnectPrefix.toByteArray()
     private val prefixItem = tonProofPrefix.toByteArray()
 
+    /** Signs a TON Connect ton_proof with the wallet's 32-byte Ed25519 private key. */
     @OptIn(ExperimentalEncodingApi::class)
     fun sign(
         address: AddrStd,
-        secretKey: PrivateKeyEd25519,
+        privateKey: ByteArray,
         payload: String,
         domain: String,
+        timestamp: Long = System.currentTimeMillis() / MILLIS_PER_SECOND,
     ): Result {
         val request = Request(
+            timestamp = timestamp,
             payload = payload,
             domain = Domain(domain),
             address = Address(address)
         )
 
         val body = sha256(prefixMessage + request.signatureMessage)
-        val signature = secretKey.sign(body)
+        val signature = TonEd25519.sign(privateKey, body)
 
         return Result(
             timestamp = request.timestamp,
@@ -39,6 +42,8 @@ object TONProof {
             signature = Base64.encode(signature)
         )
     }
+
+    private fun sha256(data: ByteArray): ByteArray = MessageDigest.getInstance("SHA-256").digest(data)
 
     private interface Serializable {
         fun toByteArray(): ByteArray

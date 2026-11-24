@@ -25,6 +25,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import jp.co.soramitsu.wallet.impl.domain.model.Asset
+import jp.co.soramitsu.wallet.impl.domain.model.Token
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -151,6 +152,82 @@ class ClaimRewardsViewModelTest {
         assertEquals(false, vm.state.value.buttonState.enabled)
         assertEquals(text(R.string.portfolio_balance_unavailable), vm.state.value.transferableInfoItem?.value)
         assertEquals(emptyList<Throwable>(), uncaught)
+    }
+
+    @Test
+    fun `leaving waits while a claim is being submitted, and works again once it answers`() {
+        val claim = CompletableDeferred<Result<String>>()
+        coEvery { interactor.claimRewards(CHAIN_ID) } coAnswers { claim.await() }
+        val vm = viewModelWithKnownBalance()
+
+        vm.onNextClick()
+
+        assertEquals(true, vm.isClaimInProgress.value)
+        vm.onNavigationClick()
+        verify(exactly = 0) { router.back() }
+
+        claim.complete(Result.failure(IOException("refused")))
+
+        assertEquals(false, vm.isClaimInProgress.value)
+        vm.onNavigationClick()
+        verify(exactly = 1) { router.back() }
+        assertEquals(emptyList<Throwable>(), uncaught)
+    }
+
+    @Test
+    fun `leaving is free when no claim is running, even with the amount still loading`() {
+        lockedAmount = { BigInteger.ZERO }
+        val vm = viewModelWithKnownBalance()
+
+        // The state calls a zero locked amount loading: that must not hold the sheet like a running claim does.
+        assertEquals(false, vm.isClaimInProgress.value)
+        vm.onNavigationClick()
+
+        verify(exactly = 1) { router.back() }
+    }
+
+    @Test
+    fun `a claim that succeeds leaves through its own result, once`() {
+        coEvery { interactor.claimRewards(CHAIN_ID) } returns Result.success("0xhash")
+        val vm = viewModelWithKnownBalance()
+
+        vm.onNextClick()
+
+        assertEquals(false, vm.isClaimInProgress.value)
+        verify(exactly = 1) { router.back() }
+        verify(exactly = 1) { router.openOperationSuccess("0xhash", CHAIN_ID) }
+    }
+
+    private fun viewModelWithKnownBalance(): ClaimRewardsViewModel {
+        val config = mockk<jp.co.soramitsu.core.models.Asset>(relaxed = true) {
+            every { id } returns "native"
+            every { chainId } returns CHAIN_ID
+            every { isUtility } returns true
+            every { symbol } returns "DOT"
+            every { precision } returns 10
+            every { color } returns null
+        }
+        every { chain.assets } returns listOf(config)
+        val known = Asset(
+            metaId = 1,
+            token = Token(configuration = config, fiatRate = null, fiatSymbol = null, recentRateChange = null),
+            accountId = ByteArray(32),
+            freeInPlanks = BigInteger.TEN,
+            reservedInPlanks = BigInteger.ZERO,
+            miscFrozenInPlanks = BigInteger.ZERO,
+            feeFrozenInPlanks = BigInteger.ZERO,
+            bondedInPlanks = BigInteger.ZERO,
+            redeemableInPlanks = BigInteger.ZERO,
+            unbondingInPlanks = BigInteger.ZERO,
+            sortIndex = 0,
+            enabled = true,
+            minSupportedVersion = null,
+            chainAccountName = null,
+            markedNotNeed = false,
+            status = null
+        )
+        every { interactor.assetFlow(CHAIN_ID, "native") } returns flowOf(known)
+        return viewModel()
     }
 
     private val ClaimRewardsViewModel.dialogs: List<ErrorDialogState>

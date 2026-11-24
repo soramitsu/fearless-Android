@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_title">Tampilan</string>
+    <string name="appearance_effects_title">Efek visual</string>
+    <string name="appearance_effects_automatic">Otomatis</string>
+    <string name="appearance_effects_reduced">Dikurangi</string>
+    <string name="appearance_effects_automatic_description">Cahaya dan bayangan penuh, kecuali perangkat Anda meminta kontras lebih tinggi.</string>
+    <string name="appearance_effects_reduced_description">Permukaan datar yang solid, tanpa pendar dan bayangan.</string>
+    <string name="appearance_effects_kept_reduced">Pengaturan kontras perangkat Anda membuat efek tetap dikurangi.</string>
+    <string name="appearance_contrast_title">Tingkatkan kontras</string>
+    <string name="appearance_contrast_description">Teks lebih terang dan garis tepi yang tegas. Efek tetap dikurangi selama ini aktif.</string>
+    <string name="appearance_preview_title">Pratinjau</string>
+    <string name="appearance_save_failed">Pilihan ini tidak dapat disimpan.</string>
+</resources>

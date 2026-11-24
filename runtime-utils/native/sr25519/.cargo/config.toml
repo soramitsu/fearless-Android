@@ -1,3 +1,6 @@
+# 16 KB page alignment for every Android ABI (Google Play requirement for
+# 64-bit ABIs; kept for 32-bit ABIs too). The Gradle build passes the same
+# flags, plus path remapping, through CARGO_ENCODED_RUSTFLAGS.
 [target.aarch64-linux-android]
 rustflags = [
     "-C", "link-arg=-Wl,-z,common-page-size=4096",

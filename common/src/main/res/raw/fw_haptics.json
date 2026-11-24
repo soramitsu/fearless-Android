@@ -1,0 +1,170 @@
+{
+  "formatVersion": 1,
+  "patterns": {
+    "send": {
+      "sound": "audio/send",
+      "events": [
+        {
+          "type": "continuous",
+          "time": 0,
+          "duration": 0.26,
+          "intensity": [
+            0.2,
+            0.75
+          ],
+          "sharpness": 0.25
+        },
+        {
+          "type": "transient",
+          "time": 0.29,
+          "intensity": 1,
+          "sharpness": 0.7
+        }
+      ],
+      "android": {
+        "primitives": [
+          {
+            "id": "QUICK_RISE",
+            "scale": 0.7,
+            "delayMs": 0
+          },
+          {
+            "id": "CLICK",
+            "scale": 1,
+            "delayMs": 40
+          }
+        ],
+        "waveform": {
+          "timingsMs": [
+            0,
+            90,
+            90,
+            80,
+            30,
+            26
+          ],
+          "amplitudes": [
+            0,
+            40,
+            90,
+            150,
+            0,
+            255
+          ]
+        }
+      }
+    },
+    "receive": {
+      "sound": "audio/receive",
+      "events": [
+        {
+          "type": "transient",
+          "time": 0.03,
+          "intensity": 0.65,
+          "sharpness": 0.25
+        },
+        {
+          "type": "transient",
+          "time": 0.19,
+          "intensity": 1,
+          "sharpness": 0.5
+        }
+      ],
+      "android": {
+        "primitives": [
+          {
+            "id": "TICK",
+            "scale": 0.8,
+            "delayMs": 30
+          },
+          {
+            "id": "CLICK",
+            "scale": 1,
+            "delayMs": 140
+          }
+        ],
+        "waveform": {
+          "timingsMs": [
+            30,
+            22,
+            138,
+            28
+          ],
+          "amplitudes": [
+            0,
+            130,
+            0,
+            255
+          ]
+        }
+      }
+    },
+    "launchArrive": {
+      "sound": null,
+      "events": [
+        {
+          "type": "transient",
+          "time": 0,
+          "intensity": 0.55,
+          "sharpness": 0.4
+        }
+      ],
+      "android": {
+        "primitives": [
+          {
+            "id": "TICK",
+            "scale": 0.7,
+            "delayMs": 0
+          }
+        ],
+        "waveform": {
+          "timingsMs": [
+            0,
+            18
+          ],
+          "amplitudes": [
+            0,
+            110
+          ]
+        }
+      }
+    },
+    "commit": {
+      "sound": null,
+      "events": [
+        {
+          "type": "transient",
+          "time": 0,
+          "intensity": 0.7,
+          "sharpness": 0.5
+        }
+      ],
+      "android": {
+        "primitives": [
+          {
+            "id": "CLICK",
+            "scale": 0.7,
+            "delayMs": 0
+          }
+        ],
+        "waveform": {
+          "timingsMs": [
+            0,
+            20
+          ],
+          "amplitudes": [
+            0,
+            150
+          ]
+        }
+      }
+    },
+    "failure": {
+      "sound": null,
+      "platform": {
+        "ios": "UINotificationFeedbackGenerator.error",
+        "android": "HapticFeedbackConstants.REJECT (API 30+) or waveform [0,40,60,40] at 200"
+      }
+    }
+  }
+}

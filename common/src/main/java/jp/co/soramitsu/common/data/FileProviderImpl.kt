@@ -26,7 +26,31 @@ class FileProviderImpl(
         }
     }
 
+    override suspend fun getFileInInternalShareStorage(fileName: String): File {
+        require(fileName !in RESERVED_FILE_NAMES && File(fileName).name == fileName) {
+            "A shared file name must not contain a path"
+        }
+
+        return withContext(Dispatchers.IO) {
+            val cacheDir = context.cacheDir ?: directoryNotAvailable()
+            val shareDir = File(cacheDir, INTERNAL_SHARE_DIRECTORY)
+            if (!shareDir.isDirectory && !shareDir.mkdirs()) directoryNotAvailable()
+
+            File(shareDir, fileName)
+        }
+    }
+
     private fun directoryNotAvailable(): Nothing {
         throw IllegalStateException("Cache directory is unavailable")
+    }
+
+    companion object {
+        /**
+         * The only internal directory the app's FileProvider serves; it must
+         * match the cache-path entry in app/src/main/res/xml/provider_paths.xml.
+         */
+        const val INTERNAL_SHARE_DIRECTORY = "shared_exports"
+
+        private val RESERVED_FILE_NAMES = setOf("", ".", "..")
     }
 }

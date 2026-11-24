@@ -203,6 +203,11 @@ enum class UniversalWalletRegistryEndpointKind {
     @SerializedName("rpc")
     Rpc,
 
+    /** Torii REST base URL; wallets call Torii routes directly. */
+    @SerializedName("torii")
+    Torii,
+
+    /** Read-only compatibility with older registries; never used for wallet calls. */
     @SerializedName("torii-mcp")
     ToriiMcp,
 

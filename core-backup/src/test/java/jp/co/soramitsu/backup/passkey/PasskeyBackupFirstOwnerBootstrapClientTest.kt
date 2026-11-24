@@ -61,8 +61,8 @@ class PasskeyBackupFirstOwnerBootstrapClientTest {
         assertEquals(3, fixture.transport.requests.size)
         assertEquals(1, fixture.authorizer.authorizations)
         assertEquals(1, fixture.authorizer.signatures)
-        assertEquals(1, fixture.integrityGateway.requests.size)
-        assertEquals(proofVector().get("requestHash").asString, fixture.integrityGateway.requests.single())
+        assertEquals(1, fixture.attestation.requests.size)
+        assertEquals(proofVector().get("requestHash").asString, fixture.attestation.requests.single())
 
         val registration = JsonParser.parseString(requireNotNull(fixture.ceremonyExecutor.requestJson)).asJsonObject
         assertEquals("required", registration.getAsJsonObject("authenticatorSelection").get("residentKey").asString)
@@ -105,7 +105,7 @@ class PasskeyBackupFirstOwnerBootstrapClientTest {
         ).forEach { fixture ->
             assertTrue(runCatching { fixture.client().bootstrap(wallet, ACCOUNT, "Wallet") }.isFailure)
             assertEquals(1, fixture.authorizer.signatures)
-            assertEquals(0, fixture.integrityGateway.requests.size)
+            assertEquals(0, fixture.attestation.requests.size)
             assertEquals(1, fixture.transport.requests.size)
         }
     }
@@ -123,7 +123,7 @@ class PasskeyBackupFirstOwnerBootstrapClientTest {
         assertTrue(runCatching { noPrf.client().bootstrap(wallet, ACCOUNT, "Wallet") }.isFailure)
         assertEquals(1, noPrf.ceremonyExecutor.calls)
         assertEquals(0, noPrf.authorizer.signatures)
-        assertEquals(0, noPrf.integrityGateway.requests.size)
+        assertEquals(0, noPrf.attestation.requests.size)
         assertEquals(1, noPrf.transport.requests.size)
     }
 
@@ -132,7 +132,7 @@ class PasskeyBackupFirstOwnerBootstrapClientTest {
         val switched = Fixture().apply { accountProvider.switchAfter = 1 }
         assertTrue(runCatching { switched.client().bootstrap(wallet, ACCOUNT, "Wallet") }.isFailure)
         assertEquals(1, switched.transport.requests.size)
-        assertEquals(0, switched.integrityGateway.requests.size)
+        assertEquals(0, switched.attestation.requests.size)
 
         val occupied = Fixture().apply { nonemptyHead = true }
         assertTrue(runCatching { occupied.client().bootstrap(wallet, ACCOUNT, "Wallet") }.isFailure)
@@ -173,7 +173,7 @@ class PasskeyBackupFirstOwnerBootstrapClientTest {
         val accountProvider = RecordingAccountProvider()
         val authorizer = RecordingAuthorizer()
         val ceremonyExecutor = RecordingCeremonyExecutor()
-        val integrityGateway = RecordingIntegrityGateway()
+        val attestation = RecordingAttestationProvider()
         val transport = RecordingTransport(this)
         var challengeOverride: String? = null
         var sessionOverride: String? = null
@@ -184,11 +184,8 @@ class PasskeyBackupFirstOwnerBootstrapClientTest {
             val head = PasskeyBackupOwnerHeadHttpClient(
                 accountProvider, transport, BASE_URL, { nowSeconds * 1_000L }, enabled
             )
-            val integrity = PasskeyBackupPlayIntegrityBootstrapRequester(
-                PasskeyBackupPlayIntegrityCloudProject(123_456_789L), integrityGateway, enabled
-            )
             return PasskeyBackupFirstOwnerBootstrapClient(
-                authorizer, accountProvider, ceremonyExecutor, integrity, head, transport,
+                authorizer, accountProvider, ceremonyExecutor, attestation, head, transport,
                 BASE_URL, nowMillis = { nowSeconds * 1_000L }, isReleaseEnabled = enabled
             )
         }
@@ -332,13 +329,14 @@ class PasskeyBackupFirstOwnerBootstrapClientTest {
         ): PasskeyBackupNativeCeremonyResult = error("No assertion in first-owner bootstrap")
     }
 
-    private class RecordingIntegrityGateway : PasskeyBackupStandardIntegrityGateway {
+    private class RecordingAttestationProvider : PasskeyBackupBootstrapAttestationProvider {
         val requests = mutableListOf<String>()
-        override suspend fun prepare(cloudProjectNumber: Long): PasskeyBackupStandardIntegrityGateway.PreparedProvider =
-            PasskeyBackupStandardIntegrityGateway.PreparedProvider { hash ->
-                requests += hash
-                "a".repeat(40)
-            }
+        override suspend fun attest(
+            binding: PasskeyBackupBootstrapWalletProofBinding
+        ): PasskeyBackupBootstrapAttestation {
+            requests += binding.requestHash
+            return PasskeyBackupBootstrapAttestation("test-attestation", "a".repeat(40), binding.requestHash)
+        }
     }
 
     private class RecordingTransport(private val fixture: Fixture) : GoogleDriveHttpTransport {

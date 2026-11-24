@@ -23,11 +23,9 @@ import io.mockk.runs
 import io.mockk.verify
 import jp.co.soramitsu.account.api.domain.PendulumPreInstalledAccountsScenario
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
-import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.account.api.domain.model.PortfolioBalance
 import jp.co.soramitsu.wallet.impl.domain.model.AssetAmountState
@@ -72,10 +70,14 @@ import jp.co.soramitsu.wallet.impl.presentation.AssetPayload
 import jp.co.soramitsu.wallet.impl.presentation.WalletRouter
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.AssetsLoadingState
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.BalanceListViewModel
+import jp.co.soramitsu.wallet.impl.presentation.balance.list.PortfolioListItem
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.PortfolioPresentationPreferences
 import jp.co.soramitsu.wallet.impl.presentation.bundledPortfolioVisibility
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.wallet.impl.presentation.balance.list.WalletAssetsState
+import jp.co.soramitsu.wallet.impl.presentation.balance.list.isNetworkSelectionAllowed
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonMainnetChainId
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -129,9 +131,6 @@ class BalanceListViewModelTests {
 
     @MockK
     private lateinit var accountInteractor: AccountInteractor
-
-    @MockK
-    private lateinit var nomisScoreInteractor: NomisScoreInteractor
 
     @MockK
     private lateinit var resourceManager: ResourceManager
@@ -237,7 +236,6 @@ class BalanceListViewModelTests {
         every { totalBalanceUseCase.observe(any()) } returns flowOf(
             portfolioTotal()
         )
-        every { nomisScoreInteractor.observeCurrentAccountScore() } returns flowOf(createNomis())
         every { walletInteractor.networkIssuesFlow() } returns flowOf(emptyMap())
         every { networkScanStateStore.states } returns MutableStateFlow(emptyMap())
         every { assetMetadataDescriptorStore.get(any()) } returns null
@@ -278,7 +276,6 @@ class BalanceListViewModelTests {
             getAvailableFiatCurrencies = getAvailableFiatCurrencies,
             selectedFiat = selectedFiat,
             accountInteractor = accountInteractor,
-            nomisScoreInteractor = nomisScoreInteractor,
             resourceManager = resourceManager,
             clipboardManager = clipboardManager,
             currentAccountAddress = currentAccountAddressUseCase,
@@ -327,6 +324,20 @@ class BalanceListViewModelTests {
         UpdateSecurityNoticeTracker(noticePreferences).recordStartup(hadStoredWallets = false)
 
         assertNull(createViewModel(networkScanStateStore).showUpdateSecurityNotice.value)
+    }
+
+    @Test
+    fun `scanned Iroha Connect invitation opens the session screen and nothing else`() = runTest {
+        val link = "irohaconnect://connect?sid=s&network_id=n&v=1&role=wallet"
+        every { walletRouter.openIrohaConnect(any()) } just runs
+
+        vm.qrCodeScanned(link)
+        vm.qrCodeScanned(link.replaceFirst("irohaconnect://", "iroha://"))
+        advanceUntilIdle()
+
+        verify(exactly = 1) { walletRouter.openIrohaConnect(link) }
+        verify(exactly = 1) { walletRouter.openIrohaConnect(link.replaceFirst("irohaconnect://", "iroha://")) }
+        verify(exactly = 0) { walletRouter.openSend(any(), any(), any(), any()) }
     }
 
     @Test
@@ -431,6 +442,42 @@ class BalanceListViewModelTests {
         assertEquals("network disabled", inactive.errorMessage)
     }
 
+    @Test
+    fun `a TON-only wallet opens its home with an empty asset catalog`() = runTest {
+        // 4.3.7 threw NoSuchElementException from the TON placeholder when the catalog had no assets yet.
+        val walletId = 21L
+        val tonOnly = LightMetaAccount(
+            id = walletId,
+            substratePublicKey = null,
+            substrateCryptoType = null,
+            substrateAccountId = null,
+            ethereumAddress = null,
+            ethereumPublicKey = null,
+            tonPublicKey = ByteArray(32) { 1 },
+            isSelected = true,
+            name = "TON",
+            isBackedUp = true,
+            initialized = true,
+        )
+        val metaAccount = createMetaAccount(walletId)
+        coEvery { chainInteractor.getChainAssets() } returns emptyList()
+        every { walletInteractor.assetsFlowAndAccount() } returns flowOf(walletId to emptyList())
+        every { walletInteractor.selectedMetaAccountFlow() } returns flowOf(metaAccount)
+        coEvery { walletInteractor.getSelectedMetaAccount() } returns metaAccount
+        every { walletInteractor.selectedLightMetaAccountFlow() } returns flowOf(tonOnly)
+        every { accountInteractor.selectedLightMetaAccountFlow() } returns flowOf(tonOnly)
+        coEvery { accountInteractor.selectedLightMetaAccount() } returns tonOnly
+        coEvery { accountInteractor.lightMetaAccountsFlow() } returns flowOf(listOf(tonOnly))
+        coEvery { walletInteractor.getSavedChainId(walletId) } returns null
+        coEvery { addressIconGenerator.createWalletIcon(any(), any()) } returns picture
+
+        val viewModel = createViewModel(networkScanStateStore)
+        advanceUntilIdle()
+
+        val assets = (viewModel.state.value.assetsState as WalletAssetsState.Assets).assets
+        assertTrue("assets: $assets", assets is AssetsLoadingState.Loaded)
+    }
+
     @OptIn(ExperimentalMaterialApi::class)
     @Test
     fun `swipe send on a vetoed bitcoin row shows the paused sheet instead of the send flow`() = runTest {
@@ -493,6 +540,51 @@ class BalanceListViewModelTests {
     }
 
     @Test
+    fun `hero send and swap open their existing asset selection flows`() = runTest {
+        every { walletRouter.openSend(any(), any(), any(), any()) } just runs
+        every { walletRouter.openSwapTokensScreen(any(), any(), any()) } just runs
+
+        vm.onHeroAction(ActionItemType.SEND)
+        vm.onHeroAction(ActionItemType.SWAP)
+
+        verify(exactly = 1) { walletRouter.openSend(null, any(), any(), any()) }
+        verify(exactly = 1) { walletRouter.openSwapTokensScreen(null, null, null) }
+    }
+
+    @Test
+    fun `hero receive waits for both selected network and asset before opening the address`() = runTest {
+        val chain = kotlinx.coroutines.flow.MutableSharedFlow<String>()
+        val asset = kotlinx.coroutines.flow.MutableSharedFlow<String>()
+        every { walletRouter.observeResult<String>(jp.co.soramitsu.wallet.api.presentation.WalletRouter.KEY_CHAIN_ID) } returns chain
+        every { walletRouter.observeResult<String>(jp.co.soramitsu.wallet.api.presentation.WalletRouter.KEY_ASSET_ID) } returns asset
+        every { walletRouter.openSelectAssetForReceive() } just runs
+        every { walletRouter.openReceive(any()) } just runs
+
+        vm.onHeroAction(ActionItemType.RECEIVE)
+        advanceUntilIdle()
+        chain.emit("selected-chain")
+        advanceUntilIdle()
+        verify(exactly = 0) { walletRouter.openReceive(any()) }
+        asset.emit("selected-asset")
+        advanceUntilIdle()
+        verify(exactly = 1) { walletRouter.openReceive(AssetPayload("selected-chain", "selected-asset")) }
+    }
+
+    @Test
+    fun `hero buy falls back to exact asset details when the wallet has no eligible account`() = runTest {
+        every { walletRouter.observeResult<String>(jp.co.soramitsu.wallet.api.presentation.WalletRouter.KEY_CHAIN_ID) } returns flowOf("selected-chain")
+        every { walletRouter.observeResult<String>(jp.co.soramitsu.wallet.api.presentation.WalletRouter.KEY_ASSET_ID) } returns flowOf("selected-asset")
+        every { walletRouter.openSelectAssetForReceive() } just runs
+        every { walletRouter.openAssetDetails(any()) } just runs
+        every { walletInteractor.selectedAccountFlow("selected-chain") } returns emptyFlow()
+
+        vm.onHeroAction(ActionItemType.BUY)
+        advanceUntilIdle()
+
+        verify(exactly = 1) { walletRouter.openAssetDetails(AssetPayload("selected-chain", "selected-asset")) }
+    }
+
+    @Test
     fun `explicit shown zero row is listed and an auto zero non-default row is not`() = runTest {
         val shownSecondary = portfolioAsset("shown-secondary", "SEC", TOKEN_CHAIN_ID)
         val autoUtility = portfolioAsset("auto-utility", "TKN", TOKEN_CHAIN_ID, isUtility = true)
@@ -520,6 +612,52 @@ class BalanceListViewModelTests {
 
         assertEquals(listOf(DOT_ASSET_ID), loaded.assets.map { it.chainAssetId })
         assertFalse(loaded.walletHasPositiveBalance)
+    }
+
+    @Test
+    fun `new wallet on the popular filter is not called empty while another network is unread`() = runTest {
+        every { walletInteractor.observeSelectedAccountChainSelectFilter() } returns
+            flowOf(ChainSelectorViewStateWithFilters.Filter.Popular)
+        val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
+        val unread = portfolioAsset("unranked-utility", "TKN", TOKEN_CHAIN_ID, isUtility = true, priceId = "token")
+
+        val loaded = loadedPortfolio(
+            chains = listOf(portfolioChain(POLKADOT_CHAIN_ID, rank = 8, dot), portfolioChain(TOKEN_CHAIN_ID, rank = null, unread)),
+            assets = listOf(portfolioRow(dot, free = BigInteger.ZERO, enabled = null), portfolioRow(unread, free = null, enabled = null))
+        )
+
+        assertEquals(listOf(DOT_ASSET_ID), loaded.assets.map { it.chainAssetId })
+        assertTrue(loaded.walletHasUnknownBalance)
+        assertFalse(loaded.portfolioItems.contains(PortfolioListItem.EmptyWallet))
+    }
+
+    @Test
+    fun `new wallet with every balance read as zero is called empty`() = runTest {
+        every { walletInteractor.observeSelectedAccountChainSelectFilter() } returns
+            flowOf(ChainSelectorViewStateWithFilters.Filter.Popular)
+        val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
+        val other = portfolioAsset("unranked-utility", "TKN", TOKEN_CHAIN_ID, isUtility = true, priceId = "token")
+
+        val loaded = loadedPortfolio(
+            chains = listOf(portfolioChain(POLKADOT_CHAIN_ID, rank = 8, dot), portfolioChain(TOKEN_CHAIN_ID, rank = null, other)),
+            assets = listOf(portfolioRow(dot, free = BigInteger.ZERO, enabled = null), portfolioRow(other, free = BigInteger.ZERO, enabled = null))
+        )
+
+        assertFalse(loaded.walletHasUnknownBalance)
+        assertTrue(loaded.portfolioItems.contains(PortfolioListItem.EmptyWallet))
+    }
+
+    @Test
+    fun `a hidden row with an unread balance leaves the wallet empty`() = runTest {
+        val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
+        val hidden = portfolioAsset("hidden-token", "HID", POLKADOT_CHAIN_ID)
+
+        val loaded = loadedPortfolio(
+            chains = listOf(portfolioChain(POLKADOT_CHAIN_ID, rank = 8, dot, hidden)),
+            assets = listOf(portfolioRow(dot, free = BigInteger.ZERO, enabled = null), portfolioRow(hidden, free = null, enabled = false))
+        )
+
+        assertFalse(loaded.walletHasUnknownBalance)
     }
 
     @Test
@@ -768,21 +906,168 @@ class BalanceListViewModelTests {
     }
 
     @Test
-    fun `portfolio lens is saved only for the displayed wallet and restored when the wallet changes`() = runTest {
+    fun `one-list note shows once for a wallet that kept By network, and closing it is per wallet`() = runTest {
         val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
         val chains = listOf(portfolioChain(POLKADOT_CHAIN_ID, rank = 8, dot))
         val rows = listOf(portfolioRow(dot, free = BigInteger.TEN, enabled = null))
+        val preferences = PortfolioPresentationPreferences(portfolioPreferencesStore)
         val byNetwork = jp.co.soramitsu.wallet.impl.presentation.balance.list.PortfolioLens.ByNetwork
         val byToken = jp.co.soramitsu.wallet.impl.presentation.balance.list.PortfolioLens.ByToken
-        assertEquals(byToken, loadedPortfolio(chains, rows).portfolioUi.lens)
-        portfolioViewModel.onPortfolioLensChanged(byNetwork)
+        preferences.setLens(WALLET_ID, byNetwork)
+
+        val kept = loadedPortfolio(chains, rows)
+        assertTrue(kept.portfolioUi.showOneListNotice)
+        assertEquals("the list is the token list all the same", byToken, kept.portfolioUi.lens)
+        assertEquals(listOf(DOT_ASSET_ID), kept.portfolioItems.filterIsInstance<PortfolioListItem.AssetRow>().map { it.asset.state.chainAssetId })
+        assertFalse(loadedPortfolio(chains, rows, walletId = WALLET_ID + 1).portfolioUi.showOneListNotice)
+        portfolioViewModel.onPortfolioLayoutNoticeDismiss()
         advanceUntilIdle()
-        assertEquals(byNetwork, loadedPortfolio(chains, rows).portfolioUi.lens)
+        assertTrue("another wallet's Got it leaves this wallet's note", loadedPortfolio(chains, rows).portfolioUi.showOneListNotice)
+
+        portfolioViewModel.onPortfolioLayoutNoticeDismiss()
+        advanceUntilIdle()
+        assertFalse(loadedPortfolio(chains, rows).portfolioUi.showOneListNotice)
+        assertEquals(byToken, preferences.observeLens(WALLET_ID).first())
+    }
+
+    @Test
+    fun `home search narrows rows by symbol, name and network and lists the zero balances it finds`() = runTest {
+        val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
+        val ksm = portfolioAsset(KSM_ASSET_ID, "KSM", KUSAMA_CHAIN_ID, isUtility = true, priceId = "kusama")
+        val hidden = portfolioAsset("hidden-token", "HID", POLKADOT_CHAIN_ID, priceId = "hidden")
+        val chains = listOf(portfolioChain(POLKADOT_CHAIN_ID, rank = 8, dot, hidden), portfolioChain(KUSAMA_CHAIN_ID, rank = 9, ksm))
+        val rows = listOf(
+            portfolioRow(dot, free = BigInteger.TEN, enabled = null, rate = "5"),
+            portfolioRow(ksm, free = BigInteger.ZERO, enabled = null),
+            portfolioRow(hidden, free = BigInteger.valueOf(3), enabled = false, rate = "1")
+        )
+        val all = loadedPortfolio(chains, rows)
+        assertEquals("", all.searchQuery)
+        assertTrue("the zero balance waits behind its toggle", all.portfolioItems.any { it is PortfolioListItem.ZeroSummary })
+        assertEquals(listOf(DOT_ASSET_ID), all.portfolioItems.filterIsInstance<PortfolioListItem.AssetRow>().map { it.asset.state.chainAssetId })
+
+        fun searched(query: String): AssetsLoadingState.Loaded {
+            portfolioViewModel.onPortfolioSearch(query)
+            advanceUntilIdle()
+            return (portfolioViewModel.state.value.assetsState as WalletAssetsState.Assets).assets as AssetsLoadingState.Loaded
+        }
+
+        val bySymbol = searched("ksm")
+        assertEquals("ksm", bySymbol.searchQuery)
+        assertEquals(listOf(KSM_ASSET_ID), bySymbol.assets.map { it.chainAssetId })
+        assertEquals(listOf(KSM_ASSET_ID), bySymbol.portfolioItems.filterIsInstance<PortfolioListItem.AssetRow>().map { it.asset.state.chainAssetId })
+        assertTrue("a search lists zero balances without a toggle", bySymbol.portfolioItems.none { it is PortfolioListItem.ZeroSummary })
+        assertEquals(listOf(DOT_ASSET_ID), searched(" Dot ").assets.map { it.chainAssetId })
+        assertEquals("network name", listOf(KSM_ASSET_ID), searched(KUSAMA_CHAIN_ID.take(12)).assets.map { it.chainAssetId })
+        assertEquals("a hidden asset stays hidden", 0, searched("hid").assets.size)
+        val nothing = searched("missing")
+        assertTrue(nothing.assets.isEmpty())
+        assertTrue("never called an empty wallet", nothing.portfolioItems.isEmpty())
+        assertEquals("the totals and exclusions stay wallet-wide", 1, nothing.exclusions.hiddenFundedCount)
+        assertEquals(2, searched("  ").assets.size)
+    }
+
+    @Test
+    fun `network chips list funded networks and set the wallet's saved network filter`() = runTest {
+        every { walletRouter.openSelectChain(any(), isFilteringEnabled = true) } just runs
+        coEvery { walletInteractor.saveChainSelectFilter(any(), any()) } just runs
+        val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
+        val ksm = portfolioAsset(KSM_ASSET_ID, "KSM", KUSAMA_CHAIN_ID, isUtility = true, priceId = "kusama")
+        val token = portfolioAsset("token-utility", "TKN", TOKEN_CHAIN_ID, isUtility = true, priceId = "token")
+        val chains = listOf(
+            portfolioChain(POLKADOT_CHAIN_ID, rank = 8, dot),
+            portfolioChain(KUSAMA_CHAIN_ID, rank = 9, ksm),
+            portfolioChain(TOKEN_CHAIN_ID, rank = null, token)
+        )
+        val rows = listOf(
+            portfolioRow(dot, free = BigInteger.TEN, enabled = null, rate = "5"),
+            portfolioRow(ksm, free = BigInteger.ONE, enabled = null, rate = "100"),
+            portfolioRow(token, free = BigInteger.ZERO, enabled = true)
+        )
+        val loaded = loadedPortfolio(chains, rows)
+        assertEquals(listOf(KUSAMA_CHAIN_ID, POLKADOT_CHAIN_ID), loaded.networkOptions.map { it.id })
+        assertEquals(KUSAMA_CHAIN_ID, loaded.networkOptions.first().name)
+        assertTrue(loaded.networkFilterAvailable)
+        assertNull(loaded.networkGroup)
+        assertFalse(loaded.isNetworkFiltered)
+
+        portfolioViewModel.onPortfolioSearch("dot")
+        portfolioViewModel.onPortfolioNetworkSelect(POLKADOT_CHAIN_ID)
+        advanceUntilIdle()
+        coVerify { walletInteractor.saveChainSelectFilter(WALLET_ID, "All") }
+        verify { walletInteractor.saveChainId(WALLET_ID, POLKADOT_CHAIN_ID) }
+        val filtered = (portfolioViewModel.state.value.assetsState as WalletAssetsState.Assets).assets as AssetsLoadingState.Loaded
+        assertEquals(POLKADOT_CHAIN_ID, filtered.selectedNetwork)
+        assertEquals("the search is kept", "dot", filtered.searchQuery)
+        assertEquals(listOf(DOT_ASSET_ID), filtered.assets.map { it.chainAssetId })
+        assertEquals("chips stay wallet-wide", listOf(KUSAMA_CHAIN_ID, POLKADOT_CHAIN_ID), filtered.networkOptions.map { it.id })
+
+        portfolioViewModel.onPortfolioNetworkSelect(POLKADOT_CHAIN_ID)
+        advanceUntilIdle()
+        verify { walletInteractor.saveChainId(WALLET_ID, null) }
+        assertNull(((portfolioViewModel.state.value.assetsState as WalletAssetsState.Assets).assets as AssetsLoadingState.Loaded).selectedNetwork)
+
+        portfolioViewModel.onPortfolioMoreNetworks()
+        verify { walletRouter.openSelectChain(null, isFilteringEnabled = true) }
+    }
+
+    @Test
+    fun `a selected network that holds nothing keeps its chip and a group keeps its own`() = runTest {
+        val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
+        val token = portfolioAsset("token-utility", "TKN", TOKEN_CHAIN_ID, isUtility = true, priceId = "token")
+        val chains = listOf(portfolioChain(POLKADOT_CHAIN_ID, rank = 8, dot), portfolioChain(TOKEN_CHAIN_ID, rank = null, token))
+        val rows = listOf(portfolioRow(dot, free = BigInteger.TEN, enabled = null, rate = "5"), portfolioRow(token, free = BigInteger.ZERO, enabled = null))
+
+        val onEmpty = loadedPortfolio(chains, rows, selectedChainId = TOKEN_CHAIN_ID)
+        assertEquals(listOf(TOKEN_CHAIN_ID, POLKADOT_CHAIN_ID), onEmpty.networkOptions.map { it.id })
+        assertTrue(onEmpty.isNetworkFiltered)
+        assertNull("a network replaces any group", onEmpty.networkGroup)
+
+        every { walletInteractor.observeSelectedAccountChainSelectFilter() } returns flowOf(ChainSelectorViewStateWithFilters.Filter.Favorite)
+        val favourites = loadedPortfolio(chains, rows)
+        assertEquals(ChainSelectorViewStateWithFilters.Filter.Favorite, favourites.networkGroup)
+        assertTrue(favourites.isNetworkFiltered)
+        assertEquals(listOf(POLKADOT_CHAIN_ID), favourites.networkOptions.map { it.id })
+    }
+
+    @Test
+    fun `chips follow the header's rule and stay off where the wallet is held to one network`() {
+        assertTrue(isNetworkSelectionAllowed(null, 2))
+        assertTrue(isNetworkSelectionAllowed(POLKADOT_CHAIN_ID, 1))
+        assertFalse(isNetworkSelectionAllowed(null, 1))
+        assertFalse(isNetworkSelectionAllowed(tonMainnetChainId, 5))
+    }
+
+    @Test
+    fun `the home search starts empty for another wallet`() = runTest {
+        val dot = portfolioAsset(DOT_ASSET_ID, "DOT", POLKADOT_CHAIN_ID, isUtility = true, priceId = "polkadot")
+        val chains = listOf(portfolioChain(POLKADOT_CHAIN_ID, rank = 8, dot))
         val other = WALLET_ID + 1
-        assertEquals(byToken, loadedPortfolio(chains, rows, walletId = other).portfolioUi.lens)
-        portfolioViewModel.onPortfolioLensChanged(byToken)
+        val light = MutableStateFlow(createLightMetaAccount(WALLET_ID))
+        val meta = MutableStateFlow(createMetaAccount(WALLET_ID))
+        val assets = MutableStateFlow(WALLET_ID to listOf(portfolioRow(dot, free = BigInteger.TEN, enabled = null)))
+        every { walletInteractor.assetsFlowAndAccount() } returns assets
+        every { chainInteractor.getChainsFlow() } returns flowOf(chains)
+        coEvery { chainInteractor.getChainAssets() } returns chains.flatMap { it.assets }
+        every { walletInteractor.selectedMetaAccountFlow() } returns meta
+        every { walletInteractor.selectedLightMetaAccountFlow() } returns light
+        every { accountInteractor.selectedLightMetaAccountFlow() } returns light
+        coEvery { walletInteractor.getSavedChainId(any()) } returns null
+        every { walletRouter.chainSelectorPayloadFlow } returns emptyFlow()
+        val viewModel = createViewModel(networkScanStateStore)
         advanceUntilIdle()
-        assertEquals(byNetwork, loadedPortfolio(chains, rows).portfolioUi.lens)
+        fun loaded() = (viewModel.state.value.assetsState as WalletAssetsState.Assets).assets as? AssetsLoadingState.Loaded
+
+        viewModel.onPortfolioSearch("missing")
+        advanceUntilIdle()
+        assertEquals("missing", loaded()?.searchQuery)
+
+        light.value = createLightMetaAccount(other)
+        meta.value = createMetaAccount(other)
+        assets.value = other to listOf(portfolioRow(dot, free = BigInteger.TEN, enabled = null))
+        advanceUntilIdle()
+        assertEquals("", loaded()?.searchQuery)
+        assertEquals(listOf(DOT_ASSET_ID), loaded()?.assets?.map { it.chainAssetId })
     }
 
     private fun kotlinx.coroutines.test.TestScope.loadedPortfolio(
@@ -846,7 +1131,7 @@ class BalanceListViewModelTests {
 
     private fun portfolioRow(
         asset: Asset,
-        free: BigInteger,
+        free: BigInteger?,
         enabled: Boolean?,
         rate: String? = null
     ) = createWalletAsset(WALLET_ID, asset).let { row ->
@@ -854,7 +1139,7 @@ class BalanceListViewModelTests {
             asset = row.asset.copy(
                 token = Token(asset, rate?.let(::BigDecimal).asAssetAmountState(), AssetAmountState.Known(BigDecimal.ZERO),
                     FiatValuationContext("usd", FiatCurrency("usd", "$", "Dollar", "")), "usd", asset.priceId),
-                freeInPlanksState = AssetAmountState.Known(free),
+                freeInPlanksState = free.asAssetAmountState(),
                 enabled = enabled
             )
         )
@@ -866,21 +1151,6 @@ class BalanceListViewModelTests {
         return TotalBalance.Ready(createMetaAccount(), emptyMap(), "usd", "$", true,
             holdings(shown, shownCount), holdings(hidden, hiddenCount), holdings(shown + hidden, shownCount + hiddenCount))
     }
-
-    private fun createNomis() = NomisScoreData(
-        metaId = 1,
-        score = 3,
-        updated = 4,
-        nativeBalanceUsd = BigDecimal.ZERO,
-        holdTokensUsd = BigDecimal.ZERO,
-        walletAgeInMonths = 4,
-        totalTransactions = 9,
-        rejectedTransactions = 5,
-        avgTransactionTimeInHours = 8.3,
-        maxTransactionTimeInHours = 4.7,
-        minTransactionTimeInHours = 3.7,
-        scoredAt = 33,
-    )
 
     private fun createLightMetaAccount(id: Long = 13) = LightMetaAccount(
         id = id,

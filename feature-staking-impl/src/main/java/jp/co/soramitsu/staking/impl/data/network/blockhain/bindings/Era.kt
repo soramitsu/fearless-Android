@@ -91,3 +91,20 @@ fun bindSessionIndex(dynamicInstance: Any?): BigInteger = bindNumber(dynamicInst
 
 @HelperBinding
 fun bindSlot(dynamicInstance: Any?): BigInteger = bindNumber(dynamicInstance)
+
+/** Async staking retains relay session starts in BondedEras rather than ErasStartSessionIndex. */
+fun bindBondedEraSession(scale: String?, runtime: RuntimeSnapshot, era: EraIndex): BigInteger {
+    val type = runtime.metadata.storageReturnType("Staking", "BondedEras")
+    val entries = scale?.let { type.fromHexOrNull(runtime, it) } as? List<*> ?: incompatible()
+    return bondedEraSession(entries, era)
+}
+
+fun bondedEraSession(entries: List<*>, era: EraIndex): BigInteger {
+    val matches = entries.map { item ->
+        val pair = item as? List<*> ?: incompatible()
+        require(pair.size == 2) { "Malformed bonded era" }
+        bindEraIndex(pair[0]) to bindSessionIndex(pair[1])
+    }.filter { it.first == era }
+    require(matches.size == 1) { "Active staking era is missing or ambiguous" }
+    return matches.single().second
+}

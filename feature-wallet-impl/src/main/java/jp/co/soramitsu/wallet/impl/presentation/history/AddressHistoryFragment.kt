@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.history
 
+import android.content.DialogInterface
 import android.widget.FrameLayout
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
@@ -33,6 +34,11 @@ class AddressHistoryFragment : BaseComposeBottomSheetDialogFragment<AddressHisto
             state = state,
             callback = viewModel
         )
+    }
+
+    override fun onCancel(dialog: DialogInterface) {
+        viewModel.onScreenClosed()
+        super.onCancel(dialog)
     }
 
     override fun setupBehavior(behavior: BottomSheetBehavior<FrameLayout>) {

@@ -1,20 +1,33 @@
 [package]
 name = "sr25519java"
-version = "0.1.0"
-authors = ["Harrm <abrehchs@gmail.com>"]
-edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-zeroize = { version="<=1.1.1" }
-zeroize_derive = { version="<=1.1.1" }
-jni = { version = "0.17.0", default-features = false }
-schnorrkel = { version="<=0.9.1" }
-
-[profile.release]
-lto = true
+version = "0.2.0"
+authors = ["Harrm <abrehchs@gmail.com>", "Soramitsu"]
+description = "JNI bindings for sr25519 (schnorrkel) signing in Fearless Wallet for Android"
+license = "Apache-2.0"
+edition = "2024"
+rust-version = "1.99"
+publish = false
 
 [lib]
 name = "sr25519java"
 crate-type = ["cdylib"]
+path = "src/lib.rs"
+
+# Exact pins; Cargo.lock pins every transitive crate. Built with --locked.
+[dependencies]
+jni = { version = "=0.22.4", default-features = false }
+# Without "std", schnorrkel draws randomness from the OS RNG (getrandom)
+# directly instead of a userspace ThreadRng.
+schnorrkel = { version = "=0.11.5", default-features = false, features = ["getrandom"] }
+zeroize = { version = "=1.9.1", default-features = false, features = ["alloc"] }
+
+[profile.release]
+opt-level = 3
+debug = false
+strip = "symbols"
+lto = "fat"
+codegen-units = 1
+incremental = false
+# Unwinding stays on so that jni::EnvUnowned::with_env can turn a panic into a
+# Java exception instead of aborting the app.
+panic = "unwind"

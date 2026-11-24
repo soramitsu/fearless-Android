@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sun-lit page for XML screens (DESIGN-SPEC 2026-11-08 section 2): one base, the warm bounce of
+     the brand sun at the hero position (50 %, 21 %) and the violet sky from the bottom-right.
+     Colours come from the generated tokens; Modifier.fwBackdrop draws the same light in Compose. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:opacity="opaque">
+    <item>
+        <color android:color="@color/fw_bg_base" />
+    </item>
+    <item>
+        <shape android:dither="true">
+            <gradient
+                android:type="radial"
+                android:centerX="0.5"
+                android:centerY="0.21"
+                android:gradientRadius="110%p"
+                android:startColor="@color/fw_sun_bounce"
+                android:centerColor="@color/fw_sun_bounce_mid"
+                android:endColor="@android:color/transparent" />
+        </shape>
+    </item>
+    <item>
+        <shape android:dither="true">
+            <gradient
+                android:type="radial"
+                android:centerX="1"
+                android:centerY="1"
+                android:gradientRadius="130%p"
+                android:startColor="@color/fw_sky_ambient"
+                android:endColor="@android:color/transparent" />
+        </shape>
+    </item>
+</layer-list>

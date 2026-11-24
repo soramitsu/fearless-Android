@@ -39,8 +39,11 @@ data class OperationLocal(
         BLOCKCHAIN, SUBQUERY, APP
     }
 
+    /** Stored by ordinal: new values go last. */
     enum class Status {
-        PENDING, COMPLETED, FAILED
+        PENDING, COMPLETED, FAILED,
+        /** Closed without a verifiable outcome, for example a payment released after the network forgot it. */
+        UNKNOWN
     }
 
     companion object {

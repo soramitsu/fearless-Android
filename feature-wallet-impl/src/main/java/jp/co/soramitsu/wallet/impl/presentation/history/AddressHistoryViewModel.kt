@@ -5,8 +5,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
-import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.address.createAddressIcon
 import jp.co.soramitsu.common.base.BaseViewModel
@@ -30,6 +28,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 @HiltViewModel
@@ -38,7 +37,6 @@ class AddressHistoryViewModel @Inject constructor(
     val sharedState: SendSharedState,
     private val walletInteractor: WalletInteractor,
     private val chainsRepository: ChainsRepository,
-    private val nomisScoreInteractor: NomisScoreInteractor,
     private val resourceManager: ResourceManager,
     private val addressIconGenerator: AddressIconGenerator,
     private val router: WalletRouter
@@ -70,10 +68,11 @@ class AddressHistoryViewModel @Inject constructor(
 
     private val imagesFlow: MutableStateFlow<Map<String, PictureDrawable?>> = MutableStateFlow(emptyMap())
 
+    private var hasLeftScreen = false
+
     init {
         observeAddressBook()
         observeImages()
-        observeScore()
     }
 
     private fun observeAddressBook() {
@@ -90,8 +89,7 @@ class AddressHistoryViewModel @Inject constructor(
                                         address = contact.address.trim(),
                                         image = imagesFlow.value[contact.address] ?: placeholder,
                                         chainId = contact.chainId,
-                                        isSavedToContacts = true,
-                                        getCachedNomisScore(contact.address)
+                                        isSavedToContacts = true
                                     )
                                 }.groupBy {
                                     it.name.firstOrNull()?.uppercase()
@@ -118,8 +116,7 @@ class AddressHistoryViewModel @Inject constructor(
                                         address = contact.address.trim(),
                                         image = imagesFlow.value[contact.address] ?: placeholder,
                                         chainId = contact.chainId,
-                                        isSavedToContacts = true,
-                                        prevState.data.recentAddresses.find { it.address == contact.address }?.score ?: getCachedNomisScore(contact.address)
+                                        isSavedToContacts = true
                                     )
                                 }.groupBy {
                                     it.name.firstOrNull()?.uppercase()
@@ -147,22 +144,13 @@ class AddressHistoryViewModel @Inject constructor(
                                 address = address.trim(),
                                 image = imagesFlow.value[address] ?: placeholder,
                                 chainId = chainId,
-                                isSavedToContacts = address in addressBook.map { it.address },
-                                score = getCachedNomisScore(address)
+                                isSavedToContacts = address in addressBook.map { it.address }
                             )
                     }.toSet()
                     LoadingState.Loaded(data.copy(recentAddresses = newRecentAddressModels))
                 }
             }
             .launchIn(viewModelScope)
-    }
-
-    private suspend fun getCachedNomisScore(address: String): Int? {
-        return if(chain.await().let { it.isEthereumChain || it.isEthereumBased }) {
-            nomisScoreInteractor.getNomisScoreFromMemoryCache(address)?.score ?: NomisScoreData.LOADING_CODE
-        } else {
-            null
-        }
     }
 
     private fun observeImages() {
@@ -206,57 +194,39 @@ class AddressHistoryViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
-    private fun observeScore() {
-        allAddressesFlow.onEach { allAddresses ->
-            if(!chain.await().let { it.isEthereumChain || it.isEthereumBased }) return@onEach
-            coroutineScope {
-                allAddresses.forEach { address ->
-                    val score = nomisScoreInteractor.getNomisScore(address)?.score ?: NomisScoreData.ERROR_CODE
-                    state.update { prevState ->
-                        if (prevState is LoadingState.Loaded) {
-                            val addressBookWithScores =
-                                prevState.data.addressBookAddresses.mapValues { group ->
-                                    group.value.map {
-                                        if (it.address == address) {
-                                            it.copy(score = score)
-                                        } else {
-                                            it
-                                        }
-                                    }
-                                }
-                            val recentAddressesWithScores = prevState.data.recentAddresses.map {
-                                if (it.address == address) {
-                                    it.copy(score = score)
-                                } else {
-                                    it
-                                }
-                            }.toSet()
-
-                            LoadingState.Loaded(
-                                prevState.data.copy(
-                                    addressBookAddresses = addressBookWithScores,
-                                    recentAddresses = recentAddressesWithScores
-                                )
-                            )
-                        } else {
-                            prevState
-                        }
-                    }
-                }
-            }
-        }.launchIn(viewModelScope)
+    /** The user dismissed the sheet (swipe, outside tap or system back) without picking a recipient. */
+    fun onScreenClosed() {
+        hasLeftScreen = true
     }
 
     override fun onAddressClick(address: Address) {
-        sharedState.updateAddress(address.address)
-        router.backWithResult(AddressHistoryFragment.RESULT_ADDRESS to address.address)
+        leaveScreen {
+            sharedState.updateAddress(address.address)
+            router.backWithResult(AddressHistoryFragment.RESULT_ADDRESS to address.address)
+        }
     }
 
     override fun onNavigationClick() {
-        router.back()
+        leaveScreen(router::back)
     }
 
     override fun onCreateContactClick(addressChainId: ChainId?, address: String?) {
+        if (!canAct()) return
         router.openCreateContact(addressChainId ?: chainId, address)
+    }
+
+    private fun canAct() = !hasLeftScreen && viewModelScope.isActive
+
+    /** The sheet has one outcome: the first pick or close wins, and a late tap cannot replace it. */
+    private inline fun leaveScreen(navigation: () -> Unit) {
+        if (!canAct()) return
+        hasLeftScreen = true
+        try {
+            navigation()
+        } catch (failure: Exception) {
+            // The sheet is still open, so it stays usable; the failure surfaces as before.
+            hasLeftScreen = false
+            throw failure
+        }
     }
 }

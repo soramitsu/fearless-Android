@@ -23,7 +23,7 @@ class PayoutInteractor(
 
             extrinsicService.estimateFee(chain, accountId) {
                 payouts.forEach {
-                    payoutStakers(it.era, it.validatorAddress.toAccountId())
+                    payoutStakers(it.era, it.validatorAddress.toAccountId(), it.page)
                 }
             }
         }
@@ -32,13 +32,22 @@ class PayoutInteractor(
     suspend fun makePayouts(payload: MakePayoutPayload): Result<String> {
         return withContext(Dispatchers.IO) {
             val chain = stakingSharedState.chain()
+            // The staking selection can change while the review is open or validating. A review of another network
+            // fails here, before anything is signed, and the confirmation shows the failure.
+            if (chain.id != payload.token.configuration.chainId) {
+                return@withContext Result.failure(IllegalStateException(STALE_REVIEW))
+            }
             val accountId = chain.accountIdOf(payload.originAddress)
 
             extrinsicService.submitExtrinsic(chain, accountId) {
                 payload.payoutStakersCalls.forEach {
-                    payoutStakers(it.era, it.validatorAddress.toAccountId())
+                    payoutStakers(it.era, it.validatorAddress.toAccountId(), it.page)
                 }
             }
         }
+    }
+
+    internal companion object {
+        const val STALE_REVIEW = "Staking chain changed after payout review"
     }
 }

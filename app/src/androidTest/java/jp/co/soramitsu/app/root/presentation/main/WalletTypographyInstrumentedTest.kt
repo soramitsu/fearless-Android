@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Paint
 import android.os.LocaleList
+import android.os.SystemClock
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -151,14 +152,38 @@ class WalletTypographyInstrumentedTest {
             assertFalse("$next title overflow: size=${layout.size}, paragraph=${layout.multiParagraph.width}x${layout.multiParagraph.height}, " +
                 "width=${layout.didOverflowWidth}, height=${layout.didOverflowHeight}, lines=${layout.lineCount}, constraints=${layout.layoutInput.constraints}",
                 layout.hasVisualOverflow)
-            compose.onNodeWithTag("fw-font-licenses-list").performScrollToNode(hasTestTag("fw-font-license-JetBrains Mono"))
-            compose.onNodeWithTag("fw-font-license-JetBrains Mono").assertIsDisplayed()
-            compose.onNodeWithTag("fw-font-licenses-list").performScrollToNode(hasTestTag("fw-font-licenses-end"))
-            compose.onNodeWithTag("fw-font-licenses-end").assertIsDisplayed()
-            save("licenses-${next.language}-${next.scale}-end", "fw-font-licenses-dialog")
+            retryingPrefetchRace {
+                compose.onNodeWithTag("fw-font-licenses-list").performScrollToNode(hasTestTag("fw-font-license-JetBrains Mono"))
+                compose.onNodeWithTag("fw-font-license-JetBrains Mono").assertIsDisplayed()
+            }
+            retryingPrefetchRace {
+                compose.onNodeWithTag("fw-font-licenses-list").performScrollToNode(hasTestTag("fw-font-licenses-end"))
+                compose.onNodeWithTag("fw-font-licenses-end").assertIsDisplayed()
+                save("licenses-${next.language}-${next.scale}-end", "fw-font-licenses-dialog")
+            }
             compose.onNodeWithTag("fw-font-licenses-close").assertIsDisplayed().performClick()
             compose.onNodeWithTag("fw-font-licenses-dialog").assertDoesNotExist()
         }
+    }
+
+    /**
+     * After a scroll, LazyColumn prefetch measures items on the main thread while the test library
+     * dumps the same tree from the test thread. On a busy device the dump can see the tree mid-change;
+     * only that signature is retried, once the list has settled.
+     */
+    private fun retryingPrefetchRace(block: () -> Unit) {
+        repeat(PREFETCH_RACE_RETRIES) {
+            try {
+                return block()
+            } catch (race: RuntimeException) {
+                val prefetchRace = race.message.orEmpty().contains("multithreaded access") ||
+                    (race is NullPointerException && race.stackTrace.any { it.className.contains("compose.ui.node.LayoutNode") })
+                if (!prefetchRace) throw race
+                compose.waitForIdle()
+                SystemClock.sleep(PREFETCH_RACE_SETTLE_MS)
+            }
+        }
+        block()
     }
 
     private fun save(name: String, tag: String) {
@@ -170,3 +195,6 @@ class WalletTypographyInstrumentedTest {
         }
     }
 }
+
+private const val PREFETCH_RACE_RETRIES = 3
+private const val PREFETCH_RACE_SETTLE_MS = 500L

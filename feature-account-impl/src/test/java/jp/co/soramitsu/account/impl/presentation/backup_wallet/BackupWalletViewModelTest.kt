@@ -1,33 +1,42 @@
 package jp.co.soramitsu.account.impl.presentation.backup_wallet
 
+import android.app.Activity
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.SavedStateHandle
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import jp.co.soramitsu.account.api.domain.interfaces.AccountInteractor
 import jp.co.soramitsu.account.api.domain.interfaces.TotalBalanceUseCase
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.TotalBalance
 import jp.co.soramitsu.account.api.domain.model.PortfolioBalance
 import jp.co.soramitsu.account.impl.domain.account.details.AccountDetailsInteractor
+import jp.co.soramitsu.account.impl.domain.account.details.AccountInChain
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.backup.domain.models.BackupAccountMeta
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.base.models.ErrorDialogState
+import jp.co.soramitsu.common.model.UniversalWalletRegistry
 import jp.co.soramitsu.common.resources.ResourceManager
+import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.common.utils.formatFiat
 import jp.co.soramitsu.common.R as CommonR
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.feature_account_impl.R
+import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import java.math.BigDecimal
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -50,6 +59,7 @@ class BackupWalletViewModelTest {
     private val totalBalanceUseCase = mockk<TotalBalanceUseCase>()
     private val resourceManager = mockk<ResourceManager>()
     private val viewModels = mutableListOf<BackupWalletViewModel>()
+    private val router = mockk<AccountRouter>(relaxed = true)
 
     private val ownAddress = "5Own"
     private val phoneCopy = BackupAccountMeta("Wallet", ownAddress, "phone")
@@ -74,6 +84,64 @@ class BackupWalletViewModelTest {
     fun teardown() {
         viewModels.forEach { it.coroutineContext.cancel() }
         Dispatchers.resetMain()
+    }
+
+    @Test
+    fun `opening the screen without a Google session opens no sign-in`() = runTest(dispatcher) {
+        val (vm, signInRequests) = openedViewModel()
+
+        assertTrue(signInRequests.isEmpty())
+        assertFalse(vm.state.value.isWalletSavedInGoogle)
+        coVerify(exactly = 0) { interactor.getGoogleBackupCopies(any()) }
+    }
+
+    @Test
+    fun `opening the screen with a Google session reads the backup without sign-in`() = runTest(dispatcher) {
+        coEvery { interactor.hasGoogleBackupSession() } returns true
+        coEvery { interactor.getGoogleBackupCopies(WALLET_ID) } returns listOf(phoneCopy)
+
+        val (vm, signInRequests) = openedViewModel()
+
+        assertTrue(signInRequests.isEmpty())
+        assertTrue(vm.state.value.isWalletSavedInGoogle)
+    }
+
+    @Test
+    fun `Backup to Google signs in when the user taps it`() = runTest(dispatcher) {
+        val (vm, signInRequests) = openedViewModel()
+
+        vm.onGoogleBackupClick()
+        runCurrent()
+
+        assertEquals(1, signInRequests.size)
+    }
+
+    @Test
+    fun `accounts derived from the wallet's phrase raise no replaced-account warning`() = runTest(dispatcher) {
+        chainAccountsAre(
+            UniversalWalletRegistry.bitcoinMainnet.chainId,
+            UniversalWalletRegistry.solanaMainnet.chainId,
+            UniversalWalletRegistry.taira.chainId
+        )
+
+        val (vm, signInRequests) = openedViewModel()
+
+        assertNull(vm.errorDialogStateLiveData.value)
+        assertTrue(signInRequests.isEmpty())
+    }
+
+    @Test
+    fun `accounts with their own key keep the warning, and closing it opens no sign-in`() = runTest(dispatcher) {
+        chainAccountsAre("polkadot", "kusama", UniversalWalletRegistry.solanaMainnet.chainId)
+
+        val (vm, signInRequests) = openedViewModel()
+        val dialog = vm.dialog()
+        assertEquals("text-${R.string.backup_wallet_replace_several_alert}", dialog.message)
+
+        dialog.onBackClick()
+        runCurrent()
+
+        assertTrue(signInRequests.isEmpty())
     }
 
     @Test
@@ -141,6 +209,26 @@ class BackupWalletViewModelTest {
     }
 
     @Test
+    fun `a Google Drive backup of the wallet asks for the PIN first, like the other exports`() = runTest(dispatcher) {
+        every { router.openCreateBackupPasswordDialogAfterPinCheck(any(), any()) } returns flowOf(Activity.RESULT_OK)
+        val vm = checkedViewModel()
+        coVerify(exactly = 1) { interactor.getGoogleBackupCopies(WALLET_ID) }
+
+        vm.onGoogleBackupClick()
+        runCurrent()
+
+        verify(exactly = 1) {
+            router.openCreateBackupPasswordDialogAfterPinCheck(
+                match { it.walletId == WALLET_ID && it.addAccountPayload == null },
+                R.string.account_export
+            )
+        }
+        verify(exactly = 0) { router.openCreateBackupPasswordDialogWithResult(any()) }
+        // A saved backup refreshes the screen.
+        coVerify(exactly = 2) { interactor.getGoogleBackupCopies(WALLET_ID) }
+    }
+
+    @Test
     fun `a wallet whose funds are all hidden shows them before a backup decision, labelled`() = runTest(dispatcher) {
         every { totalBalanceUseCase.observe(WALLET_ID) } returns flowOf(portfolio(hidden = BigDecimal("125"), hiddenCount = 2))
         val vm = checkedViewModel()
@@ -166,20 +254,44 @@ class BackupWalletViewModelTest {
             holdings(shown, shownCount), holdings(hidden, hiddenCount), holdings(shown + hidden, shownCount + hiddenCount))
     }
 
+    private fun newViewModel() = BackupWalletViewModel(
+        accountRouter = router,
+        savedStateHandle = SavedStateHandle(mapOf(BackupWalletDialog.ACCOUNT_ID_KEY to WALLET_ID)),
+        accountInteractor = interactor,
+        accountDetailsInteractor = detailsInteractor,
+        addressIconGenerator = mockk(relaxed = true),
+        totalBalanceUseCase = totalBalanceUseCase,
+        resourceManager = resourceManager
+    ).also { viewModels += it }
+
     private fun TestScope.checkedViewModel(): BackupWalletViewModel {
-        val vm = BackupWalletViewModel(
-            accountRouter = mockk<AccountRouter>(relaxed = true),
-            savedStateHandle = SavedStateHandle(mapOf(BackupWalletDialog.ACCOUNT_ID_KEY to WALLET_ID)),
-            accountInteractor = interactor,
-            accountDetailsInteractor = detailsInteractor,
-            addressIconGenerator = mockk(relaxed = true),
-            totalBalanceUseCase = totalBalanceUseCase,
-            resourceManager = resourceManager
-        ).also { viewModels += it }
+        val vm = newViewModel()
         runCurrent()
         vm.onGoogleSignInSuccess()
         runCurrent()
         return vm
+    }
+
+    // Listens before the view model's first coroutine runs, so a request made on opening is not missed.
+    private fun TestScope.openedViewModel(): Pair<BackupWalletViewModel, List<Event<Unit>>> {
+        val vm = newViewModel()
+        val signInRequests = mutableListOf<Event<Unit>>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            vm.requestGoogleAuth.toList(signInRequests)
+        }
+        runCurrent()
+        return vm to signInRequests
+    }
+
+    private fun chainAccountsAre(vararg chainIds: String) {
+        val accounts = chainIds.map { chainId ->
+            val chain = mockk<Chain> {
+                every { id } returns chainId
+                every { externalApi } returns null
+            }
+            AccountInChain(chain, null, AccountInChain.From.CHAIN_ACCOUNT, null, hasAccount = true, markedAsNotNeed = false)
+        }
+        every { detailsInteractor.getChainProjectionsFlow(WALLET_ID) } returns flowOf(mapOf(AccountInChain.From.CHAIN_ACCOUNT to accounts))
     }
 
     private fun BackupWalletViewModel.dialog(): ErrorDialogState = errorDialogStateLiveData.value!!.peekContent()

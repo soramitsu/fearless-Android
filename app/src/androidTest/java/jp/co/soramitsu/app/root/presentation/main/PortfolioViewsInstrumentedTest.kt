@@ -38,35 +38,60 @@ class PortfolioViewsInstrumentedTest {
         listOf(ResolvedTokenGroupMember("ethereum", "contract"), ResolvedTokenGroupMember("hub", "1984")))))
     private val assets = listOf(asset("ethereum", "contract", "Ethereum", "5"), asset("hub", "1984", "Polkadot Asset Hub", "7"))
 
-    @Test fun portfolioHeaderShowsAndChangesBothLensesAtEachTextSize() {
+    @Test fun portfolioSearchAndNetworkChipsWorkAtEachTextSize() {
         var scale by mutableStateOf(1f)
-        var selected by mutableStateOf(PortfolioLens.ByToken)
-        val callback = callbacks(WalletScreenInterface::class.java)
+        var selected by mutableStateOf<String?>(null)
+        var query by mutableStateOf("")
+        var openedPicker = false
+        val callback = callbacks(WalletScreenInterface::class.java) { name, args ->
+            when (name) {
+                "onPortfolioSearch" -> query = args?.first() as String
+                "onPortfolioNetworkSelect" -> selected = PortfolioDiscovery.toggleNetwork(selected, args?.first() as String?)
+                "onPortfolioMoreNetworks" -> openedPicker = true
+            }
+        }
         compose.setContent {
             CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, scale)) {
                 FearlessAppTheme {
+                    val visible = assets.filter { (selected == null || it.state.chainId == selected) && PortfolioDiscovery.matches(it, query) }
+                    val data = AssetsLoadingState.Loaded(visible.map { it.state }, walletHasPositiveBalance = true,
+                        walletId = 7, portfolioAssets = visible, availableAssets = assets, selectedNetwork = selected,
+                        portfolioItems = PortfolioListBuilder.build(visible, emptyList(), groups, PortfolioUiState(), selected, true,
+                            searching = query.isNotBlank()),
+                        tokenGroups = groups, searchQuery = query, networkOptions = PortfolioDiscovery.networks(assets, null))
                     Box(Modifier.requiredWidth(320.dp).fillMaxHeight().background(Color.Black).testTag("fixture")) {
-                        PortfolioList(AssetsLoadingState.Loaded(assets.map { it.state }, walletHasPositiveBalance = true,
-                            walletId = 7, portfolioAssets = assets, availableAssets = assets,
-                            portfolioItems = PortfolioListBuilder.build(assets, emptyList(), groups, PortfolioUiState(lens = selected), null, true),
-                            portfolioUi = PortfolioUiState(lens = selected), tokenGroups = groups), true, callback, rememberLazyListState(), {
-                            MultiToggleButton(MultiToggleButtonState(selected, PortfolioLens.entries), { selected = it }, stacked = scale > 1.3f)
-                        }, {})
+                        key(scale) {
+                            PortfolioList(data, true, callback, rememberLazyListState(), { PortfolioDiscoveryControls(data, callback) }, {})
+                        }
                     }
                 }
             }
         }
         for (font in listOf(1f, 2f)) {
-            compose.runOnIdle { scale = font; selected = PortfolioLens.ByToken }
+            compose.runOnIdle { scale = font; selected = null; query = ""; openedPicker = false }
             compose.waitForIdle()
-            save("portfolio-header-lenses-${(font * 100).toInt()}")
-            val token = compose.activity.getString(jp.co.soramitsu.feature_wallet_impl.R.string.portfolio_by_token)
-            val network = compose.activity.getString(jp.co.soramitsu.feature_wallet_impl.R.string.portfolio_by_network)
-            compose.onNodeWithText(token).assertIsDisplayed()
-            compose.onNodeWithText(network).assertIsDisplayed().performClick()
-            compose.runOnIdle { assertEquals(PortfolioLens.ByNetwork, selected) }
-            compose.onNodeWithText(token).performClick()
-            compose.runOnIdle { assertEquals(PortfolioLens.ByToken, selected) }
+            val searchBounds = compose.onNodeWithTag("portfolio-search").getUnclippedBoundsInRoot()
+            assertTrue(searchBounds.bottom - searchBounds.top >= 48.dp)
+            save("portfolio-one-list-home-${(font * 100).toInt()}")
+            compose.onNodeWithText(compose.activity.getString(jp.co.soramitsu.feature_wallet_impl.R.string.portfolio_by_network)).assertDoesNotExist()
+            compose.onNode(hasSetTextAction()).performTextInput("Ethereum")
+            compose.waitForIdle()
+            save("portfolio-one-list-search-${(font * 100).toInt()}")
+            compose.runOnIdle { assertEquals("Ethereum", query); query = "" }
+            // The chip row runs under the page gutter: it is scrolled by its own action, not performScrollTo, which
+            // would also ask the list (it cannot scroll sideways) to show the gutter part.
+            compose.onNodeWithTag("portfolio-network-filters").performSemanticsAction(SemanticsActions.ScrollBy) { it(-100_000f, 0f) }
+            compose.onNodeWithTag("portfolio-network-ethereum").performClick()
+            compose.runOnIdle { assertEquals("ethereum", selected) }
+            save("portfolio-one-list-chip-${(font * 100).toInt()}")
+            compose.onNodeWithTag("portfolio-network-filters").performSemanticsAction(SemanticsActions.ScrollBy) { it(-100_000f, 0f) }
+            compose.onNodeWithTag("portfolio-network-ethereum").performClick()
+            compose.runOnIdle { assertNull(selected); selected = "ethereum"; query = "missing" }
+            compose.onNodeWithTag("portfolio-search-all-networks").performScrollTo().performClick()
+            compose.runOnIdle { assertNull(selected); assertEquals("missing", query); query = "" }
+            compose.onNodeWithTag("portfolio-network-filters").performSemanticsAction(SemanticsActions.ScrollBy) { it(100_000f, 0f) }
+            compose.onNodeWithTag("portfolio-network-more").performClick()
+            compose.runOnIdle { assertTrue(openedPicker) }
         }
     }
 
@@ -102,8 +127,9 @@ class PortfolioViewsInstrumentedTest {
             assertTrue(actions.size >= 3)
             save("portfolio-collapsed-${(font * 100).toInt()}")
             total.performClick()
-            compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Polkadot Asset Hub", substring = true))
-            compose.onNodeWithText("Polkadot Asset Hub", substring = true).assertIsDisplayed()
+            // A row names its network in its caption (upper case); read aloud it is "Tether, Polkadot Asset Hub".
+            compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription("Polkadot Asset Hub", substring = true))
+            compose.onNodeWithContentDescription("Polkadot Asset Hub", substring = true).assertIsDisplayed()
             save("portfolio-expanded-${(font * 100).toInt()}")
             val receive = compose.activity.getString(jp.co.soramitsu.common.R.string.common_action_receive)
             val groupReceive = hasText(receive).and(hasAnyAncestor(hasTestTag("group:usdt")))

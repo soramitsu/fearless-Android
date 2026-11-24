@@ -1,1 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="31" fill="#1A1E3A" stroke="#7D8091" stroke-width="1"/><text x="32" y="40" text-anchor="middle" font-family="sans-serif" font-weight="600" font-size="23" fill="#F5F7FF">SO</text></svg>
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="64" cy="64" r="64" fill="#121212"/>
+  <path d="M38.4 82.1a3.9 3.9 0 0 1 2.8-1.2h61.5c1.7 0 2.6 2.1 1.4 3.3L91.6 96.7a3.9 3.9 0 0 1-2.8 1.2H27.3c-1.7 0-2.6-2.1-1.4-3.3l12.5-12.5Z" fill="url(#a)"/>
+  <path d="M38.4 31.3a3.9 3.9 0 0 1 2.8-1.2h61.5c1.7 0 2.6 2.1 1.4 3.3L91.6 45.9a3.9 3.9 0 0 1-2.8 1.2H27.3c-1.7 0-2.6-2.1-1.4-3.3l12.5-12.5Z" fill="url(#b)"/>
+  <path d="M91.6 56.5a3.9 3.9 0 0 0-2.8-1.2H27.3c-1.7 0-2.6 2.1-1.4 3.3l12.5 12.5a3.9 3.9 0 0 0 2.8 1.2h61.5c1.7 0 2.6-2.1 1.4-3.3L91.6 56.5Z" fill="url(#c)"/>
+  <defs>
+    <linearGradient id="a" x1="98" y1="79" x2="42" y2="103" gradientUnits="userSpaceOnUse"><stop stop-color="#00FFA3"/><stop offset="1" stop-color="#DC1FFF"/></linearGradient>
+    <linearGradient id="b" x1="98" y1="28" x2="42" y2="52" gradientUnits="userSpaceOnUse"><stop stop-color="#00FFA3"/><stop offset="1" stop-color="#DC1FFF"/></linearGradient>
+    <linearGradient id="c" x1="30" y1="53" x2="86" y2="77" gradientUnits="userSpaceOnUse"><stop stop-color="#00FFA3"/><stop offset="1" stop-color="#DC1FFF"/></linearGradient>
+  </defs>
+</svg>

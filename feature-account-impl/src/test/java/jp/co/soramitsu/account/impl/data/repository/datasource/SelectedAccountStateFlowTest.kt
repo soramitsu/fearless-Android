@@ -479,7 +479,7 @@ class SelectedAccountStateFlowTest {
                     Catalog().also { catalogs += it }.flow()
                 }
             }
-            source = AccountDataSourceImpl(mockk(), mockk(), Gson(), dao, mockk(), chains)
+            source = AccountDataSourceImpl(mockk(), Gson(), dao, mockk(), chains, mockk())
         }
 
         fun close() {
@@ -502,7 +502,6 @@ class SelectedAccountStateFlowTest {
         jsonSeedEncoder = mockk(),
         languagesHolder = mockk(),
         chainsRepository = mockk(),
-        nomisScoresDao = mockk(),
         substrateSecretStore = mockk(),
         ethereumSecretStore = mockk(),
         tonSecretStore = mockk(),

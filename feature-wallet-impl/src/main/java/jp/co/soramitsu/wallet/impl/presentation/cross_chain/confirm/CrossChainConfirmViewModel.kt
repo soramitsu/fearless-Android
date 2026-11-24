@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.cross_chain.confirm
 
+import jp.co.soramitsu.common.feedback.TransferSeal
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -275,16 +276,19 @@ class CrossChainConfirmViewModel @Inject constructor(
     ) { content, pending ->
         content.copy(
             pendingMessage = pending?.let { resourceManager.getString(it.status.message) },
-            pendingTransactionHash = pending?.submission?.transactionHash?.shortenAddress()
+            pendingTransactionHash = pending?.submission?.transactionHash?.shortenAddress(),
+            sendAgainVisible = pending != null && pending.status == PendingStatus.Included && pending.isThisTransfer
         )
     }.stateIn(this, SharingStarted.Eagerly, CrossChainConfirmViewState.default)
 
     init {
+        // A seal left by an earlier operation never shows on this screen's loader.
+        TransferSeal.clear()
         // Settle an earlier transfer first: claim the in-flight flag so that a tap cannot submit meanwhile.
         if (transferSubmittingFlow.compareAndSet(expect = false, update = true)) {
             launch {
                 try {
-                    if (loadPending()) pendingFlow.value?.let { checkPending(it) }
+                    if (loadPending()) pendingFlow.value?.let { checkPending(it) } else loadIncluded()
                 } finally {
                     transferSubmittingFlow.value = false
                 }
@@ -322,7 +326,7 @@ class CrossChainConfirmViewModel @Inject constructor(
                     pending == null || pending.status == PendingStatus.Expired -> validateAndSubmit()
                     // A retry of a transfer that was sent would send it a second time.
                     pending.status == PendingStatus.Included ->
-                        if (pending.isThisTransfer) router.finishSendFlow() else validateAndSubmit()
+                        if (pending.isThisTransfer) finishSent(pending) else validateAndSubmit()
                     else -> checkPending(pending)
                 }
             } finally {
@@ -331,13 +335,75 @@ class CrossChainConfirmViewModel @Inject constructor(
         }
     }
 
+    // Only an explicit choice sends a transfer that was already sent once more.
+    override fun onSendAgainClick() {
+        if (!transferSubmittingFlow.compareAndSet(expect = false, update = true)) return
+
+        launch {
+            try {
+                val pending = pendingFlow.value?.takeIf { it.status == PendingStatus.Included && it.isThisTransfer }
+                    ?: return@launch
+                if (!dismissIncluded(pending)) return@launch
+                pendingFlow.value = null
+                validateAndSubmit()
+            } finally {
+                transferSubmittingFlow.value = false
+            }
+        }
+    }
+
+    // Done: the user has seen that the transfer was sent, so its record is no longer needed. A record that cannot be
+    // forgotten now stays, which is the safe side: the draft is shown as sent again, never sent again.
+    private suspend fun finishSent(pending: PendingTransfer) {
+        try {
+            crossChainSubmissions.dismissIncluded(pending.submission)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Exception) {
+            // kept on record
+        }
+        router.finishSendFlow()
+    }
+
+    private suspend fun dismissIncluded(pending: PendingTransfer): Boolean = try {
+        crossChainSubmissions.dismissIncluded(pending.submission)
+        true
+    } catch (error: CancellationException) {
+        throw error
+    } catch (_: Exception) {
+        // Nothing is sent while the record of the first transfer cannot be updated.
+        showError(resourceManager.getString(R.string.send_storage_unavailable))
+        false
+    }
+
+    /**
+     * A transfer of this draft that was proven included stays on record across restarts, so the restored screen shows
+     * it as sent instead of offering to send it again once its unsettled record is gone.
+     */
+    private suspend fun loadIncluded() {
+        includedTransfer()?.let { pendingFlow.value = it }
+    }
+
+    private suspend fun includedTransfer(): PendingTransfer? {
+        val scope = submissionScope() ?: return null
+        val included = try {
+            crossChainSubmissions.included(scope)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Exception) {
+            null
+        }
+        return included?.takeIf { it.isRetryOfDraft() }?.let { PendingTransfer(it, PendingStatus.Included, isThisTransfer = true) }
+    }
+
     /** Reads only finalized blocks; it never signs or resends the earlier transfer. */
     private suspend fun checkPending(pending: PendingTransfer) {
         val scope = submissionScope() ?: return
         pendingFlow.value = pending.copy(status = PendingStatus.Checking)
         pendingFlow.value = try {
             when (crossChainSubmissions.check(scope, pending.submission.attemptId)) {
-                CrossChainSubmissionReconciler.Outcome.Settled -> null
+                // Settled by another screen: when that was this transfer's inclusion, it stays shown as sent.
+                CrossChainSubmissionReconciler.Outcome.Settled -> includedTransfer()
                 is CrossChainSubmissionReconciler.Outcome.Included -> pending.copy(status = PendingStatus.Included)
                 is CrossChainSubmissionReconciler.Outcome.Expired -> pending.copy(status = PendingStatus.Expired)
                 is CrossChainSubmissionReconciler.Outcome.Unsettled -> pending.copy(status = PendingStatus.NotFound)
@@ -499,7 +565,11 @@ class CrossChainConfirmViewModel @Inject constructor(
         val originAsset = originAssetFlow.value ?: return
         val token = originAsset.token.configuration
 
-        val result = withContext(Dispatchers.Default) {
+        // The seal (brand kit SPEC v4 part 3): this screen knows the hand-over and the network's answer only, so
+        // `ready` lights now and the rest together with the hash. A failure breaks the seal only when nothing was
+        // retained (nothing can have been sent); a retained, unsettled transfer or a validity check clears it.
+        TransferSeal.ready(TransferSeal.nowMs())
+        val result = try { withContext(Dispatchers.Default) {
             if (transferDraft.isReviewedBridge) {
                 reviewedBridgeInteractor.submit(
                     walletId = transferDraft.metaAccountId,
@@ -515,8 +585,12 @@ class CrossChainConfirmViewModel @Inject constructor(
             } else {
                 xcmInteractor.performCrossChainTransfer(createTransfer(token), transferDraft.metaAccountId)
             }
+        } } catch (error: Throwable) {
+            TransferSeal.cancelIfPending()
+            throw error
         }
         if (result.isSuccess) {
+            TransferSeal.accepted(TransferSeal.nowMs())
             val operationHash = result.getOrNull()
             router.finishSendFlow()
             router.openOperationSuccess(operationHash, token.chainId)
@@ -524,10 +598,14 @@ class CrossChainConfirmViewModel @Inject constructor(
             val error = result.requireException()
 
             if (error is NotValidTransferStatus) {
+                TransferSeal.cancelIfPending()
                 processInvalidStatus(error.status)
             } else if (!loadPending()) {
                 // Nothing was retained, so nothing was sent: the user may try again.
+                TransferSeal.failed(TransferSeal.nowMs())
                 showError(error)
+            } else {
+                TransferSeal.cancelIfPending()
             }
             // Otherwise the retained transfer may have reached the network: it is shown as unsettled instead.
         }

@@ -142,8 +142,9 @@ class SolanaBalanceLoaderTest {
         val mint = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
         val tokenAccount = SolanaTransferTransactionBuilder.deriveAssociatedTokenAccountAddress(account.address, mint)
         val endpoints = mutableListOf<String?>()
+        val configured = mutableListOf<List<String>>()
         val rpc = object : SolanaRpcClient by mock(SolanaRpcClient::class.java) {
-            override fun withEndpoints(rpcUrls: List<String>): SolanaRpcClient = this
+            override fun withEndpoints(rpcUrls: List<String>): SolanaRpcClient = this.also { configured += rpcUrls }
             override fun withGenesisHash(expectedGenesisHash: String): SolanaRpcClient {
                 assertEquals(UniversalWalletRegistry.SOLANA_MAINNET_GENESIS_HASH, expectedGenesisHash)
                 return this
@@ -165,7 +166,56 @@ class SolanaBalanceLoaderTest {
         assertEquals(BigInteger("1250000"), token.freeInPlanks)
         assertEquals(token.freeInPlanks, token.miscFrozenInPlanks)
         assertEquals(token.freeInPlanks, token.feeFrozenInPlanks)
-        assertEquals(List(3) { UniversalWalletRegistry.SOLANA_MAINNET_RPC_URL }, endpoints)
+        // The selected node first, then the public mainnet failover; requests are not pinned to one endpoint.
+        assertEquals(listOf(listOf(UniversalWalletRegistry.SOLANA_MAINNET_RPC_URL, "https://solana-rpc.publicnode.com",
+            "https://public.rpc.solanavibestation.com")), configured)
+        assertEquals(List(3) { null }, endpoints)
+    }
+
+    @Test
+    fun `refused token reads update SOL and keep the last token amount while the network reads as outdated`() = runBlocking {
+        val chain = solanaChain(isTestNet = false, assets = listOf(
+            solanaAsset(UniversalWalletRegistry.solanaMainnet.id, isTestNet = false),
+            solanaTokenAsset(UniversalWalletRegistry.solanaMainnet.id, isTestNet = false)
+        ))
+        val account = SolanaKeyDerivation.deriveAccount(MNEMONIC)
+        val meta = metaAccount(chain, publicKey = account.publicKey, accountId = account.publicKey)
+        var lamports = 2_500_000_000L
+        var refuseTokens = false
+        val rpc = object : SolanaRpcClient by mock(SolanaRpcClient::class.java) {
+            override fun withEndpoints(rpcUrls: List<String>): SolanaRpcClient = this
+            override fun withGenesisHash(expectedGenesisHash: String): SolanaRpcClient = this
+            override suspend fun balance(address: String, commitment: SolanaRpcCommitment, rpcUrl: String?) = lamports
+            override suspend fun tokenAccounts(address: String, programAddress: String, commitment: SolanaRpcCommitment,
+                rpcUrl: String?): List<SolanaRpcTokenAccount> {
+                if (refuseTokens) throw java.io.IOException("token accounts refused by every endpoint")
+                return if (programAddress == SolanaTransferTransactionBuilder.SPL_TOKEN_PROGRAM_ADDRESS) listOf(
+                    SolanaRpcTokenAccount(USDC_TOKEN_ACCOUNT, account.address, USDC_MINT, programAddress, BigInteger("42000000"), 6, false)
+                ) else emptyList()
+            }
+        }
+        val scans = NetworkScanStateStore(InMemoryPreferences())
+        val stored = mutableMapOf<String, BigInteger?>()
+        val loader = SolanaBalanceLoader(chain, SolanaRpcBalanceSource(rpc) { 1234 }, scanStateStore = scans)
+        loader.loadBalance(setOf(meta)).forEach { stored[it.id] = it.freeInPlanks }
+        assertEquals(mapOf("SOL" to BigInteger("2500000000"), USDC_MINT to BigInteger("42000000")), stored)
+        val complete = scans.states.value.getValue(NetworkScanKey(meta.id, chain.id))
+
+        lamports = 3_000_000_000L; refuseTokens = true
+        val updates = loader.loadBalance(setOf(meta))
+        updates.forEach { stored[it.id] = it.freeInPlanks }
+        // Only SOL is updated: the token row receives no update, so its last amount is kept, never zeroed.
+        assertEquals(listOf("SOL"), updates.map { it.id })
+        assertEquals(mapOf("SOL" to BigInteger("3000000000"), USDC_MINT to BigInteger("42000000")), stored)
+        val limited = scans.states.value.getValue(NetworkScanKey(meta.id, chain.id))
+        assertTrue(limited.isStale)
+        assertEquals(null, limited.errorMessage)
+        assertEquals(complete.lastSuccessMillis, limited.lastSuccessMillis)
+        assertEquals(jp.co.soramitsu.common.model.AssetDiscoveryCoverage.Limited, limited.coverage)
+
+        refuseTokens = false
+        assertEquals(listOf("SOL", USDC_MINT), loader.loadBalance(setOf(meta)).map { it.id }.sorted())
+        assertEquals(false, scans.states.value.getValue(NetworkScanKey(meta.id, chain.id)).isStale)
     }
 
     @Test

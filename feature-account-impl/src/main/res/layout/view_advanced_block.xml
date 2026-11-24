@@ -56,7 +56,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:hint="@string/substrate_secret_derivation_path"
-            android:inputType="text" />
+            android:inputType="textVisiblePassword|textNoSuggestions" />
 
         <TextView
             android:id="@+id/substrateDerivationPathHint"
@@ -83,7 +83,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:hint="@string/ethereum_secret_derivation_path"
-            android:inputType="text"
+            android:inputType="textVisiblePassword|textNoSuggestions"
             app:overrideInputFieldId="@+id/ethereumInputId" />
 
         <TextView

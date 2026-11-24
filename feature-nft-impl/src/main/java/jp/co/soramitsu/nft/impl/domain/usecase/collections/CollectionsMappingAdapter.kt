@@ -12,42 +12,33 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 
 class CollectionsMappingAdapter @Inject constructor(
     private val chainsRepository: ChainsRepository,
 ) {
 
-    private val mutex: Mutex = Mutex()
-    private val chainsMap: MutableMap<ChainId, Chain> = mutableMapOf()
-
     operator fun invoke(factory: () -> Flow<List<PagedResponse<ContractInfo>>>): Flow<Sequence<NFTCollection.Loaded>> {
         return factory().map { currentResponse ->
+            // One catalog snapshot per batch, read without waiting. A chain that left the catalog after its page
+            // was requested drops that page. 4.3.0-4.3.7 used the strict 60-second getChain here, and its
+            // timeout crashed the wallet home.
+            val chainsById = if (currentResponse.isEmpty()) emptyMap() else chainsRepository.getChainsById()
             val mapResults = currentResponse
                 .concurrentRequestFlow { pagedResponse ->
-                    emit(pagedResponse.mapToNFTCollectionResult())
+                    emit(pagedResponse.mapToNFTCollectionResult(chainsById))
                 }.toList()
 
             return@map mapResults.asSequence().flatten()
-        }.onCompletion {
-            mutex.withLock { chainsMap.clear() }
         }.flowOn(Dispatchers.Default)
     }
 
-    private suspend fun PagedResponse<ContractInfo>.mapToNFTCollectionResult(): Sequence<NFTCollection.Loaded> {
-        if (chainsMap[tag as ChainId] == null) {
-            mutex.withLock {
-                if (chainsMap[tag as ChainId] == null) {
-                    chainsMap[tag as ChainId] = chainsRepository.getChain(tag as ChainId)
-                }
-            }
-        }
-
-        val (chainId, chainName) = chainsMap[tag as ChainId]!!.run { id to name }
+    private fun PagedResponse<ContractInfo>.mapToNFTCollectionResult(
+        chainsById: Map<ChainId, Chain>
+    ): Sequence<NFTCollection.Loaded> {
+        val chain = chainsById[tag as ChainId] ?: return emptySequence()
+        val (chainId, chainName) = chain.id to chain.name
 
         val mappedSequence = result.mapCatching { pageResult ->
             pageResult.items.map { contract ->

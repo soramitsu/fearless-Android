@@ -18,6 +18,8 @@ import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretArchive
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageUnavailableException
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelopes
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretKeyring
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.scale.EncodableStruct
 import jp.co.soramitsu.fearless_utils.scale.Schema
@@ -45,10 +47,11 @@ class WalletEmergencyRecoveryReader @Inject constructor(
     private val encryptedPreferences: EncryptedPreferences
 ) {
 
-    fun read(): List<EmergencyRecoveryEntry> {
+    /** [walletKey] opens sealed values; without it they open with this session's SK, or show as unreadable. */
+    fun read(walletKey: WalletSecretKeyring.OpenedKey? = null): List<EmergencyRecoveryEntry> {
         return storedKeys()
             .sortedWith(STORED_KEY_ORDER)
-            .map(::readEntry)
+            .map { readEntry(it, walletKey) }
     }
 
     /** How many wallet keys are stored, from key names only; nothing is decrypted. */
@@ -99,11 +102,14 @@ class WalletEmergencyRecoveryReader @Inject constructor(
         return found
     }
 
-    /** Call only after authentication and an explicit selection; re-read the selected value now. */
-    suspend fun readKey(storageKey: String): EmergencyRecoveryEntry {
+    /**
+     * Call only after authentication and an explicit selection; re-read the selected value now.
+     * [walletKey] is SK from the PIN wrap the authentication opened.
+     */
+    suspend fun readKey(storageKey: String, walletKey: WalletSecretKeyring.OpenedKey? = null): EmergencyRecoveryEntry {
         val context = currentCoroutineContext()
         context.ensureActive()
-        val entry = readEntry(requireStoredKey(storageKey))
+        val entry = readEntry(requireStoredKey(storageKey), walletKey)
         context.ensureActive()
         return entry
     }
@@ -131,11 +137,13 @@ class WalletEmergencyRecoveryReader @Inject constructor(
         return result
     }
 
-    private fun readEntry(key: StoredKey): EmergencyRecoveryEntry {
+    private fun readEntry(key: StoredKey, walletKey: WalletSecretKeyring.OpenedKey?): EmergencyRecoveryEntry {
         // A provider outage stops the whole read; one undecodable value never does.
-        val plaintext = readOrNull(rethrow = { it is WalletSecureStorageUnavailableException }) {
+        val stored = readOrNull(rethrow = { it is WalletSecureStorageUnavailableException }) {
             encryptedPreferences.getDecryptedString(key.storageKey)
         }
+        // A sealed value opens with the PIN's SK; one that cannot open is listed as unreadable, never as data.
+        val plaintext = stored?.let { value -> readOrNull(rethrow = { false }) { open(value, walletKey) } }
         if (plaintext.isNullOrEmpty()) {
             return key.toEntry(readable = false, fields = emptyList())
         }
@@ -269,6 +277,13 @@ class WalletEmergencyRecoveryReader @Inject constructor(
             }
         }
     }
+
+    private fun open(stored: String, walletKey: WalletSecretKeyring.OpenedKey?): String =
+        if (walletKey != null) {
+            WalletSecretEnvelopes.open(stored, walletKey.keyId, walletKey.key)
+        } else {
+            WalletSecretEnvelopes.open(stored)
+        }
 
     private fun scaleHex(plaintext: String): String =
         WalletSecretScalePreflight.normalizePersistedHex(plaintext)

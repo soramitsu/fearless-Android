@@ -12,16 +12,17 @@ fail() {
 cd "$(dirname "$0")/.."
 
 overlay_dir="${RELEASE_OVERLAY_DIR:-${RUNNER_TEMP:-$PWD/.release-overlays}}"
-release_google_services="${GOOGLE_SERVICES_RELEASE_PATH:-app/src/release/google-services.json}"
-release_backup="$overlay_dir/release-google-services.backup"
-release_sentinel="$overlay_dir/.release-overlay-active"
+# The Firebase overlay was removed in 4.3.2. An overlay directory an older run left behind may
+# still hold its backup, sentinel or partial copies; they are deleted, never restored into app/.
+legacy_firebase_backup="$overlay_dir/release-google-services.backup"
+legacy_firebase_sentinel="$overlay_dir/.release-overlay-active"
 signing_sentinel="$overlay_dir/.signing-overlay-active"
 play_sentinel="$overlay_dir/.play-overlay-active"
 release_keystore="$overlay_dir/fearless-upload.jks"
 play_credential="$overlay_dir/play-service-account.json"
 secret_temporary_dir="$overlay_dir/secret-temporary"
 test_checkpoint_marker="$overlay_dir/.overlay-test-checkpoint"
-release_backup_temporary_prefix=".release-google-services.backup.tmp."
+legacy_firebase_backup_temporary_prefix=".release-google-services.backup.tmp."
 
 cleanup_test_checkpoint() {
   local stage="$1"
@@ -70,10 +71,10 @@ if [[ -e "$overlay_dir" || -L "$overlay_dir" ]]; then
 fi
 
 for known_path in \
-  "$release_sentinel" \
+  "$legacy_firebase_sentinel" \
   "$signing_sentinel" \
   "$play_sentinel" \
-  "$release_backup" \
+  "$legacy_firebase_backup" \
   "$release_keystore" \
   "$play_credential" \
   "$test_checkpoint_marker"; do
@@ -83,7 +84,7 @@ done
 if [[ -d "$overlay_dir" ]]; then
   shopt -s nullglob
   for backup_temporary in \
-    "$overlay_dir"/"$release_backup_temporary_prefix"*; do
+    "$overlay_dir"/"$legacy_firebase_backup_temporary_prefix"*; do
     [[ -f "$backup_temporary" && ! -L "$backup_temporary" ]] ||
       fail "Unsafe temporary release backup path: $backup_temporary"
     rm -f "$backup_temporary"
@@ -117,30 +118,17 @@ fi
 
 rm -f "$play_credential" "$play_sentinel"
 
-if [[ -f "$release_backup" ]]; then
-  assert_no_symlink_components "$release_google_services"
-  if [[ -e "$release_google_services" || -L "$release_google_services" ]]; then
-    [[ -f "$release_google_services" && ! -L "$release_google_services" ]] ||
-      fail "Release Firebase destination is unsafe."
-  fi
-  # Publish the inactive state before the atomic restore. If cleanup is killed
-  # after the move, a later cleanup can safely observe that the canonical backup
-  # has already been consumed instead of treating the state as corrupt.
-  rm -f "$release_sentinel"
-  cleanup_test_checkpoint after-release-sentinel-removal-before-restore
-  mv -f "$release_backup" "$release_google_services" ||
-    fail "Unable to atomically restore the release Firebase placeholder."
-  cleanup_test_checkpoint after-release-backup-restore
-elif [[ -f "$release_sentinel" ]]; then
-  fail "Active release overlay has no safe Firebase backup."
+if [[ -f "$legacy_firebase_backup" || -f "$legacy_firebase_sentinel" ]]; then
+  echo "[release-overlay-cleanup] removing a legacy Firebase overlay left by an earlier version"
 fi
+rm -f "$legacy_firebase_sentinel" "$legacy_firebase_backup"
 
 rm -f \
   "$release_keystore" \
   "$signing_sentinel" \
-  "$release_sentinel" \
+  "$legacy_firebase_sentinel" \
   "$play_credential" \
   "$play_sentinel" \
   "$test_checkpoint_marker"
 
-echo "[release-overlay-cleanup] ephemeral credentials removed and placeholder restored"
+echo "[release-overlay-cleanup] ephemeral credentials removed"

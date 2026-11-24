@@ -6,7 +6,10 @@ import java.io.ByteArrayOutputStream
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNullableNumberConstant
 import jp.co.soramitsu.common.data.network.runtime.binding.bindNumberConstant
 import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
+import jp.co.soramitsu.core.crypto.SubstratePasswordRule
+import jp.co.soramitsu.core.crypto.substrateMiniSecret
 import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.Mnemonic
+import jp.co.soramitsu.fearless_utils.encrypt.mnemonic.MnemonicCreator
 import jp.co.soramitsu.fearless_utils.encrypt.seed.SeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.ethereum.EthereumSeedFactory
 import jp.co.soramitsu.fearless_utils.encrypt.seed.substrate.SubstrateSeedFactory
@@ -154,6 +157,17 @@ fun ByteArray.decodeToInt() = fromUnsignedBytes().toInt()
 fun SeedFactory.createSeed32(length: Mnemonic.Length, password: String?) = cropSeedTo32Bytes(createSeed(length, password))
 
 fun SubstrateSeedFactory.deriveSeed32(mnemonicWords: String, password: String?) = cropSeedTo32Bytes(deriveSeed(mnemonicWords, password))
+
+/** The 32-byte seed with the path password read by [rule] (SubstratePasswordRule); NFKD is deriveSeed32. */
+fun SubstrateSeedFactory.deriveSeed32(mnemonicWords: String, password: String?, rule: SubstratePasswordRule) =
+    if (rule == SubstratePasswordRule.NFKD) {
+        deriveSeed32(mnemonicWords, password)
+    } else {
+        SeedFactory.Result(
+            seed = substrateMiniSecret(mnemonicWords, password, rule),
+            mnemonic = MnemonicCreator.fromWords(mnemonicWords)
+        )
+    }
 
 fun EthereumSeedFactory.deriveSeed32(mnemonicWords: String, password: String?) = deriveSeed(mnemonicWords, password)
 

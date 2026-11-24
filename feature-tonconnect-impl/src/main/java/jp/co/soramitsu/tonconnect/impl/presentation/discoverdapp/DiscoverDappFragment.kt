@@ -100,8 +100,7 @@ class DiscoverDappFragment : BaseComposeFragment<DiscoverDappViewModel>() {
                                         )
                                     ),
                                     onChangeChainClick = viewModel::openSelectChain,
-                                    onNavigationClick = viewModel::openWalletSelector,
-                                    onScoreClick = viewModel::onScoreClick
+                                    onNavigationClick = viewModel::openWalletSelector
                                 )
 
                                 DiscoverDappScreen(state, viewModel)

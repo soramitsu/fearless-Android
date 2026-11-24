@@ -7,8 +7,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import jp.co.soramitsu.account.api.domain.interfaces.NomisScoreInteractor
-import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.account.api.domain.model.hasEthereum
 import jp.co.soramitsu.account.api.domain.model.hasSubstrate
@@ -17,22 +15,19 @@ import jp.co.soramitsu.common.address.AddressIconGenerator
 import jp.co.soramitsu.common.base.BaseViewModel
 import jp.co.soramitsu.common.base.errors.ValidationException
 import jp.co.soramitsu.common.base.errors.ValidationWarning
-import jp.co.soramitsu.common.compose.component.AddressInputWithScore
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.ButtonViewState
 import jp.co.soramitsu.common.compose.component.FeeInfoViewState
 import jp.co.soramitsu.common.compose.component.QuickAmountInput
+import jp.co.soramitsu.common.compose.component.RecipientAddressInput
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.TextInputViewState
 import jp.co.soramitsu.common.compose.component.ToolbarViewState
 import jp.co.soramitsu.common.compose.component.WarningInfoState
 import jp.co.soramitsu.common.compose.component.emptyClick
-import jp.co.soramitsu.common.compose.theme.warningOrange
 import jp.co.soramitsu.common.data.network.runtime.binding.cast
 import jp.co.soramitsu.common.model.WalletEcosystem
 import jp.co.soramitsu.common.model.toAccountType
-import jp.co.soramitsu.common.presentation.LoadingState
-import jp.co.soramitsu.common.presentation.dataOrNull
 import jp.co.soramitsu.common.resources.ClipboardManager
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
@@ -49,6 +44,7 @@ import jp.co.soramitsu.common.utils.requireValue
 import jp.co.soramitsu.common.validation.ExistentialDepositCrossedWarning
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.core.utils.isValidAddress
+import jp.co.soramitsu.runtime.ext.isValidRecipientAddress
 import jp.co.soramitsu.core.utils.utilityAsset
 import jp.co.soramitsu.feature_wallet_impl.BuildConfig
 import jp.co.soramitsu.feature_wallet_impl.R
@@ -108,7 +104,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.retry
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -123,7 +118,6 @@ class SendSetupViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
     private val resourceManager: ResourceManager,
     private val walletInteractor: WalletInteractor,
-    private val nomisScoreInteractor: NomisScoreInteractor,
     private val polkaswapInteractor: PolkaswapInteractor,
     private val existentialDepositUseCase: ExistentialDepositUseCase,
     private val walletConstants: WalletConstants,
@@ -183,7 +177,7 @@ class SendSetupViewModel @Inject constructor(
         }
     }
 
-    private val defaultAddressInputState = AddressInputWithScore.Empty(
+    private val defaultAddressInputState = RecipientAddressInput.Empty(
         resourceManager.getString(R.string.send_to),
         resourceManager.getString(R.string.search_textfield_placeholder)
     )
@@ -244,7 +238,7 @@ class SendSetupViewModel @Inject constructor(
 
     private val isInputAddressValidFlow =
         combine(addressInputTrimmedFlow, selectedChain.filterNotNull()) { addressInput, chain ->
-            chain.isValidAddress(addressInput)
+            chain.isValidRecipientAddress(addressInput)
         }.stateIn(this, SharingStarted.Eagerly, false)
 
     private val chainSelectorStateFlow =
@@ -371,21 +365,11 @@ class SendSetupViewModel @Inject constructor(
     private val phishingModelFlow = addressInputTrimmedFlow.map {
         walletInteractor.getPhishingInfo(it)
     }
-    private val nomisScore = addressInputTrimmedFlow.transform {
-        if (it.isEmpty()) {
-            return@transform
-        }
-        emit(LoadingState.Loading())
-        val score = nomisScoreInteractor.getNomisScore(it)
-        emit(LoadingState.Loaded(score))
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, LoadingState.Loading())
-
     private val warningInfoStateFlow = combine(
         phishingModelFlow,
         isWarningExpanded,
-        nomisScore,
         assetFlow.filter { it != null }
-    ) { phishing, isExpanded, nomisScoreLoadingState, asset ->
+    ) { phishing, isExpanded, asset ->
         phishing?.let {
             WarningInfoState(
                 message = getPhishingMessage(phishing.type, asset ?: return@combine null),
@@ -396,21 +380,6 @@ class SendSetupViewModel @Inject constructor(
                 ).mapNotNull { it },
                 isExpanded = isExpanded,
                 color = phishing.color
-            )
-        } ?: nomisScoreLoadingState.dataOrNull()?.takeIf { it.score in 0..25 }?.let {
-            WarningInfoState(
-                message = resourceManager.getString(R.string.scam_description_lowscore_text),
-                extras = listOf(
-                    resourceManager.getString(R.string.username_setup_choose_title) to resourceManager.getString(
-                        R.string.scam_info_nomis_name
-                    ),
-                    resourceManager.getString(R.string.reason) to resourceManager.getString(R.string.scam_info_nomis_reason_text),
-                    resourceManager.getString(R.string.scam_additional_stub) to resourceManager.getString(
-                        R.string.scam_info_nomis_subtype_text
-                    )
-                ),
-                isExpanded = isExpanded,
-                color = warningOrange
             )
         }
     }
@@ -635,16 +604,13 @@ class SendSetupViewModel @Inject constructor(
                 )
             }
             val addressState = if (address.isNotEmpty()) {
-                (state.value.addressInputState as? AddressInputWithScore.Filled)?.copy(
+                (state.value.addressInputState as? RecipientAddressInput.Filled)?.copy(
                     address = address.shortenAddress(),
                     image = image
-                ) ?: AddressInputWithScore.Filled(
+                ) ?: RecipientAddressInput.Filled(
                     defaultAddressInputState.title,
                     address.shortenAddress(),
-                    image,
-                    nomisScore.value.dataOrNull()?.score
-                        ?: nomisScoreInteractor.getNomisScoreFromMemoryCache(address)?.score
-                        ?: NomisScoreData.LOADING_CODE
+                    image
                 )
             } else {
                 defaultAddressInputState
@@ -666,21 +632,6 @@ class SendSetupViewModel @Inject constructor(
             )
             quickInputsStateFlow.update { quickInputs }
         }.launchIn(this)
-
-        nomisScore.onEach {
-            val score = if (it is LoadingState.Loading) {
-                NomisScoreData.LOADING_CODE
-            } else {
-                it.dataOrNull()?.score
-            }
-            state.update { prevState ->
-                if (prevState.addressInputState is AddressInputWithScore.Filled) {
-                    prevState.copy(
-                        addressInputState = prevState.addressInputState.copy(score = score)
-                    )
-                } else prevState
-            }
-        }.launchIn(viewModelScope)
 
         selectedChain.filterNotNull().distinctUntilChanged().onEach { chain ->
             state.update { it.copy(nativeReview = chain.isUniversalWalletBitcoin() || chain.isUniversalWalletSolana(),
@@ -1010,21 +961,15 @@ class SendSetupViewModel @Inject constructor(
                 return@launch
             }
 
-            val cbdcQrContent = walletInteractor.tryReadCBDCAddressFormat(content)
-            if (cbdcQrContent != null) {
-                router.back()
-                router.openCBDCSend(cbdcQrInfo = cbdcQrContent)
+            val soraQrContent = walletInteractor.tryReadSoraFormat(content)
+            if (soraQrContent != null) {
+                handleSoraQr(soraQrContent)
             } else {
-                val soraQrContent = walletInteractor.tryReadSoraFormat(content)
-                if (soraQrContent != null) {
-                    handleSoraQr(soraQrContent)
+                val addressChains = getAccountSupportedChains(content)
+                if (addressChains.isNotEmpty()) {
+                    fillQrContentToAddressField(content)
                 } else {
-                    val addressChains = getAccountSupportedChains(content)
-                    if (addressChains.isNotEmpty()) {
-                        fillQrContentToAddressField(content)
-                    } else {
-                        showInvalidAddressError()
-                    }
+                    showInvalidAddressError()
                 }
             }
         }
@@ -1042,7 +987,7 @@ class SendSetupViewModel @Inject constructor(
             }
         }
         val addressChains = accountSupportedChains.filter {
-            runCatching { it.isValidAddress(address) }.getOrNull() == true
+            runCatching { it.isValidRecipientAddress(address) }.getOrNull() == true
         }
         return addressChains
     }

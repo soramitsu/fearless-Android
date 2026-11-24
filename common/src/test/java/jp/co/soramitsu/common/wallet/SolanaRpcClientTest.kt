@@ -52,7 +52,7 @@ class SolanaRpcClientTest {
             }
         }
         try { RetrofitSolanaRpcClient(api).latestBlockhash() } catch (_: java.io.IOException) { }
-        assertEquals(listOf("https://api.mainnet-beta.solana.com", "https://solana-rpc.publicnode.com"), calls)
+        assertEquals(listOf("https://api.mainnet-beta.solana.com", "https://solana-rpc.publicnode.com", "https://public.rpc.solanavibestation.com"), calls)
         for (url in listOf(DEVNET_RPC, "http://127.0.0.1:8899")) {
             calls.clear()
             try { RetrofitSolanaRpcClient(api).latestBlockhash(rpcUrl = url) } catch (_: java.io.IOException) { }
@@ -229,12 +229,15 @@ class SolanaRpcClientTest {
                 }
             }
 
-            assertRpcError(SolanaRpcException.Code.INVALID_SIGNATURE_RESPONSE) {
+            // An unreadable broadcast reply may hide an accepted transaction: it is ambiguous, never "not sent".
+            val unreadable = assertThrows(jp.co.soramitsu.common.data.network.solana.SolanaBroadcastException::class.java) {
                 runBlocking {
-                    RetrofitSolanaRpcClient(FakeSolanaRpcApi(rpcResponse(1, """"not-a-signature"""")))
+                    RetrofitSolanaRpcClient(FakeSolanaRpcApi(rpcResponse(1, """"not-a-signature"""")), fallbackRpcUrls = emptyList())
                         .sendRawTransaction(TRANSACTION)
                 }
             }
+            assertEquals(jp.co.soramitsu.common.data.network.solana.SolanaBroadcastException.Outcome.AMBIGUOUS, unreadable.outcome)
+            assertEquals(SolanaRpcException.Code.INVALID_SIGNATURE_RESPONSE, (unreadable.cause as SolanaRpcException).code)
         }
     }
 

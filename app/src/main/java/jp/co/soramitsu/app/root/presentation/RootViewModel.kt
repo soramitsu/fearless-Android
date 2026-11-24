@@ -3,7 +3,9 @@ package jp.co.soramitsu.app.root.presentation
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.reown.walletkit.client.Wallet
+import co.jp.soramitsu.walletconnect.model.WalletConnectEvent
+import co.jp.soramitsu.walletconnect.model.WalletConnectProposal
+import co.jp.soramitsu.walletconnect.model.WalletConnectRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jp.co.soramitsu.app.R
 import jp.co.soramitsu.app.root.domain.AppInitializer
@@ -12,21 +14,31 @@ import jp.co.soramitsu.app.root.domain.InitializeResult
 import jp.co.soramitsu.app.root.domain.NotSupportedAppVersionException
 import jp.co.soramitsu.app.root.domain.RootInteractor
 import jp.co.soramitsu.common.base.BaseViewModel
+import jp.co.soramitsu.common.data.storage.pin.WalletSessionLock
 import jp.co.soramitsu.common.resources.ResourceManager
 import jp.co.soramitsu.common.utils.Event
 import jp.co.soramitsu.core.runtime.ChainConnection
+import jp.co.soramitsu.irohaconnect.api.IrohaConnectLinks
+import jp.co.soramitsu.irohaconnect.impl.domain.IrohaConnectPhase
+import jp.co.soramitsu.irohaconnect.impl.domain.IrohaConnectService
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.tonChainId
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
+import jp.co.soramitsu.tonconnect.api.domain.connectFromLink
 import jp.co.soramitsu.tonconnect.api.model.BridgeError
 import jp.co.soramitsu.tonconnect.api.model.BridgeMethod
 import jp.co.soramitsu.tonconnect.api.model.DappModel
-import jp.co.soramitsu.tonconnect.api.model.TonConnectSignRequest
+import jp.co.soramitsu.tonconnect.api.model.TonConnectLink
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -36,6 +48,7 @@ import java.util.Timer
 import java.util.TimerTask
 import javax.inject.Inject
 import kotlin.concurrent.timerTask
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -46,7 +59,8 @@ class RootViewModel @Inject constructor(
     private val rootRouter: RootRouter,
     private val externalConnectionRequirementFlow: MutableStateFlow<ChainConnection.ExternalRequirement>,
     private val resourceManager: ResourceManager,
-    private val tonConnectInteractor: TonConnectInteractor
+    private val tonConnectInteractor: TonConnectInteractor,
+    private val irohaConnectService: IrohaConnectService
 ) : BaseViewModel() {
 
     companion object {
@@ -72,6 +86,8 @@ class RootViewModel @Inject constructor(
     private var timer = Timer()
     private var timerTask: TimerTask? = null
 
+    private val tonConnectLinksInFlight = mutableSetOf<String>()
+
     init {
         viewModelScope.launch {
             startAppInitializer()
@@ -84,6 +100,7 @@ class RootViewModel @Inject constructor(
             connectionsObserved = true
             observeWalletConnectEvents()
             observeTonConnectEvents()
+            observeIrohaConnectEvents()
         }
         when(result) {
             is InitializeResult.ErrorCanRetry -> {
@@ -129,6 +146,7 @@ class RootViewModel @Inject constructor(
         timeInBackground?.let {
             if (idleTimePassedFrom(it)) {
                 timerTask?.cancel()
+                WalletSessionLock.lock()
                 rootRouter.openPincodeCheck()
             }
         }
@@ -152,9 +170,40 @@ class RootViewModel @Inject constructor(
     }
 
     fun externalUrlOpened(uri: String) {
+        if (TonConnectLink.isCandidate(uri)) {
+            tonConnectLinkOpened(uri)
+            return
+        }
         if (interactor.isBuyProviderRedirectLink(uri)) {
             showMessage(resourceManager.getString(R.string.buy_completed))
         }
+        if (IrohaConnectLinks.isConnectLink(uri)) {
+            // A dApp's same-device "Open wallet" link: joined only after the PIN, on the session screen.
+            viewModelScope.launch {
+                awaitDappScreens()
+                rootRouter.openIrohaConnect(uri)
+            }
+        }
+    }
+
+    // The IrohaConnect session runs in the background; what needs the person (the dApp's Open, a transaction to
+    // review) brings its screen back once the wallet is unlocked.
+    private fun observeIrohaConnectEvents() {
+        irohaConnectService.snapshot
+            .map { snapshot ->
+                when (snapshot.phase) {
+                    IrohaConnectPhase.SESSION_APPROVAL -> "session:${snapshot.session?.networkId}:${snapshot.session?.appName}"
+                    IrohaConnectPhase.REQUEST_APPROVAL -> "request:${snapshot.request?.requestId}"
+                    else -> null
+                }
+            }
+            .distinctUntilChanged()
+            .filterNotNull()
+            .onEach {
+                awaitDappScreens()
+                rootRouter.openIrohaConnect(null)
+            }
+            .launchIn(viewModelScope)
     }
 
     fun updateAppClicked() {
@@ -171,6 +220,7 @@ class RootViewModel @Inject constructor(
     private fun createTimerTask() = timerTask {
         viewModelScope.launch(Dispatchers.Main) {
             timeInBackground = null
+            WalletSessionLock.lock()
             rootRouter.openNavGraph()
         }
     }
@@ -196,13 +246,22 @@ class RootViewModel @Inject constructor(
         _showConnectingBar.update { true }
     }
 
+    // Each bridge request reaches this collector at most once (see TonConnectInteractor.eventsFlow).
+    // Requests wait in the buffer while the wallet is locked, so no sign screen opens over the PIN.
     private fun observeTonConnectEvents() {
-        tonConnectInteractor.eventsFlow().onEach { event ->
+        tonConnectInteractor.eventsFlow().buffer(Channel.UNLIMITED).onEach { event ->
+            awaitDappScreens()
             try {
                 when(event.method) {
                     BridgeMethod.SEND_TRANSACTION -> {
-                        if (event.message.params.size > 1) throw IllegalStateException("Request contains excess transactions. Required: 1, Provided: ${event.message.params.size}")
-                        val signRequest = TonConnectSignRequest(event.message.params.first())
+                        // A request that is malformed, for another network or wallet, or expired is
+                        // answered with BAD_REQUEST and never shown.
+                        val signRequest = try {
+                            tonConnectInteractor.prepareSignRequest(event.message.params, event.connection.metaId)
+                        } catch (rejected: BridgeError.Exception) {
+                            tonConnectInteractor.respondDappError(event, rejected.error)
+                            return@onEach
+                        }
 
                         rootRouter.openTonSignRequestWithResult(DappModel(event.connection), event.method.title, signRequest)
                             .onSuccess { (boc, hex) ->
@@ -238,18 +297,49 @@ class RootViewModel @Inject constructor(
         }.launchIn(this)
     }
 
+    // A dApp's connect link opened in the app (the universal link or tc://) takes the scanner's connect flow, but
+    // only once the wallet is unlocked: nothing is fetched for it before the PIN, and an invalid link is reported
+    // over the wallet, not the PIN screen. A link delivered again while its approval is open is ignored.
+    private fun tonConnectLinkOpened(uri: String) {
+        val link = runCatching { TonConnectLink.parse(uri) }
+        val clientId = link.getOrNull()?.clientId
+        if (clientId != null && !tonConnectLinksInFlight.add(clientId)) return
+
+        viewModelScope.launch {
+            try {
+                awaitDappScreens()
+                val parsed = link.getOrElse {
+                    showError(resourceManager.getString(R.string.ton_connect_invalid_link))
+                    return@launch
+                }
+                tonConnectInteractor.connectFromLink(parsed) { app, proofPayload ->
+                    // Reading the manifest can outlast the unlock; the approval never opens over the PIN.
+                    awaitDappScreens()
+                    rootRouter.openTonConnectionAndWaitForResult(app, proofPayload)
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (failure: Exception) {
+                showError(failure)
+            } finally {
+                clientId?.let(tonConnectLinksInFlight::remove)
+            }
+        }
+    }
+
     private fun observeWalletConnectEvents() {
         WCDelegate.registerDelegatesIfReady()
             .onSuccess { WCDelegate.refreshConnections() }
 
-        WCDelegate.walletEvents.onEach {
+        WCDelegate.walletEvents.buffer(Channel.UNLIMITED).onEach {
+            awaitDappScreens()
             when (it) {
-                is Wallet.Model.SessionProposal -> {
-                    handleSessionProposal(it)
+                is WalletConnectEvent.SessionProposal -> {
+                    handleSessionProposal(it.proposal)
                 }
 
-                is Wallet.Model.SessionRequest -> {
-                    handleSessionRequest(it)
+                is WalletConnectEvent.SessionRequest -> {
+                    handleSessionRequest(it.request)
                 }
 
                 else -> {}
@@ -257,7 +347,17 @@ class RootViewModel @Inject constructor(
         }.stateIn(this, SharingStarted.Eagerly, null)
     }
 
-    private suspend fun handleSessionRequest(sessionRequest: Wallet.Model.SessionRequest) {
+    // A dApp request opens only once the wallet is unlocked and the PIN screen has been replaced: unlocking
+    // resumes these handlers before the PIN screen navigates away, and the request screens cannot be reached
+    // from it. A wallet that locks again meanwhile waits for the PIN again.
+    private suspend fun awaitDappScreens() {
+        do {
+            WalletSessionLock.awaitUnlocked()
+            rootRouter.awaitDappRoutes()
+        } while (WalletSessionLock.isLocked())
+    }
+
+    private suspend fun handleSessionRequest(sessionRequest: WalletConnectRequest) {
         val pendingListOfSessionRequests =
             interactor.getPendingListOfSessionRequests(sessionRequest.topic)
         if (pendingListOfSessionRequests.isEmpty()) {
@@ -266,7 +366,7 @@ class RootViewModel @Inject constructor(
         rootRouter.openWalletConnectSessionRequest(sessionRequest.topic)
     }
 
-    private fun handleSessionProposal(sessionProposal: Wallet.Model.SessionProposal) {
+    private fun handleSessionProposal(sessionProposal: WalletConnectProposal) {
         rootRouter.openWalletConnectSessionProposal(sessionProposal.pairingTopic)
     }
 }

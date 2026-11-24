@@ -7,8 +7,12 @@ data class SolanaRpcSignatureStatus(
     val confirmations: Long?,
     val errorJson: String?
 ) {
-    /** Processed-only results cannot settle an ambiguous send or release its retained intent. */
+    /**
+     * Processed-only results cannot settle an ambiguous send or release its retained intent. Nodes that omit
+     * `confirmationStatus` report a rooted transaction with `confirmations: null`; the parser requires both the
+     * `confirmations` and `err` keys, so null here is a node's explicit answer, not a missing field.
+     */
     val isConfirmed: Boolean
         get() = confirmationStatus in setOf("confirmed", "finalized") ||
-            (confirmationStatus == null && confirmations != null && confirmations > 0)
+            (confirmationStatus == null && (confirmations == null || confirmations > 0))
 }

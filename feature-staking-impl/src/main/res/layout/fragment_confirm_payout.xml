@@ -5,7 +5,7 @@
     android:id="@+id/confirmPayoutContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/drawable_background_image"
+    android:background="@drawable/fw_page_background"
     android:backgroundTint="#63000000"
     android:backgroundTintMode="src_atop"
     android:orientation="vertical"
@@ -88,7 +88,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/gray4"
+        android:background="@color/fw_staking_panel_gray"
         android:orientation="vertical">
 
         <LinearLayout

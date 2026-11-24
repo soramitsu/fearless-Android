@@ -16,6 +16,7 @@ import jp.co.soramitsu.account.api.domain.model.ImportMode.MnemonicPhrase
 import jp.co.soramitsu.account.api.domain.model.ImportMode.RawSeed
 import jp.co.soramitsu.account.impl.domain.recovery.WalletKeyRecovery
 import jp.co.soramitsu.account.impl.domain.recovery.WalletRecoveryIdentityMismatch
+import jp.co.soramitsu.account.impl.domain.substratePasswordAccounts
 import jp.co.soramitsu.account.impl.presentation.recovery.RecoveryTarget
 import jp.co.soramitsu.account.impl.presentation.AccountRouter
 import jp.co.soramitsu.account.impl.presentation.common.mixin.api.CryptoTypeChooserMixin
@@ -40,10 +41,13 @@ import jp.co.soramitsu.common.utils.requireException
 import jp.co.soramitsu.common.utils.switchMap
 import jp.co.soramitsu.common.view.ButtonState
 import jp.co.soramitsu.common.view.bottomSheet.list.dynamic.DynamicListBottomSheet.Payload
+import jp.co.soramitsu.core.crypto.SubstratePasswordRule
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.feature_account_impl.R
 import jp.co.soramitsu.fearless_utils.encrypt.junction.BIP32JunctionDecoder
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import javax.inject.Inject
@@ -73,6 +77,12 @@ class ImportAccountViewModel @Inject constructor(
 
     private val _showEthAccountsDialog = MutableLiveData<Event<Unit>>()
     val showEthAccountsDialog: LiveData<Event<Unit>> = _showEthAccountsDialog
+
+    // Words whose path password an earlier browser extension read differently open more than one
+    // account; the import waits for the user's pick.
+    private val _substratePasswordChooserEvent = MutableLiveData<Event<Payload<SubstratePasswordAccountModel>>>()
+    val substratePasswordChooserEvent: LiveData<Event<Payload<SubstratePasswordAccountModel>>> = _substratePasswordChooserEvent
+    private var pendingImportWithEth = true
 
     private val _blockchainTypeLiveData = MutableLiveData<WalletEcosystem>(initialWalletEcosystem)
     val blockchainLiveData: LiveData<WalletEcosystem> = _blockchainTypeLiveData
@@ -218,8 +228,12 @@ class ImportAccountViewModel @Inject constructor(
                 throw failure
             } catch (failure: Exception) {
                 recoveryError.value = resourceManager.getString(
-                    if (failure is WalletRecoveryIdentityMismatch) R.string.wallet_recovery_different_key
-                    else R.string.wallet_recovery_restore_failed
+                    when (failure) {
+                        is WalletRecoveryIdentityMismatch -> R.string.wallet_recovery_different_key
+                        is jp.co.soramitsu.account.impl.domain.recovery.WalletPinRecoveryKeyUnavailableException ->
+                            R.string.pin_recovery_key_unavailable
+                        else -> R.string.wallet_recovery_restore_failed
+                    }
                 )
             } finally {
                 importInProgressLiveData.value = false
@@ -246,7 +260,7 @@ class ImportAccountViewModel @Inject constructor(
         ethereumDerivationPathLiveData.value = ""
     }
 
-    private fun import(withEth: Boolean) {
+    private fun import(withEth: Boolean, substratePasswordRule: SubstratePasswordRule? = null) {
         val sourceType = _selectedSourceTypeLiveData.value ?: return
         importInProgressLiveData.value = true
 
@@ -256,7 +270,17 @@ class ImportAccountViewModel @Inject constructor(
         val name = nameLiveData.value.orEmpty()
 
         viewModelScope.launch {
-            val result = import(sourceType, name, substrateDerivationPath, ethereumDerivationPath, cryptoType)
+            if (substratePasswordRule == null) {
+                val accounts = substratePasswordChoice(sourceType, substrateDerivationPath, cryptoType)
+                if (accounts.size > 1) {
+                    pendingImportWithEth = withEth
+                    _substratePasswordChooserEvent.value = Event(Payload(accounts, accounts.first()))
+                    importInProgressLiveData.value = false
+                    return@launch
+                }
+            }
+            val passwordRule = substratePasswordRule ?: SubstratePasswordRule.NFKD
+            val result = import(sourceType, name, substrateDerivationPath, ethereumDerivationPath, cryptoType, passwordRule)
 
             if (result.isSuccess) {
                 continueBasedOnCodeStatus()
@@ -268,15 +292,44 @@ class ImportAccountViewModel @Inject constructor(
         }
     }
 
-    fun systemCallResultReceived(requestCode: Int, intent: Intent) {
-        val selectedSource = _selectedSourceTypeLiveData.value
+    fun substratePasswordAccountChosen(account: SubstratePasswordAccountModel) {
+        import(pendingImportWithEth, account.rule)
+    }
 
-        if (selectedSource is FileRequester) {
-            val currentRequestCode = selectedSource.chooseJsonFileEvent.value!!.peekContent()
-
-            if (requestCode == currentRequestCode) {
-                selectedSource.fileChosen(intent.data!!)
+    // The accounts a new wallet's words and path open, one per rule that reads the path's password
+    // differently; empty for any other import, and when the words cannot be read (the import says why).
+    private suspend fun substratePasswordChoice(
+        sourceType: ImportSource,
+        substrateDerivationPath: String,
+        cryptoType: CryptoType
+    ): List<SubstratePasswordAccountModel> {
+        if (sourceType !is MnemonicImportSource || walletId != null || blockchainLiveData.value == WalletEcosystem.Ton) {
+            return emptyList()
+        }
+        if (!substrateDerivationPath.contains("///")) return emptyList()
+        val mnemonic = sourceType.mnemonicContentLiveData.value ?: return emptyList()
+        val accounts = runCatching {
+            withContext(Dispatchers.Default) { substratePasswordAccounts(mnemonic, substrateDerivationPath, cryptoType) }
+        }.getOrNull().orEmpty()
+        return accounts.map { account ->
+            val title = when (account.rule) {
+                SubstratePasswordRule.NFKD -> R.string.substrate_password_choice_nfkd
+                SubstratePasswordRule.NFC -> R.string.substrate_password_choice_nfc
+                SubstratePasswordRule.AS_TYPED -> R.string.substrate_password_choice_as_typed
             }
+            SubstratePasswordAccountModel(account.rule, resourceManager.getString(title), account.address)
+        }
+    }
+
+    fun systemCallResultReceived(requestCode: Int, intent: Intent) {
+        val selectedSource = _selectedSourceTypeLiveData.value as? FileRequester ?: return
+        // No file was asked for on this screen (another result, or the screen was rebuilt after the system
+        // closed the app), or the picker returned no file: both were `!!` crashes in 229.
+        val currentRequestCode = selectedSource.chooseJsonFileEvent.value?.peekContent() ?: return
+        val uri = intent.data ?: return
+
+        if (requestCode == currentRequestCode) {
+            selectedSource.fileChosen(uri)
         }
     }
 
@@ -329,7 +382,8 @@ class ImportAccountViewModel @Inject constructor(
         name: String,
         substrateDerivationPath: String,
         ethereumDerivationPath: String,
-        cryptoType: CryptoType
+        cryptoType: CryptoType,
+        substratePasswordRule: SubstratePasswordRule
     ): Result<Any> {
         return when (sourceType) {
             is MnemonicImportSource -> {
@@ -348,7 +402,8 @@ class ImportAccountViewModel @Inject constructor(
                             substrateDerivationPath = substrateDerivationPath,
                             ethereumDerivationPath = ethereumDerivationPath,
                             googleBackupAddress = null,
-                            isBackedUp = true
+                            isBackedUp = true,
+                            substratePasswordRule = substratePasswordRule
                         )
                     } else {
                         AddAccountPayload.AdditionalEvm(

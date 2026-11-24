@@ -19,7 +19,9 @@ import com.valentinilk.shimmer.ShimmerBounds
 import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
 import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
-import jp.co.soramitsu.common.compose.theme.fw.LocalFwEffects
+import jp.co.soramitsu.common.compose.theme.fw.FwMotionKind
+import jp.co.soramitsu.common.compose.theme.fw.FwMotionMode
+import jp.co.soramitsu.common.compose.theme.fw.fwMotion
 import jp.co.soramitsu.common.compose.theme.fw.FwLoadingShimmerTheme
 import jp.co.soramitsu.common.compose.theme.fw.FW_LOADING_SKELETON_ALPHA
 import jp.co.soramitsu.common.compose.theme.black
@@ -52,7 +54,7 @@ fun ShimmerB2(modifier: Modifier = Modifier) {
 @Composable
 fun Shimmer(modifier: Modifier = Modifier) {
     val restyled = FwRestyle.isEnabled(FwSurface.Loading)
-    val still = restyled && LocalFwEffects.current.reduceMotion
+    val still = restyled && fwMotion.mode(FwMotionKind.SyncSweep) != FwMotionMode.Full
     val skeleton = if (restyled) LocalFwColors.current.strokeStrong else shimmerColor
     val effect = when {
         still -> Modifier
@@ -75,7 +77,7 @@ fun Shimmer(modifier: Modifier = Modifier) {
 @Composable
 fun ShimmerRectangle(modifier: Modifier = Modifier) {
     val restyled = FwRestyle.isEnabled(FwSurface.Loading)
-    val still = restyled && LocalFwEffects.current.reduceMotion
+    val still = restyled && fwMotion.mode(FwMotionKind.SyncSweep) != FwMotionMode.Full
     val skeleton = if (restyled) LocalFwColors.current.strokeStrong else shimmerColor
     val effect = when {
         still -> Modifier

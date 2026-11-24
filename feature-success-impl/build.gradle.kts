@@ -44,4 +44,7 @@ dependencies {
     implementation(projects.featureSuccessApi)
     implementation(projects.featureAccountApi)
     implementation(projects.featureWalletImpl)
+
+    testImplementation(projects.testShared)
+    testImplementation(libs.arch.core.testing)
 }

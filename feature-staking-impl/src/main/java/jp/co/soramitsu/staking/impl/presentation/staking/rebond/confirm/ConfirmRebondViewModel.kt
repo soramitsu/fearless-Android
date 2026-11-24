@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.rebond.confirm
 
+import jp.co.soramitsu.staking.impl.presentation.common.StakingSeal
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -165,8 +166,10 @@ class ConfirmRebondViewModel @Inject constructor(
         val amountInPlanks = validPayload.controllerAsset.token.planksFromAmount(payload.amount)
         val stashState = accountStakingFlow.first()
 
-        rebondInteractor.rebond(stashState) {
-            stakingScenarioInteractor.rebond(this, amountInPlanks, payload.collatorAddress)
+        StakingSeal.submit {
+            rebondInteractor.rebond(stashState) {
+                stakingScenarioInteractor.rebond(this, amountInPlanks, payload.collatorAddress)
+            }
         }
             .onSuccess {
                 showMessage(resourceManager.getString(R.string.common_transaction_submitted))

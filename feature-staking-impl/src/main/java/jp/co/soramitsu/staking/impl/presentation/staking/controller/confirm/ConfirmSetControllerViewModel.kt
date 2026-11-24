@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.staking.controller.confirm
 
+import jp.co.soramitsu.staking.impl.presentation.common.StakingSeal
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
@@ -118,10 +119,13 @@ class ConfirmSetControllerViewModel @Inject constructor(
     }
 
     private fun sendTransaction() = launch {
-        val result = controllerInteractor.setController(
-            stashAccountAddress = payload.stashAddress,
-            controllerAccountAddress = payload.controllerAddress
-        )
+        // A failure shows no message on this screen (as before); the seal's break is the only sign of it.
+        val result = StakingSeal.submit {
+            controllerInteractor.setController(
+                stashAccountAddress = payload.stashAddress,
+                controllerAccountAddress = payload.controllerAddress
+            )
+        }
 
         if (result.isSuccess) {
             showMessage(resourceManager.getString(R.string.staking_controller_change_success))

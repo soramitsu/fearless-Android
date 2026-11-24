@@ -190,7 +190,7 @@ private fun SavedInventoryField(field: EndpointField, value: EndpointValue, enab
 
 @Composable
 private fun EndpointInventoryAction(text: String, action: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
-    if (enabled && FwRestyle.isEnabled(FwSurface.Recovery)) FwRecoveryButton(text, action, modifier)
+    if (FwRestyle.isEnabled(FwSurface.Recovery)) FwRecoveryButton(text, action, modifier, enabled)
     else TextButton(action, modifier.fillMaxWidth().heightIn(min = 48.dp), enabled = enabled) { Text(text) }
 }
 

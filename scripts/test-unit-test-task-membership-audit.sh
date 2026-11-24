@@ -24,6 +24,7 @@ def unitTestTaskPaths = [
   ':feature-crowdloan-impl:testDebugUnitTest',
   ':feature-onboarding-impl:testDebugUnitTest',
   ':feature-liquiditypools-impl:testDebugUnitTest',
+  ':feature-nft-impl:testDebugUnitTest',
   ':feature-polkamarkt-impl:testDebugUnitTest',
   ':feature-polkaswap-impl:testDebugUnitTest',
   ':feature-staking-impl:testDebugUnitTest',

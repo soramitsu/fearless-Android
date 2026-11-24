@@ -47,6 +47,24 @@ class WalletRecoveryStringsLocaleTest {
     }
 
     @Test
+    fun `the earlier extension address choice is translated in every shipped locale`() {
+        val english = strings(File(RES, "values/strings.xml"))
+        val keys = english.keys.filter { it.startsWith("substrate_password_choice_") }
+        assertEquals(5, keys.size)
+
+        localeDirectories().forEach { directory ->
+            val localized = strings(File(directory, "strings.xml"))
+            keys.forEach { key ->
+                val value = localized[key]
+                assertTrue("${directory.name} misses $key", !value.isNullOrBlank())
+                if (directory.name != "values") {
+                    assertFalse("${directory.name} $key is still English", value == english.getValue(key))
+                }
+            }
+        }
+    }
+
+    @Test
     fun `recovery copy no longer makes support the only option`() {
         val english = strings(File(RES, "values/strings.xml"))
         listOf("wallet_startup_recovery_required_message", "wallet_recovery_required_message").forEach {

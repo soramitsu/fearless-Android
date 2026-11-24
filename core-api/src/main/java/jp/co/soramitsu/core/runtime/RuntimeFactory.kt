@@ -12,7 +12,6 @@ import jp.co.soramitsu.fearless_utils.runtime.definitions.registry.v14Preset
 import jp.co.soramitsu.fearless_utils.runtime.definitions.v14.TypesParserV14
 import jp.co.soramitsu.fearless_utils.runtime.metadata.RuntimeMetadataReader
 import jp.co.soramitsu.fearless_utils.runtime.metadata.builder.VersionedRuntimeBuilder
-import jp.co.soramitsu.fearless_utils.runtime.metadata.v14.RuntimeMetadataSchemaV14
 import kotlinx.serialization.json.Json
 import java.security.MessageDigest
 
@@ -92,8 +91,9 @@ class RuntimeFactory(
         ownTypesRaw: String,
         runtimeVersion: Int
     ): TypeRegistry {
+        // V14 and V15 share the portable registry format; a V15 runtime is the one CheckMetadataHash signs for.
         val parseResult = TypesParserV14.parse(
-            lookup = metadataReader.metadata[RuntimeMetadataSchemaV14.lookup],
+            lookup = requireNotNull(metadataReader.lookup) { "Metadata V${metadataReader.metadataVersion} has no type registry" },
             typePreset = v14Preset()
         )
         val networkPreset = parseNetworkTypes(

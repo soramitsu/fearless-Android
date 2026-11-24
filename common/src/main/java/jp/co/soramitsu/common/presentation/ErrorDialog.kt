@@ -1,7 +1,6 @@
 package jp.co.soramitsu.common.presentation
 
 import android.annotation.SuppressLint
-import android.app.Dialog
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.LayoutInflater
@@ -9,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.LinearLayout
+import androidx.activity.compose.BackHandler
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -46,6 +47,11 @@ import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.alertYellow
 import jp.co.soramitsu.common.compose.theme.black2
 import jp.co.soramitsu.common.compose.theme.fontSize
+import jp.co.soramitsu.common.compose.theme.fw.FwIconButton
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
+import jp.co.soramitsu.common.compose.theme.fw.fwSheetNavigationBar
 import jp.co.soramitsu.common.compose.theme.soraTextStyle
 import jp.co.soramitsu.common.compose.theme.weight
 import jp.co.soramitsu.common.compose.theme.white
@@ -215,18 +221,6 @@ class ErrorDialog() : BottomSheetDialogFragment() {
         }
     }
 
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return object : BottomSheetDialog(requireContext(), theme) {
-            @Deprecated("Deprecated in Java")
-            override fun onBackPressed() {
-                if (isHideable) {
-                    dispatchAction(Action.BACK, onBackClick)
-                    super.onBackPressed()
-                }
-            }
-        }
-    }
-
     @Suppress("DEPRECATION")
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     override fun onCreateView(
@@ -238,28 +232,50 @@ class ErrorDialog() : BottomSheetDialogFragment() {
         return ComposeView(requireContext()).apply {
             setContent {
                 FearlessTheme {
+                    // From Android 13 Back never reaches Dialog.onBackPressed, and Material's handler skips onBackClick
+                    // and collapses a sheet that can't be hidden, leaving its buttons out of reach.
+                    BackHandler {
+                        if (isHideable) {
+                            dispatchAction(Action.BACK, onBackClick)
+                            dismiss()
+                        }
+                    }
                     BottomSheetScreen {
                         Column(
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
                                 .fillMaxWidth()
                         ) {
+                            val sunlit = FwRestyle.isEnabled(FwSurface.Unavailable)
                             if (isHideable) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.ic_close),
-                                    tint = white,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .align(Alignment.End)
-                                        .clickable {
+                                if (sunlit) {
+                                    FwIconButton(
+                                        iconRes = R.drawable.ic_close,
+                                        contentDescription = stringResource(R.string.common_close),
+                                        onClick = {
                                             dispatchAction(Action.BACK, onBackClick)
                                             dismiss()
-                                        }
+                                        },
+                                        modifier = Modifier.align(Alignment.End),
+                                        tint = LocalFwColors.current.textPrimary
+                                    )
+                                } else {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_close),
+                                        tint = white,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .align(Alignment.End)
+                                            .clickable {
+                                                dispatchAction(Action.BACK, onBackClick)
+                                                dismiss()
+                                            }
 
-                                )
+                                    )
+                                }
                             }
-                            MarginVertical(margin = 44.dp)
+                            MarginVertical(margin = if (sunlit) 12.dp else 44.dp)
                             GradientIcon(
                                 iconRes = iconRes,
                                 color = alertYellow,
@@ -277,7 +293,7 @@ class ErrorDialog() : BottomSheetDialogFragment() {
                                 text = message,
                                 style = soraTextStyle().fontSize(textSize.sp).weight(FontWeight.Normal),
                                 modifier = Modifier.align(Alignment.CenterHorizontally),
-                                color = black2
+                                color = if (sunlit) LocalFwColors.current.textSecondary else black2
                             )
                             MarginVertical(margin = 24.dp)
                             if (buttonsOrientation == LinearLayout.VERTICAL) {
@@ -358,6 +374,7 @@ class ErrorDialog() : BottomSheetDialogFragment() {
     private fun setupBottomSheet() {
         dialog?.setOnShowListener {
             val bottomSheetDialog = it as BottomSheetDialog
+            bottomSheetDialog.fwSheetNavigationBar()
             bottomSheetDialog.setCanceledOnTouchOutside(
                 isHideable &&
                     resultRequestKey == null &&

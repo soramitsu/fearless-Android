@@ -12,7 +12,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
@@ -103,7 +102,8 @@ private fun SetupStakingScreenPreview() {
         AccountInfoViewState(
             address = "0xfh73fh83f28hf82h28f",
             accountName = "My account",
-            image = painterResource(id = R.drawable.ic_wallet),
+            // A drawable id: rememberAsyncImagePainter rejects a Painter model.
+            image = R.drawable.ic_wallet,
             caption = "Join pool from"
         ),
         AmountInputViewState(

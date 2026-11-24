@@ -21,6 +21,7 @@ import jp.co.soramitsu.wallet.impl.data.repository.tranfser.BitcoinTransferServi
 import jp.co.soramitsu.wallet.impl.data.repository.tranfser.BitcoinTransferServiceProviderTest.Companion.SOLANA_ADDRESS
 import jp.co.soramitsu.wallet.impl.data.repository.tranfser.BitcoinTransferServiceProviderTest.Companion.SOLANA_RECIPIENT
 import jp.co.soramitsu.testshared.any
+import jp.co.soramitsu.testshared.eq
 import jp.co.soramitsu.testshared.whenever
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
@@ -31,6 +32,7 @@ import org.mockito.Mockito.*
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.ArgumentMatchers.anyMap
 import org.mockito.ArgumentMatchers.anySet
+import org.mockito.ArgumentMatchers.anyLong
 
 class NativeSendRecoveryTest {
     @Test fun `restart recovery displays original payment and retry broadcasts only original bytes`() = runTest {
@@ -106,6 +108,62 @@ class NativeSendRecoveryTest {
         verify(f.solana, never()).latestBlockhash(any(), any())
     }
 
+    @Test fun `Solana payment proven expired is released and its history row closed as failed`() = runTest {
+        val f = Fixture(true); f.initialize(); val original = f.journal.retain(f.scope, f.payment())
+        // Two endpoints each proved the expiry.
+        whenever(f.solana.signatureOutcome(any(), anyLong(), any())).thenReturn(SolanaSignatureOutcome.Expired(2))
+        val row = f.historyRow(original)
+        whenever(f.operations.getOperation(original.transactionId)).thenReturn(row)
+        val result = f.recovery.refresh(requireNotNull(f.recovery.peek(f.chain.id, 1)), true)
+        assertTrue(result.notSent); assertFalse(result.unverified); assertTrue(result.expired)
+        assertNull(f.journal.read(f.scope))
+        assertNull(f.recovery.peek(f.chain.id, 1))
+        // The row is closed before the record is removed, so a stop in between leaves the record to check again.
+        val order = inOrder(f.operations, f.preferences)
+        order.verify(f.operations).insert(row.copy(status = OperationLocal.Status.FAILED))
+        order.verify(f.preferences).replaceStringsDurably(eq(emptyMap()), anySet())
+        verify(f.solana, never()).sendRawTransaction(any(), any(), any())
+        // No record is left, so the explorer is not offered for a payment that provably never left.
+        assertTrue(runCatching { f.recovery.explorerChain(result) }.exceptionOrNull() is NativeSendException)
+    }
+
+    @Test fun `an expiry proven by a single endpoint is released as unverified and keeps the explorer`() = runTest {
+        val f = Fixture(true); f.initialize(); val original = f.journal.retain(f.scope, f.payment())
+        whenever(f.solana.signatureOutcome(any(), anyLong(), any())).thenReturn(SolanaSignatureOutcome.Expired(1))
+        val row = f.historyRow(original)
+        whenever(f.operations.getOperation(original.transactionId)).thenReturn(row)
+        val result = f.recovery.refresh(requireNotNull(f.recovery.peek(f.chain.id, 1)), true)
+        // One node's empty lookup may come from a backend missing that slot: the release says nothing about funds.
+        assertTrue(result.unverified); assertFalse(result.notSent); assertTrue(result.expired)
+        assertNull(f.journal.read(f.scope))
+        verify(f.operations).insert(row.copy(status = OperationLocal.Status.UNKNOWN))
+        verify(f.operations, never()).insert(row.copy(status = OperationLocal.Status.FAILED))
+        verify(f.solana, never()).sendRawTransaction(any(), any(), any())
+        // The message asks the user to check the explorer, which still opens for this wallet and network only.
+        assertEquals(f.chain.id, f.recovery.explorerChain(result).id)
+        whenever(f.accounts.getSelectedMetaAccount()).thenReturn(f.wallet.copy(id = 2))
+        assertTrue(runCatching { f.recovery.explorerChain(result) }.exceptionOrNull() is NativeSendException)
+    }
+
+    @Test fun `an expiry seen more than six hours after signing releases the payment as unverified`() = runTest {
+        val f = Fixture(true); f.initialize()
+        val old = f.payment().copy(createdAtMillis = f.signedAt - NativeSendExecutor.VERIFIABLE_FOR_MILLIS - 60_000)
+        val original = f.journal.retain(f.scope, old)
+        // Even two proving endpoints cannot show that nothing left the wallet this long after signing.
+        whenever(f.solana.signatureOutcome(any(), anyLong(), any())).thenReturn(SolanaSignatureOutcome.Expired(2))
+        val row = f.historyRow(original)
+        whenever(f.operations.getOperation(original.transactionId)).thenReturn(row)
+        val result = f.recovery.refresh(requireNotNull(f.recovery.peek(f.chain.id, 1)), false)
+        // The node may simply no longer keep the payment's history, so nothing is said about what left the wallet.
+        assertTrue(result.unverified); assertFalse(result.notSent); assertTrue(result.expired)
+        assertNull(f.journal.read(f.scope))
+        val order = inOrder(f.operations, f.preferences)
+        order.verify(f.operations).insert(row.copy(status = OperationLocal.Status.UNKNOWN))
+        order.verify(f.preferences).replaceStringsDurably(eq(emptyMap()), anySet())
+        verify(f.operations, never()).insert(row.copy(status = OperationLocal.Status.FAILED))
+        verify(f.solana, never()).sendRawTransaction(any(), any(), any())
+    }
+
     @Test fun `Solana alias network replacement cannot query or retry the retained payment`() = runTest {
         val f = Fixture(true, true); f.initialize(); f.journal.retain(f.scope, f.payment())
         val handle = requireNotNull(f.recovery.peek(f.chain.id, 1)); val durable = f.values.toMap()
@@ -126,6 +184,8 @@ class NativeSendRecoveryTest {
             override suspend fun signatureStatus(signature: String, rpcUrl: String?): SolanaRpcSignatureStatus? {
                 entered.complete(Unit); return reply.await()
             }
+            override suspend fun signatureOutcome(signature: String, lastValidBlockHeight: Long, rpcUrl: String?): SolanaSignatureOutcome =
+                signatureStatus(signature, rpcUrl)?.let { SolanaSignatureOutcome.Seen(it) } ?: SolanaSignatureOutcome.Unknown
         }
         val recovery = NativeSendRecovery(f.accounts, f.registry, f.bitcoin, client, f.preferences, f.operations, SendPausePolicy.Unrestricted)
         val handle = requireNotNull(recovery.peek(f.chain.id, 1)); val durable = f.values.toMap()
@@ -204,7 +264,9 @@ class NativeSendRecoveryTest {
         val values = mutableMapOf<String, String>()
         val preferences = mock(Preferences::class.java).also { p ->
             whenever(p.getString(anyString())).thenAnswer { values[it.getArgument<String>(0)] }
-            whenever(p.replaceStringsDurably(anyMap(), anySet())).thenAnswer { values.putAll(it.getArgument<Map<String, String>>(0)); true }
+            whenever(p.replaceStringsDurably(anyMap(), anySet())).thenAnswer {
+                values.putAll(it.getArgument<Map<String, String>>(0)); it.getArgument<Set<String>>(1).forEach(values::remove); true
+            }
         }
         val accounts = mock(AccountRepository::class.java)
         val registry = mock(ChainRegistry::class.java)
@@ -213,17 +275,22 @@ class NativeSendRecoveryTest {
         val operations = mock(OperationDao::class.java)
         val journal = WalletSendJournal(preferences)
         val recovery = NativeSendRecovery(accounts, registry, bitcoin, solana, preferences, operations, SendPausePolicy.Unrestricted)
+        val signedAt = System.currentTimeMillis()
+        fun historyRow(payment: PendingWalletSend) = OperationLocal.manualTransfer(hash = payment.transactionId, address = SOLANA_ADDRESS,
+            chainAssetId = "SOL", chainId = chain.id, amount = java.math.BigInteger.ONE, senderAddress = SOLANA_ADDRESS,
+            receiverAddress = SOLANA_RECIPIENT, fee = null, status = OperationLocal.Status.PENDING, source = OperationLocal.Source.APP)
         suspend fun initialize() {
             whenever(accounts.getSelectedMetaAccount()).thenReturn(wallet)
             whenever(registry.getChain(chain.id)).thenAnswer { currentChain }
             whenever(bitcoin.broadcastTransaction(any(), any(), any())).thenReturn("a".repeat(64))
             whenever(solana.withGenesisHash(any())).thenReturn(solana)
             whenever(solana.withEndpoints(any())).thenReturn(solana)
+            whenever(solana.signatureOutcome(any(), anyLong(), any())).thenReturn(SolanaSignatureOutcome.Unknown)
         }
         fun payment() = PendingWalletSend(WalletSendJournal.scopeHash(scope), "11111111-1111-4111-8111-111111111111", "b".repeat(64),
             if (isSolana) PendingWalletSend.Kind.Solana else PendingWalletSend.Kind.Bitcoin,
             if (isSolana) "1".repeat(64) else "a".repeat(64), if (isSolana) "AQID" else "00aa", "282", "0",
-            if (isSolana) 100 else null, 1234, reviewed = ReviewedWalletSend(chain.id, chain.name, if (isSolana) "SOL" else "BTC", null,
+            if (isSolana) 100 else null, signedAt, reviewed = ReviewedWalletSend(chain.id, chain.name, if (isSolana) "SOL" else "BTC", null,
                 if (isSolana) "SOL" else "BTC", if (isSolana) 9 else 8, if (isSolana) SOLANA_ADDRESS else MAINNET_ADDRESS,
                 if (isSolana) SOLANA_RECIPIENT else MAINNET_RECIPIENT, "50000"),
             solanaNetwork = if (isSolana) SolanaSendNetworkIdentity(

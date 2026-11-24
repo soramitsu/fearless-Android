@@ -190,8 +190,6 @@ class MainNavigationContractTest {
         assertTrue(navigator.contains("attachMainTabs"))
         assertTrue(navigator.contains("authenticatedDestinationTarget"))
         assertFalse(navigator.contains("if (!navigatedInTab)"))
-        assertTrue(graph.contains("scoreDetailsFragment"))
-        assertFalse(navigator.contains("navController?.navigate(R.id.scoreDetailsFragment"))
         listOf(
             "confirmSendFragment",
             "successSheetFragment",

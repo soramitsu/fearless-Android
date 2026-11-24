@@ -3,13 +3,21 @@ package jp.co.soramitsu.common.view.shape
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.drawable.Drawable
+import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.StateListDrawable
 import android.util.StateSet
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
+import androidx.compose.ui.graphics.toArgb
 import jp.co.soramitsu.common.R
+import jp.co.soramitsu.common.compose.theme.fw.FwElevation
+import jp.co.soramitsu.common.compose.theme.fw.FwNeuDrawable
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwShape
+import jp.co.soramitsu.common.compose.theme.fw.FwStandardOrHighContrast
+import jp.co.soramitsu.common.compose.theme.fw.FwViews
 
 fun Int.toColorStateList() = ColorStateList.valueOf(this)
 
@@ -24,6 +32,14 @@ fun Context.getCutCornersStateDrawable(
     focusedDrawable: Drawable = getFocusedDrawable(),
     idleDrawable: Drawable = getIdleDrawable()
 ): Drawable {
+    if (FwRestyle.paletteEnabled) {
+        // Inputs are wells pressed into the page; focus lights their rim in brand pink.
+        val fx = FwViews.effects(this)
+        val colors = FwStandardOrHighContrast(this)
+        val density = resources.displayMetrics.density
+        return FwNeuDrawable(colors, fx, density, FwElevation.Inset, cornerRadius = FwShape.WELL.value * density,
+            focusRing = colors.brand.toArgb())
+    }
     return StateListDrawable().apply {
         addState(intArrayOf(-android.R.attr.state_enabled), disabledDrawable)
         addState(intArrayOf(android.R.attr.state_focused), focusedDrawable)
@@ -55,6 +71,14 @@ fun Context.getCutCornerDrawableFromColors(
     strokeSizeInDp: Int = 1
 ): Drawable {
     val density = resources.displayMetrics.density
+    if (FwRestyle.paletteEnabled) {
+        // Same fill and outline, on the sun-lit radius instead of cut corners.
+        return GradientDrawable().apply {
+            cornerRadius = FwShape.WELL.value * density
+            setColor(fillColor)
+            strokeColor?.let { setStroke((strokeSizeInDp * density).toInt().coerceAtLeast(1), it) }
+        }
+    }
 
     val cornerSizePx = density * cornerSizeInDp
     val strokeSizePx = density * strokeSizeInDp

@@ -22,7 +22,9 @@ import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.generics.Era
 import jp.co.soramitsu.fearless_utils.runtime.definitions.types.instances.AddressInstanceConstructor
+import jp.co.soramitsu.fearless_utils.runtime.RuntimeSnapshot
 import jp.co.soramitsu.fearless_utils.runtime.extrinsic.ExtrinsicBuilder
+import jp.co.soramitsu.fearless_utils.wsrpc.request.runtime.chain.RuntimeVersion
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withTimeoutOrNull
@@ -36,11 +38,18 @@ private val DEFAULT_FEE_ACCOUNT_ID = ByteArray(32)
 private val DEFAULT_FEE_KEYPAIR = BaseKeypair(ByteArray(32) { 1 }, ByteArray(32))
 private const val WATCH_TIMEOUT_MILLIS = 120_000L
 
+/**
+ * Creates extrinsic builders. A builder that signs gets its runtime and metadata hash from [signingRuntimeSource]: on a
+ * network that checks the metadata hash it signs Mode::Enabled with the hash of the metadata it is built from, and
+ * creation fails when that hash cannot be computed. Fee builders sign nothing and use the network's runtime.
+ */
 class ExtrinsicBuilderFactory(
     private val rpcCalls: RpcCalls,
     private val chainRegistry: IChainRegistry,
-    private val mortalityConstructor: MortalityConstructor
+    private val mortalityConstructor: MortalityConstructor,
+    private val signingRuntimeSource: SigningRuntimeSource
 ) {
+    /** @throws MetadataHashUnavailableException when the network checks the metadata hash and it cannot be computed */
     suspend fun createForSubmit(
         chain: IChain,
         accountId: ByteArray,
@@ -49,6 +58,9 @@ class ExtrinsicBuilderFactory(
         appId: BigInteger?
     ): ExtrinsicBuilder {
         val cryptoType = keypairProvider.getCryptoTypeFor(chain, accountId)
+        val runtimeVersion = rpcCalls.getRuntimeVersion(chain.id)
+        val signing = signingRuntimeSource.signingRuntime(chain, runtimeVersion)
+        val metadataHash = signing.metadataHashToSign()
         val keypair = keypairProvider.getKeypairFor(chain, accountId)
 
         return create(
@@ -59,7 +71,8 @@ class ExtrinsicBuilderFactory(
             nonce = rpcCalls.getAccountNonce(chain, accountId),
             mortality = mortalityConstructor.construct(chain),
             tip = tip,
-            appId = appId
+            appId = appId,
+            signing = SigningContext(signing.runtime, runtimeVersion, metadataHash)
         )
     }
 
@@ -74,9 +87,12 @@ class ExtrinsicBuilderFactory(
         val cryptoType = keypairProvider.getCryptoTypeFor(chain, accountId)
         val mortality = mortalityConstructor.construct(chain)
         check(mortality.era is Era.Mortal) { "A mortal transaction era is unavailable" }
+        val runtimeVersion = rpcCalls.getRuntimeVersion(chain.id)
+        val signing = signingRuntimeSource.signingRuntime(chain, runtimeVersion)
         val builder = create(
             chain, accountId, DEFAULT_FEE_KEYPAIR, mapCryptoTypeToEncryption(cryptoType),
-            rpcCalls.getAccountNonce(chain, accountId), mortality, tip, appId
+            rpcCalls.getAccountNonce(chain, accountId), mortality, tip, appId,
+            SigningContext(signing.runtime, runtimeVersion, signing.metadataHashToSign())
         )
         return AuthorizedExtrinsicBuilder(builder, mortality.validity)
     }
@@ -123,24 +139,30 @@ class ExtrinsicBuilderFactory(
         nonce: BigInteger,
         mortality: Mortality,
         tip: BigInteger?,
-        appId: BigInteger?
+        appId: BigInteger?,
+        signing: SigningContext? = null
     ): ExtrinsicBuilder {
-        val runtime = chainRegistry.getRuntime(chain.id)
+        // Fee builders sign a placeholder only: they use the network runtime and Mode::Disabled, whose encoded size
+        // is the same as Mode::Enabled's.
+        val runtime = signing?.runtime ?: chainRegistry.getRuntime(chain.id)
 
         return ExtrinsicBuilder(
             runtime = runtime,
             keypair = keypair,
             nonce = nonce,
-            runtimeVersion = rpcCalls.getRuntimeVersion(chain.id),
+            runtimeVersion = signing?.runtimeVersion ?: rpcCalls.getRuntimeVersion(chain.id),
             genesisHash = chain.id.fromHex(),
             multiChainEncryption = MultiChainEncryption.Substrate(encryption),
             accountIdentifier = AddressInstanceConstructor.constructInstance(runtime.typeRegistry, accountId),
             blockHash = mortality.blockHash,
             era = mortality.era,
             tip = tip ?: DEFAULT_TIP,
-            appId = appId
+            appId = appId,
+            metadataHash = signing?.metadataHash
         )
     }
+
+    private class SigningContext(val runtime: RuntimeSnapshot, val runtimeVersion: RuntimeVersion, val metadataHash: ByteArray?)
 }
 
 /** A builder for a mortal mutation and the blocks its transaction can be included in, when they are known. */

@@ -3,7 +3,10 @@ package jp.co.soramitsu.wallet.impl.presentation.balance.list
 import java.math.BigDecimal
 import jp.co.soramitsu.runtime.multiNetwork.tokengroups.ResolvedTokenGroups
 
-/** Curated groups only. Hidden/testnet/untrusted-price values never enter trusted grouped fiat. */
+/**
+ * One token list (the network lens is retired): curated groups only. Hidden/testnet/untrusted-price values never
+ * enter trusted grouped fiat.
+ */
 object PortfolioListBuilder {
     fun build(
         visible: List<PortfolioAsset>,
@@ -11,24 +14,16 @@ object PortfolioListBuilder {
         groups: ResolvedTokenGroups,
         ui: PortfolioUiState,
         selectedNetwork: String?,
-        walletHasPositiveBalance: Boolean
+        walletHasPositiveBalance: Boolean,
+        walletHasUnknownBalance: Boolean = false,
+        searching: Boolean = false
     ): List<PortfolioListItem> {
         val rows = visible.filterNot { it.state.isHidden }.distinctBy { it.key }
         if (selectedNetwork != null) return rows.sortedWith(assetOrder).map { PortfolioListItem.AssetRow(it) }
         val result = mutableListOf<PortfolioListItem>()
-        if (!walletHasPositiveBalance && rows.all { it.total != null }) result += PortfolioListItem.EmptyWallet
-        if (ui.lens == PortfolioLens.ByNetwork) {
-            val networks = rows.groupBy { it.state.chainId }.values.sortedWith(
-                compareByDescending<List<PortfolioAsset>> { list -> list.sumOf { trustedFiat(it) ?: BigDecimal.ZERO } }
-                    .thenBy { list -> list.first().rank ?: Int.MAX_VALUE }.thenBy { it.first().state.assetChainName }
-            )
-            val (zero, funded) = networks.partition { list -> list.all { it.isAutomaticZero } }
-            funded.forEach { appendNetwork(result, it, ui) }
-            if (zero.isNotEmpty()) {
-                result += PortfolioListItem.ZeroSummary(zero.size, ui.zeroSummaryExpanded)
-                if (ui.zeroSummaryExpanded) zero.forEach { appendNetwork(result, it, ui) }
-            }
-            return result
+        // A search lists what it found; whether the wallet is empty is not its answer.
+        if (!searching && !walletHasPositiveBalance && !walletHasUnknownBalance && rows.all { it.total != null }) {
+            result += PortfolioListItem.EmptyWallet
         }
         val grouped = rows.groupBy { asset ->
             groupId(asset, groups)?.let { "group:$it" } ?: "asset:${asset.key}"
@@ -40,24 +35,20 @@ object PortfolioListBuilder {
                 .thenBy { it.first().key }
         )
         val (zero, inline) = grouped.partition { list -> list.all { it.isAutomaticZero } }
-        inline.forEach { appendGroup(result, it, hidden, groups, ui) }
+        inline.forEach { appendGroup(result, it, hidden, groups, ui, searching) }
+        // Zero balances wait behind their toggle until a search asks for them; then they are listed, toggle-free.
         if (zero.isNotEmpty()) {
-            result += PortfolioListItem.ZeroSummary(zero.flatten().map { it.state.chainId }.distinct().size, ui.zeroSummaryExpanded)
-            if (ui.zeroSummaryExpanded) zero.forEach { appendGroup(result, it, hidden, groups, ui) }
+            if (!searching) {
+                result += PortfolioListItem.ZeroSummary(zero.flatten().map { it.state.chainId }.distinct().size, ui.zeroSummaryExpanded)
+            }
+            if (searching || ui.zeroSummaryExpanded) zero.forEach { appendGroup(result, it, hidden, groups, ui, searching) }
         }
         return result
     }
 
-    private fun appendNetwork(result: MutableList<PortfolioListItem>, members: List<PortfolioAsset>, ui: PortfolioUiState) {
-        val sorted = members.sortedWith(assetOrder)
-        val collapsed = sorted.first().state.chainId in ui.collapsedNetworks
-        result += PortfolioListItem.NetworkHeader(sorted.first(), collapsed)
-        if (!collapsed) result += sorted.map { PortfolioListItem.AssetRow(it, nested = true) }
-    }
-
     private fun appendGroup(
         result: MutableList<PortfolioListItem>, members: List<PortfolioAsset>, hidden: List<PortfolioAsset>,
-        groups: ResolvedTokenGroups, ui: PortfolioUiState
+        groups: ResolvedTokenGroups, ui: PortfolioUiState, searching: Boolean
     ) {
         val first = members.first()
         val group = groupId(first, groups)?.let { id -> groups.groups.firstOrNull { it.id == id } }
@@ -77,8 +68,8 @@ object PortfolioListBuilder {
         val (zero, inline) = sorted.partition { it.isAutomaticZero }
         result += inline.map { PortfolioListItem.AssetRow(it, nested = true) }
         if (zero.isNotEmpty()) {
-            val showZero = group.id in ui.expandedZeroGroups
-            result += PortfolioListItem.ZeroSummary(zero.map { it.state.chainId }.distinct().size, showZero, group.id)
+            val showZero = searching || group.id in ui.expandedZeroGroups
+            if (!searching) result += PortfolioListItem.ZeroSummary(zero.map { it.state.chainId }.distinct().size, showZero, group.id)
             if (showZero) result += zero.map { PortfolioListItem.AssetRow(it, nested = true) }
         }
     }

@@ -38,6 +38,10 @@ import jp.co.soramitsu.common.data.storage.PreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferences
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptedPreferencesImpl
 import jp.co.soramitsu.common.data.storage.encrypt.EncryptionUtil
+import jp.co.soramitsu.common.data.storage.envelope.MasterKeyBoundKeyringFactor
+import jp.co.soramitsu.common.data.storage.envelope.WalletPinAuthority
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretKeyring
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretSealer
 import jp.co.soramitsu.common.data.storage.pin.WalletEmergencyAuthenticator
 import jp.co.soramitsu.common.di.modules.SHARED_PREFERENCES_FILE
 import kotlinx.coroutines.Job
@@ -324,7 +328,12 @@ class WalletEmergencyPagingInstrumentedTest {
             expectedPreferences = scope.snapshot()
             observer = ObservedEncryptedPreferences(encrypted)
             reader = WalletEmergencyRecoveryReader(observer)
-            authenticator = WalletEmergencyAuthenticator(PreferencesImpl(raw), observer)
+            // No keyring in this fixture: the PIN is checked against the legacy `pin_code`, as on 4.3.1.
+            val keyring = WalletSecretKeyring(PreferencesImpl(raw), MasterKeyBoundKeyringFactor(PreferencesImpl(raw), encryption))
+            authenticator = WalletEmergencyAuthenticator(
+                PreferencesImpl(raw),
+                WalletPinAuthority(observer, keyring, WalletSecretSealer(PreferencesImpl(raw), keyring))
+            )
             assertFalse(scope.getDatabasePath("app.db").exists())
             proof("prepared")
         }

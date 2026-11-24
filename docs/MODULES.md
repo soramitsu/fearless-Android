@@ -22,8 +22,9 @@ Each feature is split into `-api` (interfaces, contracts) and `-impl` (implement
 - `feature-polkaswap-api` / `feature-polkaswap-impl`: Swap functionality and related liquidity operations.
 - `feature-liquiditypools-api` / `feature-liquiditypools-impl`: Liquidity pool management UIs.
 - `feature-nft-api` / `feature-nft-impl`: NFT browsing/details.
-- `feature-walletconnect-api` / `feature-walletconnect-impl`: WalletConnect v2 flows.
+- `feature-walletconnect-api` / `feature-walletconnect-impl`: WalletConnect v2 flows and the in-repo WalletConnect v2 wallet client (no SDK).
 - `feature-tonconnect-api` / `feature-tonconnect-impl`: TON Connect flows.
+- `feature-irohaconnect-api` / `feature-irohaconnect-impl`: the wallet side of Iroha Connect v1 (SORA Taira dApps through Torii's relay): link parsing, frames, session keys, transaction review and the session screen.
 - `feature-success-api` / `feature-success-impl`: Generic success/confirmation screens and flows.
 - `feature-splash`: Simple splash/loading feature.
 

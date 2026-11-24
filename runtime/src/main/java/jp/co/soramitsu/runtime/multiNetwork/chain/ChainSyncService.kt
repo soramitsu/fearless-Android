@@ -1,6 +1,7 @@
 package jp.co.soramitsu.runtime.multiNetwork.chain
 
 import jp.co.soramitsu.common.resources.ContextManager
+import jp.co.soramitsu.runtime.BuildConfig
 import jp.co.soramitsu.coredb.dao.AssetDao
 import jp.co.soramitsu.coredb.dao.ChainDao
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
@@ -24,6 +25,7 @@ class ChainSyncService(
     private val metaAccountDao: MetaAccountDao,
     private val assetsDao: AssetDao,
     private val contextManager: ContextManager,
+    private val nodeUrlPolicy: RemoteNodeUrlPolicy = RemoteNodeUrlPolicy.forBuild(BuildConfig.DEBUG),
     private val logger: (String) -> Unit = {}
 ) : XcmDiscoverySnapshotProvider {
 
@@ -117,7 +119,7 @@ class ChainSyncService(
     // One malformed catalog entry (a missing name or address prefix, say) must not stop every chain from syncing:
     // it is skipped and logged, and the caller keeps its cached catalog row as it was.
     private fun ChainRemote.toChainOrSkip(malformedIds: MutableSet<String>): Chain? = try {
-        toChain()
+        withAdmittedNodes().toChain()
     } catch (failure: CancellationException) {
         throw failure
     } catch (failure: Exception) {
@@ -126,5 +128,16 @@ class ChainSyncService(
         id?.let(malformedIds::add)
         logger("skipped malformed remote chain $id: ${failure.message}")
         null
+    }
+
+    // Nodes the build may not connect to are dropped. A chain left without any is malformed: its cached row stays.
+    private fun ChainRemote.withAdmittedNodes(): ChainRemote {
+        val listed = nodes ?: return this
+        val ecosystem = requireNotNull(operationalEcosystemOrNull(ecosystem)) { "Unsupported chain ecosystem" }
+        val admitted = listed.filter { nodeUrlPolicy.admits(it.url, ecosystem) }
+        if (admitted.size == listed.size) return this
+        logger("dropped ${listed.size - admitted.size} node(s) of remote chain $chainId: not an encrypted endpoint")
+        require(admitted.isNotEmpty() || listed.isEmpty()) { "Remote chain $chainId has no encrypted node" }
+        return copy(nodes = admitted)
     }
 }

@@ -18,7 +18,6 @@ import jp.co.soramitsu.common.utils.DEFAULT_DERIVATION_PATH
 import jp.co.soramitsu.common.utils.ethereumAddressFromPublicKey
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.coredb.dao.MetaAccountDao
-import jp.co.soramitsu.coredb.dao.NomisScoresDao
 import jp.co.soramitsu.coredb.model.MetaAccountLocal
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedDecoder
 import jp.co.soramitsu.fearless_utils.encrypt.json.JsonSeedEncoder
@@ -71,7 +70,10 @@ class AccountRepositoryRecoveryFlowTest {
         repository.deleteAccount(META_ID)
 
         verify(coordinator).delete(META_ID)
-        verifyNoInteractions(accountDataSource, metaAccountDao, delegate)
+        // The only other access is the read that finds the wallet's universal-password marks to forget.
+        verify(accountDataSource).getMetaAccount(META_ID)
+        verifyNoMoreInteractions(accountDataSource)
+        verifyNoInteractions(metaAccountDao, delegate)
     }
 
     @Test
@@ -356,7 +358,6 @@ class AccountRepositoryRecoveryFlowTest {
                 jsonSeedEncoder = mock<JsonSeedEncoder>(),
                 languagesHolder = mock<LanguagesHolder>(),
                 chainsRepository = mock<ChainsRepository>(),
-                nomisScoresDao = mock<NomisScoresDao>(),
                 substrateSecretStore = mock<SubstrateSecretStore>(),
                 ethereumSecretStore = mock<EthereumSecretStore>(),
                 tonSecretStore = mock<TonSecretStore>(),
@@ -401,7 +402,6 @@ class AccountRepositoryRecoveryFlowTest {
             jsonSeedEncoder = mock<JsonSeedEncoder>(),
             languagesHolder = mock<LanguagesHolder>(),
             chainsRepository = mock<ChainsRepository>(),
-            nomisScoresDao = mock<NomisScoresDao>(),
             substrateSecretStore = mock<SubstrateSecretStore>(),
             ethereumSecretStore = mock<EthereumSecretStore>(),
             tonSecretStore = mock<TonSecretStore>(),

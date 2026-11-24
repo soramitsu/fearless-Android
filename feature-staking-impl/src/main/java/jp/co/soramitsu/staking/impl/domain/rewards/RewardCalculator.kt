@@ -30,3 +30,6 @@ interface RewardCalculator {
         targetIdHex: String
     ): PeriodReturns
 }
+
+/** Missing or invalid network data must not become an infinite reward estimate. */
+internal fun Double.validRewardRateOrZero(): Double = takeIf { it.isFinite() && it >= 0.0 } ?: 0.0

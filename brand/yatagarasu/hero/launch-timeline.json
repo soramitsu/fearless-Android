@@ -1,0 +1,19 @@
+{
+  "fps": 30,
+  "durationSeconds": 2.9,
+  "fadeInSeconds": 0.3,
+  "holdSeconds": 2,
+  "zoomStartSeconds": 2,
+  "zoomEndSeconds": 2.75,
+  "background": "#120A2E",
+  "focus": {
+    "phone": {
+      "x": 0.5,
+      "y": 0.3292
+    },
+    "popup": {
+      "x": 0.5,
+      "y": 0.4625
+    }
+  }
+}

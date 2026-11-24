@@ -22,9 +22,6 @@ sealed interface PortfolioListItem {
     ) : PortfolioListItem {
         override val key: String get() = "group:$id"
     }
-    data class NetworkHeader(val first: PortfolioAsset, val collapsed: Boolean) : PortfolioListItem {
-        override val key: String get() = "network:${first.state.chainId}"
-    }
     data class ZeroSummary(val networkCount: Int, val expanded: Boolean, val groupId: String? = null) : PortfolioListItem {
         override val key: String get() = "zero:${groupId ?: "all"}"
     }

@@ -13,4 +13,7 @@
     <string name="pin_recovery_verify_backup">Проверить резервную копию кошелька</string>
     <string name="pin_recovery_reset">Восстановить PIN кошелька</string>
     <string name="pin_recovery_view_only_title">Только просмотр</string>
+    <string name="pin_recovery_forgot">Забыли PIN?</string>
+    <string name="pin_recovery_forgot_intro">Забыли PIN? Подтвердите резервную копию одного кошелька, чтобы задать новый.</string>
+    <string name="pin_recovery_key_unavailable">Эта резервная копия не открывает ключи кошелька. Попробуйте копию другого кошелька.</string>
 </resources>

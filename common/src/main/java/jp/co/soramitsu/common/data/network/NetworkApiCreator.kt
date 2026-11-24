@@ -19,7 +19,8 @@ class NetworkApiCreator(
         service: Class<T>,
         customBaseUrl: String = baseUrl,
         customFieldNamingPolicy: FieldNamingPolicy? = null,
-        typeAdapters: Map<Type, JsonDeserializer<*>>? = null
+        typeAdapters: Map<Type, JsonDeserializer<*>>? = null,
+        followRedirects: Boolean = true
     ): T {
         val gson = when {
             customFieldNamingPolicy == null && typeAdapters == null -> Gson()
@@ -37,8 +38,13 @@ class NetworkApiCreator(
                 builder.create()
             }
         }
+        val requestClient = if (followRedirects) {
+            okHttpClient
+        } else {
+            okHttpClient.newBuilder().followRedirects(false).followSslRedirects(false).build()
+        }
         val retrofit = Retrofit.Builder()
-            .client(okHttpClient)
+            .client(requestClient)
             .baseUrl(customBaseUrl)
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create(gson))

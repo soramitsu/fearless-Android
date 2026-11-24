@@ -124,8 +124,10 @@ git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 2>&1 ||
 
 provider_path="feature-wallet-impl/src/main/java/jp/co/soramitsu/wallet/impl/data/buyToken/MoonPayProvider.kt"
 provider_sha256="$(hash_stdin < "$ROOT/$provider_path")"
+# Re-pinned for coverage bug #17 (1251c180c): the redirect may also be exactly ExternalProvider.REDIRECT_URL_BASE
+# (fearless://buy-success). The widget URL stays unsigned, with the publishable key only and no walletAddress.
 [[ "$provider_sha256" == \
-  "43efc2ff4092d2b815e7dc25f70e1941e9aac5c169eb0ec21506a4f897c40c03" ]] ||
+  "ab74ee7743d2a2eb8c73d1fe63d16c11e68d335f3134ac91e05b4d115716a379" ]] ||
   fail "$provider_path differs from the reviewed publishable-key/manual-wallet implementation."
 pinned_prf_wrapper_sha256="$(hash_stdin < "$ROOT/$pinned_prf_wrapper_path")"
 [[ "$pinned_prf_wrapper_sha256" == \

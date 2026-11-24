@@ -134,6 +134,7 @@ class StakingScenarioScopeLifetimeTest {
     private val selected = mock<StakingSharedState> {
         on { selectionRevision } doReturn revision
         on { selectionItem } doReturn selectionFlow
+        on { settledSelection } doReturn selectionFlow
         on { currentAssetFlow() } doReturn assets
         on { assetWithChain } doReturn this@StakingScenarioScopeLifetimeTest.assetWithChain
     }

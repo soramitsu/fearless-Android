@@ -7,6 +7,7 @@ import jp.co.soramitsu.account.api.domain.model.accountId
 import jp.co.soramitsu.account.api.domain.model.address
 import jp.co.soramitsu.common.model.AssetDiscoveryCoverage
 import jp.co.soramitsu.coredb.model.AssetBalanceUpdateItem
+import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.api.data.BalanceLoader
 import jp.co.soramitsu.wallet.impl.data.network.blockchain.EthereumRemoteSource
@@ -25,7 +26,8 @@ import kotlinx.coroutines.supervisorScope
 class EthereumBalanceLoader(
     chain: Chain,
     private val ethereumRemoteSource: EthereumRemoteSource,
-    private val scanStateStore: NetworkScanStateStore? = null
+    private val scanStateStore: NetworkScanStateStore? = null,
+    private val chainRegistry: ChainRegistry? = null
 ) : BalanceLoader(chain) {
 
     private val trigger = BalanceUpdateTrigger.observe()
@@ -33,11 +35,35 @@ class EthereumBalanceLoader(
 
     override suspend fun loadBalance(metaAccounts: Set<MetaAccount>): List<AssetBalanceUpdateItem> {
         return supervisorScope {
-            val accountsDeferred = metaAccounts.filter { it.ethereumPublicKey != null }.map { metaAccount ->
+            val accounts = metaAccounts.filter { it.ethereumPublicKey != null }
+            if (accounts.isEmpty() || !connect(accounts)) return@supervisorScope emptyList()
+
+            val accountsDeferred = accounts.map { metaAccount ->
                 async { loadAccountBalances(metaAccount) }
             }
             accountsDeferred.awaitAll().flatten()
         }
+    }
+
+    // A wallet's first scan also reads networks that background sync leaves unconnected: nothing else
+    // would answer for them. A network that cannot be set up fails its own scan, not the whole first scan.
+    private suspend fun connect(accounts: List<MetaAccount>): Boolean = try {
+        if (chainRegistry != null && !chainRegistry.checkChainSyncedUp(chain)) {
+            chainRegistry.setupChain(chain)
+        }
+        true
+    } catch (error: CancellationException) {
+        throw error
+    } catch (error: Exception) {
+        accounts.forEach { account ->
+            scanStateStore?.scanFailed(
+                account.id,
+                chain.id,
+                AssetDiscoveryCoverage.CatalogOnly,
+                error.message ?: error::class.simpleName
+            )
+        }
+        false
     }
 
     override fun subscribeBalance(metaAccount: MetaAccount): Flow<BalanceLoaderAction> {

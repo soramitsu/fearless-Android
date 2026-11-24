@@ -10,6 +10,14 @@ internal class InMemoryPreferences : Preferences {
     private val values = mutableMapOf<String, Any?>()
 
     override fun contains(field: String) = field in values
+    override fun hasKeyWithPrefix(prefix: String): Boolean = values.keys.any { it.startsWith(prefix) }
+    override fun forEachKeyWithPrefixes(prefixes: Set<String>, maxKeyBytes: Int, action: (String) -> Unit) {
+        values.keys.filter { key -> prefixes.any(key::startsWith) && key.encodeToByteArray().size <= maxKeyBytes }
+            .sorted().forEach(action)
+    }
+
+    /** Test access to every stored name and value. */
+    fun snapshot(): Map<String, Any?> = values.toMap()
     override fun keysWithPrefixes(
         prefixes: Set<String>,
         maxResultCount: Int,

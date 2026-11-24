@@ -1,0 +1,51 @@
+// JVM-side UI tests for every Android module: Robolectric runs Compose screens, Fragments and Android framework calls
+// inside the ordinary debug unit-test task, so they count toward unit-test coverage without a device.
+//
+// Robolectric never downloads anything at test time: the instrumented Android framework jar it needs is an ordinary
+// Gradle dependency (checked by gradle/verification-metadata.xml like every other artifact) and is handed to it through
+// robolectric.dependency.dir with robolectric.offline=true.
+configurations {
+    robolectricFramework {
+        canBeConsumed = false
+        canBeResolved = true
+        transitive = false
+    }
+}
+
+dependencies {
+    testImplementation libs.robolectric
+    testImplementation libs.androidx.test.core
+    testImplementation libs.compose.uiTestJunit4
+    // Declares the empty ComponentActivity that createComposeRule() launches; merged into unit-test manifests only.
+    testImplementation libs.compose.uiTestManifest
+    robolectricFramework libs.robolectric.androidAll
+}
+
+android {
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+    }
+}
+
+def robolectricDependencyDir = layout.buildDirectory.dir('robolectric-framework')
+def stageRobolectricFramework = tasks.register('stageRobolectricFramework', Sync) {
+    from configurations.robolectricFramework
+    into robolectricDependencyDir
+}
+
+tasks.withType(Test).configureEach {
+    dependsOn stageRobolectricFramework
+    inputs.files(configurations.robolectricFramework).withPropertyName('robolectricFramework').withNormalizer(ClasspathNormalizer)
+    systemProperty 'robolectric.offline', 'true'
+    systemProperty 'robolectric.dependency.dir', robolectricDependencyDir.get().asFile.absolutePath
+    // Robolectric sandboxes share one JVM per test task; keep its framework classes and the module's own in memory.
+    maxHeapSize = maxHeapSize ?: '2g'
+    // With Android resources included, a module without unit tests (core-chain, feature-polkamarkt-api,
+    // feature-success-api) still hands generated classes to its test task, which Gradle 9 then fails for finding no
+    // tests. Only such modules opt out; a module with tests still fails if none are discovered.
+    if (!project.file('src/test').exists()) {
+        failOnNoDiscoveredTests.set(false)
+    }
+}

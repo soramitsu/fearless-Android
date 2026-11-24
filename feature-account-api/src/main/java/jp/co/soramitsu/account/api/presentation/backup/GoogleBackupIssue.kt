@@ -58,9 +58,11 @@ fun Throwable.toGoogleBackupIssue(): GoogleBackupIssue {
 /** Null when the user signed in or backed out themselves, which needs no explanation. */
 fun GoogleSignInResult.toGoogleBackupIssue(): GoogleBackupIssue? = when (this) {
     GoogleSignInResult.Success, GoogleSignInResult.Cancelled -> null
-    // DEVELOPER_ERROR: this installation's signing certificate is not registered with Google.
+    // Google refused this build's OAuth client or redirect, or no browser can show its page.
     GoogleSignInResult.ConfigurationError -> GoogleBackupIssue.UNAVAILABLE
     GoogleSignInResult.Network -> GoogleBackupIssue.NO_CONNECTION
+    // Signed in, but Drive access was turned off on Google's consent page: sign in again and allow it.
+    GoogleSignInResult.DriveAccessDenied -> GoogleBackupIssue.SIGN_IN_REQUIRED
     is GoogleSignInResult.Other -> GoogleBackupIssue.UNKNOWN
 }
 

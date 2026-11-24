@@ -111,8 +111,8 @@ expect_failure "mutable runner" "pinned Ubuntu 24.04 runner" "$fixture"
 
 fixture="$(make_fixture shortened-timeout)"
 replace_once "$fixture/.github/workflows/android-ci.yml" \
-  "    timeout-minutes: 90" "    timeout-minutes: 45"
-expect_failure "shortened timeout" "90-minute instrumentation-capable timeout" "$fixture"
+  "    timeout-minutes: 120" "    timeout-minutes: 45"
+expect_failure "shortened timeout" "120-minute instrumentation-capable timeout" "$fixture"
 
 fixture="$(make_fixture missing-self-test)"
 replace_once "$fixture/.github/workflows/android-ci.yml" \

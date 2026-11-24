@@ -31,6 +31,23 @@ class BackupServiceTest {
     private val mapper = AccountJsonMapper()
 
     @Test
+    fun `reports a signed-in Google session without opening sign-in`() = runBlocking<Unit> {
+        assertFalse(service.hasSession())
+
+        storage.session = true
+
+        assertTrue(service.hasSession())
+        assertEquals(0, storage.signInCalls)
+    }
+
+    @Test
+    fun `a build that cannot sign in to Google has no session`() = runBlocking<Unit> {
+        storage.session = true
+
+        assertFalse(backupService(storage, isAvailable = false).hasSession())
+    }
+
+    @Test
     fun `restores a 4_2_0 backup listed from Drive`() = runBlocking<Unit> {
         storage.addAppFile(mixed.expected.address, "f1", mixed.content, name = "Mixed")
 

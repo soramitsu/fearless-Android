@@ -8,6 +8,7 @@ import androidx.fragment.app.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 import jp.co.soramitsu.common.base.BaseComposeBottomSheetDialogFragment
 import jp.co.soramitsu.common.compose.component.ConfirmScreen
+import jp.co.soramitsu.common.navigation.KeepSheetOpenOnBack
 
 @AndroidEntryPoint
 class EditPoolConfirmFragment : BaseComposeBottomSheetDialogFragment<EditPoolConfirmViewModel>() {
@@ -16,6 +17,7 @@ class EditPoolConfirmFragment : BaseComposeBottomSheetDialogFragment<EditPoolCon
     @Composable
     override fun Content(padding: PaddingValues) {
         val state by viewModel.viewState.collectAsState()
+        KeepSheetOpenOnBack(submitting = state.isLoading)
         ConfirmScreen(state = state, onNavigationClick = viewModel::onBackClick, viewModel::onConfirm)
     }
 }

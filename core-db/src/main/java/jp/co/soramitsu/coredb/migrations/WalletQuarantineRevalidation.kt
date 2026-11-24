@@ -18,6 +18,8 @@ import jp.co.soramitsu.common.data.storage.encrypt.WalletSecretQuarantine
 import jp.co.soramitsu.common.data.storage.encrypt.WalletSecureStorageUnavailableException
 import jp.co.soramitsu.common.data.storage.encrypt.planArchiveMove
 import jp.co.soramitsu.common.data.storage.encrypt.replaceEncryptedStringsForStatesDurably
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelope
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretEnvelopes
 import jp.co.soramitsu.core.models.CryptoType
 import jp.co.soramitsu.fearless_utils.extensions.toHexString
 import kotlinx.coroutines.CancellationException
@@ -49,6 +51,11 @@ import kotlinx.coroutines.CancellationException
  * exactly where it is, and no outcome of this pass blocks startup: a failed
  * item is skipped and retried on the next start. Only secure-storage
  * failures, which every other startup step reports anyway, propagate.
+ *
+ * A sealed value (4.3.2) is judged only through the session's SK. Before the
+ * PIN it cannot be judged, so neither it nor a value judged against it is
+ * moved, archived or converted: the item stays UNCHANGED and the pass runs
+ * again after the unlock.
  */
 @Singleton
 class WalletQuarantineRevalidation internal constructor(
@@ -128,6 +135,8 @@ class WalletQuarantineRevalidation internal constructor(
         if (!state.canJudge(owner)) return Outcome.UNCHANGED
         val snapshot = encryptedPreferences.getDecryptedStringSnapshot(quarantineKey)
             ?: return Outcome.UNCHANGED
+        // A sealed value is not even archived before the PIN.
+        if (cannotOpen(snapshot)) return Outcome.UNCHANGED
 
         if (!state.ownsKey(owner, activeKey)) {
             archive(
@@ -211,7 +220,8 @@ class WalletQuarantineRevalidation internal constructor(
         proves: (String) -> Boolean
     ): Outcome {
         if (!encryptedPreferences.hasKey(activeKey)) {
-            if (snapshot.plaintext.isEmpty() || !proves(snapshot.plaintext)) {
+            val plaintext = openedOrNull(snapshot) ?: return Outcome.UNCHANGED
+            if (plaintext.isEmpty() || !proves(plaintext)) {
                 return Outcome.UNCHANGED
             }
             move(quarantineKey, activeKey, snapshot)
@@ -219,7 +229,9 @@ class WalletQuarantineRevalidation internal constructor(
         }
         val active = encryptedPreferences.getDecryptedStringSnapshot(activeKey)
             ?: return Outcome.UNCHANGED
-        if (active.plaintext.isEmpty() || !proves(active.plaintext)) {
+        // A sealed active key cannot be judged before the PIN.
+        val activePlaintext = openedOrNull(active) ?: return Outcome.UNCHANGED
+        if (activePlaintext.isEmpty() || !proves(activePlaintext)) {
             return Outcome.UNCHANGED
         }
         archive(quarantineKey, snapshot, archiveNameKey = activeKey)
@@ -232,9 +244,10 @@ class WalletQuarantineRevalidation internal constructor(
         snapshot: EncryptedPreferenceSnapshot,
         legacyMovable: Boolean = true
     ): Outcome {
+        val legacyPlaintext = openedOrNull(snapshot) ?: return Outcome.UNCHANGED
         val replacement = try {
             WalletSecretIntegrityValidator.validateLegacyAndPrepareReplacement(
-                encoded = snapshot.plaintext,
+                encoded = legacyPlaintext,
                 identity = identity,
                 walletRootSecretValidation = walletRootSecretValidation
             )
@@ -282,8 +295,12 @@ class WalletQuarantineRevalidation internal constructor(
         val stored = active ?: encryptedPreferences
             .getDecryptedStringSnapshot(WalletSecretQuarantine.keyFor(activeKey))
             ?.takeIf { encryptedPreferences.hasKey(WalletSecretQuarantine.keyFor(activeKey)) }
-        if (stored != null && !passesCurrentChecks(state, identity, owner, activeKey, stored.plaintext)) {
-            return Outcome.UNCHANGED
+        if (stored != null) {
+            // A sealed value keeps its marker until the PIN lets this build judge it.
+            val storedPlaintext = openedOrNull(stored) ?: return Outcome.UNCHANGED
+            if (!passesCurrentChecks(state, identity, owner, activeKey, storedPlaintext)) {
+                return Outcome.UNCHANGED
+            }
         }
         val marker = encryptedPreferences.getDecryptedStringSnapshot(markerKey)
             ?: return Outcome.UNCHANGED
@@ -380,16 +397,17 @@ class WalletQuarantineRevalidation internal constructor(
         }
         val snapshot = encryptedPreferences.getDecryptedStringSnapshot(archiveKey)
             ?: return Outcome.UNCHANGED
-        if (snapshot.plaintext.isEmpty()) return Outcome.UNCHANGED
+        val plaintext = openedOrNull(snapshot) ?: return Outcome.UNCHANGED
+        if (plaintext.isEmpty()) return Outcome.UNCHANGED
         val proves = when (owner) {
             is RecoveryKeyOwner.Root -> provesRoot(
                 identity = state.wallets.getValue(owner.metaId),
                 ecosystem = owner.ecosystem,
-                plaintext = snapshot.plaintext
+                plaintext = plaintext
             )
 
             is RecoveryKeyOwner.ChainAccount ->
-                provesChainAccount(state, activeKey, snapshot.plaintext)
+                provesChainAccount(state, activeKey, plaintext)
 
             is RecoveryKeyOwner.TonConnectScoped -> true
             is RecoveryKeyOwner.LegacyV1 -> false
@@ -499,6 +517,16 @@ class WalletQuarantineRevalidation internal constructor(
             false
         }
     }
+
+    /** The plaintext to judge: a sealed value opened with the session's SK, or null when it cannot be opened now. */
+    private fun openedOrNull(snapshot: EncryptedPreferenceSnapshot): String? =
+        if (WalletSecretEnvelope.isSealed(snapshot.plaintext)) {
+            WalletSecretEnvelopes.openOrNull(snapshot.plaintext)
+        } else {
+            snapshot.plaintext
+        }
+
+    private fun cannotOpen(snapshot: EncryptedPreferenceSnapshot): Boolean = openedOrNull(snapshot) == null
 
     private fun hasMarker(metaId: Long, activeKey: String): Boolean {
         return encryptedPreferences.hasKey(

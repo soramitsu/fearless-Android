@@ -1,5 +1,6 @@
 package jp.co.soramitsu.wallet.impl.presentation.balance.list
 
+import jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemShimmerViewState
 import jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState
 
@@ -18,30 +19,57 @@ sealed class AssetsLoadingState {
         val hiddenFundedNoticeCount: Int = 0,
         /** Any shown or automatic verified holding is funded anywhere in the wallet. */
         val walletHasPositiveBalance: Boolean = false,
+        /**
+         * A holding the header total counts has an unread balance, on any network, so the wallet
+         * cannot be called empty even when every row of the filtered list is a known zero.
+         */
+        val walletHasUnknownBalance: Boolean = false,
         val walletId: Long? = null,
         val selectedNetwork: String? = null,
         val portfolioAssets: List<PortfolioAsset> = emptyList(),
         val availableAssets: List<PortfolioAsset> = emptyList(),
         val portfolioItems: List<PortfolioListItem> = emptyList(),
         val portfolioUi: PortfolioUiState = PortfolioUiState(),
-        val tokenGroups: jp.co.soramitsu.runtime.multiNetwork.tokengroups.ResolvedTokenGroups? = null
+        val tokenGroups: jp.co.soramitsu.runtime.multiNetwork.tokengroups.ResolvedTokenGroups? = null,
+        /** The home search: rows match its token symbol, token name or network name. */
+        val searchQuery: String = "",
+        /** Network chips after All networks, largest holding first ([PortfolioDiscovery.networks]). */
+        val networkOptions: List<PortfolioNetworkOption> = emptyList(),
+        /** Popular or Favorite while that group of the network list filters every network. */
+        val networkGroup: ChainSelectorViewStateWithFilters.Filter? = null,
+        /** The header's network button may change the filter; the chips follow the same rule. */
+        val networkFilterAvailable: Boolean = true
     ) : AssetsLoadingState() {
+        @Suppress("LongParameterList")
         fun with(
             assets: List<AssetListItemViewState> = this.assets,
             hiddenFundedNoticeCount: Int = this.hiddenFundedNoticeCount,
             portfolioItems: List<PortfolioListItem> = this.portfolioItems,
             portfolioUi: PortfolioUiState = this.portfolioUi,
-            tokenGroups: jp.co.soramitsu.runtime.multiNetwork.tokengroups.ResolvedTokenGroups? = this.tokenGroups
+            tokenGroups: jp.co.soramitsu.runtime.multiNetwork.tokengroups.ResolvedTokenGroups? = this.tokenGroups,
+            searchQuery: String = this.searchQuery
         ) = Loaded(
             assets = assets,
             allAssetsHidden = allAssetsHidden,
             exclusions = exclusions,
             hiddenFundedNoticeCount = hiddenFundedNoticeCount,
             walletHasPositiveBalance = walletHasPositiveBalance,
+            walletHasUnknownBalance = walletHasUnknownBalance,
             walletId = walletId, selectedNetwork = selectedNetwork,
             portfolioAssets = portfolioAssets, availableAssets = availableAssets,
-            portfolioItems = portfolioItems, portfolioUi = portfolioUi, tokenGroups = tokenGroups
+            portfolioItems = portfolioItems, portfolioUi = portfolioUi, tokenGroups = tokenGroups,
+            searchQuery = searchQuery, networkOptions = networkOptions, networkGroup = networkGroup,
+            networkFilterAvailable = networkFilterAvailable
         )
+
+        /** Something narrows the list to part of the wallet's networks: one network or a group. */
+        val isNetworkFiltered: Boolean get() = selectedNetwork != null || networkGroup != null
+
+        /**
+         * Every row is on the selected network and its chip, selected above the list, names it: the rows
+         * need not repeat it. False without that chip (a wallet held to one network has no chips).
+         */
+        val isNetworkNamedByChip: Boolean get() = networkFilterAvailable && networkOptions.any { it.id == selectedNetwork }
     }
 }
 

@@ -4,36 +4,17 @@ import jp.co.soramitsu.fearless_utils.encrypt.keypair.Keypair
 import jp.co.soramitsu.fearless_utils.encrypt.keypair.substrate.Sr25519Keypair
 import jp.co.soramitsu.fearless_utils.hash.Hasher.blake2b256
 import jp.co.soramitsu.fearless_utils.hash.Hasher.keccak256
-import net.i2p.crypto.eddsa.EdDSAEngine
-import net.i2p.crypto.eddsa.EdDSAPrivateKey
-import net.i2p.crypto.eddsa.EdDSAPublicKey
-import net.i2p.crypto.eddsa.EdDSASecurityProvider
-import net.i2p.crypto.eddsa.spec.EdDSANamedCurveTable
-import net.i2p.crypto.eddsa.spec.EdDSAParameterSpec
-import net.i2p.crypto.eddsa.spec.EdDSAPrivateKeySpec
-import net.i2p.crypto.eddsa.spec.EdDSAPublicKeySpec
-import org.spongycastle.util.encoders.Hex
+import org.bouncycastle.util.encoders.Hex
 import org.web3j.crypto.ECKeyPair
 import org.web3j.crypto.Sign
 import java.math.BigInteger
-import java.security.Signature
 
 object Signer {
-
-    private val ed25519GroupOrder = BigInteger(
-        "1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed",
-        16
-    )
 
     private enum class MessageHashing(val hasher: (ByteArray) -> ByteArray) {
 
         SUBSTRATE(hasher = { it.blake2b256() }),
         ETHEREUM(hasher = { it.keccak256() })
-    }
-
-    init {
-        SecurityProviders.requireEdDSA
-        SecurityProviders.requireBouncyCastle
     }
 
     fun sign(
@@ -78,11 +59,9 @@ object Signer {
             MultiChainEncryption.Ethereum -> prepareEcdsa(frozenMessage, keypair, MessageHashing.ETHEREUM.hasher)
             is MultiChainEncryption.Substrate -> when (encryption.encryptionType) {
                 EncryptionType.ED25519 -> {
-                    val spec = EdDSANamedCurveTable.getByName(EdDSANamedCurveTable.ED_25519)
-                    val signature = Signature.getInstance(EdDSAEngine.SIGNATURE_ALGORITHM, EdDSASecurityProvider.PROVIDER_NAME)
-                    signature.initSign(EdDSAPrivateKey(EdDSAPrivateKeySpec(keypair.privateKey.copyOf(), spec)))
-                    signature.update(frozenMessage)
-                    PreparedSignature { SignatureWrapper.Ed25519(signature.sign()) }
+                    val seed = keypair.privateKey.copyOf()
+                    require(seed.size == Ed25519Crypto.SEED_SIZE) { "Ed25519 seed must be ${Ed25519Crypto.SEED_SIZE} bytes" }
+                    PreparedSignature { SignatureWrapper.Ed25519(Ed25519Crypto.sign(seed, frozenMessage)) }
                 }
                 EncryptionType.ECDSA -> prepareEcdsa(frozenMessage, keypair, MessageHashing.SUBSTRATE.hasher)
                 EncryptionType.SR25519 -> {
@@ -122,42 +101,16 @@ object Signer {
     }
 
     private fun signEd25519(message: ByteArray, keypair: Keypair): SignatureWrapper {
-        val spec: EdDSAParameterSpec = EdDSANamedCurveTable.getByName(EdDSANamedCurveTable.ED_25519)
-        val sgr: Signature = Signature.getInstance(
-            EdDSAEngine.SIGNATURE_ALGORITHM,
-            EdDSASecurityProvider.PROVIDER_NAME
-        )
-        val privKeySpec = EdDSAPrivateKeySpec(keypair.privateKey, spec)
-        val privateKey = EdDSAPrivateKey(privKeySpec)
-        sgr.initSign(privateKey)
-        sgr.update(message)
-        return SignatureWrapper.Ed25519(signature = sgr.sign())
+        return SignatureWrapper.Ed25519(signature = Ed25519Crypto.sign(keypair.privateKey, message))
     }
 
+    /** RFC 8032 requires S < L; signatures with S + L (CVE-2020-36843) or non-canonical points are rejected. */
     fun verifyEd25519(
         message: ByteArray,
         signature: ByteArray,
         publicKeyBytes: ByteArray
     ): Boolean {
-        if (signature.size != 64 || publicKeyBytes.size != 32) return false
-
-        // RFC 8032 requires S < L. EdDSA 0.3.0 accepts S + L (CVE-2020-36843).
-        // S is public signature data encoded little-endian in the last 32 bytes.
-        val scalar = BigInteger(1, signature.copyOfRange(32, 64).reversedArray())
-        if (scalar >= ed25519GroupOrder) return false
-
-        val spec: EdDSAParameterSpec = EdDSANamedCurveTable.getByName(EdDSANamedCurveTable.ED_25519)
-        val sgr: Signature = Signature.getInstance(
-            EdDSAEngine.SIGNATURE_ALGORITHM,
-            EdDSASecurityProvider.PROVIDER_NAME
-        )
-
-        val privKeySpec = EdDSAPublicKeySpec(publicKeyBytes, spec)
-        val publicKey = EdDSAPublicKey(privKeySpec)
-        sgr.initVerify(publicKey)
-        sgr.update(message)
-
-        return sgr.verify(signature)
+        return Ed25519Crypto.verify(message, signature, publicKeyBytes)
     }
 
     private fun signEcdsa(

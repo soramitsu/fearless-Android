@@ -12,7 +12,8 @@ class SolanaBalanceSync(
         wallet: String,
         network: UniversalWalletRegistry.SolanaNetwork,
         baseUrl: String?,
-        includeTokenMetadata: Boolean
+        includeTokenMetadata: Boolean,
+        fallbackUrls: List<String>
     ): SolanaBalanceSyncResult {
         val resolvedBaseUrl = baseUrl ?: network.indexerBaseUrl
         SolanaIndexerRoutes.balancesUrl(wallet, resolvedBaseUrl)
@@ -233,7 +234,12 @@ data class SolanaBalanceSyncResult(
     val nativeBalance: UniversalWalletIndexedAssetBalance,
     val tokenBalances: List<UniversalWalletIndexedAssetBalance>,
     val balances: List<UniversalWalletIndexedAssetBalance>,
-    val frozenTokenAccounts: Set<String> = emptySet()
+    val frozenTokenAccounts: Set<String> = emptySet(),
+    /**
+     * False when the native balance was read but the token inventory was not (refused, unreachable or
+     * inconsistent). [tokenBalances] is then empty and says nothing about tokens: keep their last-known amounts.
+     */
+    val tokensAvailable: Boolean = true
 )
 
 class SolanaBalanceSyncException(

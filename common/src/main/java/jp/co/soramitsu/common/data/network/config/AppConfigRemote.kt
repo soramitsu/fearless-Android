@@ -48,6 +48,12 @@ data class FeatureToggleConfig(
     val bitcoinSendEnabled: Boolean? = null,
     @SerializedName("solana_send_enabled")
     val solanaSendEnabled: Boolean? = null,
+    @SerializedName("polkadot_dapp_signing_enabled")
+    val polkadotDappSigningEnabled: Boolean? = null,
+    @SerializedName("evm_dapp_signing_enabled")
+    val evmDappSigningEnabled: Boolean? = null,
+    @SerializedName("ton_dapp_signing_enabled")
+    val tonDappSigningEnabled: Boolean? = null,
     @SerializedName("polkamarkt_mutations_enabled")
     val polkamarktMutationsEnabled: Boolean? = null,
     @SerializedName("xcm_mutations_enabled")
@@ -56,4 +62,7 @@ data class FeatureToggleConfig(
     val polkaswapBridgeMutationsEnabled: Boolean? = null,
     @SerializedName("mutation_authorization")
     val mutationAuthorization: String? = null,
+    /** Veto-only: `false` stops NEW wallet-secret sealing; it never unseals or blocks reads. */
+    @SerializedName("wallet_secret_sealing_enabled")
+    val walletSecretSealingEnabled: Boolean? = null,
 )

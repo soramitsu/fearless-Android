@@ -1,7 +1,5 @@
 package jp.co.soramitsu.wallet.impl.data.historySource
 
-import java.math.BigDecimal
-import java.math.BigInteger
 import jp.co.soramitsu.core.models.Asset
 import jp.co.soramitsu.core.models.ChainAssetType
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
@@ -18,8 +16,26 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.stubbing.Answer
+import java.math.BigDecimal
+import java.math.BigInteger
 
 class OkLinkHistorySourceTest {
+    @Test
+    fun `rejects endpoints that could receive a credential outside the reviewed origin`() {
+        val api = RecordingApi { response(0, emptyList()) }
+        for (url in listOf(
+            "https://attacker.example/api/v5/explorer/address/transaction-list",
+            "http://www.oklink.com/api/v5/explorer/address/transaction-list",
+            "https://www.oklink.com.attacker.example/api/v5/explorer/address/transaction-list",
+            "https://www.oklink.com:444/api/v5/explorer/address/transaction-list",
+            "https://user@www.oklink.com/api/v5/explorer/address/transaction-list",
+            "https://www.oklink.com/redirect"
+        )) {
+            assertTrue(runCatching { OkLinkHistorySource(api.client, url) }.isFailure)
+        }
+        assertEquals(0, api.calls)
+    }
+
     @Test
     fun `rejects provider errors even when they contain data and never reveals provider message`() = runBlocking {
         val api = RecordingApi { response(500, listOf(item()), "private account detail") }
@@ -78,13 +94,17 @@ class OkLinkHistorySourceTest {
 
     private class RecordingApi(private val reply: () -> OkLinkHistoryResponse) {
         var calls = 0
-        val client: OperationsHistoryApi = mock(OperationsHistoryApi::class.java, Answer<Any?> { invocation ->
-            check(invocation.method.name == "getOkLinkOperationsHistory")
-            calls++
-            reply()
-        })
+        val client: OperationsHistoryApi = mock(
+            OperationsHistoryApi::class.java,
+            Answer<Any?> { invocation ->
+                check(invocation.method.name == "getOkLinkOperationsHistory")
+                calls++
+                reply()
+            }
+        )
 
-        fun source() = OkLinkHistorySource(client, "https://history.example/api")
+        fun source() =
+            OkLinkHistorySource(client, "https://www.oklink.com/api/v5/explorer/address/transaction-list?chainShortName=XLAYER")
     }
 
     private fun chain(vararg assets: Asset): Chain = mock(Chain::class.java).also {
@@ -105,13 +125,21 @@ class OkLinkHistorySourceTest {
         whenever(it.precision).thenReturn(6)
     }
 
-    private fun response(code: Int, items: List<OkLinkHistoryItem>, message: String = "") = OkLinkHistoryResponse(
+    private fun response(
+        code: Int,
+        items: List<OkLinkHistoryItem>,
+        message: String = ""
+    ) = OkLinkHistoryResponse(
         code = code,
         msg = message,
         data = listOf(OkLinkHistoryPage(1, 20, 1, "X Layer", "XLAYER", items))
     )
 
-    private fun item(contract: String = "", symbol: String = "OKB", amount: String = "1") = OkLinkHistoryItem(
+    private fun item(
+        contract: String = "",
+        symbol: String = "OKB",
+        amount: String = "1"
+    ) = OkLinkHistoryItem(
         txId = "0xtx",
         methodId = "",
         blockHash = "0xblock",

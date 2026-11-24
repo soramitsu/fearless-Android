@@ -8,6 +8,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import jp.co.soramitsu.common.compose.component.AccentButton
+import jp.co.soramitsu.common.compose.component.GrayButton
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.api.data.StakingType
 
@@ -15,8 +18,13 @@ import jp.co.soramitsu.staking.api.data.StakingType
 @Composable
 fun PoolJoinRecoveryEntry(type: StakingType?, onClick: () -> Unit) {
     if (type == StakingType.POOL) {
-        AccentButton(text = stringResource(R.string.pool_join_recovery_title),
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth().heightIn(min = 48.dp),
-            onClick = onClick)
+        val modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth().heightIn(min = 48.dp)
+        val text = stringResource(R.string.pool_join_recovery_title)
+        // A way back to an earlier transaction: it must not outshine the page's primary action.
+        if (FwRestyle.isEnabled(FwSurface.Staking)) {
+            GrayButton(text = text, modifier = modifier, onClick = onClick)
+        } else {
+            AccentButton(text = text, modifier = modifier, onClick = onClick)
+        }
     }
 }

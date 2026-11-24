@@ -1,7 +1,8 @@
 // Appearance is compiled into the artifact. Never read wallet state or remote configuration here.
 def surfaces = [
     'RECOVERY', 'PORTFOLIO', 'MANAGE_ASSETS', 'SEND', 'RECEIVE', 'PICKERS',
-    'UNAVAILABLE', 'SIGNING', 'WELCOME', 'APPEARANCE', 'NAVIGATION', 'MNEMONIC', 'STAKING', 'LOADING'
+    'UNAVAILABLE', 'SIGNING', 'WELCOME', 'APPEARANCE', 'NAVIGATION', 'MNEMONIC', 'STAKING', 'LOADING',
+    'PIN', 'ASSET_DETAILS', 'HISTORY', 'SETTINGS'
 ]
 def palette = providers.gradleProperty('FW_PALETTE').getOrElse('legacy')
 if (!(palette in ['legacy', 'v1'])) {
@@ -21,7 +22,27 @@ def flags = knownFlags.collectEntries { name ->
     }
     [(name): value]
 }
+android.buildFeatures.resValues = true
 android.defaultConfig {
     buildConfigField 'String', 'FW_PALETTE', "\"${palette}\""
     flags.each { name, value -> buildConfigField 'boolean', name, value }
+    // Page and window art follow the palette too, so FW_PALETTE=legacy also restores XML screens.
+    resValue 'drawable', 'fw_page_background', palette == 'v1' ? '@drawable/fw_page_sunlit' : '@drawable/drawable_background_image'
+    resValue 'drawable', 'fw_window_background', palette == 'v1' ? '@drawable/fw_splash_launch' : '@drawable/bg_splash'
+    resValue 'drawable', 'fw_root_background', palette == 'v1' ? '@drawable/fw_page_sunlit' : '@color/black'
+    // Transparent lets the window's page light run behind the navigation bar instead of ending in a black strip.
+    resValue 'color', 'fw_navigation_bar', palette == 'v1' ? '@android:color/transparent' : '@color/black'
+    // Android paints no bar colour behind a floating window, which left a dark strip under these sheets.
+    resValue 'bool', 'fw_sheet_window_floating', palette == 'v1' ? 'false' : 'true'
+    // The emergency export page keeps the recovery centre's flat, opaque page.
+    resValue 'drawable', 'fw_recovery_page_background', (palette == 'v1' && flags['FW_RESTYLE_RECOVERY'] == 'true') ? '@color/fw_bg_base' : '@color/black'
+    // Staking's XML panels rest on the raised sheet colour instead of the legacy near-black.
+    def staking = palette == 'v1' && flags['FW_RESTYLE_STAKING'] == 'true'
+    resValue 'color', 'fw_staking_panel_black', staking ? '@color/fw_surface_raised2' : '@color/black4'
+    resValue 'color', 'fw_staking_panel_gray', staking ? '@color/fw_surface_raised2' : '@color/gray4'
+    // XML list sheets and their selection marks belong to the Pickers surface.
+    def pickers = palette == 'v1' && flags['FW_RESTYLE_PICKERS'] == 'true'
+    resValue 'color', 'fw_list_sheet_background', pickers ? '@color/fw_surface_raised2' : '@color/bottom_bar_grey'
+    resValue 'color', 'fw_selected_mark', pickers ? '@color/fw_text_brand' : '@color/white'
+    resValue 'color', 'fw_list_row_divider', pickers ? '@android:color/transparent' : '@color/dividerGray'
 }

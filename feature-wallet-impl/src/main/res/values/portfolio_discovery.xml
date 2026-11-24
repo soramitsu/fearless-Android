@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="portfolio_search_tokens_networks">Search tokens and networks</string>
+    <string name="portfolio_network_filters">Network filter</string>
+    <string name="portfolio_more_networks">More networks</string>
+    <string name="portfolio_search_all_networks">Search all networks</string>
+    <string name="portfolio_one_list_notice">All your assets in one list. Find tokens by name or filter by network.</string>
+</resources>

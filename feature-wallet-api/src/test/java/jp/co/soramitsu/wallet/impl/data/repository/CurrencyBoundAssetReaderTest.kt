@@ -3,6 +3,7 @@ package jp.co.soramitsu.wallet.impl.data.repository
 import io.mockk.*
 import jp.co.soramitsu.account.api.domain.interfaces.AccountRepository
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
+import jp.co.soramitsu.common.data.network.coingecko.FiatCurrency
 import jp.co.soramitsu.common.domain.SelectedFiat
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.dao.AssetDao
@@ -35,8 +36,12 @@ class CurrencyBoundAssetReaderTest {
         CachedTokenPriceRead(id, "UNTRUSTED SYMBOL", CachedNumericState.Known(BigDecimal(rate)),
             CachedNumericState.Known(BigDecimal("-0.125")), CachedFiatCurrencyIdentity.Known(currency))
 
+    private val currencyList = listOf(FiatCurrency("usd", "$", "US Dollar", ""), FiatCurrency("eur", "€", "Euro", ""))
+    private fun listedCurrency(id: String) = currencyList.firstOrNull { it.id == id }
+
     private class Fixture {
         var selection = "usd"
+        var knownCurrency: (String) -> FiatCurrency? = { null }
         var account = meta()
         val selected = Channel<MetaAccount?>(Channel.UNLIMITED)
         val fiatEvents = Channel<String>(Channel.UNLIMITED)
@@ -53,6 +58,7 @@ class CurrencyBoundAssetReaderTest {
         }
         val fiat = mockk<SelectedFiat> {
             every { get() } answers { selection }
+            every { metadata(any()) } answers { knownCurrency(firstArg()) }
             every { flow() } answers { flow { emit(selection); emitAll(fiatEvents.receiveAsFlow()) } }
         }
         val chains = mockk<ChainsRepository> {
@@ -85,6 +91,98 @@ class CurrencyBoundAssetReaderTest {
         assertEquals(BigDecimal("12.30"), asset.total); assertEquals(BigDecimal("30.7500"), asset.fiatAmount)
         assertArrayEquals(a, asset.accountId); assertEquals(false, asset.enabled)
         assertEquals(17, asset.sortIndex); assertEquals("retained-name", asset.chainAccountName)
+    }
+
+    @Test fun snapshotsShowMoneyWithTheSelectedCurrencysOwnSymbol() = runBlocking {
+        val f = Fixture()
+        f.getter = { listOf(quote()) }
+        f.knownCurrency = { id -> FiatCurrency("usd", "$", "US Dollar", "").takeIf { it.id == id } }
+        val asset = f.reader.getSnapshot(7).toDomainAssets { true }.single()
+        assertEquals("$", asset.token.fiatSymbol)
+        assertEquals("usd", asset.token.fiatContext?.currencyId)
+    }
+
+    @Test fun capturedOneShotKeepsItsSymbolAcrossSelectionChangeDuringIo() = runBlocking {
+        val f = Fixture(); f.knownCurrency = ::listedCurrency
+        val entered = CompletableDeferred<Unit>(); val release = CompletableDeferred<Unit>()
+        coEvery { f.accounts.getMetaAccount(7) } coAnswers { entered.complete(Unit); release.await(); f.account }
+        f.getter = { listOf(quote()) }
+        val result = async { f.reader.getSnapshot(7) }
+        try {
+            withTimeout(5000) { entered.await() }; f.selection = "eur"; release.complete(Unit)
+            val snapshot = withTimeout(5000) { result.await() }
+            assertEquals("eur", f.fiat.get())
+            assertEquals("$", snapshot.context.fiat.displayUnit)
+            assertEquals("$", snapshot.toDomainAssets { true }.single().token.fiatSymbol)
+        } finally { release.complete(Unit); result.cancelAndJoin() }
+    }
+
+    @Test fun observedSnapshotsShowTheSelectedCurrencysOwnSymbolFromTheFirstState() = runBlocking {
+        val f = Fixture(); f.knownCurrency = ::listedCurrency; f.observer = { flowOf(listOf(quote())) }
+        val output = Channel<SelectedAccountAssetSnapshot>(Channel.UNLIMITED)
+        val job = launch { f.reader.observeSelectedSnapshots().collect { output.send(it) } }
+        try {
+            output.next(); f.selected.send(f.account)
+            assertEquals("$", output.loading().context.fiat.displayUnit)
+            assertEquals("$", output.ready().toDomainAssets { true }.single().token.fiatSymbol)
+            val priced = output.ready(); assertTrue(priced.quotesReady)
+            val asset = priced.toDomainAssets { true }.single()
+            assertEquals("$", asset.token.fiatSymbol); assertEquals("usd", asset.token.fiatContext?.currencyId)
+        } finally { job.cancelAndJoin(); output.close() }
+    }
+
+    @Test fun aDeliveredSnapshotKeepsItsSymbolAndAmountAfterTheSelectionMoves() = runBlocking {
+        val f = Fixture(); f.knownCurrency = ::listedCurrency
+        f.observer = { ids -> flowOf(listOf(if (ids.single() == "provider-price") quote() else quote("catalog-price", "eur", "3"))) }
+        val output = Channel<SelectedAccountAssetSnapshot>(Channel.UNLIMITED)
+        val job = launch { f.reader.observeSnapshots(f.account).collect { output.send(it) } }
+        try {
+            output.next(); output.loading(); output.ready()
+            val dollars = output.ready(); assertTrue(dollars.quotesReady)
+            f.selectFiat("eur")
+            assertEquals("€", output.loading().context.fiat.displayUnit); output.ready()
+            val euros = output.ready().toDomainAssets { true }.single()
+            assertEquals("€", euros.token.fiatSymbol); assertEquals(BigDecimal("36.90"), euros.fiatAmount)
+            val kept = dollars.toDomainAssets { true }.single()
+            assertEquals("$", kept.token.fiatSymbol); assertEquals("usd", kept.token.fiatContext?.currencyId)
+            assertEquals(BigDecimal("30.7500"), kept.fiatAmount)
+        } finally { job.cancelAndJoin(); output.close() }
+    }
+
+    @Test fun aCurrencyNotOnTheListShowsItsIdAndNeverBorrowsASymbol() = runBlocking {
+        val borrowed = FiatCurrency("usd", "$", "US Dollar", "")
+        for (known in listOf<(String) -> FiatCurrency?>({ null }, ::listedCurrency, { borrowed })) {
+            val f = Fixture(); f.selection = "cad"; f.knownCurrency = known
+            val captured = f.reader.getSnapshot(7)
+            assertEquals("cad", captured.context.fiat.displayUnit)
+            assertEquals("cad", captured.toDomainAssets { true }.single().token.fiatSymbol)
+            val output = Channel<SelectedAccountAssetSnapshot>(Channel.UNLIMITED)
+            val job = launch { f.reader.observeSnapshots(f.account).collect { output.send(it) } }
+            try {
+                output.next(); assertEquals("cad", output.loading().context.fiat.displayUnit)
+                assertEquals("cad", output.ready().toDomainAssets { true }.single().token.fiatSymbol)
+            } finally { job.cancelAndJoin(); output.close() }
+        }
+    }
+
+    @Test fun theSymbolLabelsMoneyWithoutChangingAnyAmount() = runBlocking {
+        suspend fun capturedAsset(known: (String) -> FiatCurrency?) = Fixture().let { f ->
+            f.knownCurrency = known; f.getter = { listOf(quote()) }
+            f.reader.getSnapshot(7).toDomainAssets { true }.single()
+        }
+        suspend fun observedAsset(known: (String) -> FiatCurrency?) = Fixture().let { f ->
+            f.knownCurrency = known; f.observer = { flowOf(listOf(quote())) }
+            f.reader.observeSnapshots(f.account)
+                .filterIsInstance<SelectedAccountAssetSnapshot.Ready>().first { it.snapshot.quotesReady }
+                .snapshot.toDomainAssets { true }.single()
+        }
+        for ((shown, bare) in listOf(capturedAsset(::listedCurrency) to capturedAsset { null }, observedAsset(::listedCurrency) to observedAsset { null })) {
+            assertEquals("$", shown.token.fiatSymbol); assertEquals("usd", bare.token.fiatSymbol)
+            assertEquals(BigDecimal("30.7500"), shown.fiatAmount)
+            assertEquals(bare.fiatAmount, shown.fiatAmount); assertEquals(bare.total, shown.total)
+            assertEquals(bare.token.fiatRate, shown.token.fiatRate)
+            assertEquals(bare.token.recentRateChange, shown.token.recentRateChange)
+        }
     }
 
     @Test fun nonUsdChoosesCatalogEvenWhenStoredPointerNamesProvider() = runBlocking {

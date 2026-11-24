@@ -40,6 +40,13 @@ object AssetListHelper {
         }
     }
 
+    /**
+     * Whether a holding the header total counts has an unread balance. [countedAssets] are the rows
+     * neither hidden nor on a testnet, wherever the list is filtered to; the total also skips detected tokens.
+     */
+    fun hasUnknownCountedBalance(countedAssets: List<AssetWithStatus>): Boolean =
+        countedAssets.any { it.asset.total == null && !it.asset.token.configuration.isDetectedAsset() }
+
     fun trustedFiatSubtotal(assets: List<BalanceListItemModel>): java.math.BigDecimal? {
         val trusted = assets.filter {
             it.total?.signum() == 1 &&

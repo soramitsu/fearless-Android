@@ -1,5 +1,6 @@
 package jp.co.soramitsu.common.data.secrets
 
+import jp.co.soramitsu.common.data.storage.envelope.WalletSecretKeyring
 import jp.co.soramitsu.common.data.storage.pin.WalletEmergencyAuthentication
 import jp.co.soramitsu.common.data.storage.pin.WalletEmergencyAuthenticator
 import kotlinx.coroutines.CancellationException
@@ -19,11 +20,15 @@ class WalletEmergencyRecoverySession(
     private val guard = Any()
     private var generation = 0L
     private var authenticatedGeneration: Long? = null
+    // SK from the PIN wrap, held only while this screen's authorization is current.
+    private var walletKey: WalletSecretKeyring.OpenedKey? = null
 
     fun revoke() {
         synchronized(guard) {
             generation++
             authenticatedGeneration = null
+            walletKey?.close()
+            walletKey = null
         }
     }
 
@@ -32,17 +37,34 @@ class WalletEmergencyRecoverySession(
         val requested = synchronized(guard) {
             generation++
             authenticatedGeneration = null
+            walletKey?.close()
+            walletKey = null
             generation
         }
-        val result = authenticator.authenticate(code)
-        requireCurrent(requested)
+        val (result, key) = authenticator.authenticateWithKey(code)
+        try {
+            requireCurrent(requested)
+        } catch (failure: Throwable) {
+            key?.close()
+            throw failure
+        }
         return when (result) {
             WalletEmergencyAuthentication.Authenticated -> {
-                val page = reader.listPage()
-                currentCoroutineContext().ensureActive()
+                val page = try {
+                    reader.listPage().also { currentCoroutineContext().ensureActive() }
+                } catch (failure: Throwable) {
+                    key?.close()
+                    throw failure
+                }
                 synchronized(guard) {
-                    requireCurrentLocked(requested)
+                    try {
+                        requireCurrentLocked(requested)
+                    } catch (failure: Throwable) {
+                        key?.close()
+                        throw failure
+                    }
                     authenticatedGeneration = requested
+                    walletKey = key
                 }
                 EmergencyRecoveryAccessResult.Page(page)
             }
@@ -64,7 +86,12 @@ class WalletEmergencyRecoverySession(
 
     suspend fun readKey(storageKey: String): EmergencyRecoveryEntry {
         val requested = requireAuthentication()
-        val entry = reader.readKey(storageKey)
+        val key = synchronized(guard) { walletKey?.let { WalletSecretKeyring.OpenedKey(it.keyId, it.key) } }
+        val entry = try {
+            reader.readKey(storageKey, key)
+        } finally {
+            key?.close()
+        }
         requireCurrent(requested)
         return entry
     }

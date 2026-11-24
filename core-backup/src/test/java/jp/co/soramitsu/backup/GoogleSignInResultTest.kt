@@ -7,27 +7,37 @@ import org.junit.Test
 class GoogleSignInResultTest {
 
     @Test
-    fun `signed in account is success`() {
-        assertEquals(GoogleSignInResult.Success, GoogleSignInResult.fromStatus(Activity.RESULT_OK, signedIn = true, statusCode = null))
+    fun `a stored session is success`() {
+        assertEquals(GoogleSignInResult.Success, GoogleSignInResult.fromFailure(Activity.RESULT_OK, failureName = null))
     }
 
     @Test
     fun `canceled results carry the reason the user must see`() {
         val cases = mapOf(
             null to GoogleSignInResult.Cancelled,
-            12_501 to GoogleSignInResult.Cancelled,
-            10 to GoogleSignInResult.ConfigurationError,
-            7 to GoogleSignInResult.Network,
-            12_500 to GoogleSignInResult.Other(12_500)
+            "CANCELLED" to GoogleSignInResult.Cancelled,
+            "CONFIGURATION" to GoogleSignInResult.ConfigurationError,
+            "NETWORK" to GoogleSignInResult.Network,
+            "DRIVE_ACCESS_DENIED" to GoogleSignInResult.DriveAccessDenied,
+            "INVALID_RESPONSE" to GoogleSignInResult.Other(8),
+            "STORAGE" to GoogleSignInResult.Other(13),
+            "SOMETHING_NEW" to GoogleSignInResult.Cancelled
         )
 
-        cases.forEach { (statusCode, expected) ->
-            assertEquals("$statusCode", expected, GoogleSignInResult.fromStatus(Activity.RESULT_CANCELED, signedIn = false, statusCode = statusCode))
+        cases.forEach { (failure, expected) ->
+            assertEquals("$failure", expected, GoogleSignInResult.fromFailure(Activity.RESULT_CANCELED, failure))
         }
     }
 
     @Test
-    fun `a result without an account is not success`() {
-        assertEquals(GoogleSignInResult.Network, GoogleSignInResult.fromStatus(Activity.RESULT_OK, signedIn = false, statusCode = 7))
+    fun `a result that names a failure is never success`() {
+        assertEquals(GoogleSignInResult.Network, GoogleSignInResult.fromFailure(Activity.RESULT_OK, "NETWORK"))
+    }
+
+    @Test
+    fun `failure codes stay distinct`() {
+        val codes = GoogleSignInResult.Failure.entries.map { it.code }
+
+        assertEquals(codes.size, codes.toSet().size)
     }
 }

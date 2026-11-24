@@ -31,7 +31,8 @@ interface WalletConnectRouter {
 
     fun openSelectMultipleChainsForResult(items: List<String>, selected: List<String>): Flow<ChainChooseResult>
 
-    fun openRequestPreview(topic: String)
+    /** Opens the preview of exactly request [requestId] of session [topic], never another pending one. */
+    fun openRequestPreview(topic: String, requestId: Long)
 
     fun openRawData(payload: String)
 }

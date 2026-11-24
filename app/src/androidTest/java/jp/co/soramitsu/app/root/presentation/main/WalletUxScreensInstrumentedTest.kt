@@ -37,6 +37,8 @@ import androidx.compose.ui.test.hasScrollToIndexAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.swipeRight
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
@@ -63,6 +65,7 @@ import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveScreenInterface
 import jp.co.soramitsu.wallet.impl.presentation.receive.ReceiveScreenViewState
 import jp.co.soramitsu.wallet.impl.presentation.receive.model.ReceiveToggleType
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -131,11 +134,92 @@ class WalletUxScreensInstrumentedTest {
         save("wallet-retry-320dp-font200")
     }
 
+    @OptIn(androidx.compose.material.ExperimentalMaterialApi::class)
+    @Test
+    fun assetRowsKeepTheirSwipeActionsHiddenUntilSwiped() {
+        val state = jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState(
+            null, "", "Ceres", "SORA test", "CERES", null, null, "0", null,
+            emptyMap(), "sora-test", "ceres", true, false, isTestnet = true)
+        compose.setContent {
+            FearlessAppTheme {
+                Box(Modifier.requiredWidth(360.dp).background(Color.Black).testTag("fixture")) {
+                    jp.co.soramitsu.wallet.impl.presentation.common.SwipeableAssetListItem(state, true, {}, { _, _, _, _ -> })
+                }
+            }
+        }
+        compose.waitForIdle()
+        val row = compose.onNodeWithTag("SwipeBox").getUnclippedBoundsInRoot()
+        val card = compose.onNodeWithTag("AssetListItem_CERES_Ceres").getUnclippedBoundsInRoot()
+        assertEquals("The actions behind a row must not make it taller", card.bottom.value - card.top.value,
+            row.bottom.value - row.top.value, 1f)
+        val receiveLabel = compose.activity.getString(jp.co.soramitsu.common.compose.component.ActionItemType.RECEIVE.titleId)
+        val hideLabel = compose.activity.getString(jp.co.soramitsu.common.compose.component.ActionItemType.HIDE.titleId)
+        // At rest the actions are not there at all: nothing is drawn beside the row and nothing unseen takes a tap.
+        compose.onNodeWithText(receiveLabel, useUnmergedTree = true).assertDoesNotExist()
+        compose.onNodeWithText(hideLabel, useUnmergedTree = true).assertDoesNotExist()
+        save("asset-row-at-rest")
+        compose.onNodeWithTag("SwipeBox").performTouchInput { swipeRight() }
+        compose.waitForIdle()
+        val shown = compose.onNodeWithText(receiveLabel, useUnmergedTree = true).getUnclippedBoundsInRoot()
+        assertTrue("A swipe must reveal the whole action: $shown / $row", shown.left >= row.left && shown.right <= row.right &&
+            shown.top >= row.top && shown.bottom <= row.bottom)
+        save("asset-row-swiped")
+    }
+
+    @Test
+    fun sunlitHeroScrollsWithTheAssetsOnAShortPageAndNftsKeepTheirSwitch() {
+        var fixtureState by mutableStateOf("loaded")
+        val assets = listOf(jp.co.soramitsu.common.compose.viewstate.AssetListItemViewState(
+            null, "", "Ceres", "SORA test", "CERES", null, null, "0", null,
+            emptyMap(), "sora-test", "ceres", true, false, isTestnet = true))
+        val nfts = jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenModel(
+            false, jp.co.soramitsu.common.compose.models.ScreenLayout.entries.first(),
+            object : jp.co.soramitsu.common.compose.models.LoadableListPage.ReadyToRender<jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView> {
+                override val views = emptyList<jp.co.soramitsu.wallet.impl.presentation.balance.nft.list.models.NFTCollectionsScreenView>()
+            }, {}, {}, callbacks(jp.co.soramitsu.common.compose.utils.PageScrollingCallback::class.java))
+        compose.setContent {
+            FearlessAppTheme {
+                Box(Modifier.requiredWidth(360.dp).requiredHeight(300.dp).background(Color.Black).testTag("fixture")) {
+                    jp.co.soramitsu.wallet.impl.presentation.balance.list.WalletScreen(
+                        jp.co.soramitsu.wallet.impl.presentation.balance.list.WalletState.default.copy(
+                            assetsState = if (fixtureState == "nft") {
+                                jp.co.soramitsu.wallet.impl.presentation.balance.list.WalletAssetsState.NftAssets(nfts)
+                            } else {
+                                jp.co.soramitsu.wallet.impl.presentation.balance.list.WalletAssetsState.Assets(
+                                    jp.co.soramitsu.wallet.impl.presentation.balance.list.AssetsLoadingState.Loaded(assets), false)
+                            },
+                            balance = jp.co.soramitsu.common.compose.component.AssetBalanceViewState(
+                                "$0", "synthetic-public-address", true,
+                                jp.co.soramitsu.common.compose.component.ChangeBalanceViewState("+0%", "$0")),
+                            isBackedUp = false, hasTonAccounts = true, hasSubOrEvmAccounts = true,
+                            showCurrenciesOrNftSelector = true),
+                        callbacks(jp.co.soramitsu.wallet.impl.presentation.balance.list.WalletScreenInterface::class.java))
+                }
+            }
+        }
+        compose.waitForIdle()
+        val viewport = compose.onNodeWithTag("fixture").getUnclippedBoundsInRoot()
+        val list = compose.onNode(hasScrollToIndexAction()).getUnclippedBoundsInRoot()
+        assertTrue("The assets must scroll over the whole page, not a sliver below the hero: $list / $viewport",
+            list.top <= viewport.top + 1.dp && list.bottom >= viewport.bottom - 1.dp)
+        val backup = compose.activity.getString(jp.co.soramitsu.common.R.string.ux_backup_status)
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText(backup))
+        assertFullyVisible(backup)
+        val manage = compose.activity.getString(jp.co.soramitsu.common.R.string.wallet_manage_assets)
+        compose.onNode(hasScrollToIndexAction()).performScrollToNode(hasText(manage))
+        assertFullyVisible(manage)
+        save("wallet-footer-360x300dp-normal-text")
+        compose.runOnIdle { fixtureState = "nft" }
+        compose.waitForIdle()
+        val switch = compose.onNodeWithTag("MultiToggleButton_Currencies").assertIsDisplayed().getUnclippedBoundsInRoot()
+        assertTrue("The switch back from NFTs must stay on the page: $switch / $viewport",
+            switch.top >= viewport.top && switch.bottom <= viewport.bottom)
+        save("wallet-nfts-360x300dp-normal-text")
+    }
+
     @Test
     fun walletHeaderAndNetworkSectionFitAtDoubleTextSize() {
         val networkName = "SORA test"
-        val scoreLabel = compose.activity.getString(jp.co.soramitsu.common.R.string.account_stats_wallet_option_title)
-        var scoreClicks = 0
         compose.setContent {
             CompositionLocalProvider(LocalDensity provides Density(LocalDensity.current.density, 2f)) {
                 FearlessAppTheme {
@@ -144,10 +228,10 @@ class WalletUxScreensInstrumentedTest {
                             jp.co.soramitsu.common.compose.component.MainToolbarViewStateWithFilters(
                                 "QA wallet",
                                 jp.co.soramitsu.common.compose.component.ToolbarHomeIconState.Wallet(
-                                    android.graphics.drawable.ColorDrawable(android.graphics.Color.GRAY), -2),
+                                    android.graphics.drawable.ColorDrawable(android.graphics.Color.GRAY)),
                                 jp.co.soramitsu.common.compose.component.ChainSelectorViewStateWithFilters(
                                     selectedChainName = networkName, allowChainSelection = true)),
-                            onChangeChainClick = {}, onScoreClick = { scoreClicks++ },
+                            onChangeChainClick = {},
                             menuItems = listOf(
                                 jp.co.soramitsu.common.compose.component.MenuIconItem(jp.co.soramitsu.common.R.drawable.ic_scan, {}),
                                 jp.co.soramitsu.common.compose.component.MenuIconItem(jp.co.soramitsu.common.R.drawable.ic_search, {})))
@@ -178,11 +262,6 @@ class WalletUxScreensInstrumentedTest {
                 assertTrue("$text must not collapse into character-wide lines", it.lineCount <= 2)
             }
         }
-        val score = compose.onNodeWithContentDescription(scoreLabel).assertIsDisplayed()
-        val bounds = score.getUnclippedBoundsInRoot()
-        assertTrue("Score is a full touch target", bounds.right - bounds.left >= 48.dp && bounds.bottom - bounds.top >= 48.dp)
-        score.performClick()
-        compose.runOnIdle { org.junit.Assert.assertEquals(1, scoreClicks) }
         save("wallet-header-network-320dp-font200")
     }
 
@@ -237,7 +316,7 @@ class WalletUxScreensInstrumentedTest {
                     Box(Modifier.requiredWidth(320.dp).fillMaxHeight().background(Color.Black).testTag("fixture")) {
                         jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletContent(
                             jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletScreenViewState(
-                                isSelected = false, showScoreButton = true, showDetailsButton = true),
+                                isSelected = false, showDetailsButton = true),
                             callbacks(jp.co.soramitsu.wallet.impl.presentation.balance.optionswallet.OptionsWalletCallback::class.java))
                     }
                 }
@@ -252,8 +331,7 @@ class WalletUxScreensInstrumentedTest {
         assertTrue(close.right - close.left >= 48.dp && close.bottom - close.top >= 48.dp)
         save("wallet-options-320dp-font200-top")
         for (id in listOf(jp.co.soramitsu.common.R.string.export_wallet, jp.co.soramitsu.common.R.string.common_details_wallet,
-            jp.co.soramitsu.common.R.string.change_wallet_name, jp.co.soramitsu.common.R.string.account_stats_wallet_option_title,
-            jp.co.soramitsu.common.R.string.common_delete_wallet)) {
+            jp.co.soramitsu.common.R.string.change_wallet_name, jp.co.soramitsu.common.R.string.common_delete_wallet)) {
             val label = compose.activity.getString(id)
             assertFullyVisible(label)
             val layouts = mutableListOf<TextLayoutResult>()

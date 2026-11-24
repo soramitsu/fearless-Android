@@ -16,8 +16,8 @@ import org.mockito.kotlin.mock
  * shared-features-utils master serves for 4.2.0; it has no capability keys).
  *
  * Every shipped fund-moving feature (Polkaswap swap and liquidity, Demeter farming, Bitcoin and
- * Solana send) must stay available to upgraders from any version, online or offline, and only an
- * explicit remote `false` may pause one (veto-only, safety invariant 7).
+ * Solana send, dApp signing) must stay available to upgraders from any version, online or offline,
+ * and only an explicit remote `false` may pause one (veto-only, safety invariant 7).
  */
 class FeatureContinuityTest {
 
@@ -71,7 +71,7 @@ class FeatureContinuityTest {
         val values = mutableMapOf<String, Boolean>()
         val store = store(values)
         var served: () -> FeatureToggleConfig = {
-            FeatureToggleConfig(polkaswapMutationsEnabled = false, bitcoinSendEnabled = false)
+            FeatureToggleConfig(polkaswapMutationsEnabled = false, bitcoinSendEnabled = false, polkadotDappSigningEnabled = false)
         }
         val fetcher = mock<RemoteConfigFetcher> {
             onBlocking { getFeatureToggle(any()) } doAnswer { served() }
@@ -81,6 +81,7 @@ class FeatureContinuityTest {
         refresher.refreshOnce()
         assertFalse(store.polkaswapMutationsEnabled)
         assertFalse(store.bitcoinSendEnabled)
+        assertFalse(store.polkadotDappSigningEnabled)
 
         // The emergency key is removed again: devices that saw the veto stay paused.
         served = { productionPayload }
@@ -88,17 +89,23 @@ class FeatureContinuityTest {
         store.update(productionPayload)
         assertFalse(store.polkaswapMutationsEnabled)
         assertFalse(store.bitcoinSendEnabled)
+        assertFalse(store.polkadotDappSigningEnabled)
 
         served = { throw IllegalStateException("offline") }
         refresher.refreshOnce()
         assertFalse(store(values).polkaswapMutationsEnabled)
         assertFalse(store(values).bitcoinSendEnabled)
+        assertFalse(store(values).polkadotDappSigningEnabled)
 
         // The features nobody vetoed were never affected.
         assertTrue(store.demeterMutationsEnabled)
         assertTrue(store.solanaSendEnabled)
+        assertTrue(store.evmDappSigningEnabled)
+        assertTrue(store.tonDappSigningEnabled)
 
-        served = { FeatureToggleConfig(polkaswapMutationsEnabled = true, bitcoinSendEnabled = true) }
+        served = {
+            FeatureToggleConfig(polkaswapMutationsEnabled = true, bitcoinSendEnabled = true, polkadotDappSigningEnabled = true)
+        }
         refresher.refreshOnce()
         store.assertShippedFeaturesEnabled()
     }
@@ -123,6 +130,9 @@ class FeatureContinuityTest {
         assertTrue(demeterMutationsEnabled)
         assertTrue(bitcoinSendEnabled)
         assertTrue(solanaSendEnabled)
+        assertTrue(polkadotDappSigningEnabled)
+        assertTrue(evmDappSigningEnabled)
+        assertTrue(tonDappSigningEnabled)
     }
 
     private fun ProductFeatureToggleStore.assertNewCapabilitiesClosed() {

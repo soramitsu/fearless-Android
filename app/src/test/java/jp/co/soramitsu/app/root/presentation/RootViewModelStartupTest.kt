@@ -15,6 +15,8 @@ import jp.co.soramitsu.app.root.domain.InitializationStep
 import jp.co.soramitsu.app.root.domain.InitializeResult
 import jp.co.soramitsu.app.root.domain.NotSupportedAppVersionException
 import jp.co.soramitsu.core.runtime.ChainConnection
+import jp.co.soramitsu.irohaconnect.impl.domain.IrohaConnectService
+import jp.co.soramitsu.irohaconnect.impl.domain.IrohaConnectSnapshot
 import jp.co.soramitsu.tonconnect.api.domain.TonConnectInteractor
 import jp.co.soramitsu.walletconnect.impl.presentation.WCDelegate
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -85,6 +87,7 @@ class RootViewModelStartupTest {
     }
 
     private fun model() = RootViewModel(initializer, mockk(relaxed = true), mockk(relaxed = true),
-        MutableStateFlow(ChainConnection.ExternalRequirement.FORBIDDEN), mockk(relaxed = true), ton)
+        MutableStateFlow(ChainConnection.ExternalRequirement.FORBIDDEN), mockk(relaxed = true), ton,
+        mockk<IrohaConnectService>(relaxed = true) { every { snapshot } returns MutableStateFlow(IrohaConnectSnapshot()) })
         .also { store.put("root", it) }
 }

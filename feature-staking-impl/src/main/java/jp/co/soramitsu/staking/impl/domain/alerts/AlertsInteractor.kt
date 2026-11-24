@@ -13,6 +13,7 @@ import jp.co.soramitsu.staking.api.domain.model.StakingState
 import jp.co.soramitsu.staking.impl.data.repository.StakingConstantsRepository
 import jp.co.soramitsu.staking.impl.domain.common.isWaiting
 import jp.co.soramitsu.staking.impl.domain.isNominationActive
+import jp.co.soramitsu.staking.impl.domain.lowestActiveStake
 import jp.co.soramitsu.staking.impl.presentation.staking.main.scenarios.StakingRelaychainScenarioViewModel
 import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenarioRepository
 import jp.co.soramitsu.wallet.impl.domain.interfaces.WalletRepository
@@ -73,8 +74,13 @@ class AlertsInteractor(
                     context.stakingState.chain.id,
                     nominatorState.accountId
                 )?.targets.orEmpty()
+                // Account ids are compared by content: ByteArray `in` compares references and never matched.
+                val electedIds = context.exposures.keys.mapTo(mutableSetOf()) { it.fromHex().toHexString() }
+                val noneElected = myValidators.isNotEmpty() && myValidators.none { it.toHexString() in electedIds }
+                val isWaiting = nominatorState.nominations.isWaiting(context.activeEra)
 
-                return@requireState if (context.exposures.any { it.key.fromHex() in myValidators }) Alert.ChangeValidators else null
+                // "None of your validators have been elected": waiting nominations show the next-era alert instead.
+                return@requireState if (noneElected && !isWaiting) Alert.ChangeValidators else null
             }
 
             val allValidatorsAreOversubscribed = if (context.maxNominators == null) {
@@ -106,8 +112,9 @@ class AlertsInteractor(
     private suspend fun produceMinStakeAlert(context: AlertContext) =
         requireState(context.stakingState) { state: StakingState.Stash ->
             with(context) {
-                val minActiveStake = stakingRepository.minimumActiveStake(stakingState.chain.id)
-                    ?: context.exposures.values.minOf { exposure -> exposure.others.minOf { it.value } }
+                // An unknown minimum (its read failing before the exposures are cached) raises no alert, and no crash.
+                val minActiveStake = lowestActiveStake(stakingRepository.minimumActiveStake(stakingState.chain.id), context.exposures.values)
+                    ?: return@with null
 
                 val minimalStakeInPlanks =
                     minActiveStake.coerceAtLeast(stakingRepository.minimumNominatorBond(context.asset.token.configuration))

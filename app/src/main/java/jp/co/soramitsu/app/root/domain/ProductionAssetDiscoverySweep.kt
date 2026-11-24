@@ -7,10 +7,12 @@ import jp.co.soramitsu.common.data.storage.Preferences
 import jp.co.soramitsu.common.model.AssetDiscoveryCoverage
 import jp.co.soramitsu.core.models.Ecosystem
 import jp.co.soramitsu.coredb.dao.AssetDao
+import jp.co.soramitsu.coredb.model.AssetBalanceUpdateItem
 import jp.co.soramitsu.runtime.ext.isUniversalWalletBitcoin
 import jp.co.soramitsu.runtime.ext.isUniversalWalletIroha
 import jp.co.soramitsu.runtime.ext.isUniversalWalletSolana
 import jp.co.soramitsu.runtime.multiNetwork.ChainRegistry
+import jp.co.soramitsu.runtime.multiNetwork.needsRegistryConnection
 import jp.co.soramitsu.runtime.multiNetwork.chain.ChainsRepository
 import jp.co.soramitsu.runtime.multiNetwork.chain.model.Chain
 import jp.co.soramitsu.wallet.api.data.BalanceLoader
@@ -110,59 +112,55 @@ class ProductionAssetDiscoverySweep @Inject constructor(
         accounts: Set<jp.co.soramitsu.account.api.domain.model.MetaAccount>
     ) {
         if (accounts.isEmpty()) return
-        val wasRegistryManaged = chainRegistry.syncedChains.value.any { it.id == chain.id }
-        val requiresConnection = chain.requiresRegistryConnection()
-        var startedForDiscovery = false
+        if (chain.needsRegistryConnection()) {
+            // The registry decides who disconnects: a chain outside background sync is connected for
+            // this read only, and one the read finds funded is handed to background sync, connected.
+            chainRegistry.withDiscoveryConnection(chain) { readAndStore(chain, accounts) }
+        } else {
+            readAndStore(chain, accounts)
+        }
+    }
 
-        try {
-            if (requiresConnection && !wasRegistryManaged && !chainRegistry.checkChainSyncedUp(chain)) {
-                chainRegistry.setupChain(chain)
-                startedForDiscovery = true
+    private suspend fun readAndStore(
+        chain: Chain,
+        accounts: Set<jp.co.soramitsu.account.api.domain.model.MetaAccount>
+    ) {
+        val updates = withTimeoutOrNull(CHAIN_SCAN_TIMEOUT_MILLIS) {
+            // The Substrate loader gives its runtime only 15 s, and a failed scan waits for the next sweep.
+            if (chain.needsRegistryConnection() && !chain.isEthereumChain) {
+                chainRegistry.awaitRuntimeProvider(chain.id).get()
             }
+            balanceLoaderProvider.invoke(chain).loadBalance(accounts)
+        }
+        if (updates == null) {
+            accounts.forEach { account ->
+                networkScanStateStore.scanFailedPreservingCoverage(
+                    walletId = account.id,
+                    chainId = chain.id,
+                    fallbackCoverage = chain.defaultDiscoveryCoverage(),
+                    errorMessage = "Asset discovery timed out"
+                )
+            }
+            return
+        }
 
-            val updates = withTimeoutOrNull(CHAIN_SCAN_TIMEOUT_MILLIS) {
-                balanceLoaderProvider.invoke(chain).loadBalance(accounts)
-            }
-            if (updates == null) {
-                accounts.forEach { account ->
-                    networkScanStateStore.scanFailedPreservingCoverage(
-                        walletId = account.id,
-                        chainId = chain.id,
-                        fallbackCoverage = chain.defaultDiscoveryCoverage(),
-                        errorMessage = "Asset discovery timed out"
-                    )
-                }
-                return
-            }
+        updates.forEach { update ->
+            val priceId = chain.assets.firstOrNull { asset ->
+                asset.id == update.id || asset.currencyId == update.id
+            }?.priceId
+            assetDao.updateBalanceOrInsertPreservingPreference(update, priceId)
+        }
 
-            updates.forEach { update ->
-                val priceId = chain.assets.firstOrNull { asset ->
-                    asset.id == update.id || asset.currencyId == update.id
-                }?.priceId
-                assetDao.updateBalanceOrInsertPreservingPreference(update, priceId)
-            }
-        } finally {
-            // The temporary connection belongs to this sweep only. If normal registry sync
-            // concurrently claimed the chain, its synced-catalog membership transfers ownership
-            // and prevents us from tearing down a user/feature-managed connection.
-            val concurrentlyRegistryManaged = chainRegistry.syncedChains.value.any { it.id == chain.id }
-            if (startedForDiscovery && !concurrentlyRegistryManaged) {
-                chainRegistry.stopChain(chain)
-            }
+        // A stored funded balance brings the chain into background sync. Keep this read's
+        // connection until it does, rather than closing it and opening it again right after.
+        if (chain.needsRegistryConnection() && updates.any { holdsFunds(it) }) {
+            chainRegistry.awaitBackgroundSync(chain.id, ADOPTION_WAIT_MILLIS)
         }
     }
 
     private fun completeSweep() {
         preferences.removeField(PREF_CURSOR_CHAIN_ID)
         preferences.putLong(PREF_LAST_COMPLETED_AT, System.currentTimeMillis())
-    }
-
-    private fun Chain.requiresRegistryConnection(): Boolean {
-        return nodes.isNotEmpty() && ecosystem in setOf(
-            Ecosystem.Substrate,
-            Ecosystem.Ethereum,
-            Ecosystem.EthereumBased
-        )
     }
 
     private fun Chain.defaultDiscoveryCoverage(): AssetDiscoveryCoverage = when {
@@ -178,11 +176,16 @@ class ProductionAssetDiscoverySweep @Inject constructor(
         const val SWEEP_INTERVAL_MILLIS = 24L * 60L * 60L * 1_000L
         const val DEFAULT_BATCH_SIZE = 24
         const val CHAIN_SCAN_TIMEOUT_MILLIS = 45_000L
+        const val ADOPTION_WAIT_MILLIS = 5_000L
         const val CONTINUATION_DELAY_MILLIS = 5_000L
         const val PREF_CURSOR_CHAIN_ID = "asset_discovery.production.cursor_chain_id.v1"
         const val PREF_LAST_ATTEMPT_AT = "asset_discovery.production.last_attempt_at.v1"
         const val PREF_LAST_COMPLETED_AT = "asset_discovery.production.last_completed_at.v1"
         const val TAG = "ProductionAssetSweep"
+
+        /** The background-sync rule for a funded row (AssetDao.observeChainIdsNeedingSync): free or reserved above zero. */
+        fun holdsFunds(update: AssetBalanceUpdateItem): Boolean =
+            (update.freeInPlanks?.signum() ?: 0) > 0 || (update.reservedInPlanks?.signum() ?: 0) > 0
 
         fun productionChainsAfter(chains: List<Chain>, cursorChainId: String?): List<Chain> {
             return chains.asSequence()

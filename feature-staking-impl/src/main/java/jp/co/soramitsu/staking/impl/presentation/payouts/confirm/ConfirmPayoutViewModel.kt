@@ -1,5 +1,6 @@
 package jp.co.soramitsu.staking.impl.presentation.payouts.confirm
 
+import jp.co.soramitsu.staking.impl.presentation.common.StakingSeal
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
@@ -44,6 +45,7 @@ import jp.co.soramitsu.staking.impl.scenarios.relaychain.StakingRelayChainScenar
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.FeeLoaderMixin
 import jp.co.soramitsu.wallet.api.presentation.mixin.fee.requireFee
 import jp.co.soramitsu.wallet.impl.domain.model.amountFromPlanks
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -83,7 +85,7 @@ class ConfirmPayoutViewModel @Inject constructor(
     private val stakingStateFlow = relayChainInteractor.selectedAccountStakingStateFlow()
         .share()
 
-    private val payouts = payload.payouts.map { Payout(it.validatorInfo.address, it.era, it.amountInPlanks) }
+    private val payouts = payload.payouts.map { Payout(it.validatorInfo.address, it.era, it.amountInPlanks, it.page) }
 
     private val _showNextProgress = MutableLiveData(false)
     val showNextProgress: LiveData<Boolean> = _showNextProgress
@@ -112,6 +114,9 @@ class ConfirmPayoutViewModel @Inject constructor(
 
         addressModelGenerator.createAddressModel(destinationAddress, AddressIconGenerator.SIZE_SMALL, destinationAddressDisplay)
     }
+        // The row only informs. A destination the app cannot read ("None", or one this runtime no longer
+        // decodes) used to close the app from this page; now the row stays empty and the payout can go on.
+        .catch { }
         .inBackground()
         .asLiveData()
 
@@ -151,7 +156,7 @@ class ConfirmPayoutViewModel @Inject constructor(
             val accountAddress = stakingStateFlow.first().accountAddress
             val amount = tokenType.amountFromPlanks(payload.totalRewardInPlanks)
 
-            val payoutStakersPayloads = payouts.map { MakePayoutPayload.PayoutStakersPayload(it.era, it.validatorAddress) }
+            val payoutStakersPayloads = payouts.map { MakePayoutPayload.PayoutStakersPayload(it.era, it.validatorAddress, it.page) }
 
             val makePayoutPayload = if(tokenType.syntheticStakingType() == SyntheticStakingType.SORA )  {
                 val rewardToken = soraRewardScenario.getRewardAsset()
@@ -173,7 +178,7 @@ class ConfirmPayoutViewModel @Inject constructor(
     }
 
     private fun sendTransaction(payload: MakePayoutPayload) = launch {
-        val result = payoutInteractor.makePayouts(payload)
+        val result = StakingSeal.payout { payoutInteractor.makePayouts(payload) }
 
         _showNextProgress.value = false
 

@@ -60,6 +60,7 @@ fun mapOperationStatusToOperationLocalStatus(status: Operation.Status) = when (s
     Operation.Status.PENDING -> OperationLocal.Status.PENDING
     Operation.Status.COMPLETED -> OperationLocal.Status.COMPLETED
     Operation.Status.FAILED -> OperationLocal.Status.FAILED
+    Operation.Status.UNKNOWN -> OperationLocal.Status.UNKNOWN
 }
 
 private fun mapOperationStatusLocalToOperationStatus(status: OperationLocal.Status) =
@@ -67,6 +68,7 @@ private fun mapOperationStatusLocalToOperationStatus(status: OperationLocal.Stat
         OperationLocal.Status.PENDING -> Operation.Status.PENDING
         OperationLocal.Status.COMPLETED -> Operation.Status.COMPLETED
         OperationLocal.Status.FAILED -> Operation.Status.FAILED
+        OperationLocal.Status.UNKNOWN -> Operation.Status.UNKNOWN
     }
 
 private val Operation.Type.operationAmount
@@ -124,7 +126,8 @@ fun mapOperationToOperationLocalDb(
             time = time,
             chainId = operation.chainAsset.chainId,
             chainAssetId = operation.chainAsset.id,
-            module = extrinsicOrNull()?.module,
+            // Swaps keep their module too; the read side already restores it for SWAP rows.
+            module = extrinsicOrNull()?.module ?: swapOrNull()?.module,
             call = extrinsicOrNull()?.call,
             amount = type.operationAmount,
             fee = type.operationFee,
@@ -408,6 +411,7 @@ private fun mapStatusToStatusAppearance(status: Operation.Status): OperationStat
         Operation.Status.COMPLETED -> OperationStatusAppearance.COMPLETED
         Operation.Status.FAILED -> OperationStatusAppearance.FAILED
         Operation.Status.PENDING -> OperationStatusAppearance.PENDING
+        Operation.Status.UNKNOWN -> OperationStatusAppearance.UNKNOWN
     }
 }
 

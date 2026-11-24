@@ -1,5 +1,7 @@
 package jp.co.soramitsu.account.impl.presentation.view.advanced
 
+import android.view.inputmethod.EditorInfo
+import android.text.InputType
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
@@ -58,6 +60,21 @@ class AdvancedBlockView @JvmOverloads constructor(
         orientation = VERTICAL
 
         binding.advancedTv.setOnClickListener(showClickListener)
+        keepDerivationPathsPrivate()
+    }
+
+    /**
+     * A Substrate path may end in `///password`, the BIP39 passphrase of universal accounts. The
+     * keyboard must not learn, suggest or autofill it, and it never enters saved state.
+     */
+    private fun keepDerivationPathsPrivate() {
+        listOf(binding.substrateDerivationPathInput.content, binding.ethereumDerivationPathInput.content).forEach { field ->
+            field.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD or
+                InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            field.imeOptions = field.imeOptions or EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING
+            field.importantForAutofill = View.IMPORTANT_FOR_AUTOFILL_NO
+            field.isSaveEnabled = false
+        }
     }
 
     val substrateDerivationPathEditText: EditText

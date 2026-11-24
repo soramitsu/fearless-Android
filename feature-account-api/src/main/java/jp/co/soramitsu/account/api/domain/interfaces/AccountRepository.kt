@@ -1,6 +1,7 @@
 package jp.co.soramitsu.account.api.domain.interfaces
 
 import jp.co.soramitsu.common.data.storage.encrypt.PinHealth
+import jp.co.soramitsu.common.data.storage.envelope.PinVerification
 
 import jp.co.soramitsu.account.api.domain.model.Account
 import jp.co.soramitsu.account.api.domain.model.AddAccountPayload
@@ -8,7 +9,6 @@ import jp.co.soramitsu.account.api.domain.model.ImportJsonData
 import jp.co.soramitsu.account.api.domain.model.LightMetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccount
 import jp.co.soramitsu.account.api.domain.model.MetaAccountOrdering
-import jp.co.soramitsu.account.api.domain.model.NomisScoreData
 import jp.co.soramitsu.account.api.domain.model.WalletRecoveryStatus
 import jp.co.soramitsu.backup.domain.models.BackupAccountType
 import jp.co.soramitsu.common.data.secrets.v2.ChainAccountSecrets
@@ -113,7 +113,8 @@ interface AccountRepository {
 
     suspend fun savePinCode(code: String)
 
-    suspend fun getPinCode(): String?
+    /** Checks [code] against the PIN wrap (or the legacy PIN); CORRECT leaves SK open for this session. */
+    suspend fun verifyPinCode(code: String): PinVerification
 
     suspend fun generateMnemonic(length: Mnemonic.Length): List<String>
 
@@ -164,8 +165,6 @@ interface AccountRepository {
     suspend fun getLightMetaAccount(metaId: Long): LightMetaAccount
     fun observeFavoriteChains(metaId: Long): Flow<Map<ChainId, Boolean>>
 
-    fun observeNomisScores(): Flow<List<NomisScoreData>>
-    fun observeNomisScore(metaId: Long): Flow<NomisScoreData?>
     /** Same recovery-material contract as [getChainAccountSecrets]. */
     suspend fun getSubstrateSecrets(metaId: Long) : EncodableStruct<SubstrateSecrets>?
     /** Same recovery-material contract as [getChainAccountSecrets]. */
@@ -199,6 +198,13 @@ interface AccountRepository {
      * root key of the chain's ecosystem.
      */
     suspend fun isSigningRecoveryRequired(metaId: Long, chain: IChain): Boolean
+
+    /**
+     * Whether a signing secret is stored for [chain]: the per-network key when the
+     * wallet has one for that chain, otherwise the Substrate root. Key names only,
+     * so it answers the same while the wallet is locked and its secrets are sealed.
+     */
+    suspend fun hasSigningMaterial(metaId: Long, chain: IChain): Boolean
 
     /**
      * Whether the stored phrase, seed and path of the root key of [ecosystem]

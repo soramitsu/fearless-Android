@@ -109,6 +109,9 @@ class PoolsFlowViewModel @Inject constructor(
     private val mutableToolbarStateFlow = MutableStateFlow<LoadingState<TextModel>>(LoadingState.Loading())
     val toolbarStateFlow: StateFlow<LoadingState<TextModel>> = mutableToolbarStateFlow
 
+    // Back presses already queued when the flow closes must not also close what is under the sheet.
+    private var isFlowExited = false
+
     fun onDestinationChanged(route: String) {
         if (route == LiquidityPoolsNavGraphRoute.PoolDetailsScreen.routeName) {
             liquidityAddPresenter.resetInputFields()
@@ -176,6 +179,8 @@ class PoolsFlowViewModel @Inject constructor(
     }
 
     fun exitFlow() {
+        if (isFlowExited) return
+        isFlowExited = true
         poolsRouter.back()
     }
 

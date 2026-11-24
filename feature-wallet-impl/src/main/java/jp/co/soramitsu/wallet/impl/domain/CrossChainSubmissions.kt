@@ -51,4 +51,12 @@ class CrossChainSubmissions(
 
     suspend fun check(scope: CrossChainSubmissionJournal.Scope, attemptId: String): CrossChainSubmissionReconciler.Outcome =
         withContext(Dispatchers.IO) { reconciler.check(scope, attemptId) }
+
+    /** The last transfer of [scope] proven included, kept until the user dismisses it. */
+    suspend fun included(scope: CrossChainSubmissionJournal.Scope): CrossChainSubmissionJournal.Submission? =
+        withContext(Dispatchers.IO) { journal.readIncluded(scope) }
+
+    suspend fun dismissIncluded(submission: CrossChainSubmissionJournal.Submission) = withContext(Dispatchers.IO) {
+        journal.withScope(submission.scope) { journal.dismissIncluded(submission) }
+    }
 }

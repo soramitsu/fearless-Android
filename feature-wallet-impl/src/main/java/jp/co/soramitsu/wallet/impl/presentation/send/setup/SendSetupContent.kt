@@ -1,5 +1,10 @@
 package jp.co.soramitsu.wallet.impl.presentation.send.setup
 
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSecondaryButton
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.FwSwitchIndicator
+import jp.co.soramitsu.common.compose.theme.fw.LocalFwColors
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
@@ -50,7 +55,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import java.math.BigDecimal
 import jp.co.soramitsu.common.compose.component.AccentDarkDisabledButton
-import jp.co.soramitsu.common.compose.component.AddressInputWithScore
 import jp.co.soramitsu.common.compose.component.AmountInput
 import jp.co.soramitsu.common.compose.component.AmountInputViewState
 import jp.co.soramitsu.common.compose.component.B1
@@ -65,6 +69,7 @@ import jp.co.soramitsu.common.compose.component.MarginHorizontal
 import jp.co.soramitsu.common.compose.component.MarginVertical
 import jp.co.soramitsu.common.compose.component.QuickAmountInput
 import jp.co.soramitsu.common.compose.component.QuickInput
+import jp.co.soramitsu.common.compose.component.RecipientAddressInput
 import jp.co.soramitsu.common.compose.component.SelectorState
 import jp.co.soramitsu.common.compose.component.SelectorWithBorder
 import jp.co.soramitsu.common.compose.component.TextInput
@@ -88,7 +93,7 @@ import jp.co.soramitsu.feature_wallet_impl.R
 
 data class SendSetupViewState(
     val toolbarState: ToolbarViewState,
-    val addressInputState: AddressInputWithScore,
+    val addressInputState: RecipientAddressInput,
     val amountInputState: AmountInputViewState,
     val chainSelectorState: SelectorState,
     val feeInfoState: FeeInfoViewState,
@@ -178,7 +183,7 @@ fun SendSetupContent(
                 )
                 MarginVertical(margin = 16.dp)
                 state.recipientHint?.let { B1(text = it, modifier = Modifier.padding(bottom = 8.dp)) }
-                AddressInputWithScore(
+                RecipientAddressInput(
                     state = state.addressInputState,
                     onClear = callback::onAddressInputClear,
                     onPaste = callback::onPasteClick
@@ -240,10 +245,11 @@ fun SendSetupContent(
                 Spacer(modifier = Modifier.weight(1f))
             }
 
+            val sunlitSend = FwRestyle.isEnabled(FwSurface.Send)
             Column(
                 modifier = Modifier
                     .onSizeChanged { footerHeight = it.height }
-                    .background(backgroundBlack.copy(alpha = 0.75f))
+                    .background(if (sunlitSend) LocalFwColors.current.surfaceRaised2 else backgroundBlack.copy(alpha = 0.75f))
                     .align(Alignment.BottomCenter)
             ) {
                 if (state.sendAllAllowed) {
@@ -261,7 +267,9 @@ fun SendSetupContent(
                             state.sendAllChecked -> colorAccentDark
                             else -> black3
                         }
-                        Switch(
+                        // The row is the toggle (role Switch); the sun-lit switch only paints its state.
+                        if (sunlitSend) FwSwitchIndicator(checked = state.sendAllChecked)
+                        else Switch(
                             colors = switchColors,
                             checked = state.sendAllChecked,
                             onCheckedChange = null,
@@ -333,6 +341,10 @@ private fun Badge(
     @StringRes labelResId: Int,
     onClick: () -> Unit
 ) {
+    if (FwRestyle.isEnabled(FwSurface.Send)) {
+        FwSecondaryButton(text = stringResource(labelResId), onClick = onClick, modifier = modifier, iconRes = iconResId)
+        return
+    }
     ColoredButton(
         modifier = modifier,
         backgroundColor = black05,
@@ -356,7 +368,7 @@ private fun Badge(
 private fun SendSetupPreview() {
     val state = SendSetupViewState(
         toolbarState = ToolbarViewState("Send Fund", R.drawable.ic_arrow_left_24),
-        addressInputState = AddressInputWithScore.Filled("Send to...", "0x23j2rf3bh8384j938", "", 100),
+        addressInputState = RecipientAddressInput.Filled("Send to...", "0x23j2rf3bh8384j938", ""),
         amountInputState = AmountInputViewState(
             "KSM",
             "",

@@ -5,6 +5,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSurface
+import jp.co.soramitsu.common.compose.theme.fw.fwListRow
 import jp.co.soramitsu.common.utils.inflateChild
 import jp.co.soramitsu.feature_staking_impl.R
 import jp.co.soramitsu.staking.impl.presentation.staking.main.DelegatorViewState
@@ -29,6 +32,10 @@ class DelegationRecyclerViewAdapter(
 }
 
 class DelegationViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+
+    init {
+        if (FwRestyle.isEnabled(FwSurface.Staking)) itemView.fwListRow(16)
+    }
     var singleClickProcessing = false
     fun bind(item: DelegatorViewState.CollatorDelegationModel, itemHandler: DelegationRecyclerViewAdapter.DelegationHandler) {
         itemView.findViewById<StakeSummaryView>(R.id.summaryView).apply {

@@ -96,6 +96,9 @@ class NFTFlowViewModel @Inject constructor(
     private val mutableToolbarStateFlow = MutableStateFlow<LoadingState<Pair<TextModel, Int>>>(LoadingState.Loading())
     val toolbarStateFlow: StateFlow<LoadingState<Pair<TextModel, Int>>> = mutableToolbarStateFlow
 
+    // Back presses already queued when the flow closes must not also close what is under the sheet.
+    private var isFlowExited = false
+
     fun onDestinationChanged(route: String) {
         val newToolbarState: LoadingState<Pair<TextModel, Int>> = when (route) {
             NFTNavGraphRoute.Loading.routeName ->
@@ -136,6 +139,8 @@ class NFTFlowViewModel @Inject constructor(
     }
 
     fun exitFlow() {
+        if (isFlowExited) return
+        isFlowExited = true
         nftRouter.back()
     }
 

@@ -21,6 +21,10 @@ import kotlinx.coroutines.sync.withLock
  * A record is released only when [CrossChainSubmissionReconciler] proves the outcome: the exact bytes are in a
  * finalized block of the origin network, or the whole validity window of the mortal transaction is finalized without
  * them, after which it can never be included.
+ *
+ * A transfer proven included is kept as the scope's included record, written in the same durable write that releases
+ * it, until the user dismisses it or the next transfer of the scope is retained. A confirm screen restored after
+ * another process death then still knows that its transfer was sent, instead of offering to send it again.
  */
 class CrossChainSubmissionJournal(private val preferences: Preferences) {
     private val failedScopes = synchronized(storageLock) {
@@ -60,7 +64,8 @@ class CrossChainSubmissionJournal(private val preferences: Preferences) {
             anchor = anchor,
             validity = validity
         )
-        persist(scope, null, submission)
+        // A new transfer of the scope supersedes the record of the last included one.
+        persist(scope, null, submission, clearIncluded = true)
         submission
     }
 
@@ -73,19 +78,49 @@ class CrossChainSubmissionJournal(private val preferences: Preferences) {
         persist(expected.scope, expected, null)
     }
 
-    /** Frees the scope once the reconciler has proven the outcome of exactly this attempt. */
+    /** Frees the scope once the reconciler has proven that exactly this attempt can never be included. */
     internal fun release(expected: Submission) = synchronized(storageLock) {
         persist(expected.scope, expected, null)
     }
 
-    private fun persist(scope: Scope, expected: Submission?, replacement: Submission?) {
+    /** Frees the scope once the reconciler has found exactly this attempt in a finalized block, and records it. */
+    internal fun settleIncluded(expected: Submission) = synchronized(storageLock) {
+        persist(expected.scope, expected, null, included = expected)
+    }
+
+    /** The last transfer of [scope] proven included, until the user dismisses it or the scope sends another. */
+    fun readIncluded(scope: Scope): Submission? = synchronized(storageLock) {
+        check(scope.key !in failedScopes) { "Cross-chain transfer storage is unavailable" }
+        val encoded = preferences.getString(scope.includedKey) ?: return@synchronized null
+        decode(encoded).also { check(it.scope == scope) { "Cross-chain transfer scope changed" } }
+    }
+
+    /** Forgets the included record once the user has seen it; a record that is already gone is fine. */
+    fun dismissIncluded(expected: Submission) = synchronized(storageLock) {
+        val current = readIncluded(expected.scope) ?: return@synchronized
+        check(current == expected) { "Cross-chain transfer record changed" }
+        // Only the included record goes; an unsettled transfer of the scope, if any, stays exactly as it is.
+        val pending = read(expected.scope)
+        persist(expected.scope, pending, pending, clearIncluded = true)
+    }
+
+    private fun persist(
+        scope: Scope,
+        expected: Submission?,
+        replacement: Submission?,
+        included: Submission? = null,
+        clearIncluded: Boolean = false
+    ) {
         check(read(scope) == expected) { "Cross-chain transfer record changed" }
         val encoded = replacement?.let(::encode)
+        val encodedIncluded = included?.let(::encode)
+        val puts = listOfNotNull(encoded?.let { scope.key to it }, encodedIncluded?.let { scope.includedKey to it }).toMap()
+        val removes = setOfNotNull(scope.key.takeIf { encoded == null }, scope.includedKey.takeIf { clearIncluded })
         val durable = try {
-            preferences.replaceStringsDurably(
-                encoded?.let { mapOf(scope.key to it) }.orEmpty(),
-                if (encoded == null) setOf(scope.key) else emptySet()
-            ) && preferences.getString(scope.key) == encoded
+            preferences.replaceStringsDurably(puts, removes) &&
+                preferences.getString(scope.key) == encoded &&
+                (!clearIncluded || preferences.getString(scope.includedKey) == null) &&
+                (encodedIncluded == null || preferences.getString(scope.includedKey) == encodedIncluded)
         } catch (_: Exception) {
             false
         }
@@ -182,8 +217,13 @@ class CrossChainSubmissionJournal(private val preferences: Preferences) {
             require(walletId > 0 && HASH.matches(chainId) && ACCOUNT.matches(accountId)) { "Invalid cross-chain scope" }
         }
 
-        val key: String = PREFIX + MessageDigest.getInstance("SHA-256")
+        private val digest: String = MessageDigest.getInstance("SHA-256")
             .digest("$walletId\n$chainId\n$accountId".toByteArray(Charsets.UTF_8)).toHexString(withPrefix = false)
+
+        val key: String = PREFIX + digest
+
+        /** Where the last transfer of this scope that was proven included is kept. */
+        val includedKey: String = INCLUDED_PREFIX + digest
     }
 
     /** What the user confirmed, kept to present the unsettled transfer and to recognise a retry of it. */
@@ -219,6 +259,7 @@ class CrossChainSubmissionJournal(private val preferences: Preferences) {
         const val VERSION = "1"
         const val FIELD_COUNT = 19
         const val PREFIX = "wallet.crosschain.pending.v1."
+        const val INCLUDED_PREFIX = "wallet.crosschain.included.v1."
         const val MAX_EXTRINSIC_LENGTH = 1_000_000
         const val MAX_RECORD_LENGTH = 1_010_000
         val locks = ConcurrentHashMap<String, Mutex>()

@@ -20,8 +20,9 @@ class MinimumAmountValidation(
             ?: return ValidationStatus.NotValid(DefaultFailureLevel.ERROR, SetupStakingValidationFailure.BalanceUnavailable)
         val assetConfiguration = value.asset.token.configuration
 
-        val networkInfo = stakingScenarioInteractor.observeNetworkInfoState().map { it as? NetworkInfo.RelayChain }.firstOrNull()
+        // The minimum first: an unavailable one fails this validation at once instead of waiting on the network info.
         val minimumBondInPlanks = stakingScenarioInteractor.getMinimumStake(assetConfiguration)
+        val networkInfo = stakingScenarioInteractor.observeNetworkInfoState().map { it as? NetworkInfo.RelayChain }.firstOrNull()
         val minStakeMultiplier: Double = if (networkInfo?.shouldUseMinimumStakeMultiplier == true) {
             StakingRelaychainScenarioViewModel.STAKE_EXTRA_MULTIPLIER // 15% increase
         } else {

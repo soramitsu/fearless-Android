@@ -86,8 +86,9 @@ class WalletEffectsModeInstrumentedTest {
         fun setPowerSave(enabled: Boolean) {
             shell("cmd power set-mode ${if (enabled) 1 else 0}")
             compose.waitUntil(10_000) { power.isPowerSaveMode == enabled }
-            // Battery saver also changes system night mode. The empty debug host handles uiMode
-            // so this test observes the live callbacks instead of losing its injected content.
+            // Battery saver also changes system night mode, and the system theme overlays that follow
+            // change the asset paths. The empty debug host handles uiMode and assetsPaths so this test
+            // observes the live callbacks instead of losing its injected content.
             assertFalse(context.isDestroyed)
             assertEquals(context, compose.activity)
         }
@@ -144,7 +145,10 @@ class WalletEffectsModeInstrumentedTest {
                         }
                     }
                 }.commit())
-                setPowerSave(originalPowerSave)
+                // Cleanup must restore the OS even if the test activity was recreated; do not
+                // mask an earlier assertion with the live-host assertion used during the test.
+                shell("cmd power set-mode ${if (originalPowerSave) 1 else 0}")
+                compose.waitUntil(10_000) { power.isPowerSaveMode == originalPowerSave }
             } finally {
                 try {
                     if (batteryOverrideStarted) shell("cmd battery reset")

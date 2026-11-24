@@ -323,7 +323,7 @@ open class PoolsRepositoryImpl constructor(
                                     baseToken = asset,
                                     targetToken = targetAsset,
                                     baseReserves = mapBalance(reserves[0], asset.precision),
-                                    targetReserves = mapBalance(reserves[1], asset.precision),
+                                    targetReserves = mapBalance(reserves[1], targetAsset?.precision ?: asset.precision),
                                     totalIssuance = total ?: BigDecimal.ZERO,
                                     reserveAccount = reserveAccountAddress
                                 )
@@ -1010,6 +1010,9 @@ open class PoolsRepositoryImpl constructor(
 
                         val reserveAccountAddress =
                             reserveAccount?.let { soraChain.addressOf(it) } ?: ""
+                        // A target the chain does not list is never shown (mapPoolLocalToData drops it).
+                        val targetPrecision =
+                            assets.firstOrNull { it.currencyId == targetToken }?.precision ?: asset.precision
 
                         BasicPoolLocal(
                             tokenIdBase = tokenId,
@@ -1017,7 +1020,7 @@ open class PoolsRepositoryImpl constructor(
                             reserveBase = mapBalance(reserves[0], asset.precision),
                             reserveTarget = mapBalance(
                                 reserves[1],
-                                asset.precision
+                                targetPrecision
                             ),
                             totalIssuance = total ?: BigDecimal.ZERO,
                             reservesAccount = reserveAccountAddress,

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="appearance_title">Оформление</string>
+    <string name="appearance_effects_title">Визуальные эффекты</string>
+    <string name="appearance_effects_automatic">Авто</string>
+    <string name="appearance_effects_reduced">Минимальные</string>
+    <string name="appearance_effects_automatic_description">Полный свет и тени, если устройство не требует большей контрастности.</string>
+    <string name="appearance_effects_reduced_description">Сплошные плоские поверхности без свечения и теней.</string>
+    <string name="appearance_effects_kept_reduced">Настройка контрастности на устройстве оставляет эффекты минимальными.</string>
+    <string name="appearance_contrast_title">Повысить контрастность</string>
+    <string name="appearance_contrast_description">Более яркий текст и сплошные контуры. Пока настройка включена, эффекты остаются минимальными.</string>
+    <string name="appearance_preview_title">Предпросмотр</string>
+    <string name="appearance_save_failed">Не удалось сохранить этот выбор.</string>
+</resources>

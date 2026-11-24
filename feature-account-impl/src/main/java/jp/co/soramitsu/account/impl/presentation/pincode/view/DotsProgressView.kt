@@ -6,6 +6,12 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
+import jp.co.soramitsu.common.compose.theme.fw.FwColors
+import jp.co.soramitsu.common.compose.theme.fw.FwEffects
+import jp.co.soramitsu.common.compose.theme.fw.FwMotionKind
+import jp.co.soramitsu.common.compose.theme.fw.FwMotionMode
+import jp.co.soramitsu.common.compose.theme.fw.FwPinDotDrawable
+import jp.co.soramitsu.common.compose.theme.fw.motionPolicy
 import jp.co.soramitsu.feature_account_impl.R
 
 class DotsProgressView @JvmOverloads constructor(
@@ -16,6 +22,8 @@ class DotsProgressView @JvmOverloads constructor(
 
     companion object {
         const val MAX_PROGRESS = 6
+        private const val SUNLIT_DOT_DP = 16
+        private const val SUNLIT_DOT_MARGIN_DP = 9
     }
 
     private var circles: Array<View?>
@@ -46,7 +54,40 @@ class DotsProgressView @JvmOverloads constructor(
         setProgress(0)
     }
 
+    private var sunlitDots: List<FwPinDotDrawable>? = null
+    private var sunlitFx: FwEffects? = null
+    private var shown = 0
+
+    /** Sun-lit dots: inset wells that fill with brand light from the key-light side (120 ms). */
+    fun applySunlitStyle(fx: FwEffects, colors: FwColors) {
+        val density = resources.displayMetrics.density
+        sunlitFx = fx
+        clipChildren = false
+        clipToPadding = false
+        val size = (SUNLIT_DOT_DP * density).toInt()
+        val margin = (SUNLIT_DOT_MARGIN_DP * density).toInt()
+        sunlitDots = circles.map { circle ->
+            FwPinDotDrawable(colors, fx, density).also { dot ->
+                circle?.background = dot
+                circle?.layoutParams = LayoutParams(size, size).apply { setMargins(margin, 0, margin, 0) }
+            }
+        }
+        shown = 0
+    }
+
+    /** A wrong PIN tints the entered dots danger until they clear. */
+    fun showError(error: Boolean) {
+        sunlitDots?.forEach { it.error = error }
+    }
+
     fun setProgress(currentProgress: Int) {
+        sunlitDots?.let { dots ->
+            val animate = sunlitFx?.motionPolicy()?.mode(FwMotionKind.PinDot) != FwMotionMode.Still
+            dots.forEachIndexed { index, dot -> dot.setFilled(index < currentProgress, animate && index >= shown) }
+            shown = currentProgress.coerceIn(0, MAX_PROGRESS)
+            if (currentProgress >= MAX_PROGRESS) completeListener()
+            return
+        }
         for (circle in circles) {
             circle?.background = emptyDrawable
         }

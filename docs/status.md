@@ -1,6 +1,1300 @@
+## Android 4.3.8 crash fixes on the consolidated line — 24 November 2026
+
+- Play's 4.3.7 (239) crashes are fixed here too, as on the 4.3.8 (240) hotfix line `release/android-4.3.8`, which
+  was built from 4.3.7's own source. The two fix commits are cherry-picked unchanged; this line keeps its 4.3.7 (239)
+  source version, so its next Play release needs version code 241 or higher.
+- EVM icons: `IconGenerator.generateEthereumAddressIcon` zero-pads ids shorter than 32 bytes. The 19-byte EVM wallet
+  seed crashed Send with any EVM recipient and the home of EVM-only wallets. WalletConnect's 20-byte ids hit the same
+  crash. The runtime-utils source pins are unchanged from 4.3.8 and verify against this tree.
+- Missing networks: the TON Connect bridge reads its address from the live catalog per wallet and stays idle without
+  one; NFT pages read one catalog snapshot per batch; the TON-only home placeholder accepts an empty catalog. Before,
+  the strict 60-second `getChain` could end the process without a tap.
+- Checks: 2,543 unit tests in runtime-utils, common, TON Connect, NFT and `*BalanceList*` (0 failures), `detektAll`,
+  `scripts/verify-android-runtime-sources.sh`. The release record is `docs/releases/4.3.8.md` on the 4.3.8 line.
+
+## Bitcoin and Solana logos; 4.3.7 on the consolidated line — 23 November 2026
+
+- `runtime/src/main/assets/native-icons/bitcoin.svg` and `solana.svg` were grey circles with the letters "BT" and "SO".
+  The wallet home, Receive and Send showed those letters (4.3.7 and earlier). They are now the network logos:
+  Bitcoin is this repository's `remote-config/assets/icons/tokens/coloured/BTC.svg` (SHA-256 `b34e548b…97b9`), Solana
+  the web extension's `public/icons/tokens/coloured/SOL.svg` at fearless-wallet-web `4689df2d` (`fb1dcf2e…e27b`). No
+  digest pins these files. `NativeWalletChainsTest` rejects letter placeholders; `AndroidBrandAssetsInstrumentedTest`
+  checks the rendered logo colours instead of white letters.
+- Google Play's 4.3.7 (239), at 100% of production since 19 November, was built from `ca0928f0f`, which existed only
+  on a local branch. Its Switch node fix is now on this line, so the source version here is 4.3.7 (239). The Play
+  screenshots of 23 November show the new logos, which 4.3.7 does not have.
+
+## IrohaConnect wallet (Iroha Connect v1, SORA Taira) — 21 November 2026
+
+Branch `feature/iroha-connect-android` (from `release/consolidated-20261110` @`b9ec33e15`). New modules
+`feature-irohaconnect-api` and `feature-irohaconnect-impl`; a port of the browser wallet's IrohaConnect
+(fearless-wallet-web PR #1122). A dApp that uses `@iroha/connect-widget` on Taira can pair with Android through a QR
+scanned on the wallet screen, or through the widget's same-device "Open wallet" link (`irohaconnect://connect?…`, also
+`iroha://connect?…`), which a new intent filter and `WalletEntryIntentPolicy` admit. The session screen opens only
+after the PIN.
+
+- **Links** are parsed strictly: exactly the nine fields, `v=1`, `role=wallet`, the pinned Taira NetworkId and its own
+  Torii root, canonical unpadded base64url, and `sid = blake2b-256("iroha-connect|sid|" || NetworkId || app_pk ||
+  nonce)`. Retired Uranai links, unknown networks, SORA Nexus (NetworkId still unpinned) and foreign relays get their
+  own messages.
+- **Relay:** OkHttp WebSocket to `wss://taira.sora.org/v1/connect/ws?sid=…&role=wallet` with the token in the
+  `iroha-connect.token.v1.*` subprotocol; interceptors are dropped so no logger sees it. Only binary frames are sent
+  (Torii closes a socket on any text frame); the keepalive is a sequenced Connect Ping every 20 s.
+- **Approval** signs the tagged preimage (domain, NetworkId, constraints hash, sid, app key, wallet key, account,
+  permissions hash, relay auth hash) with the account's Ed25519 key, re-derived from the wallet root and checked
+  against the stored key and address first. Session keys: X25519 + HKDF-SHA256, sid-salted, one key per direction;
+  every envelope is a ChaCha20-Poly1305 Norito `EnvelopeV1`, in strict sequence.
+- **Transactions:** a `SignRequestTx` is decoded field by field (LEB128 lengths, u64 counts, the transfer frame's u64
+  container), checked against the iroha-js 0.0.3 codec's canonical rules and re-encoded to the exact bytes before
+  anything is shown. Asset transfers and contract-call batches are reviewable; anything else is refused
+  (`UNSUPPORTED_TRANSACTION`, `INVALID_TRANSACTION`, `WRONG_ACCOUNT`, `WRONG_NETWORK`) and never signed. Approval signs
+  `irohaHash(payload)`. Requests expire after 120 s; a second request while one is open, or one the session did not
+  ask permission for, is refused. Raw requests get `SIGNING_KEY_REQUIRED`.
+- **Not yet:** a background session lives only while the process runs (no foreground service), so on the same device
+  Android may freeze the socket while the person is in the browser; Nexus stays refused until its NetworkId is pinned.
+
+- **Accounts:** a wallet's stored Taira row when it has one; otherwise the account its universal root derives
+  (`UniversalWalletSlot.TAIRA`), as the browser wallet does. No Android chain catalog lists Taira yet, so the account
+  upgrade never adds that row and imported wallets would otherwise offer no account.
+- **Threads:** the session runs on its own thread, and signing (secret reads and key derivation) runs outside its
+  event loop. On the shared IO pool the app's chain sync starved the keepalive, and Torii dropped the session.
+
+Validation (local; this project has no CI):
+
+- Unit tests: 45 in the two new modules, plus the touched app and wallet classes (RootViewModel, WalletEntryIntent,
+  WalletRootActivity, BalanceListViewModel: 75). The vectors (`src/test/resources/irohaconnect/web-vectors.json`) come
+  from the browser wallet's own code at 6f1fc6b5 and the upstream iroha-js 0.0.3 SDK (`src/test/vector-generator`):
+  29 links, frames, keys and envelopes, 72 transaction payloads (reviewed or refused with the same code), and four
+  complete app-SDK sessions that the Android service replays byte for byte. `detektAll` is clean.
+- Live, 21 November 2026, on an API 34 emulator with the debug build and the public `abandon … about` phrase
+  (`live.sh`): the upstream SDK registered a session on https://taira.sora.org and launched `irohaconnect://` on the
+  unlocked wallet (an earlier cold start through the link stopped at the PIN first and opened the session screen after
+  it); the SDK verified the approval for `testuﾛ1Pc…687Y`, the transfer (0.001 XOR) and
+  contract-call signatures verified against their payload hashes, the session stayed up across 45 s of Connect pings,
+  the raw request was answered `SIGNING_KEY_REQUIRED`, and the dApp's close showed as such. Nothing was submitted.
+
+## Nomis scoring removed — 21 November 2026
+
+The app no longer sends wallet or recipient addresses to the Nomis API (`api.nomis.cc`). Removed: the score star on wallets, toolbars, the send recipient and address history; the wallet score sheet and its wallet-options button; the settings switch; the low-score warning on send; the 12-hourly background score sync; and the client with its `NOMIS_*` BuildConfig fields and the release workflow's `FL_NOMIS_*` secrets. The phishing-list warning on send is unchanged. The `nomis_wallet_score` table and `NomisScoresDao` stay, unused, so schema 84 and its identity hash do not change.
+
+Local unit tests (debug): common 1,502, account API 106, account 1,438, wallet 1,579, TON Connect 260, app 451; no failures or skips. One wallet run failed `SwapDetailFragmentRobolectricTest` on an exception leaked by the earlier `TransactionDetailFragmentsRobolectricTest`; that class alone and the full wallet module then passed. `:app:assembleDebug`, the app, common and account androidTest compiles, `detektAll` and `scripts/test-android-play-release-guards.sh` (4 positive, 128 negative cases) pass. No device run.
+
+## TON Connect links start the connection — 21 November 2026
+
+A dApp's TON Connect link now opens the same connect flow as the scanner (manifest, `TonConnectionDetails` approval, reply over the bridge), from both ways a listed wallet is reached:
+
+- **Links opened in the app:** `https://fearlesswallet.io/ton-connect/?v=2&id=…&r=…` (the universal link of the wallets-list entry, a verified App Link) and `tc://?v=2&id=…&r=…` (new manifest filter, admitted by `WalletEntryIntentPolicy` only with nothing before the query). `RootViewModel` acts on them only once the wallet is unlocked and the PIN screen is gone; nothing is fetched for a link before that, and the approval waits for the PIN again if the wallet locks while the manifest loads. A link delivered again while its approval is open is ignored. A host restored after process death or a configuration change does not hand its link on again.
+- **Scanners:** the TON Connect connections scanner and the wallet's QR scanner accept the universal link as well as `tc://`. Before, the wallet scanner opened Send with the universal link as the address.
+- **One strict parser,** `TonConnectLink.parse`: `tc://` or exactly the universal link, protocol version 2, one 64-hex client id, one ConnectRequest naming at least one item; the query is form-decoded (`+` is a space) and a repeated parameter is rejected. `ret` is ignored: the wallet does not switch back to the dApp. An invalid link shows "This TON Connect link is not valid. Open a new one from the dApp." (8 locales). Before, a wrong client id or empty request was reported and the flow carried on to `clientId!!`.
+- The reply still goes to the catalog's `tonBridgeUrl`; production needs #1284 (connect.ton.org) for any TON Connect connection to complete.
+
+Tests: `TonConnectLinkTest` (both link forms, the `trace_id` and `ret` that SDK 4 adds, form decoding, case, rejected bases, versions, client ids, requests, percent-encoding), `TonConnectLinkConnectionTest`, `RootViewModelTonConnectLinkTest` (PIN first, PIN screen replaced, relock during the manifest read, invalid links, repeated delivery), `WalletEntryIntentPolicyTest`, `WalletRootActivityTest` (a restored host drops its link), and both scanners' tests. Local unit tests (debug): TON Connect API 44, TON Connect 266, app 464, wallet `BalanceList*` 60; no failures or skips. `detektAll` passes. The branch merges cleanly with #1285 (Iroha Connect).
+
+## Story progress — 20 November 2026
+
+The stories screen uses an app-owned segmented progress view. Neither the app nor legacy crowdloan recovery declares the former JitPack library. Its AAR had no Android manifest components; the release component inventory is unchanged.
+
+`StoryProgressViewTest` exercises timed advance, pause/resume, reverse/skip, detach/reattach and one-shot completion on Robolectric API 36 without a wallet or network.
+
+## Retired crowdloan providers — 20 November 2026
+
+Android no longer packages the retired contribution-provider snapshots. Legacy recovery reads relay storage, not provider credentials. Historical database migration seeds are unchanged. Published signed configuration still requires owner cleanup.
+
+## Android production rollout — 19 November 2026
+
+Google Play serves Android 4.3.6 (238), targeting API 36, to 100% of the production audience. A Play crash trace from 4.3.5 exposed a Switch node crash that was reproducible on the 4.3.6 source. The fix is in the 4.3.7 (239) candidate.
+
+## Android 4.3.6 release preparation — 17 November 2026
+
+The 238 candidate includes the integrated 16 November source and the signed Liberland fallback configuration. Its release ledger records the unchanged database schema 84. A release test caught a stale “Connected” banner during rapid network loss; the fix refreshes its text and prevents obsolete recovery animations from hiding it. Exact local release validation and store receipts are retained in the parent workspace under `output/production-release-20261117/android/`. See `docs/releases/4.3.6.md`.
+
+The signed 238 artifact is bound to `7030be7a12fe`. The full 11,806-case unit run, configured live/legacy checks, lint and release-wallet suite have passed with explicit pre-existing skips retained. The current upstream NFT test correction is integrated and its 135-case module passed. The retained 237-to-238 wallet upgrade preserves public identities, ten sealed records and the exact public test phrase; old 237 ANRs and the host-reboot boundary remain documented. The final release guards passed, including all 31 appearance configurations and the final 1,504-case common-module suite. Google Play upload and production publication remain pending.
+
 > Historical qualification receipts named in this document are retained in the local consolidation recovery archive, outside the public source tree. They are not current release approval. See `docs/public-source-qualification.md` for the published source checks and remaining release gates.
 
 # Status Summary
+
+## Wallet home polish: the network named once, clean gutters, a one-line search hint — 18 November 2026
+
+Branch `claude/android-home-polish-20261117` (from `c8dc923c4`). UI, presentation and dead code only; no key, signing,
+storage, migration or remote-config code is touched.
+
+- **A row names its network once.** The one list printed the network on a line above each row and again inside it
+  ("Polkadot" over "POLKADOT · POLKADOT"). The line above is gone; the row's caption is the token's name and its
+  network ("TETHER · MOONBEAM"), and a native token named after its network is one name ("POLKADOT"). Where the list
+  already names the network, under the selected network chip or under a network header, the caption keeps to the token
+  ("TETHER"). Read aloud, every row says its token and network once, in plain case ("Tether, Moonbeam").
+- **Nothing shows beside a resting row.** The Send / Receive / Hide actions behind a row waited just outside it and
+  showed as a dark sliver in the page gutter. They now exist only while the row is swiped their way (they fade in over
+  the first 40 dp), so nothing is drawn or tappable there at rest. The same actions are the row's accessibility
+  actions, since a screen reader cannot swipe a row.
+- **The shared search hint keeps to one line** at every text size and ends in an ellipsis when it does not fit
+  (at 200 % "Search tokens and networks" wrapped and outgrew the field).
+- **Removed, unused:** `BottomNavigationBar` with its `NavigationItem` and the `ic_nav_settings` drawable only it
+  named; the success sheet's hash-actions observer and external-actions sheet (its event was never sent) with the
+  view model's unused `ExternalAccountActions` side; `PortfolioListItem.NetworkHeader` and its toggle callback
+  (never produced since the one list).
+- Tests: `AssetListItemTest`, `AssetListItemNetworkNamingTest`, `SwipeBoxTest`, `SwipeBoxGutterTest` (pixels),
+  `CorneredInputTest`, `WalletOneListRobolectricTest`, `WalletOneListScreenshotTest` (captures at default and 200 % text).
+
+## The wallet home is one searchable token list — 16 November 2026
+
+Branch `claude/android-wallet-one-list-20261116` (from `ab3fad03f`), the Android port of the web one list (Chrome
+4.2.9) onto the sun-lit, branded home. UI and presentation only.
+
+- The By token / By network switch is gone. A search field ("Search tokens and networks") is always above the list: it
+  matches token symbol, token name and network name, and narrows exact (network, asset) holdings before they are
+  grouped, so a group's total counts only the networks that matched.
+- Under it, network chips: All networks, a Popular or Favorites group while one filters the list (it reopens the full
+  network list), every network the wallet holds something on (largest trusted value first; a selected network that
+  holds nothing keeps its chip), and More networks. A chip is the header's network filter, saved per wallet; picking it
+  again shows every network. A wallet held to one network (TON-only) gets no chips, like the header.
+- Zero balances stay behind their toggle until a search finds them; then they are listed without the toggle. Hidden
+  assets stay out of the list, and the totals and "what the total leaves out" stay wallet-wide.
+- A search that finds nothing on a chosen network offers "Search all networks" (the words are kept).
+- A wallet that kept By network sees "All your assets in one list" once; closing it makes the token list its own.
+  Manage assets no longer groups by network either.
+- Tests: `PortfolioDiscoveryTest`, builder, preferences, `BalanceListViewModelTests`, Manage assets, row-key collision
+  test with search, Robolectric `WalletOneListRobolectricTest` and `WalletOneListScreenshotTest` (PNG captures).
+  Evidence: `build/reports/android-wallet-one-list-20261116/` in the workspace.
+
+## Unbond confirmation: fee revoked with its review (B36) — 16 November 2026
+
+The intermittent `UnbondReviewAndQuoteTest` failure had a production cause: the unbond confirmation screen projected its
+balance, fiat amount and fee status on `Dispatchers.Default`, so after a source change the "review changed" dialog
+could appear while the fee row still showed its earlier state (null in the test). 6af2d5304 (29 October) made the test
+wait for the late fee. The projections now run on Main in the same turn as the review change, and the test again checks
+the fee right after the dialog. Loop counts (JUnitCore loop in the test JVM): the pre-6af2d5304 assertion failed in 118
+of 300 runs on the previous code, and in none of 600 after the fix; the test as committed passed 400 of 400.
+Validation, signing and submission are unchanged.
+
+## Remove liquidity: minimum outputs rounded to each asset's decimals — 16 November 2026
+
+`LiquidityRemovePresenter` sent `amount × 0.995` as each minimum output, with up to three more decimals than the asset
+has, and `PoolsRepositoryImpl.validateRemoveLiquidity` converts each minimum with `exactPositivePlanks`, which refuses a
+value finer than the asset ("Minimum … output exceeds the canonical asset precision"). Any withdrawal whose amount
+used the asset's last decimals therefore failed before signing. Each minimum is now rounded down to its asset's
+precision before the confirm screen, as `validateAddLiquidity` already does for deposits.
+
+This changes what is submitted: `output_a_min`/`output_b_min` of `PoolXYK.withdraw_liquidity` are now
+`floor(amount × 0.995)` in planks, at most one plank below the exact product, so the slippage bound is never tighter
+than 0.5 % and never looser by more than one plank. Amounts, the withdrawn pool tokens and the repository's checks
+(precision, positive, fresh reserves, fresh position) are unchanged. Test: `LiquidityRemoveMinimumOutputPrecisionTest`
+(a 6-decimal target next to 18-decimal XOR); both cases failed before with "… exceeds the canonical asset precision".
+
+## Automatic balances: Receive watch, Retry and the cross-chain reader — 16 November 2026
+
+Follow-ups to the 13 November balance work (`ac449228a`), on `claude/android-followups-20261116`:
+
+- **A first deposit on a network outside background sync now shows as it arrives when the user asked to receive
+  there.** The Receive screen asks the registry to watch the network it shows (`ChainRegistry.watchForDeposits`):
+  the network joins background sync, so its balance subscription runs, while the screen is open and for 30 minutes
+  after it closes or moves to another network. A deposit stored meanwhile makes the network funded and background
+  sync keeps it; without one the network leaves the selection and is disconnected like any other. Deposits nobody
+  announced through Receive still wait for the daily sweep or a pull-to-refresh (`docs/roadmap.md`).
+- **"Retry" on a network issue no longer leaves a connection nobody owns.** It sets the network up again through the
+  registry (`ChainRegistry.withRetriedConnection`): a network background sync keeps stays connected as before; any
+  other is disconnected once the retry has its answer, and a selection change during the retry cannot strand it.
+- **The cross-chain balance reader reads like discovery** (`withDiscoveryConnection`): a bridge origin outside
+  background sync is connected for the read only. Cross-chain transfers stay compiled off in releases.
+
+Tests: `ChainRegistryDiscoveryLeaseTest` (retry and watch rules), `RetryChainSyncConnectionTest` and
+`ReviewedBridgeBalanceReaderConnectionTest` (a real registry over mocked pools), `ReceiveSnapshotTest`. No signing,
+key or extrinsic code changed.
+
+## SORA pools and swap bugs found by the coverage campaign, fixed — 16 November 2026
+
+Branch `claude/android-bugfix-batch2-20261116` (from `9cc061b3d`, batch 1): one commit per bug, each with a JVM test
+that failed before its fix. Amounts are tested with a 6-decimal target asset next to 18-decimal XOR.
+
+- Demeter farming: Deposit/Withdraw with an empty, "." or zero amount crashed the app; they now show "Enter a positive
+  amount" and submit nothing.
+- Pool details: "null%" APY for pools without a strategic-bonus yield (now empty); the pooled target amount was valued
+  at the base token's price.
+- Pool reserves: `getBasicPools`/`updateBasicPools` converted target reserves with the base asset's precision, so a
+  non-18-decimal target's reserve was off by 10^(18 - decimals) and the two cache refreshes disagreed.
+- Add liquidity: the empty-reserve check tested the target reserve twice, so a pool with no base reserve priced the
+  counterpart amount at zero.
+- Remove liquidity: with part of a position farmed, the withdrawable target amount was rounded to the base token's
+  18 decimals instead of the target's.
+- Pool list: rows rebuilt by a search, or built after the yields arrived, kept a loading APY for good; rows and yields
+  now come from one combined flow, and a pool without a yield shows no APY.
+- Swap: a pair with no route showed nothing (untitled `PathUnavailableException`); a quote or fee estimate that threw
+  ended its flow, so later amounts got no quote or fee.
+- Slippage slider: one step too many (2.0 % read 1.980198 %).
+
+No signing, key or extrinsic-building code changed. Evidence: `build/reports/android-bugfix-batch2-20261116/` in the
+workspace.
+
+## Bugs found by the coverage campaign, fixed — 16 November 2026
+
+Branch `claude/android-bugfix-batch-20261116` (from `fc9dc707b`): one commit per bug, each with a JVM test that
+failed before its fix.
+
+- Countdown timers (`Timer` composable) overflowed the stack when they reached zero: `onFinish()` called itself.
+- `percentageToFraction()` lost digits (12.5 % → 0.1); no screen used it yet.
+- Update prompts (wallet list, asset search, network accounts, startup version check) closed the app on a device
+  with neither the Play Store nor a browser; `Context.openPlayMarketPage()` now opens nothing there.
+- Staking: "Change your validators" never showed on paged-exposure chains (ByteArray `in`); Ternoa estimates threw
+  `NumberFormatException` with no validators or payout history; pool screens never showed on-chain identity names
+  (looked up by SS58 instead of hex id); validator/collator filter "Apply" could wait forever on its own cache entry.
+- Wallet: every MoonPay purchase failed on the app's own `fearless://buy-success` redirect; the network picker's
+  sort was discarded; later history pages ignored the active filters; cached swaps lost their module; a cancelled
+  Google backup lookup was shown as a backup error.
+- `RpcCalls.extrinsicStatusFlow()` threw before listening (no unsubscribe method for
+  `author_submitAndWatchExtrinsic`); nothing calls that path today.
+- The hidden PIN recovery panel kept an indeterminate spinner animating under the PIN pad.
+- Previews only: AccountInfo and join-pool previews passed a `Painter` to Coil.
+
+`BottomNavigationBar` (its layer-list icon failed in `painterResource`; used by no screen, only its own preview) was
+removed on 18 November. Not changed: TON `.ton` recipient names never reach `TonTransferService`, because send validation accepts only raw and
+user-friendly addresses. Evidence: `build/reports/android-bugfix-batch-20261116/` in the workspace.
+
+## One line again: 4.3.5 (237) inside the consolidated branch — 16 November 2026
+
+`release/consolidated-20261110` (PR #1279) now merges `codex/android-branded-4.3.5` (`d857e0ca7`), the source of
+the 237 build Google Play serves: the 4.3.4 crash fixes (`3123ec916`, `e6324898c`, `a8b35c548`, `91eec1f64`,
+`6fb752f28`), the runtime source pin fix `eb7d9881a`, and the 4.3.4 and 4.3.5 release records. PR #1280 carries
+nothing this branch lacks. Only `docs/status.md` and `docs/roadmap.md` conflicted; both sides' sections are kept.
+
+The branch now says 4.3.5 (237), but it holds more than the 237 bundle (automatic balances, Shikiban motion). Play
+accepts a version code once, so a release from this branch or from master needs a new code (238 or later) and its own
+version name, with the IAS hardcodes changed in the same commit.
+
+## Holdings on every network, bounded connections — 13 November 2026
+
+The owner asked on 13 November 2026 for token balances that load faster and stay clear and accurate, with no assets to
+manage or add by hand. Checked first on this line (a debug build of `2699b0300` on an emulator, with the public dev
+phrase): a new wallet already reads every network once, and a funded row keeps its network in background sync whatever
+its preference. The wallet's DOT on Hydration, an unranked network, was listed 83 s after import with nothing enabled
+(row preference Auto). What did not hold, now fixed:
+
+- **Discovery could disconnect a network background sync had just taken over.** The sweep decided ownership from
+  `syncedChains`, which the registry publishes only after a whole setup batch. When the sweep stored a funded balance on
+  a network outside background sync, the registry selected that network while the sweep still held its read connection,
+  and the sweep's clean-up could then remove it: the network stayed "synced" without a connection, its balance stopped
+  updating until the app restarted, and the next sweep waited 45 s on it and timed out. The registry now makes every
+  disconnect decision (`ChainRegistry.withDiscoveryConnection`): the background-sync selection and the stops it implies
+  are made under one lock, a read keeps its network connected until it ends, a network the selection drops during a read
+  is disconnected when the read ends, and a read that stores a funded balance waits up to 5 s for background sync to
+  take the network over instead of closing it and opening it again.
+- **The first scan of a new wallet left every network it read connected.** Balance loaders connect a network they read
+  and never disconnect it, so after a wallet was added the app kept a connection and a runtime for every catalog network
+  until the process ended. `WalletSyncService` now reads through the same lease, so afterwards only the background-sync
+  selection stays connected: ranked networks, networks a live feature needs, and every network holding funds or a shown
+  asset. One network that cannot be connected or read no longer aborts the whole first scan; its rows stay unknown and
+  the sweep reads it again. Heap of the emulator app after a new wallet's first scan and sweep: 36 Substrate
+  connections, 36 runtime providers and 35 decoded runtimes before, 15, 14 and 13 after.
+- **A stopped EVM connection reconnected on its own.** `EthereumConnectionPool.stop` shut the client down, which closed
+  its socket, and the Closed status started the next node attempt outside the pool, while the pool's status watcher kept
+  the object alive; setup also built connections inside a retried state update, so contention could leave duplicates
+  connecting. Stopping now closes a connection for good (`EthereumChainConnection.close`: no further node attempts, the
+  watcher cancelled) and setup builds one connection per network under a lock. Discovery stops networks routinely now,
+  so this had to hold: without it the same heap held 52 EVM connection objects, with it 7, the seven ranked EVM
+  networks (18 before these changes).
+- **Solana was marked "Asset discovery timed out" after every sweep.** The catalog stores the app-owned networks as
+  Substrate, Solana with an HTTP node, so the sweep waited 45 s for a Substrate runtime that never comes and flagged
+  Solana stale although its balance read fine. `Chain.needsRegistryConnection()` (runtime) is now the one rule for both
+  readers: Substrate and EVM networks with a node; Bitcoin, Solana, Iroha and TON are read over their own clients.
+- **Two setups of one network could fail each other.** `ChainRegistry.setupChain` now runs one call per network at a
+  time. A concurrent second call superseded the first one's connection command, which then failed as "Runtime
+  configuration was superseded" and reported a healthy network as a sync problem.
+- **Equilibrium stored "-1" over the last known balance** when its runtime was not ready within 15 s, which replaced the
+  amount with "Balance unavailable". It now stores nothing then, like the Substrate loader. Equilibrium is not in the
+  production catalog this line ships.
+
+Already true on this line and unchanged: a row whose read fails stays listed, with its last stored amount or "Balance
+unavailable" when none was ever read, under the network's stale marker; an explicitly shown asset is listed at zero
+(`PortfolioVisibility.isVisible`); explicit Hidden choices are kept.
+
+Verified locally on `fc63951a9` (this project has no hosted CI gate): the unit suites of runtime (455, 10 skipped), app
+(252), feature-account-impl (1,098) and feature-wallet-impl (828) pass with no failures, and `detektAll` passes. The
+background-sync rule is covered by `ChainActivationPolicyTest` and by `ChainIdsNeedingSyncDaoTest`, run on an API 34
+emulator; the lease by `ChainRegistryDiscoveryLeaseTest`, the hand-over by `DiscoveryHandoverTest`, and the first scan,
+the EVM pool and Equilibrium by their own tests. `DiscoveryHandoverTest` and the Equilibrium test fail on the previous
+code, and each lease test fails with its rule undone. Emulator, debug builds with the public dev phrase and nothing
+enabled: the Hydration DOT was listed after import on both builds; after the first scan and sweep, Solana carried no
+error; with Hydration zeroed and out of background sync, the sweep found it again and background sync kept the
+connection (the next sweep read Hydration over it in 0.3 s). The base build did not hit the hand-over race in its one
+device run; the window depends on timing, which the test fixes.
+
+## Shikiban: depth, instruments and sacred geometry — 15 November 2026
+
+The owner asked on 15 November 2026 for cooler, informative animations, a 3D zoom at startup and a high-tech DeFi look
+that keeps the Yatagarasu, ancient-futurist feel, with sacred geometry guiding the composition. The shared contract is
+the brand kit's SPEC section "Shikiban" (kit v4, manifest `19675ac7…4cd7`, pinned in `scripts/generate-brand-assets.py`,
+which copies `tokens/shikiban.json` to `common/src/main/res/raw/fw_shikiban.json`); branch `claude/shikiban-motion` on
+`release/consolidated-20261110`. UI only: keys, signing, storage, networking and chain logic are unchanged; the send
+flow and the balance loaders are only observed. No new user-visible words and no new library.
+
+- **Tokens and maths** (`common/.../shikiban/Shikiban.kt`): the kit's numbers read from the bundled file and its
+  formulas (depth law, gates, iris, tiers, landing, dial, seal, loader, rim) as plain functions, checked against the
+  kit's sampled keyframes (`ShikibanTest`).
+- **Launch flight** (SPEC part 1) replaces v3's zoom at the clip's dive: six gates about the dive's focus over the clip,
+  the mirror opening a round hole through the overlay (offscreen layer, DST_OUT), the corona, and the first screen's
+  tiers flying up through it (`LaunchFlightStage`; wallet home: balance card, round actions, header and tab bar,
+  segment controls, list; PIN: lockup, keypad, the rest). `launchArrive` 1000 ms into the flight; a tap plays the rest
+  2.5 times faster; the overlay stops drawing and releases the player once the opening has cleared the view and is
+  removed, with every transform cleared, when the flight ends. The later unlock landing brings the wallet's tiers from
+  `flight.landingFrom[k]` to 1 (510 ms, `easing.settle`, 45 ms apart) from the wallet's first composed frame. Hold,
+  skip, the clip-drop fallback, the splash hand-off, PIN and biometrics are unchanged. Reduced motion and the app's own
+  Reduced effects choice show no clip, no flight and no landing.
+- **Sync dial and heaven plate** (part 2): an 18 dp dial beside the status words under the balance. It counts real
+  scan events of the balance loaders (`NetworkScanStateStore`) since the sync began (app start, refresh, wallet or
+  network-filter change): networks started, answered and given up. While any is outstanding the count shows in cyan
+  ("9 / 14") in place of "Loading balance…", which stays the accessible text; the hero's tick ring turns 14 times
+  faster and the geometry brightens by half again.
+- **Seal** (part 3): the send confirmation's full-screen loader shows the transfer's stages on the solar geometry. The
+  screen can tell only the press and the network's acceptance apart, so `ready` draws first and `signed`, `sent` and
+  `accepted` draw together on acceptance; the success screen continues the same figure from the stage reached
+  (`TransferSeal`). A failure breaks the seal while the app's own error appears as before. The send confirmation is a
+  secure surface (press feedback only), so there the seal shows the stages reached without drawing or comets; it moves
+  over the wallet (debug seam) and on the success screen. The same seal now runs on the cross-chain confirmation, the
+  Polkaswap swap preview and the shared staking confirmation (pool create/edit/bond more/claim/redeem/unbond and pool
+  validator selection): `ready` at the hand-over, the rest with the hash, a break on a definite failure (cross-chain: only
+  when nothing was retained), and the success screen continues the figure. The relay-chain staking confirmations (bond
+  and nominate, bond extra, unbond, rebond, redeem, payout, reward destination, set controller), whose progress is a
+  spinner in their button, draw it over the whole screen on ink at 72 % through `TransferSealOverlayHost` (laid over the
+  wallet host's content: it takes no touches and leaves the moment the operation is accepted, or after the break);
+  joining a pool draws it on its sheet's loader, and a retained, unsettled join clears it. Debug builds can drive the
+  stages over the wallet (`am broadcast -a <package>.debug.SEAL --es stage ready|signed|sent|accepted|failed|clear`).
+- **Loader** (part 4): the restyled full-page loader (64 dp, so it still fits the 120 dp hosts the app gives it) and the
+  send screen's fee estimate (24 dp) show the three-comet mirror loader. The wallet's pull-to-refresh keeps Material's
+  indicator (not drawn by the app).
+- **Composition marks** (part 6): corner brackets, yamato ticks and the asanoha lattice at 5 % on the balance card,
+  drawn once; a 220 dp band of light crosses it every 9 s above the text (Full effects tier only).
+- **Value tick** (part 5): on the wallet home a row's amount and fiat value come in from 6 dp below or above and a
+  price-up or price-down line sweeps under them when they change; the total gains the line only.
+- **Not done:** dialog arrival (the app draws no dialogs of its own; its sheets and alerts are platform windows).
+
+## Branded production candidate 4.3.5 (237)
+
+4.3.5 (237) combines the Yatagarasu design and Ignite launch with the complete 4.3.4 (236) crash-fix release. The Room schema remains 84.
+
+## Production candidate 4.3.4 (236): fixes for the crashes Play reported — 13 November 2026
+
+Google Play's crash list for the last 28 days held 28 clusters, nearly all from 4.2.0 (229), which most devices still
+run while 4.3.3 (235) is at 20%. No cluster named 235 yet. 4.3.3 already fixed the largest; 4.3.4 is 4.3.3 plus the
+fixes for what it still had: transaction history rows, the history panel's network lookup, three broken translations,
+the controller-account warning, unreadable reward destinations, NFT tiles, navigator ownership, the JSON import result
+and the TON start-up warm-up order. Branch `release/android-4.3.4` from `release/android-4.3.3`. The database schema
+stays 84. Every cluster, its cause and the release that fixes it: `docs/releases/4.3.4.md`.
+
+Built, signed and verified locally from `7a1ca3989` (bundle SHA-256 `5a57bc74…fe49`): 8,080 unit cases, the static,
+Gradle and live checks, the signed-artifact suites, and upgrades 235 → 236 and 229 → 236 on an emulator with the PIN,
+addresses and recovery phrase intact and no crash or ANR. Live on Google Play since 13 November 2026 10:27 KST as a
+20% Production rollout, on the owner's "Yes, submit at 20%" (sent for review at about 09:35, approved within the hour).
+It replaced 235's halted rollout; 229 still serves the other 80%.
+
+## Ignite launch, feel and sound — 13 November 2026
+
+The owner asked on 13 November 2026: "make the yatagarasu ignite animation the launching splash animation and zoom into
+the wallet. make the design much much cooler overall and give some tactile feedback and sound effects when
+sending/receiving tokens". The shared contract is the brand kit's SPEC section "Launch, feel and sound" (kit v3, manifest
+`e49da29b…db84`); branch `claude/ignite-launch-feel` on `release/consolidated-20261110`. UI only: keys, signing, storage,
+networking and chain logic are unchanged, and no library was added.
+
+- **Launch.** After the unchanged system splash and launch art, the wallet host plays the kit's Ignite clip (no audio track)
+  over its first screen on a cold start only (`app/.../root/presentation/launch/`). The clip waits on its hold frame until
+  the first screen a person can act on is shown (PIN, welcome, or any other screen of the host) and no system prompt has
+  the window, then dives, and the screen underneath zooms in from the dive's focus with the `launchArrive` haptic. A tap
+  skips to the zoom; a clip that cannot load or stalls for 1 s is dropped with a plain fade; animator scale 0 and touch
+  exploration get no clip. The rules are in `common/.../launch/LaunchIgniteDirector.kt` and tested without a device. When
+  the PIN page gives way to the wallet, the wallet lands (scale 1.06 to 1, 0.35 s).
+- **No black gap before the clip.** The startup gate no longer sets a splash exit listener. With it, the splash content
+  moved into the gate's window, and when the wallet host opened within ~150 ms of the gate's first frame (the usual case
+  with a wallet and a PIN) the system handed the gate's now empty splash window to the host, skipped the open
+  transition (`STARTING_WINDOW_TRANSFER`, "Non-visible anim so abort") and showed black for 0.2–0.8 s until the host's
+  first frame. Measured on API 36: base 5 of 6 cold launches black, now 0 of 10; the system's own splash exit (a short
+  fade of the crest into the launch art) is what remains.
+- **Sound and touch** (`common/.../feedback/`): the send and receive sounds (SoundPool, sonification usage, nothing in
+  silent or vibrate ringer mode) and the kit's haptic patterns (VibrationEffect primitives where supported, else the
+  waveform; touch usage on Android 13+). Final Send press: `commit`; network accepted the transfer: `send` and the solar
+  ignite on the success screen; failure: the platform's reject feedback; tokens arriving: `receive`, a gold pulse on the
+  balance card and a toast; receive address copied: `commit`. "Arriving" means a token amount growing against a value
+  already known for the same wallet and asset while the wallet is on screen (`ArrivalDetector`): never a first value,
+  a price change or a hidden asset, at most once in 3 s. Settings has "Sound effects" and "Haptic feedback", both on by
+  default, in their own ordinary preferences (`fw_feedback`).
+- **Design.** The wallet hero sits on the kit's sunset sky with the sun behind the crest badge and the solar rings turning
+  round it; an ink scrim keeps every hero text at 4.5:1 or more over the brightest pixel of the sky
+  (`FwIgniteDesignTest`). Cards and the tab bar have the gold-to-pink lit rim; the total counts up from zero on its first
+  reveal after launch and rolls to later values as before; round actions press to 0.94 and the primary one carries a slow
+  sheen; a faint pink and gold aurora drifts behind the wallet home; the active tab glows pink with a gold dot. Reduced
+  effects, high contrast and reduced motion keep the earlier paint or show final states.
+
+## One branch for every open Android PR — 10 November 2026
+
+The owner asked on 10 November 2026 to "merge all code into master branches", folding each repository's open work into
+one PR that a teammate approves. `release/consolidated-20261110` starts at `master` (`86b658605`) and merges three heads:
+
+- PR #1277, `release/android-4.3.3` (`a3171c36b`): 4.3.3 (235). It already contains PR #1275 (4.3.2, 234), which contains
+  PRs #1265 to #1270.
+- PR #1276, `release/sunlit-redesign` (`817bf5103`): the eight remaining surfaces, the recovery label semantics fix and
+  the appearance fixes, which 4.3.3 did not have.
+- PR #1278, `release/yatagarasu-brand` (`83717364f`): the Yatagarasu brand.
+
+The version stays 4.3.3 (235). Where the lines overlap: the Manage assets and pool Start staking crash fixes are identical
+on both; the sheet navigation-bar strip is kept once, with the redesign's XML surface helpers; the alert sheet takes the
+redesign's per-surface flag with 4.3.3's radius token and button-glow fix; 4.3.3's system Back handling of error sheets is
+kept; wallet avatars take both the crest mask and 4.3.3's picture scaling, which also fixes the cropped home avatar. The
+Play notes and the changelog name the crow logo instead of the winged sun. The open items of all three lines are in
+`docs/roadmap.md`.
+
+Two test-only fixes came with the consolidation:
+
+- The migration compatibility contract (`scripts/verify-android-migration-instrumentation-results.sh`) counts the
+  launch-art test that `218de436d` added to `WalletGateActivityLifecycleTest`: 24 for that class, 30 for the app and
+  45 in all. With 23, 29 and 44 every compatibility run refused its own green results ("app ran 30 tests; exact
+  compatibility count is 29"), which is why `build-and-test` failed on PRs #1276, #1277 and #1278.
+- `SunlitPinLayoutInstrumentedTest` applies the window's insets to the hosted PIN page and lays it out again before it
+  measures. From API 35 the test window is edge to edge, and the page kept its unpadded layout while the late padding
+  clipped the "Forgot PIN?" label at 320 x 600 dp (it failed on API 36 only, on every branch). The app's PIN page takes
+  its insets before its first layout and was not affected.
+
+## Yatagarasu brand — 10 November 2026
+
+The owner approved the Yatagarasu brand on 10 November 2026 ("implement all this as the new brand across all our ios,
+android, and browser apps"): the three-legged crow crest, the FEARLESS wordmark, and the animated crow with its
+eagle-and-crow call. It replaces the winged-sun badge everywhere. Branch `release/yatagarasu-brand` (PR #1278), now
+folded into `release/consolidated-20261110` with 4.3.3 and the rest of the redesign.
+UI only: keys, signing, storage, networking and chain logic are unchanged, and no library was added.
+
+- **Source:** the shared brand kit (design package `design/yatagarasu-20261110`, r3; kit manifest SHA-256
+  `70771ec29c8607b1964a966066affb15bb02a2032973227d7f7d2ae3c80c048b`). The 24 files the app uses are copied byte for byte
+  into `brand/yatagarasu/` and pinned in `scripts/generate-brand-assets.py`, which converts the SVG path data verbatim
+  into VectorDrawables and copies rasters, video and sound as they are. `scripts/test-brand-assets.py` checks the pins,
+  that the committed outputs are what the generator writes, the splash circle, the lockup proportions and the retirement
+  of the winged sun. `brand/sun-disc/`, `fw_brand_wings`, `fw_brand_hero`, `drawable_fearless_logo`,
+  `fearless_bird_glossy`, `FwWingsHero`, `FwSunGlowDrawable` and the avatar's `WingedSunClip.kt` are gone.
+- **Launcher:** the adaptive icon is the crest on the ember–pink–plum radial gradient, with a themed (monochrome) layer;
+  debug builds wear the gold crest. Legacy and new round mipmaps come from the kit; the manifest names the round icon.
+- **Launch:** the Android 12+ system splash is the white crest on ink `#120A2E`, the whole crest inside the centre 192 dp
+  circle. The launch art and window background (`fw_splash_launch`) is the stacked lockup on ink at 280 dp, dropped so its
+  crest sits where the system splash left it (radius 86.6 dp against 88 dp): the wordmark appears under a crest that
+  does not move. The startup gate now removes the system splash at once on Android 12+ (the platform's
+  `SplashScreen.setOnExitAnimationListener`, no library); the default exit faded the crest out to ink and the art back in. (Removed again on 13 November 2026: the listener caused a black gap before the wallet host; see the Ignite entry.)
+  A recorded cold launch on API 36 shows no black frame and no relaunch.
+- **Marks:** full pages (PIN, welcome, onboarding start, About) show the stacked lockup, about 56 % of the screen width
+  and at most 280 dp; on PIN it is also capped by the height the keypad leaves. Round slots use the crest badge (the small
+  crest below 64 dp): the wallet hero's sync ring, the default wallet avatar and the receive QR centre. Address-derived
+  wallet avatars now mask with the crest badge instead of the winged sun (runtime-utils `CrestClip.kt`, re-pinned in
+  `config/android-runtime-source-pins.json`). Marks carry the label "Fearless".
+- **Welcome:** the animated crow full-bleed behind the top of the page (platform MediaPlayer on a TextureView, muted,
+  looping, aspect-fill anchored to the top), the lockup, the tagline between gold rules and the actions over its dark lower
+  part. The dark scrim scrolls with the content, so the crest never sits on the feathers. The page is ink behind the
+  status bar and the crow's sky fades into it. The loop pauses in the background and once scrolled away. Tapping the crow (a button labelled "Play the crow's call") crossfades into the call
+  with sound in 250 ms and back; silent or vibrate ringer modes play it muted, and taps during the call are ignored. Remove
+  animations and the Reduced appearance show the poster only and play the call's sound alone on a tap.
+- **Colour:** applied through the tokens with the brand kit's `tools/apply-tokens.mjs` (spec item 9), so Android, iOS and
+  the extension share the same pinks: brand mark, glow and active tab `#E6006F`; primary buttons fill `#D6006A` → `#A8005A`
+  and press to `#A8005A` (white labels 5.2:1; `#E6006F` stays off buttons with text); brand text, links, selection and accent
+  edges `#FF4FA3`. Ink `#120A2E`, night `#1A0E3E` and darker ink wells for surfaces; text `#FAF6FF` / `#CFC4E6` / `#978ABA`;
+  gold `#FFC24A` for the sun core. Prices and status keep the shared semantic tokens, so a gain stays `priceUp` `#38E8E0` as
+  in iOS and the extension (spec item 9: the kit's mint is for brand art only, and it would fail the colour-blind gate
+  against the loss orange). Semantic colours (price, success, warning, danger, info) and the fonts are unchanged. New tokens: `brandPressed`,
+  `brandInk`, `brandNight`, `brandPlum`, `brandGold`; the winged sun's raw palette is retired. The legacy palette
+  (`design/fw.legacy.android.json`, still painting the screens not yet restyled) moves its accents the same way, as do the
+  icon drawables that hard-coded the old magenta; Polkaswap's own logos keep theirs, and `Colors.Pink40` stays as a raw
+  literal the colour ratchet forbids changing (it feeds only the unused legacy night accent).
+- **Screens:** `docs/brand/android-yatagarasu-screens.webp` (welcome, PIN, wallet, About; also the README image) and
+  `docs/brand/android-yatagarasu-launch.webp` (system splash, launch art, debug and themed launcher icons), from the API 36
+  emulator walk. The old 2020 promo image is retired.
+
+## Android release takeover — 10 November 2026
+
+The local 4.3.3 integration includes the verified new-wallet balance-read change (`5e34fc06e`), fiat-symbol
+coverage (`6b1b3987a`) and dApp sheet/result fix (`fff99c2c9`). This candidate is not presentation-only;
+`docs/releases/4.3.3.md` describes the behavior and remaining validation. The final artifact and gates are
+being rebuilt after the remaining sheet navigation work is integrated.
+
+The integrated candidate also routes TON signing, TON pairing from any tab and Google backup password dialogs
+through their explicit root destinations. Backup still requires a PIN without biometric substitution; after
+verification the root restores the originating product graph before resolving the password dialog. A stale PIN
+completion cannot reopen it. TON requests are refused while locked or when the root cannot reach the destination.
+Ten new navigation cases plus the existing 14 sheet cases cover stack ownership, one-shot results, Portfolio
+preservation, locked/unreachable requests and the PIN graph boundary. Baseline and fixed-run results are pending
+in workspace `build/android-433/evidence/root-dialog-routing/`; no final validation pass is claimed yet.
+
+The Play read at approximately 09:10 KST found 234 still at 20%, one user-perceived crash affecting one user,
+no 234 crash/ANR rates or active-device count, and no low-star reviews or pending publication changes.
+Android Vitals' app-version selector cannot yet find 234. The existing rollout gate is not satisfied;
+no rollout change was made. Evidence: workspace `build/android-433/evidence/takeover-20261110/play/`.
+
+## Production candidate 4.3.3 (235): the sun-lit redesign — 9 November 2026
+
+The 4.3.2 (234) code that is live on Play plus the redesign described in the next section. Branch
+`release/sunlit-redesign`, targeting master in PR #1276, after PR #1275. The database schema stays 84. The
+eight surfaces in `docs/roadmap.md` keep only the shared components; their flags stay off. Release notes,
+contents and verification: `docs/releases/4.3.3.md`. Not uploaded: a new Production release most likely stops a
+running staged rollout (233 halted when 234 was saved on 9 November 2026; Play doesn't state the cause), so it waits
+until 4.3.2's rollout is settled.
+
+Walking the first signed build found what the suites had missed, all fixed in this candidate:
+
+- **Wallet avatars:** `PictureDrawable` draws at its recorded size and clips to its bounds, so the home's 40 dp avatar in
+  a 22 dp icon box showed only its top-left corner, and smaller recordings sat off-centre in larger boxes. Generated
+  icons now scale to their bounds, and the toolbar's avatar fills its raised button.
+- **Currency symbol:** no `FiatValuationContext` was given its currency's metadata, so money read `usd0.09`. Same since
+  `86b658605`, so 4.3.0 to 4.3.2 show it. Contexts now carry the symbol from the currency list bundled with the remote
+  configuration; the id stays the currency's identity, and a currency the list does not know still shows its id. It reads
+  the bundled list rather than `GetAvailableFiatCurrencies`, which stays empty until CoinGecko answers: a context captured
+  before that would keep the id for as long as it lives. Tests cover all four construction sites with and without
+  metadata, a captured result keeping its symbol after the selection moves, amounts staying the same, and the app's wiring
+  over the real list.
+- **Manage assets crash and merged tokens:** rows were keyed by the runtime identity built from `currencyId`, which repeats
+  for three pairs in the shipped list (Acala's tDOT and GLMR, Karura's RMRK and taiKSM, Bifrost's vKSM and vsKSM). A
+  repeated key crashed Manage assets after two swipes on 4.3.1 and 4.3.2, and the home kept only one token of a pair even
+  when the other held the funds. Rows are now keyed by chain and registry id. `Asset.canonicalAssetId()` is unchanged.
+- **Pool staking crash:** opening Start staking for a pool crashed on every open on 4.3.2: the page's coroutine reached
+  `state` before the constructor had assigned it, since `86b658605`.
+- **Edges and sheets:** the home fades under its pinned toolbar, asset details no longer cuts its card's shadow, staking
+  no longer pads twice for the bottom bar, alert sheets (the one-time update notice among them) use the lit sheet, XML
+  list sheets are opaque, and the asset picker no longer says "nothing found" before its first list arrives.
+
+Walking the second signed build (`f2810b7a3`, 10 November 2026) confirmed the three crash and currency fixes on the
+release build and found one more:
+
+- **PIN recovery prompt on every start:** `PinCodeViewModel.recoveryState` started visible and loading, so each cold start
+  showed "Recover your wallet PIN / Your stored PIN cannot be read" until the PIN's state was read: 120-360 ms on an API 34
+  emulator under load. Same since #1261, so 4.3.1 and 4.3.2 show it too. The phone's `screenrecord` paints the secure PIN
+  window black and so cannot show it; the emulator's own recorder can (`adb emu screenrecord`). The prompt now starts
+  hidden, the pad ignores input until the state is known, and an unreadable PIN still opens the prompt.
+- **Sheet strip:** floating sheets (Currency, the paused-network `ErrorDialog`) kept a dark strip above the navigation
+  bar, and Android 15+ ignores `navigationBarColor`. From the restyle lane, verified there on API 34 and 36: list sheets
+  stop floating under the sun-lit palette and the sheet's container paints its own bottom padding.
+## 4.3.3: system Back on every other sheet — 9 November 2026
+
+On Android 13+ (`enableOnBackInvokedCallback=true`) Back on a sheet goes to Material's `MaterialBackOrchestrator` or a
+callback on the dialog's `OnBackPressedDispatcher`. Material hides a hideable sheet, which cancels the dialog, and can only
+collapse any other, and `BaseComposeBottomSheetDialogFragment` made its sheets non-hideable. So 18 sheets, collapsed with
+dragging off, stayed stuck at their peek height. Before Android 13 the same Back cancelled them.
+
+- **Base class:** `isHideable` is now true by default, so Material closes these sheets on every version, through
+  `onCancel` and `onDismiss` like a tap outside. Dragging stays off. The `onBackPressed` helper is gone: it registered on
+  the activity's dispatcher, which a dialog never reaches.
+- **Sheets that only close:** `ScoreDetailsFragment`, `SelectPoolFragment`, `EditPoolFragment`, `PoolInfoOptionsFragment`,
+  `SetupStakingPoolFragment`, `StartStakingPoolFragment`, `CreatePoolSetupFragment`, `ValidatorsSettingsFragment`,
+  `SelectCustomValidatorsFragment`, `SelectValidatorsFragment`, `StartSelectValidatorsFragment` and
+  `SelectedValidatorsFragment`. Their toolbar's action is a plain back or the review revocation `onCancel` runs too.
+- **Confirm sheets keep their submission:** `ConfirmSendFragment`, `ClaimRewardsFragment`, `ConfirmJoinPoolFragment`,
+  `EditPoolConfirmFragment` and `ConfirmSelectValidatorsFragment` ignore Back while submitting (`KeepSheetOpenOnBack`):
+  closing would clear the ViewModel, cancel the work in its scope and lose the result screen. Claim Rewards keeps its
+  toolbar during a claim, so its toolbar action waits too. A tap outside still closes them: it is the way out of a call
+  that never answers (`docs/roadmap.md`).
+- **Sheets whose Back is an action:** `DappScreenFragment` goes back through the page history, then closes.
+  `ImportRemoteWalletDialog` steps through its pages; its `onBackPressed` never ran, so Back closed the whole sheet from the
+  password page. `WalletConnectSignMessageFragment` and `TonSignRequestFragment` set `isHideable = false` themselves: Back
+  now answers the dApp like their close icon (rejected, declined), because cancelling the dialog would leave it waiting.
+  Pressing it twice rejects a WalletConnect request once. `ChainChooseFragment` leaves the choice as it was, like a tap outside.
+  `CreateBackupPasswordDialog` is unchanged: once its wallet exists it is not cancelable, so Back does nothing there.
+- **The same bug outside this base class:** `ErrorDialog`'s `onBackPressed` override never ran on Android 13+: Back
+  skipped its `onBackClick` and collapsed a non-hideable dialog, leaving its buttons out of reach (the PIN biometrics offer, transfer
+  warnings, retry prompts). It now uses a `BackHandler`: a hideable dialog runs `onBackClick` and closes, and a non-hideable one
+  ignores Back, on every version. `BaseBottomSheetDialogFragment` (`ValidatorDetailsFragment`), `WebViewerFragment`,
+  `ServiceFragment` and `NftFiltersFragment` had `isHideable = false` too and now close on Back.
+- **Validation (10 November 2026, local; receipts in `build/android-sheet-back/` in the parent workspace):** 5,391 unit
+  tests in common, feature-account-impl, feature-staking-impl, feature-wallet-impl, feature-walletconnect-impl,
+  feature-tonconnect-impl, app, feature-liquiditypools-impl and feature-nft-impl: 0 failures, 2 skipped. `detektAll` passes. `SheetSystemBackPolicyTest` reads every sheet on
+  the base class. `SheetSystemBackInstrumentedTest` sends a real Back key to real Material dialogs: every sheet above that
+  Material closes, plus the four outside the base class, closes on API 34 and API 26; a submitting sheet stays until it
+  is done; a tap outside still closes it; a sheet's own Back runs ahead of Material; `ErrorDialog` runs `onBackClick` or
+  stays expanded. Without the fix 5 of its 8 tests fail on API 34, and all 21 sheets stay open.
+  `PoolJoinRecoverySystemBackInstrumentedTest` (11) and `BaseFragmentErrorDialogContractTest` (4) pass on API 26.
+  Real screens before the fix, API 34: Back only pushed Score Details down, twice. After: Score Details (Back key and edge
+  gesture), Join pool (the keyboard closes first), Start staking and the invalid-phrase error sheet close on API 34;
+  Score Details, Join pool and Start staking on API 26. No physical phone. The test wallet has nothing to send, so no
+  confirmation was submitted on a network: the hold during a submission is checked by the device test only.
+
+## 4.3.3: fixes from the 4.3.2 release smoke — 9 November 2026
+
+From `release/android-4.3.3` (`5e34fc06e`), based on `release/android-4.3.2`. Nothing here is in the 4.3.2 build on
+Play. No key, signing, storage or chain catalog change; the new wallet's network reads below are a sync change the
+owner approved.
+
+- **System Back in the liquidity pools and NFT sheets (Android 13+, also in 4.3.1):** Back went to the sheet dialog's
+  `OnBackPressedDispatcher`, so their `onBackPressed` override never ran: the nested `NavHost` popped to its Loading page,
+  and the next Back only collapsed the sheet. A `BackHandler` registered after the `NavHost` now takes system Back down
+  the toolbar icon's path: one page back (`popFlowPageOrExit`, common), out of the sheet from its first page, never to
+  Loading. The override and its pre-Android 13 key listener are gone, so every version has one path. Queued presses leave
+  only the sheet, and the Back icon on the Loading toolbar works. Checked on API 34 (Back key and edge gesture, both sheets,
+  including after the QR scanner) and API 26 (Back key, pools); the keyboard closes first on both.
+- **WalletConnect after signing:** the request's Preview sits in the tab's stack and `openOperationSuccessAndPopUpToNearestRelatedScreen`
+  popped only the root's, so closing the success sheet showed the answered Preview again. It now removes the Preview first.
+  A message signature says "Message signed", a transaction signed but not sent "Transaction signed"; only `eth_sendTransaction`,
+  which the wallet broadcasts itself, says "Transaction sent". Checked on API 34 with a live `personal_sign` the dApp verified.
+- **WalletConnect QR error:** the hard-coded Russian text is now `walletconnect_qr_invalid`, in all eight locales.
+- **New wallet home:** the total counts every network, while a new wallet's list starts on the Popular filter. Rows on other
+  networks that had not been read made the total "Balance unavailable" while every listed row was a known zero, so the
+  list also said "No assets were found". It now says that only when every balance the total counts has been read
+  (`walletHasUnknownBalance`). Checked on API 34 on the same wallet before and after.
+- **A new wallet reads every network once (owner-approved, 9 November):** EVM networks outside background sync were never
+  read on a new wallet. The first scan's EVM loader waited for a connection nobody opened and stored no balance after 15 s,
+  and the discovery sweep opened the connection but read before the node's client existed ("There is no connection
+  created"). The loader now opens the network's connection itself, a read waits up to 15 s for the client
+  (`EthereumChainConnection.awaitWeb3j`), and the sweep waits for a Substrate network's runtime within its own 45 s
+  instead of failing at the loader's 15 s. On API 34 under heavy host load, a new wallet's first scan took 90 s and left 22
+  of 268 rows unread, and the sweep read Avail 78 s later; left are Liberland's 3 rows, whose node is down
+  (`docs/roadmap.md`), and 18 on the SORA testnet, which the total skips. The 75 unread rows seen before came from a debug build without the Dwellir key release
+  builds carry: 13 were EVM rows of this bug, and Karura's 29 were the missing key. How balances are totalled is unchanged.
+- **Validation (10 November 2026, local; receipts with the commit in `build/android-433/`):** 2,921 unit tests in common,
+  feature-liquiditypools-impl, feature-nft-impl, feature-walletconnect-impl, feature-wallet-impl, app and runtime: 0
+  failures, 12 skipped. `detektAll` passes; it leaves out runtime, app and feature-wallet-*, so the changed files were
+  also run through detekt on their own: no new findings beyond the import order and package name those modules already
+  have. No physical phone.
+
+## 4.3.3: sheets opened over a dApp request — 10 November 2026
+
+On `f2810b7a3`. Navigation only: no key, signing, storage or chain change.
+
+- **Cause:** WalletConnect's request and proposal sheets open in the root's stack. Preview, raw data and the optional
+  networks chooser opened in the tab's stack through `navigateInMainTabOrRoot`, while `activeAuthenticatedController()`
+  answers with the root's whenever a root sheet shows. So `back()` and `backWithResult` closed the sheet underneath.
+  Preview's Back icon closed the request and left Preview, raw data's Back closed Preview, and "Done" in the chooser closed
+  the proposal, leaving the dApp unanswered and the chooser open. System Back worked: the dialog closed itself.
+- **Fix:** a sheet that would open over a sheet at the top of the root's stack now joins the root's stack, when the root's
+  graph has it as a sheet too (`authenticatedDestinationTarget` with `opensOverParentSheet`, through `controllerFor`).
+  Back, results and `openWithResult` then reach it. Routes still go through `navigateInMainTabOrRoot`, as
+  `MainNavigationContractTest` requires; full pages, and sheets with no root sheet under them, stay in the tab's stack.
+  `openWithResult` now waits until its sheet leaves the back stack, not until anything opens over it, so a dApp request
+  over the chooser no longer ends the choice. It also drops a result left by an earlier sheet: the view-only networks list
+  leaves one, which a chooser closed without Done would have applied. As before, no new request or proposal opens over the
+  Preview, raw data or chooser of the one in progress.
+- **Validation (10 November 2026, local; receipts in `build/android-433/evidence/dapp-sheets-*/`):**
+  `:app:testDebugUnitTest` 235 tests, 0 failures, with 14 new in `DappSheetNavigationTest` (the stacks a user sees, step
+  by step, on real graph lookups) and 3 new in `AuthenticatedShellNavigationTest`. `detektAll` passes. API 34 emulator,
+  the official sign-client 2.23.9 as the dApp over the live relay. The unfixed `d5fdf9111` build showed all three faults.
+  On the fix, Preview's Back icon and system Back return to the request; raw data's Back icon, Close and system Back
+  return to Preview. Signing leaves the flow: "Message signed", the dApp verified the `personal_sign` and received the
+  `eth_signTypedData_v4` signature, and closing the success sheet leaves the wallet tab with no sheet. "Done" keeps the
+  proposal and its choice, and the session holds just the chosen networks (Ethereum, Arbitrum One, OP Mainnet; BNB and
+  Polygon left out). No physical phone, no release build.
+
+## Sun-lit design on the remaining surfaces — 9 November 2026
+
+Continues the redesign below on branch `release/sunlit-redesign`. The eight surfaces that stayed on shared components
+are now in the design and on by default: recovery, manage assets, pickers, unavailable, signing, appearance, mnemonic
+and staking. UI only, apart from one presentation-layer crash fix each in Manage assets and the pool page (below): keys,
+storage, signing, seed handling, networking, remote configuration and chain logic are unchanged, and no library was added.
+
+- **Rollback:** each surface keeps its legacy path behind its `FW_RESTYLE_*` flag, and `FW_PALETTE=legacy` restores all of
+  them. XML surfaces read per-flag colours through `resValue` aliases in `scripts/fw-appearance.gradle`.
+- **Shared controls:** `FwSurfaceControls.kt` (list row, section label, check mark, tag, icon well, filter chip, selector
+  pill, text action, expand chevron, tri-state check, notice) and the XML helpers `fwLightSurface`, `fwListRow` and
+  `fwSheetNavigationBar` in `FwDrawables.kt`. The chosen wallet now shows a brand rim, tint and check; the palette had
+  been hiding the selection, including on session approval.
+- **Sheets:** a sheet's colour now continues behind the navigation bar on every sheet checked. List sheets and the error
+  sheet were floating windows, behind which Android paints no bar colour, so they ended in a dark strip; they are not
+  floating under the v1 palette. From Android 15 the system ignores the bar colour for this target, so the sheet paints the
+  strip itself. Checked by pixel on API 34 and API 36.
+- **Recovery:** recovery centre, PIN recovery, retained data, saved endpoints and key-loss export use flat, opaque cards in
+  the Calm palette. Nothing moves except press feedback, and disabled actions stay in the design.
+  Recovery button labels use one paragraph layout for painting and accessibility. Compose 1.7's String fast path could
+  report a third Japanese line against a two-line measured height at double text size when the app language was English.
+  The locale/size checks retain their assertions, including deliberately height-clipped and ellipsized controls.
+- **Manage assets:** raised rows with the asset in a well and the lit switch; group rows carry a tri-state check. At large
+  text the amount goes under the name. **Crash fix (both paths):** rows were keyed by `canonicalAssetKey`, which is not
+  unique (Acala tDOT and GLMR share currency id 0), so scrolling past such a pair killed the app with `Key … was already
+  used`. Rows are now keyed by chain and asset id, which are unique across all 245 catalogue assets. The shipped 4.3.1 (233)
+  and 4.3.2 (234) reproduce the crash; this branch survives the same scrolling.
+- **Pickers:** chain, asset and wallet pickers, currency, language and the WalletConnect chain chooser. The asset picker
+  shows progress while loading instead of a false "nothing found", and its amount moves under the name at large text.
+- **Unavailable:** alert sheets, error dialogs, cross-chain route notices and Earn hub reasons use one still notice, so a
+  paused feature reads the same everywhere.
+- **Signing:** session proposal and request, request preview, send and cross-chain confirmations, swap preview and TON
+  previews use the same notice and wallet rows. They remain secure motion surfaces: no shimmer, only press feedback.
+- **Appearance:** a new Settings page, because Android had no such screen: Automatic or Reduced visual effects, Increase
+  contrast, a still preview and a retry when saving fails. Lite is not offered because it paints exactly like Full on
+  Android. Strings are translated into all shipped languages. Saves run in tap order so rapid changes preserve the final
+  combined selection; a failed older write cannot mark a later successful choice or retry as failed.
+- **Mnemonic:** words sit in one still well, in one column at large text, with two-digit numbers kept on one line.
+  Confirmation words have no layout transitions, and the agreements and backup rows follow the design. The real phrase
+  screens were never captured, on any wallet: review and tests use masked public fixtures only.
+- **Staking:** cards, balance and unbonding panels, validator, payout and delegation rows, filters, stories and the bottom
+  panels of ten flow pages. **Crash fix:** the pool welcome page's first coroutine reached `state.update` inside the
+  constructor, before `state` existed, so Start staking crashed on every open. It came with #1261 and also reproduces on the
+  shipped 4.3.2 (234); `StartStakingPoolInitOrderTest` fails on the old order.
+- **Outside the eight flags:** the sheet navigation bar, the big status icon well, the off switch's thumb and the paste chip
+  follow `FW_PALETTE`. Two small fixes reach the legacy palette too: bottom padding on the Language list, and no white
+  placeholder behind the staking avatar.
+
+## Sun-lit neumorphism redesign and the approved badge — 8 November 2026
+
+Owner, 8 November 2026: "the mobile apps are ugly and don't use our new logo branding. make the ui look
+good and really cool with neumorphism and global illumination and subtle and informative animations".
+Branch `release/sunlit-redesign` from `4056a845f`; UI only (keys, PIN envelope, signing, storage,
+networking, remote configuration and chain logic are unchanged). Binding spec: the 2026-11-08
+`DESIGN-SPEC.md` and `reference-mockup.html` of the mobile redesign.
+
+- **Wide wings (owner, 8 November 2026: "on pages like this, we are not constrained to this little circle.
+  make the wings logo span most of the width of the screen"):** PIN, welcome, onboarding splash, About and the
+  launch art show `fw_brand_wings`, the badge's own wing, joint and disc paths without the circle, at about 90%
+  of the page width (at most 480 dp) and no taller than the circle was. The wallet hero keeps the round sun
+  because its sync arc needs the circle. Android 12+'s system splash also keeps the round badge, because the OS
+  draws that icon itself and keeps only the centre 192 dp of its 288 dp box; `fw_splash_icon` insets the badge so
+  the whole approved logo fits in that circle instead of losing its wing tips.
+- **Wallet home scrolls as one page:** the hero, actions, backup prompt and assets now scroll together at every
+  text size. As a fixed header the hero left the asset list a sliver of the screen, and none on short phones. The
+  NFT grid scrolls on its own, so above it the page keeps only the switch back to currencies.
+- **Navigation bar:** in the v1 palette the bar is transparent, with no contrast scrim, so the page light runs to
+  the bottom edge instead of ending in a black strip. `FW_PALETTE=legacy` keeps the black bar.
+- **Launch:** night mode is set in `App.onCreate`, before any Activity exists. Set later, AppCompat restarted the
+  first Activity on every start, which blanked the screen between the launch splash and the wallet. The startup
+  screen also lays out like the wallet host now, so the launch art stays still when that host takes over.
+- **Bottom bar:** tab pages fade out over 28 dp (`BottomFadeFrameLayout`) instead of ending in a straight line, the
+  tabs and their light well stay inside the bar's ends, and the labels use the app font at the same text sizes.
+- **Brand:** `brand/sun-disc` now holds the approved winged-sun badges (SORA disc radius 64, no cobras,
+  wings byte-identical to the 2026-10-10 Figma export; fearless-wallet-web `1275e1a6`, sha256
+  `9756447c…53d4d8` lines and `ff653295…e89` solid). `scripts/generate-brand-assets.py` pins them and
+  regenerates the launcher (badge-gradient background, the mark in the 66/108 safe zone with the keyline
+  painted in the background's own gradient, a monochrome layer from the solid mark), the in-app marks, the
+  default wallet avatar (`ic_wallet`, was the bird PNG) and the QR centre mark (was the bird). Tinted marks
+  cut the keyline gap with a clip-path, never by editing the wing contours. The animated bird GIF is gone.
+- **Tokens and light model:** `design/fw.tokens.json` v2 carries the sun-lit palette (base `#151831`,
+  wells `#0E1024`, key-light shadow pair, rim, sun rim, sun bounce, sky, badge gradient, motion events);
+  `scripts/design/gen-fw-tokens.mjs` regenerates `FwColors.kt`/`fw_colors.xml` (it reproduced the previous
+  outputs byte for byte before the change; `scripts/test-fw-tokens.mjs` checks them). `FwLight` (key light
+  (-0.6, -0.8), Raised-1/Raised-2/Inset/Emissive, distance-weighted sun rim), `FwMotion` (spec durations;
+  reduced motion, animator scale 0, Calm, Reduced effects and secure surfaces) and `FwDigitRoll` are pure
+  and unit-tested. The spec's price-up `#3DF2B0` fails the contract's colour-vision floor against
+  `#FF9F57` (protan ΔE 28.7 < 40), so price-up keeps `#38E8E0`; `fillTop` is `#E3035E` so white labels
+  keep 4.5:1 on the whole primary gradient. All 344 contrast combinations pass.
+- **Rollback:** `FW_PALETTE=v1` and ten surfaces (portfolio, send, receive, welcome, navigation, loading,
+  PIN, asset details, history, settings) are on by default; shared components follow the palette alone, so
+  `FW_PALETTE=legacy` restores every previous presentation. New surface flags: `PIN`, `ASSET_DETAILS`,
+  `HISTORY`, `SETTINGS`. Page and window art follow the palette through generated drawable aliases.
+- **Screens:** wallet hero (the badge as the emissive sun with a sync arc driven by the real asset loading,
+  rolling total, change, copy chip, round Send/Receive/Buy/Swap; Receive and Buy pick an asset first),
+  Raised-1 token rows with a first-appearance stagger, sliding light well under the bottom navigation,
+  neumorphic PIN pad (dots fill from the key-light side, wrong PIN shakes twice), receive QR in an inset
+  well with its white field kept, status rings on pending/failed history rows, round asset actions,
+  inset input wells, raised cards, sheets with a rim, segmented controls and switches, settings rows with
+  icon wells, onboarding/about/splash with the badge. Signing sheets (WalletConnect, TON, send and
+  cross-chain confirmations) and the recovery-phrase sheet are secure motion surfaces: nothing there
+  animates beyond press feedback. Shared Compose sheet hosts default to that policy, and all sheet
+  rim decoration stays static, including routes that do not declare an individual marker.
+- **PIN accessibility:** the native keypad has a scrollable viewport above the recovery action. At
+  narrow widths and large text the last row remains reachable without overlapping "Forgot PIN?";
+  keypad identifiers, listeners, six-digit entry and recovery routing remain unchanged. The viewport
+  clips scroll content above recovery while the keys retain their own shadow room.
+- **Live accessibility:** a balance that wraps at large text sizes keeps its full text layout during
+  updates and tints the changed suffix. Motion preference changes settle ongoing rolls and spinners;
+  focused/error input borders paint above neutral surface rims in every effects tier.
+- **Local validation:** regression coverage includes native PIN touch targets at 320 dp/200% text,
+  wrapped amount updates, secure/live reduced motion, exact branded QR payload decoding, surface
+  pixels, localized type and screen layouts, loading input safety, brand resources and system effects.
+  Source-bound build/test logs, APK hashes and emulator screenshots are retained in the workspace's
+  `mobile-redesign-20261108/android` validation bundle. No hosted CI or release publication is involved.
+
+## Production 4.3.2 (234): key safety and open-source libraries only — on Play at 20% since 9 November 2026
+
+Fixes every finding of the 2026-11-07 Android key-exposure audit of 4.3.1 (233) and removes every
+closed-source or non-OSI library (owner, 7 November 2026: "don't use any closed source libraries" and "fix
+all issues"). Branch `release/android-4.3.2`, targeting master in PR #1275, originally from release/android-4.3.0 at `c9d18c435`. The
+database schema stays 84. Release notes: `docs/releases/4.3.2.md`.
+
+- **Unlocking:** biometric unlock unseals the PIN from an Android Keystore key that only a strong (Class 3)
+  biometric opens and that a newly enrolled biometric destroys; exports, recovery and PIN changes take the
+  PIN itself. `WalletSessionLock` locks at start and after 20 minutes away.
+- **The PIN in the encryption:** every wallet secret gets an inner envelope only the PIN (Argon2id) or a
+  proved wallet backup opens; "Forgot PIN?" restores access with any one backup.
+- **dApps:** a locked wallet signs and approves nothing; dApp requests open only after the PIN screen is
+  gone; Polkadot payloads that commit to a metadata hash are signed only for the network's real hash.
+- **Exposure:** secrets copied to the clipboard are marked sensitive and cleared after a minute; secret
+  screens refuse overlay touches, hide other apps' overlays and stay out of screen readers on Android 14+;
+  derivation paths and import fields stay out of keyboard learning and saved state.
+- **Own transactions** on networks that check it are signed with the RFC 78 metadata hash; remote
+  configuration is used only when an Ed25519-signed manifest lists it.
+- **Open source only:** the Reown WalletConnect SDK, Google Play services, Google sign-in, Play Integrity,
+  Firebase, SpongyCastle, EdDSA-Java, curve25519-kotlin, libsodium and the prebuilt polkaj jar and
+  sr25519 library are gone; WalletConnect v2, Drive OAuth, TON keys and the sr25519 library are built in
+  this repository. The release graph has 308 libraries against 4.3.1's 441, none older and none added.
+- **PIN migration concurrency:** `07d06681c` serializes disposal/replacement of the PIN keyring with encrypted writes and each migration seal/commit/read-back. A concurrent PIN check or recovery cannot discard a key while its first ciphertext is being committed. The envelope and backup formats are unchanged.
+- **Socket shutdown crash:** `RequestExecutor.reset` copies its concurrent task set with `ArrayList` instead of Kotlin's `toList()`, which threw `NoSuchElementException` and closed the app when the only task finished during the copy. The bug has been there since `86b658605`, so 4.3.1 (233) carries it too. `WcRelayClient`, new in 4.3.2, copies its watched topics and pending requests the same way.
+- **Export wallet:** found by the release-build upgrade smoke on 8 November 2026. Opening the screen requested a Google sign-in, which with the in-repo OAuth client meant a browser tab, and first forgot any Drive session; it now only refreshes the backup state when a session already exists (`BackupService.hasSession`), and "Backup to Google" signs in when tapped. The "replaced key pair" warning counted the Bitcoin, Solana and Iroha rows derived from the wallet's own phrase, so nearly every wallet got it; it now counts only accounts with their own key. `AccountRepositoryImpl` reads secrets for backup on its dispatcher: on 4.3.1 the TON recovery check ran on the main thread and caused an ANR on the emulator.
+- **Upgrade:** keys are unchanged; connected dApps carry over; users sign in to Google Drive once more.
+- **Release verification (`a168420d9`, AAB `be84cff7…c7d0c3`):** 7,926 unit tests with 0 failures, detektAll, lint and 59 static suites pass. The minified build was smoke-tested on an emulator upgrading in place from 4.3.1 (233) and from the official 4.2.0 (229) APK, and from a fresh install: PIN, addresses and the exact phrase are kept, a 233 WalletConnect session signs afterwards, no crash or ANR. No physical phone. Details in `docs/releases/4.3.2.md`.
+
+### Unlocking, locking and exposure
+
+- `BiometricPinVault` (`KeystoreBiometricPinVault`) seals the PIN to an RSA-OAEP Keystore key that needs a
+  Class 3 biometric through a `CryptoObject` and is invalidated by a new enrollment. Unlocking needs the PIN
+  it unseals to pass the PIN check, so a biometric added later (for example by someone who knows the screen
+  lock) cannot unlock the wallet. Upgrading wallets are sealed at their next PIN unlock; after a biometric
+  change biometric unlock turns off and the app offers it again after the PIN. `withPinCodeCheckRequired`
+  (exports, recovery, PIN change, Drive backup) never accepts a biometric.
+- `WalletSessionLock` (common) is locked at process start and on re-lock and unlocked only by a passed PIN
+  check. `RootViewModel` holds WalletConnect and TON Connect events until it is unlocked and the request
+  screens can be reached (`RootRouter.awaitDappRoutes`); Navigator refuses dApp routes while locked or
+  unreachable, and the WalletConnect and TON sign and approve actions refuse while locked.
+- `SensitiveClipboard`: copied secrets carry `EXTRA_IS_SENSITIVE` and are cleared after 60 s (seed export,
+  emergency export, retained wallet data, which is no longer shared to other apps as plain text).
+- Secret screens and the backup-password sheets: `FLAG_SECURE`, `filterTouchesWhenObscured`, accessibility
+  data marked sensitive on Android 14+ (older versions name non-system accessibility services before secrets
+  show), and other apps' overlays hidden on Android 12+ (`HIDE_OVERLAY_WINDOWS`).
+- Derivation-path and import inputs: no keyboard learning, suggestions, autofill or saved state.
+  `SharedExportCleanup` deletes JSON exports a share left behind. "Forget this account?" is now "Remove this
+  wallet?" and says where the retained keys stay.
+
+### Metadata hash and signed remote configuration
+
+Fixes the 2026-11-07 audit finding that a hostile RPC node or a changed remote configuration could get a
+different Substrate call signed than the one shown.
+
+- Own transactions on a network whose runtime lists `CheckMetadataHash` are signed with Mode::Enabled and
+  the RFC 78 metadata hash (`runtime-utils/.../metadata/hash`, ported from merkleized-metadata 0.5.1,
+  MIT OR Apache-2.0). The transaction is built from the V15 metadata the hash is computed from
+  (`MetadataHashSigningRuntimeSource`); if the hash cannot be computed nothing is signed
+  (`MetadataHashUnavailableException`, shown as "Couldn't verify the network"). Fees are still estimated
+  with the V14 runtime. Networks without the extension sign as before. Pendulum and AvN list the extension
+  but were built without a hash (they answer Mode::Enabled with `CannotLookup`), so they are compiled-in
+  exemptions (`MetadataHashExemptions`) and sign Mode::Disabled.
+- The hash matches the Rust crate byte for byte on the V15 metadata of all 27 catalog chains with the
+  extension (`runtime-utils/src/test/resources/metadata-hash`); signed transfers match py-scale-codec;
+  `LiveMetadataHashValidateTest` (opt-in) checks live runtimes answer `Invalid(Payment)`.
+- Remote configuration is used only when `remote-config/remote-config-manifest.json`, signed with Ed25519,
+  lists its SHA-256; otherwise the last verified copy or the snapshot bundled into the APK is used.
+  Signing: `scripts/sign-remote-config.py` (docs/security/remote-config-signing.md). Every configuration
+  change must be signed before it reaches 4.3.2+ clients.
+- dApp (WalletConnect) Polkadot payloads keep the mode the dApp chose. One with Mode::Enabled is read with
+  the runtime of the V15 metadata the wallet hashed itself and signed only when its hash is that hash
+  (`PolkadotSigningRuntimes`, refusal `OtherMetadata`); Mode::Disabled payloads are read as before.
+
+### sr25519 library built from source
+
+- `libsr25519java.so`, which holds every sr25519 key (Polkadot, Kusama, SORA),
+  is no longer committed. Gradle builds it from `runtime-utils/native/sr25519`
+  (schnorrkel 0.11.5 on curve25519-dalek 4.1.3, which fixes RUSTSEC-2024-0344;
+  jni 0.22.4; zeroize 1.9.1) with Rust 1.99.1, cargo-ndk 4.1.2 and NDK r30 at
+  API 26 with 16 KB pages. Two clean builds are byte-identical, on any build
+  host (a rustc wrapper keeps cargo's crate metadata free of the host
+  platform; no build id and no `.comment` section, which names the NDK
+  linker's build machine), and every ABI must match
+  `runtime-utils/native/sr25519/reproducible-build.json`.
+- The JNI ABI and the keys are unchanged: JVM tests show identical keypairs and
+  derivations and cross-verifying signatures against the 4.3.1 library, plus the
+  Substrate vectors. Exceptions no longer contain keypair bytes, a short chain
+  code throws instead of aborting, and native copies of secrets are wiped.
+- The unused libsodium binaries, sources and build script are removed.
+- Builds need rustup, cargo-ndk 4.1.2 and NDK `30.0.16248370`; the hosted
+  release workflow's isolated SDK provides neither yet.
+
+### Google Drive backup without Google SDKs
+
+- Google Drive backup no longer uses Google Play services. The app signs in with its own OAuth 2.0
+  authorization-code flow with PKCE (S256) and `state` in the user's browser (never a WebView):
+  `GoogleDriveSignInActivity` (private, singleTask) opens Google's page, the exported
+  `GoogleDriveSignInRedirectActivity` hands back only the redirect URI, and the code is exchanged at
+  `oauth2.googleapis.com/token`. The refresh token is kept only in the encrypted preferences
+  (`google_drive_oauth_session_v1`, bound to the client id); access tokens stay in memory and are
+  refreshed, dropped on a 401 and retried once. `invalid_grant` or a client Google refuses ends the
+  session and asks for sign-in again; Drive access turned off on the consent page asks for consent.
+  Sign-out forgets the session on the device and does not revoke the grant at Google, because
+  iOS and the extension share project 621183184145 (revocation is available as
+  `GoogleDriveAuthorization.revokeAccess()`). Upgrading users sign in once in the browser at their
+  first Drive action, because the Play services sign-in cannot be carried over; their backups stay
+  where they are.
+- The client is `GOOGLE_DRIVE_OAUTH_CLIENT_ID` (`scripts/secrets.gradle`), by default the project's
+  public iOS client, whose `com.googleusercontent.apps.…:/oauth2redirect` redirect Google accepts from
+  Android with PKCE (checked 7 November 2026: the authorization request reaches the sign-in page; a
+  wrong redirect gets `redirect_uri_mismatch`). The build refuses clients of other projects.
+- Drive v3 REST client on OkHttp/Gson (`GoogleDriveApi`) with the same queries, fields, folder,
+  names, descriptions and `text/json` type as before; paged listings stop on a repeated page token.
+- Removed: play-services-auth (and auth-base, api-phone, blockstore, fido, identity-credentials),
+  credentials-play-services-auth, googleid, Play Integrity and core-common, the Google API, HTTP and
+  OAuth client libraries, google-auth-library, the Google Services and Firebase App Distribution
+  plugins, every `google-services.json` and the `firebase` release overlay. Firebase Messaging and
+  some Play services libraries remain only through the Reown SDK.
+- Passkey backup stays compiled off; Play Integrity is replaced by an attestation interface with no
+  provider, so enabling it needs an open attestation design.
+- No library went older than 4.3.1 (233) shipped: the removed SDKs had raised androidx.loader,
+  Play services base/basement/tasks (still pulled by Reown), Gson, Error Prone annotations and
+  JSpecify, so the root `build.gradle` holds every Android module at the 233 versions. Guava and
+  its friends left with the Google API client; `listenablefuture` therefore moves from 233's
+  9999.0-empty placeholder to the real 1.0 jar, which now carries `ListenableFuture`. The
+  verification metadata drops the 77 entries of the removed families (OpenCensus API and proto
+  stay: AGP's instrumented-test platform still uses them).
+- Audit fix: backing an existing wallet up to Drive now asks for the PIN through
+  `withPinCodeCheckRequired`, like the phrase, seed and JSON exports. New Drive backup and JSON export
+  passwords need 12+ characters from 3 classes or 16+ characters, and may not be the PIN, the wallet
+  name or one of its addresses; the rule is shown under the field. Restores accept any password.
+- Gates updated: AAB identity allowlist, release overlays, IAS build/AAB checks, public artifact
+  audit, the Drive client pin, and the dependency provenance check. The build-log verifier no longer
+  checks `WEB_CLIENT_ID_RELEASE`, which the build stopped reading (suite now 3 positive / 26).
+
+### WalletConnect without the Reown SDK
+
+The Reown WalletConnect SDK (WalletConnect Community License, not open source) is
+gone. `feature-walletconnect-impl` now holds the wallet side of WalletConnect v2
+(package `protocol`): pairing URIs, session proposal, approval and rejection,
+settlement, requests and their answers, ping, update, extend, event and delete in
+both directions, pairing ping and delete, and expiry. Crypto is BouncyCastle
+(X25519, HKDF-SHA256, ChaCha20-Poly1305, Ed25519 for the relay JWT and `did:key`,
+P-256 for Verify); the relay is an OkHttp WebSocket to `relay.walletconnect.org`
+with `relay.walletconnect.com` as failover, connected only while a pairing or
+session exists and the app is in the foreground. Envelopes of type 0 and 1,
+message de-duplication across restarts and reconnects with resubscription are
+covered. One-click sign-in (`wc_sessionAuthenticate`) is declined with
+WC_METHOD_UNSUPPORTED, so dApps fall back to the session proposal they send with
+it.
+
+- Verify API v2: attestations are checked with ES256 against the Verify server's
+  published key and bound to the message they came with. The proposal and
+  request screens show the attested site; an unverified or mismatching site gets
+  one short warning; a site Verify lists as a scam is refused.
+- Requests for methods the session did not approve or the wallet does not sign,
+  for chains outside the session, expired, oversized or beyond 20 pending per
+  session are answered with an error before any screen opens. Sessions offer only
+  the methods Fearless signs. The existing request binding, summaries and the
+  Polkadot/EVM signing kill switches are unchanged and still decide every
+  signature.
+- Storage: pairings, sessions and their keys live in the `walletconnect_v2`
+  preferences file, sealed with the app's wallet encryption key (`EncryptionUtil`,
+  AES-256-GCM); WalletConnect never writes into `fearless_prefs`.
+- Upgrade: `WalletConnectStarter` runs `LegacyWalletConnectImport` on a
+  background thread before the client loads its state, then starts the client.
+  The old SDK's `WalletConnectAndroidCore.db`, `WalletConnectV2.db`,
+  `WalletConnectV2_notify.db`, `wc_key_store`, `db_key_store` and Keystore keys
+  `wc_keystore_key` and `_wc_db_key_` are deleted only when the import reports
+  IMPORTED or NOTHING_TO_IMPORT. `ReownLegacyWalletConnectImport` (bound in
+  `ReownLegacyImportModule`) carries every keyed Reown session and pairing over
+  with its symmetric key, and the relay identity, so connected dApps keep
+  working. It runs no Reown or SQLCipher code: the SQLCipher 4 databases are
+  decrypted in Kotlin and read in memory (`docs/walletconnect-reown-migration.md`).
+  It reports FAILED, which keeps every legacy file, when it could not read, save
+  or read back everything, when it left a live record out over the client's
+  limits, or when the starter's 60 s timeout cancelled it. It makes three attempts
+  per app version. Wallet data is never touched.
+- Removed with the SDK: Firebase Cloud Messaging and its Firebase/datatransport
+  components, the `POST_NOTIFICATIONS`, `WAKE_LOCK` and C2DM permissions, SQLCipher
+  (`libsqlcipher.so`), kethereum, multibase and Scarlet from JitPack. The AAB
+  identity gate and its tests list the smaller surface.
+- No library drops below 4.3.1 (233): the 87 the SDK had raised (web3j
+  crypto/abi/utils/rlp 4.9.8-hotfix, OkHttp 5.1.0, Kotlin stdlib 2.2.10,
+  coroutines 1.10.2, serialization 1.7.3, Compose 1.7.8, security-crypto
+  1.1.0-alpha06, Tink 1.8.0 and others) are held at least at their 233 versions
+  by dependency constraints in the root `build.gradle`; every other release
+  library resolves exactly as in 233.
+
+### Key-path cryptography in this repository
+
+Branch `claude/432-crypto-libs` (not released). Key derivation and signing in the JVM
+code use BouncyCastle 1.85 or code in this repository:
+
+- BIP39 seeds (PBKDF2-HMAC-SHA512 with the NFKD passphrase), JSON backup Base64, Hex
+  and secp256k1 point decoding moved from SpongyCastle 1.58 to BouncyCastle, and
+  SpongyCastle's JCE provider is no longer registered, and with kethereum gone with the Reown
+  SDK, SpongyCastle is no longer in the release graph.
+- Ed25519 keys, signatures and verification moved from EdDSA-Java 0.3.0
+  (CVE-2020-36843) to BouncyCastle. Signatures are byte-identical. Verification is
+  strict (S < L, canonical points) and returns false for malformed keys instead of
+  throwing.
+- TON phrases, keys, signatures and encrypted-comment key agreement use
+  `TonMnemonic` and `TonEd25519` in runtime-utils; no key material reaches ton-kotlin.
+  curve25519-kotlin is no longer packaged (unit and device test classpaths keep it as
+  the reference): an R8-minified app build reports no missing classes and keeps no
+  ton-kotlin Ed25519 or `org.ton.api` class. `TonEd25519.verify` accepts every valid
+  signature (no shipped path verifies TON signatures). ton-kotlin cells, BOC, addresses
+  and StateInit stay.
+- Jetton transfers carry a random 64-bit query_id. Until now `newWalletQueryId()` parsed
+  a "0x"-prefixed hex string, which BigInteger rejects, so every query_id was 0.
+- The SCALE codec is built from the polkaj-scale 0.2.3 sources (Apache-2.0, `NOTICE`);
+  `runtime-utils/libs/polkaj-scale-0.2.3.jar` is deleted.
+- Evidence: RFC 8032, BIP39 (TREZOR, substrate-bip39, Japanese) and NFKD vectors;
+  outputs recorded from EdDSA-Java, SpongyCastle and the jar
+  (`runtime-utils/src/test/resources/legacy-crypto`, generator
+  `tools/upgrade-fixtures/android/LegacyCryptoFixtures.java`); differential tests
+  against ton-kotlin; JSON backups from polkadot-js, Fearless Android 4.2.0, the
+  Fearless iOS test keystores and keyring entries written by Fearless Wallet for the web
+  1.3.1 to 2.7.1, each opening to the key its writer recorded. `CryptoLibraryUsageGuardTest`
+  keeps web3j's process-RNG replacement (`Keys.createEcKeyPair`, `WalletUtils`,
+  `Wallet.create`), ton-kotlin's key, ADNL and wallet-contract code, and the retired
+  libraries out of production sources.
+
+### The PIN inside the encryption of wallet secrets
+
+Audit of 4.3.1, 7 November 2026 (Medium): every wallet secret sat under one device
+key that needs no user authentication, and the PIN was stored under that key and
+compared as plaintext. 4.3.2 (lane `pin-envelope`):
+
+- Wallet secrets (active, quarantine, archive, V1 and 0.4 copies; an allowlist,
+  never the PIN, TON Connect, WalletConnect or journals) get an inner envelope,
+  `fse1:` + AES-256-GCM under a random key SK, inside the unchanged outer layer.
+- SK records live in plain preferences (`wallet_secret_keyring_v1:`): a PIN wrap
+  (Argon2id 32 MiB, 2 passes, mixed with HMAC under a 32-byte factor kept under
+  the existing device key; the keyring adds no Keystore key) and one backup wrap
+  per wallet root. Opening the PIN wrap is the PIN check; the legacy `pin_code`
+  is deleted once every secret is sealed.
+- PIN guessing needs the device key, which file copies do not have. Code that
+  runs as the app can unwrap it and guess offline at the Argon2id cost, so a
+  longer PIN is stronger. The factor is lost only with the device key, when
+  every wallet secret is unreadable anyway, as in 4.3.1.
+- The first unlock creates the keyring; sealing runs after every unlock, one key
+  at a time with compare-and-set and a verified read-back. Before the PIN no pass
+  quarantines, archives, converts or rewrites a sealed value; the account journal
+  replay waits for the unlock.
+- "Forgot PIN?" on the unlock screen: proving one wallet's backup opens SK and
+  sets a new PIN. A keyring whose PIN wrap cannot open while nothing is sealed
+  falls back to the legacy PIN and starts a new SK: no lockout while unsealed.
+  A value that cannot be read counts as sealed once SK has begun sealing (a mark
+  stored before the first seal), so a new SK never strands a value that reads
+  again when its device key returns.
+- Kill switch: `WALLET_SECRET_SEALING_ENABLED` and the remote veto
+  `wallet_secret_sealing_enabled` stop new sealing only.
+- Every later build must read envelopes: a build without this code would treat
+  sealed values as corrupt.
+
+## Production release 4.3.1 (233): Asset Hub staking — 30 October 2026
+
+4.3.1 brings back Polkadot and Kusama staking, which 4.3.0 could not offer because
+the Asset Hub migration moved it off the relays. It is release 4.3.0 plus the
+Asset Hub staking line (Codex `codex/android-validator-search-repair-20261029`,
+selected commits, not merged wholesale), versionCode 233, database 84.
+On 1 November 2026 the release line also took the two account changes described
+below: universal accounts protected by the wallet password (#1273 with its review
+fixes) and imports that can open an earlier browser extension's Substrate account.
+The same day the signed bundle (built from `8e14689d4`) was rolled out to Play's
+Internal testing track.
+On 3 November 2026 Google approved it for Open testing and it was published there
+to all testers; Production still runs 229.
+
+- Staking and nomination pools for the native DOT of Polkadot Asset Hub and KSM
+  of Kusama Asset Hub: bond (no controller), nominate, bond more, unbond,
+  rebond, withdraw, reward destination, paged payouts (`payout_stakers_by_page`,
+  discovered on chain from `ErasStakersPaged` and `ClaimedRewards`), slash
+  warnings from `ValidatorSlashInEra` and `UnappliedSlashes`, and the era clock
+  from the relay (`Babe`, `Session`) with `BondedEras`. The unbonding period is
+  read per account (`NominatorFastUnbondDuration` for nominators the runtime does
+  not slash); when it cannot be read, the full `BondingDuration` is shown.
+  Rewards are estimated from completed-era budgets, not relay inflation, and an
+  unreadable history gives a zero estimate. Validator identities come from the
+  People chains. Payouts are offered from the Manage menu on the Hubs, only
+  from validators that are still bonded. The validator choice screens and the balance screen's unbonding list
+  offer a retry when they cannot be loaded, and Redeem waits for a successful
+  ledger refresh.
+- Activation: the catalogue marks those two assets with `"staking": "assetHub"`.
+  4.3.0 maps that value to unsupported (shown with 4.3.0's own compiled mapping),
+  so older builds keep staking off; removing it turns 4.3.1's Hub staking off.
+  The relays never offer staking, pools or crowdloans again.
+- A DOT or KSM staking choice saved before the upgrade opens the matching Hub
+  when the wallet uses the same account on the relay and the Hub; otherwise,
+  or without the switch, it opens the chooser.
+- Signing: each signed extension is checked against the runtime's portable
+  metadata (from fearless-utils `fc9719e`/`05d20f2`), and Hub staking calls
+  require the complete signing context.
+- Also ported: the validator search catalogue and cache ownership repair, and
+  the JSON export reading the wallet once.
+
+Not included: reward history on the Hubs (no indexer answers with Hub rewards)
+and a Westend Asset Hub (not in the catalogue). Release record:
+`docs/releases/4.3.1.md`.
+
+## Production release 4.3.0 (232) — 29 October 2026
+
+Master plus #1265–#1269 becomes the 4.3.0 production candidate (versionCode 232,
+database 84). Networks and features that no longer work are removed:
+
+- 40 enabled production networks that stopped producing blocks or have no
+  reachable node, and every disabled entry; production keeps 50 of 116. Wallet
+  rows for a removed network stay on the device.
+- Relay staking, nomination pools and crowdloans on Polkadot, Kusama and
+  Westend: their relays hold no staking state since the Asset Hub migration.
+- The unreachable crowdloan contribution flow and its partner integrations;
+  legacy crowdloan recovery remains.
+- History indexers, staking indexers and nodes that cannot answer.
+
+The release review also fixed: sends bound to the reviewed account and never
+reported failed after the network accepted them; EIP-1559 tips and amount-aware
+fee estimates; Google backups with the confirmed password and reviewed paths; an
+added account no longer marking the wallet backed up; dApp-signing pause
+rechecks; the stuck staking screen; exact payouts; and Guava 33.7.2.
+
+Release signing pins the replacement upload certificate
+`AD:6C:1D:07:…:57:C1:BD:E8`. Evidence and the release record:
+`docs/releases/4.3.0.md`. Not included: Asset Hub staking, so Polkadot and
+Kusama staking is unavailable in this version.
+
+## Imports can open a Substrate account an earlier browser extension made — 31 October 2026
+
+The Substrate mini secret is salted with "mnemonic" + the path's `///password`. This app has always used
+NFKD(password); the browser extension 4.2 used NFC(password) and 3.0 the password as typed, so a non-ASCII
+password opened a different account there (`feature-account-impl/src/test/resources/substrate-password-vectors.json`,
+shared with web and iOS). The extension now uses NFKD as well. When the typed words and path open more than one
+account, the import asks which one (the current one first); a Google Drive restore picks the account the backup is
+filed under. No rule is stored: the create binding, the recovery and backup verifiers and the root-secret
+validator accept whichever rule (`core-api` `SubstratePasswordRule`) re-derives the stored key, so such a wallet
+keeps its phrase for export and backup.
+
+## Universal accounts use the wallet password — 31 October 2026
+
+A wallet whose Substrate (or, failing that, Ethereum) derivation path ends in
+`///password` now derives its Bitcoin, Solana, TON and Taira/Nexus accounts with
+that password as the BIP39 passphrase (NFKD), matching
+`common/src/test/resources/universal-wallet-v2-passphrase-vectors.json`, which web
+and iOS share. Wallets without a password are unchanged. A new wallet from
+generated words gets the protected accounts directly. An imported or restored
+password wallet keeps each account the words alone open while it holds funds or
+cannot be checked, and takes the protected one when a live check finds it empty.
+Accounts that earlier versions created are never replaced automatically: one
+notice per wallet lists each old address beside its protected one, and Switch
+replaces an old account only after a live check confirms it is empty (TON only
+when no TON Connect app is connected). Every signer derives with the passphrase
+that reproduces the stored address, so old addresses keep signing.
+
+A deposit can reach an old address after the check that found it empty, so each
+old account a wallet gives up stays watched until the wallet is deleted: app
+start and pull-to-refresh check it again. When only the old address holds funds,
+the account moves back to it; when the new one holds funds too, or cannot be
+checked, the new one stays and the notice reports the arrival and how to move
+it. A TON export of a password wallet shows the derivation path that holds the
+password, so the exported words restore the same TON address.
+
+## JSON export of derived ed25519 and ECDSA accounts — 31 October 2026
+
+A JSON export of a Substrate ed25519 or ECDSA account created with a derivation
+path held the wallet's root seed beside the derived account's public key.
+Importing the file opened the root account instead, and the root seed opens
+every account derived from that phrase. The export now writes the secret that
+reopens the exported account and refuses to export when no stored secret does.
+Accounts without a derivation path export exactly as before, and files exported
+by earlier versions import as they did.
+
+## Taira balance paging and build verification — 29 October 2026
+
+Torii account, account-asset and definition lists now send `limit` and opaque
+`cursor` tokens. The balance loader follows `next_cursor`, including empty
+continuation pages, and rejects cursor cycles, missing items and scans exceeding
+1,000 pages before publishing any balance updates. Saved balances remain intact
+when any page fails. Unsupported offset/count-mode and asset/scope query options
+were removed from the client contract; history continues using Torii REST.
+
+JUnit BOM 5.11.0-M2 and 5.11.2 Gradle module metadata now have strict SHA-256 pins.
+Their bytes match Maven Central's published hashes and its second endpoint;
+strict local dependency verification accepts both. No verification rule was relaxed.
+
+Local cursor and malformed-response regressions and the existing Iroha/Bitcoin
+wallet tests are the validation gates for this follow-up. Live read-only Taira
+replay accepted the new list requests and rejected the old query parameters.
+Nexus remains covered by unit tests; no device or release artifact is qualified here.
+The stale unbond confirmation regression also awaits its background fee projection
+before asserting the rejected state; its no-sign/no-submit assertions are unchanged.
+
+## Build 231 security port — 29 October 2026
+
+The security and fund-safety fixes of the 4.2.0 build 231 Play testing line that
+master did not have are ported; the WalletConnect part came with the entry below.
+
+- Signing: the wallet's own EVM transfers are always signed with the chain id
+  (EIP-155 also for legacy transactions). TON Connect `sendTransaction` requests are
+  checked before they are shown and again when signed (mainnet only, `from` is the
+  connection's wallet, unexpired, one to four well-formed messages), the signed
+  message expires within five minutes, every message is signed exactly as sent,
+  bridge requests reach the wallet at most once, a new connection is bound to the
+  wallet whose key the reply gave, and the in-app bridge answers only the dApp's own
+  main-frame page. The sign screen shows a decoded summary of what the request does
+  and stays disabled until it exists.
+- Startup and secrets: the exported launcher passes only the allowlisted VIEW data
+  into the wallet; phrase, seed, keystore, import, PIN and recovery screens hold
+  FLAG_SECURE through SecureScreenGuard; Android 12+ device transfer and cloud backup
+  exclude all app data; keystore exports are shared from internal storage only;
+  wrong-PIN delays escalate to five minutes on the since-boot clock and the PIN
+  screen shows the wait; pre-installed wallet import is compiled off in release;
+  Nomis credentials come from build secrets.
+- Data APIs: the history client does not follow redirects, OKLink accepts only its
+  HTTPS endpoint, GraphQL cursors and Reef reward pagination are bounded, and Nomis
+  calls follow the scoring preference.
+- Dependencies: Beacon (integration and SDK) is removed; Java-WebSocket 1.6.0
+  (TLS hostname verification), bcprov 1.85, lz4-java 1.11.4 (maintained fork),
+  commons-beanutils 1.11.0, Jackson 2.18.11, Guava 33.x, commons-lang3 3.18.0 and the
+  Drive/Google API/OAuth 2.x clients, with locks and strict checksums.
+- Solana and Bitcoin sends: the send screen accepts their recipients; Solana reads
+  fail over between ordered endpoints and pace the rate-limited public node by host;
+  Token-2022 sends are refused; broadcasts are classified before any release, a
+  pending payment is released only on a proven expiry, and the history row closes as
+  failed only when two distinct hosts proved it (see `docs/solana-send.md`).
+- Iroha: transfer history comes from Torii REST (`/v1/accounts/{id}/history`, cursor
+  paging, transfer filter); the app no longer calls the MCP endpoint, and the
+  send-readiness audit fails on `/v1/mcp` or `tools/call` in main sources. Torii scans
+  about 500 blocks per request, so after ten empty pages the screen shows what was
+  found and keeps the cursor instead of an error, as the web wallet does.
+
+Unit tests (debug, before -> after): app 189 -> 206, common 768 -> 846,
+account 915 -> 953 and its API 106, TON Connect 96 -> 168 and its API 13 -> 23,
+wallet 718 -> 752 and its API 130, WalletConnect 161, runtime 396 -> 407, staking
+1,315 -> 1,318, core-backup 372 -> 378, core-db 521, core-api 133, runtime-utils
+432, runtime-websocket 114; no failures, skips unchanged. Detekt is clean, but its
+configuration excludes common, core modules, account, staking, wallet, runtime and app,
+so of the changed modules it checks only TON Connect and core-backup.
+
+Open: the replaced Play upload certificate is not pinned on master (owner decision);
+the Nomis key that was in the source should be revoked (Nomis was removed on
+21 November 2026); no device or emulator run
+covers this port. The Taira balance paging defect is fixed in the follow-up above.
+
+## dApp signing and cross-chain hardening — 29 October 2026
+
+WalletConnect signs only with the account the session approved on the request's
+network, refuses malformed params and dApps Reown Verify flags, binds the preview
+and the signature to the request shown, and signs `polkadot_signMessage` wrapped in
+`<Bytes>`. `polkadot_signTransaction` reads every field strictly, decodes the call
+with the network's runtime and lays out the signed bytes itself, signed extensions
+included (CheckMetadataHash mode and hash, ChargeAssetTxPayment), bound to the
+metadata's runtime version. Ordinary polkadot.js requests now produce valid
+signatures: the Polkadot, Kusama, Statemint and Westend parity payloads are rebuilt
+byte for byte. Immortal eras, other genesis hashes or runtimes, unknown signed
+extensions and calls that do not decode exactly are refused before any key is read;
+a regression test reproduces crafted fields that spelled an XCM teleport payload.
+Previews decode Polkadot calls (also inside batches, proxies and multisig), EVM
+token calls and EIP-712 permits, show every cross-chain call with destination,
+beneficiary and amount, mark XCM programs high risk, and refuse destinations that
+no longer deliver: SORA bridge burns toward its halted parachains and Liberland,
+relay reserve transfers of the relay token, and XCM to Moonbeam, Parallel,
+Moonriver and the SORA parachains.
+
+The production chain catalog and app configs are owned by the security team, and a
+snapshot test pins the production XCM route membership. Type registry overrides are
+debug-only, release builds drop plaintext nodes from the remote catalog, and a
+release bridge flag other than false fails Gradle configuration. The retired CBDC
+QR payment flow is removed. A cross-chain transfer proven included stays on record
+until Done, so a confirm screen restored after another process death never resends
+it; sending it again takes an explicit choice.
+
+Unit tests: walletconnect 161, common 768, runtime 396 (10 unchanged skips), wallet
+API 130, wallet 718 debug and 726 release, app 189, no failures; Detekt clean. Open:
+there is no remote veto for dApp signing; the wallet does not compute RFC-78
+metadata hashes itself. (The TON Connect and Beacon items are done; see the entry above.)
+
+## dApp signing kill switches — 29 October 2026
+
+Closes the open "no remote veto for dApp signing" item of the entry above. The
+`feature_toggle` file has one veto per dApp family: `polkadot_dapp_signing_enabled`
+(WalletConnect `polkadot_*`), `evm_dapp_signing_enabled` (WalletConnect `eth_*` and
+`personal_sign`) and `ton_dapp_signing_enabled` (TON Connect `sendTransaction` and
+`ton_proof`). They follow the send switches' rules: on by default, an explicit
+`false` is remembered across restarts, offline launches and fetches without the key,
+and only an explicit `true` lifts it. A paused request is shown with the reason and
+Sign disabled; the wallet refuses it right before signing and the dApp gets an
+error, also for an `eth_sendTransaction` signed before the pause. The owned-config
+verifier refuses switch values that are not JSON booleans. See
+`docs/remote-feature-switches.md`.
+
+## Substrate node failover — 29 October 2026
+
+Substrate networks again leave a catalog node that keeps failing while Auto
+select is on, the default. Each network connected only to its selected node,
+and only the node list screen could change it, so the dead first nodes left by
+the Blast and Dwellir shutdowns kept Polkadot, Kusama and the Asset Hubs offline.
+`ChainConnection` counts failed connection attempts per logical binding from
+socket transitions. After three in a row, `ConnectionPool` admits
+`ChainDao.selectNextCatalogNode` with `admitObserved` from the settled read
+behind the failing binding. The DAO moves the selection by rowid to the next
+catalog node, wrapping to the first. Custom nodes are never replaced or chosen,
+Auto select is rechecked inside the writer, and the switch never retires a
+pending explicit selection or catalog replacement; one admitted later wins.
+
+Host tests for core-api, core-db and runtime pass: 1,063 with 14 inherited skips
+(baseline 1,041), including 22 new failure-count, writer and pool cases. A
+schema-84 SQLite replay of the new queries passes. No device run.
+
 
 ## Local app instrumentation profiles — 26 October 2026
 
@@ -1551,7 +2845,7 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
 - Accounts & Onboarding: Present (`feature-account-*`, `feature-onboarding-*`).
 - Staking & Crowdloans: Present for Substrate ecosystems (`feature-staking-*`, `feature-crowdloan-*`).
 - Swaps & Pools: Polkaswap and liquidity pools present (`feature-polkaswap-*`, `feature-liquiditypools-*`).
-- WalletConnect v2: Initialized in `App.setupWalletConnect()` with Reown SDK.
+- WalletConnect v2: in-repo client (no SDK) started by `App` through `WalletConnectStarter`.
 - TON Connect: Present (`feature-tonconnect-*`).
 - NFTs: Present; details screen has TODO placeholders.
 
@@ -1706,10 +3000,12 @@ This snapshot summarizes the current health, feature coverage, and key risks of 
   unused legacy Spongy Castle PKIX/PGP artifacts are replaced by only the
   provider primitives required by `fearless-utils`.
 - Local validation: `scripts/validate-local.sh` runs the same checks and now installs Android platform/build-tools 36 to match the compile SDK, along with NDK r28 and platform-tools.
-- WalletConnect/Reown SDK: BOM 1.6.9 resolves Kotlin 2.2 runtime metadata, so
-  release builds use exact AGP 8.10.1 / R8 8.10.24 with compileSdk 36; the
-  bundled UniFFI native libraries retain 16 KB page alignment.
-- WalletConnect Pay: dependency excluded (until Reown publishes 16 KB-native builds) to avoid packaging the `yttrium-wcpay` 4 KB libraries.
+- WalletConnect: since 4.3.2 the app ships no WalletConnect SDK. The Reown BOM
+  1.6.9 (and the excluded WalletConnect Pay) are gone. The 87 libraries it had
+  raised in 4.3.1 (233), among them web3j crypto/abi/utils/rlp 4.9.8-hotfix,
+  OkHttp 5.1.0, Kotlin stdlib 2.2.10, coroutines 1.10.2, serialization 1.7.3,
+  Compose 1.7.8, security-crypto 1.1.0-alpha06 and Tink 1.8.0, are held at
+  least at those versions by dependency constraints in the root `build.gradle`.
 - Google Play 16 KB page-size compliance: Native bundles rebuilt with NDK r28, `readelf -l` verification runs in CI on sr25519/toolChecker libraries, and the Play Console warning is cleared.
 - Native crypto rebuild tooling: `scripts/build-libsodium.sh` now auto-detects the host-specific `toolchains/llvm/prebuilt` directory (darwin/linux/windows) so libsodium can be rebuilt on non-macOS hosts without manual tweaks.
 - Utils composite build: public CI checks out `soramitsu/fearless-utils-Android`
@@ -2049,3 +3345,11 @@ Candidate-v2 SHA `0667a85ceb7c48f840cfb75d8a0ad0ad8406ded290f170a36b50898554c65f
 Selection ownership follows actual selectionItem emissions, not every wallet/registry/preference intent; prior relay publication admission remains separate. Non-cooperative work can delay progress until it returns. New actual-root recovery tests cover relay and pool, not a fresh parachain round trip. Retained root-alert callbacks, equal-text alert adapter rebinding and action-to-info holder reuse are next source-based candidates requiring controlled baselines. The optional payout listener is unchanged; current-selection reads alone do not establish wrong-identity writes. Automatic root-alert/registry freshness, full native/design, migration, physical-device, signing/store and release gates remain open.
 
 Integration verified at `d9a40d065fb091f2a42c91aa410a755d08f51a29`: whole4,347-file executable tree,376utils/84transport and944evidence pins exact; verification `18147baf25141426aa423e777dcf2ae504e18291322e039729c8b5021bab738b`. No additional build or native run is claimed.
+
+## Unbond confirmation regression scheduling — 29 October 2026
+
+The stale-source confirmation test now waits for the background fee projection
+as well as the immediate error dialog. The retained failing result observed a
+null fee before that projection completed. The no-builder, no-submission and
+error-fee assertions remain in place; production signing code is unchanged.
+Local focused verification is recorded in the impact-assessment takeover receipt.

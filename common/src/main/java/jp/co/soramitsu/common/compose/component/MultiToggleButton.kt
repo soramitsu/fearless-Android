@@ -22,6 +22,8 @@ import jp.co.soramitsu.common.R
 import jp.co.soramitsu.common.compose.theme.FearlessTheme
 import jp.co.soramitsu.common.compose.theme.customColors
 import jp.co.soramitsu.common.compose.theme.customTypography
+import jp.co.soramitsu.common.compose.theme.fw.FwRestyle
+import jp.co.soramitsu.common.compose.theme.fw.FwSegmented
 import jp.co.soramitsu.common.utils.toggleableWithNoIndication
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -31,6 +33,17 @@ fun <T : MultiToggleItem> MultiToggleButton(
     onToggleChange: (T) -> Unit,
     stacked: Boolean = false
 ) {
+    if (FwRestyle.paletteEnabled) {
+        val labels = state.toggleStates.map { stringResource(it.titleResId) }
+        FwSegmented(
+            labels = labels,
+            selectedIndex = state.toggleStates.indexOf(state.currentSelection).coerceAtLeast(0),
+            onSelect = { index -> state.toggleStates.getOrNull(index)?.let(onToggleChange) },
+            stacked = stacked,
+            testTags = labels.map { "MultiToggleButton_$it" }
+        )
+        return
+    }
     val selectedTint = MaterialTheme.customColors.white16
     val unselectedTint = Color.Unspecified
 
