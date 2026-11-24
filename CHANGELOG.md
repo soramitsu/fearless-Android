@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 4.3.8 (240)
+
+- Send no longer crashes when you enter an Ethereum, BNB Chain or other EVM recipient.
+- Wallets that hold only an Ethereum account open their home screen again.
+- TON Connect waits for its network instead of closing the app when that network is missing from the local list.
+- The NFT list skips a network that has left the local list instead of closing the app.
+- A TON-only wallet opens its home screen before the asset list has loaded.
+
 ## 4.3.7 (239)
 
 - Switch node opens the selected network from the chain accounts sheet. Back returns to the previous screen.
