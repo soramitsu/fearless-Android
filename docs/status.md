@@ -1,6 +1,6 @@
 ## Android 4.3.8 crash fixes — 24 November 2026
 
-Play reported two 4.3.7 crash clusters. The EVM icon crash (7 events, 2 users) came from drawing an icon from a 19-byte seed and reading byte 31; it fired on Send for any valid EVM recipient and on the home screen of wallets holding only an Ethereum account. The `ChainsRepository.getChain` crash (1 event) is the strict 60-second lookup; the TON Connect bridge observer and the NFT page mapper could reach it without a tap. 4.3.8 (240) fixes all three. See `docs/releases/4.3.8.md`.
+Play reported two 4.3.7 crash clusters. The EVM icon crash (7 events, 2 users) came from drawing an icon from a 19-byte seed and reading byte 31; it fired on Send for any valid EVM recipient and on the home screen of wallets holding only an Ethereum account. The `ChainsRepository.getChain` crash (1 event) is the strict 60-second lookup; the TON Connect bridge observer and the NFT page mapper could reach it without a tap. 4.3.8 (240) fixes all three. Google Play has served 4.3.8 to 100% of Production since 24 November 2026 20:35 UTC. See `docs/releases/4.3.8.md`.
 
 ## Android production rollout — 19 November 2026
 
