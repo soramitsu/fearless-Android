@@ -1,3 +1,17 @@
+## Android 4.3.8 crash fixes on the consolidated line — 24 November 2026
+
+- Play's 4.3.7 (239) crashes are fixed here too, as on the 4.3.8 (240) hotfix line `release/android-4.3.8`, which
+  was built from 4.3.7's own source. The two fix commits are cherry-picked unchanged; this line keeps its 4.3.7 (239)
+  source version, so its next Play release needs version code 241 or higher.
+- EVM icons: `IconGenerator.generateEthereumAddressIcon` zero-pads ids shorter than 32 bytes. The 19-byte EVM wallet
+  seed crashed Send with any EVM recipient and the home of EVM-only wallets. WalletConnect's 20-byte ids hit the same
+  crash. The runtime-utils source pins are unchanged from 4.3.8 and verify against this tree.
+- Missing networks: the TON Connect bridge reads its address from the live catalog per wallet and stays idle without
+  one; NFT pages read one catalog snapshot per batch; the TON-only home placeholder accepts an empty catalog. Before,
+  the strict 60-second `getChain` could end the process without a tap.
+- Checks: 2,543 unit tests in runtime-utils, common, TON Connect, NFT and `*BalanceList*` (0 failures), `detektAll`,
+  `scripts/verify-android-runtime-sources.sh`. The release record is `docs/releases/4.3.8.md` on the 4.3.8 line.
+
 ## Bitcoin and Solana logos; 4.3.7 on the consolidated line — 23 November 2026
 
 - `runtime/src/main/assets/native-icons/bitcoin.svg` and `solana.svg` were grey circles with the letters "BT" and "SO".
