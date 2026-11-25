@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## 4.3.9 (241)
+
+- Google Play can offer the wallet to compatible devices with a landscape-only display.
+
 ## 4.3.8 (240)
 
 - Send no longer crashes when you enter an Ethereum, BNB Chain or other EVM recipient.

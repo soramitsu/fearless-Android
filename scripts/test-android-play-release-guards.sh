@@ -269,8 +269,8 @@ verify_static_contract() {
     awk -F= '$1 == "versionCode" { print $2 }' "$version_properties"
   )"
   if [[ ! "$version_code" =~ ^[1-9][0-9]*$ ]] ||
-    (( version_code < 240 )); then
-    static_fail "source-controlled versionCode must be an unused value at least 240"
+    (( version_code < 241 )); then
+    static_fail "source-controlled versionCode must be an unused value at least 241"
   fi
   forbid_text \
     "$root/build.gradle" \
@@ -1937,10 +1937,10 @@ expect_static_failure() {
 positive_count=$((positive_count + 1))
 
 fixture="$(make_fixture version-code-downgrade)"
-replace_once "$fixture/versioning/version.properties" "versionCode=240" "versionCode=239"
+replace_once "$fixture/versioning/version.properties" "versionCode=241" "versionCode=240"
 expect_static_failure \
   "downgraded Play version code" \
-  "versionCode must be an unused value at least 240" \
+  "versionCode must be an unused value at least 241" \
   "$fixture"
 
 fixture="$(make_fixture unexpected-workflow-job)"

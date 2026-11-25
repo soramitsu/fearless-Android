@@ -1,3 +1,7 @@
+## Android 4.3.9 (241)
+
+Check the signed bundle for the optional portrait feature and rehearse the upgrade from build 240 on a landscape display.
+
 ## Android 4.3.8 — 24 November 2026
 
 Qualify the crash fixes from the 4.3.7 Play reports: the EVM recipient and EVM-only wallet icon, the TON Connect bridge and the NFT page mapper. Check in-place upgrades from 4.3.7, 4.2.0 and 3.7.4. Still open: the saved network filter waits up to 60 seconds for a network that was retired; resolve it against the current catalog without dropping a valid filter during startup.
