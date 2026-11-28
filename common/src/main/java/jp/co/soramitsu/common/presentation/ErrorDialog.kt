@@ -417,6 +417,14 @@ class ErrorDialog() : BottomSheetDialogFragment() {
     }
 
     fun show(fragmentManager: FragmentManager) {
-        show(fragmentManager, TAG)
+        if (fragmentManager.isDestroyed) return
+        if (!fragmentManager.isStateSaved) {
+            show(fragmentManager, TAG)
+            return
+        }
+        // An error that arrives after the screen saved its state (the app went to the background) made
+        // show() throw IllegalStateException and close the app (Play, ErrorDialog.show). Add it anyway: it
+        // appears when the user comes back; only its own restore after the process is killed is lost.
+        fragmentManager.beginTransaction().add(this, TAG).commitAllowingStateLoss()
     }
 }

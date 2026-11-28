@@ -173,6 +173,23 @@ class ErrorDialogRobolectricTest {
         assertTrue(behavior.isHideable)
     }
 
+    @Test
+    fun shouldShowOnReturn_whenTheErrorArrivesAfterTheScreenSavedItsState() {
+        val manager = activity.supportFragmentManager
+        compose.runOnUiThread {
+            controller.pause().stop().saveInstanceState(Bundle())
+            assertTrue(manager.isStateSaved)
+            // DialogFragment.show() throws IllegalStateException here; the app closed (Play, ErrorDialog.show).
+            ErrorDialog(title = "Late error", message = "Arrived in the background", positiveButtonText = "OK").show(manager)
+            manager.executePendingTransactions()
+            controller.start().resume()
+        }
+        compose.waitForIdle()
+        val shown = manager.findFragmentByTag(ErrorDialog.TAG) as ErrorDialog
+        assertTrue(shown.isAdded)
+        compose.onNodeWithText("Late error").assertIsDisplayed()
+    }
+
     private fun show(sheet: ErrorDialog) {
         compose.runOnUiThread {
             sheet.show(activity.supportFragmentManager)
