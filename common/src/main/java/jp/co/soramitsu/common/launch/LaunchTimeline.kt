@@ -78,14 +78,17 @@ fun launchClipPlacement(
     focusX: Float,
     focusY: Float
 ): FloatArray {
-    if (minOf(viewWidth, viewHeight, clipWidth, clipHeight) <= 0f) {
+    val sizes = floatArrayOf(viewWidth, viewHeight, clipWidth, clipHeight)
+    if (sizes.any { !it.isFinite() || it <= 0f }) {
         return floatArrayOf(1f, 1f, 0f, 0f, viewWidth * focusX, viewHeight * focusY)
     }
     val scale = maxOf(viewWidth / clipWidth, viewHeight / clipHeight)
-    val width = clipWidth * scale
-    val height = clipHeight * scale
-    val left = (viewWidth / 2f - focusX * width).coerceIn(viewWidth - width, 0f)
-    val top = (viewHeight / 2f - focusY * height).coerceIn(viewHeight - height, 0f)
+    // Float rounding can leave the filled side a hair short of the view (1080 - 1079.99997): the lower
+    // bound then sits above 0 and coerceIn throws, closing the app at start (Play 240). Never above 0.
+    val width = maxOf(clipWidth * scale, viewWidth)
+    val height = maxOf(clipHeight * scale, viewHeight)
+    val left = (viewWidth / 2f - focusX * width).coerceIn(minOf(viewWidth - width, 0f), 0f)
+    val top = (viewHeight / 2f - focusY * height).coerceIn(minOf(viewHeight - height, 0f), 0f)
     return floatArrayOf(width / viewWidth, height / viewHeight, left, top, left + focusX * width, top + focusY * height)
 }
 

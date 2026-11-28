@@ -69,7 +69,9 @@ fun fwSkyPlacement(
     sunX: Float = FwSkyScrim.SUN_X,
     sunY: Float = FwSkyScrim.SUN_Y
 ): FloatArray {
-    if (minOf(viewWidth, viewHeight, imageWidth, imageHeight) <= 0f) return floatArrayOf(0f, 0f, viewWidth, viewHeight)
+    if (floatArrayOf(viewWidth, viewHeight, imageWidth, imageHeight).any { !it.isFinite() || it <= 0f }) {
+        return floatArrayOf(0f, 0f, viewWidth, viewHeight)
+    }
     val cover = max(viewWidth / imageWidth, viewHeight / imageHeight)
     val needed = maxOf(
         cover,
@@ -79,10 +81,12 @@ fun fwSkyPlacement(
         (viewHeight - anchorY) / ((1f - sunY) * imageHeight)
     )
     val scale = needed.coerceAtMost(cover * FwSkyScrim.MAX_ZOOM)
-    val width = imageWidth * scale
-    val height = imageHeight * scale
-    val left = (anchorX - sunX * width).coerceIn(viewWidth - width, 0f)
-    val top = (anchorY - sunY * height).coerceIn(viewHeight - height, 0f)
+    // Float rounding can leave the covering side a hair short of the view; the lower bound must never
+    // rise above 0 or coerceIn throws while drawing (the same fault as launchClipPlacement on Play 240).
+    val width = maxOf(imageWidth * scale, viewWidth)
+    val height = maxOf(imageHeight * scale, viewHeight)
+    val left = (anchorX - sunX * width).coerceIn(minOf(viewWidth - width, 0f), 0f)
+    val top = (anchorY - sunY * height).coerceIn(minOf(viewHeight - height, 0f), 0f)
     return floatArrayOf(left, top, width, height)
 }
 

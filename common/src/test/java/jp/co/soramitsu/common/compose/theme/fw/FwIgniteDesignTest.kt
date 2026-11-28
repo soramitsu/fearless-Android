@@ -61,6 +61,19 @@ class FwIgniteDesignTest {
     }
 
     @Test
+    fun shouldPlaceTheSky_whenFloatRoundingLeavesTheCoveringSideShort() {
+        // 675 * scale came out 1.5e-5 under 239: the old lower bound sat above 0 and coerceIn threw while drawing.
+        val (left, top, width, height) = fwSkyPlacement(300f, 239f, 1200f, 675f, anchorX = 155.1f, anchorY = 92.015f).toList()
+        assertTrue(left <= 0f && top <= 0f && left + width >= 300f - 1e-2f && top + height >= 239f - 1e-2f)
+        for (w in 300..1400 step 13) {
+            for (h in 200..1200 step 7) {
+                val p = fwSkyPlacement(w.toFloat(), h.toFloat(), 1200f, 675f, anchorX = w * 0.517f, anchorY = h * 0.385f)
+                assertTrue("$w x $h", p[0] <= 0f && p[1] <= 0f && p[0] + p[2] >= w - 1e-2f && p[1] + p[3] >= h - 1e-2f)
+            }
+        }
+    }
+
+    @Test
     fun shouldStillCoverTheCard_whenTheSunCannotReachTheAnchor() {
         val (left, top, width, height) = fwSkyPlacement(360f, 330f, 1200f, 675f, anchorX = 0f, anchorY = 0f).toList()
         assertTrue(left <= 0f && top <= 0f && left + width >= 360f && top + height >= 330f)

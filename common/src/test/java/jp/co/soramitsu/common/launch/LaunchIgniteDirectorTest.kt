@@ -228,4 +228,31 @@ class LaunchIgniteDirectorTest {
         val edge = launchClipPlacement(1080f, 2400f, 720f, 1560f, 0f, 0f)
         assertTrue(edge[2] <= 0f && edge[2] + edge[0] * 1080f >= 1080f)
     }
+
+    @Test
+    fun shouldPlaceTheClip_whenFloatRoundingLeavesTheFilledSideShort() {
+        // Play 240: IllegalArgumentException in launchClipPlacement. 200 x 455 is one of the sizes where
+        // 1560 * (455 / 1560) comes out a hair under 455, so the old lower bound was above 0.
+        launchClipPlacement(200f, 455f, 720f, 1560f, 0.5f, 0.3292f)
+        for (w in 240..1600 step 7) {
+            for (h in 320..3200 step 11) {
+                for ((fx, fy) in listOf(0f to 0f, 0.5f to 0.3292f, 1f to 1f)) {
+                    val p = launchClipPlacement(w.toFloat(), h.toFloat(), 720f, 1560f, fx, fy)
+                    assertTrue("left $w x $h", p[2] <= 0f && p[2] + p[0] * w >= w - 1e-2f)
+                    assertTrue("top $w x $h", p[3] <= 0f && p[3] + p[1] * h >= h - 1e-2f)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun shouldReturnTheIdentity_whenASizeIsNotARealNumber() {
+        for (bad in listOf(Float.NaN, Float.POSITIVE_INFINITY, 0f, -1f)) {
+            val p = launchClipPlacement(1080f, 2400f, bad, 1560f, 0.5f, 0.5f)
+            assertEquals(1f, p[0], 0f)
+            assertEquals(1f, p[1], 0f)
+            assertEquals(0f, p[2], 0f)
+            assertEquals(0f, p[3], 0f)
+        }
+    }
 }
