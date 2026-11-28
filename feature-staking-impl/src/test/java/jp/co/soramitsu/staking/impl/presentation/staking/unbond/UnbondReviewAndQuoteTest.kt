@@ -53,6 +53,8 @@ class UnbondReviewAndQuoteTest {
         val confirm = f.confirm(payload); confirm.confirmClicked()
         f.await { confirm.errorDialogStateLiveData.value != null }
         assertTrue(f.calls.isEmpty()); assertTrue(f.submitted.isEmpty())
+        // The fee projection runs on Dispatchers.Default, so it can publish after the synchronous error dialog.
+        f.await { confirm.feeStatusLiveData.value != null }
         assertSame(FeeStatus.Error, confirm.feeStatusLiveData.value)
     }
 

@@ -13,7 +13,8 @@ class EthereumEnvironmentConfigurator(
 
     override suspend fun configure(chain: Chain) {
         require(chain.ecosystem == Ecosystem.Ethereum)
-        ethereumConnectionPool.setupConnection(chain) { _, _ ->
+        // The pool rereads the chain's endpoints from Room, so an older caller snapshot cannot bring retired URLs back.
+        ethereumConnectionPool.setupCurrentConnection(chain) { _, _ ->
             // Automatic transport failover is observational; it cannot rewrite user selection.
         }
     }
