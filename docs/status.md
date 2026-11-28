@@ -1,3 +1,15 @@
+## Android 4.3.10 (242) crash fixes — 27 November 2026
+
+Play Console showed a 4.13% user-perceived crash rate over the 28 days to 27 November (down 2.44 points;
+about 38 of 1,000 phone sessions). Of 32 crash clusters, 30 come from builds that 4.3.3-4.3.8 already fixed,
+mostly 4.2.0 (229) devices that have not updated (`ChainDao.observeChainsWithBalanceByName`, 15 users).
+The one cluster on a current build is `LaunchTimelineKt.launchClipPlacement` (240, Galaxy Z Fold3,
+Android 15): float rounding left the filled side of the launch clip a hair short of the view, so the
+lower `coerceIn` bound rose above 0 and threw at start. The fix clamps the bound and keeps the scaled side
+at least the view's size; `fwSkyPlacement` (the wallet home's sky card) had the same fault and the same
+fix. `ErrorDialog.show` no longer throws when an error arrives after the screen saved its state (a 4.2.0
+cluster whose code was unchanged); the dialog is added allowing state loss and appears on return.
+
 ## Android 4.3.9 (241)
 
 The app manifest explicitly marks portrait hardware optional so Google Play can offer the wallet to devices with a fixed landscape display.

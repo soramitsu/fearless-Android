@@ -1,3 +1,10 @@
+## Android 4.3.10 (242)
+
+Qualify the signed bundle, rehearse 241→242 and 229→242 upgrades, open the launch clip on a foldable or a
+resized window, and read 242's Vitals after release. Still unexplained without a stack: single-user
+`MetaAccountDao.getJoinedMetaAccountInfo` (229), `StackOverflowError` in `formatTime` (235/236) and the
+caller of the 4.3.7 `ChainsRepository.getChain` timeout.
+
 ## Android 4.3.9 (241)
 
 Check the signed bundle for the optional portrait feature and rehearse the upgrade from build 240 on a landscape display.

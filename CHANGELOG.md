@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 4.3.10 (242)
+
+- The app no longer closes at start on some screen sizes and foldables while the launch animation plays.
+- The wallet home's sky card no longer closes the app on some card sizes.
+- An error that arrives while the app is in the background no longer closes the app; it shows when you return.
+
 ## 4.3.9 (241)
 
 - Google Play can offer the wallet to compatible devices with a landscape-only display.
